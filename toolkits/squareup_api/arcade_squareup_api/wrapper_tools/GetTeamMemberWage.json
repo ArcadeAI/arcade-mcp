@@ -1,18 +1,18 @@
 {
   "name": "GetTeamMemberWage",
-  "fully_qualified_name": "SquareupApi.GetTeamMemberWage@0.1.0",
-  "description": "Retrieve wage details for a specified team member.\n\nUse this tool to obtain wage information for a specific team member by providing their unique ID.",
+  "fully_qualified_name": "SquareupApi.GetTeamMemberWage@2.0.0",
+  "description": "Retrieve wage details for a specific team member.\n\nUse this tool to obtain wage information for a specific team member by their ID. Useful for managing payroll or reviewing individual compensation.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "team_member_wage_id",
         "required": true,
-        "description": "The unique UUID for retrieving the specified team member's wage.",
+        "description": "The unique identifier (UUID) for retrieving the specific TeamMemberWage record.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/labor/team-member-wages/{id}",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

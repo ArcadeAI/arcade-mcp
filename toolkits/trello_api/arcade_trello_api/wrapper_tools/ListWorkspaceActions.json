@@ -1,18 +1,18 @@
 {
   "name": "ListWorkspaceActions",
-  "fully_qualified_name": "TrelloApi.ListWorkspaceActions@0.1.0",
-  "description": "Retrieve actions from a specific Workspace.\n\nUse this tool to obtain a list of all actions taken within a specified Trello Workspace. This can help track changes, updates, and other activities.",
+  "fully_qualified_name": "TrelloApi.ListWorkspaceActions@2.0.0",
+  "description": "Retrieve actions related to a specific Trello Workspace.\n\nUse this tool to obtain a list of all actions that have taken place within a specific Trello Workspace. This can include changes, updates, and any other activities relevant to the workspace.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "workspace_identifier",
+        "name": "organization_id_or_name",
         "required": true,
-        "description": "The unique ID or name of the Trello Workspace to retrieve actions for.",
+        "description": "The ID or name of the Trello Workspace to list actions for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/organizations/{id}/actions",
@@ -72,7 +72,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "workspace_identifier",
+        "tool_parameter_name": "organization_id_or_name",
         "description": "The ID or name of the organization",
         "value_schema": {
           "val_type": "string",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

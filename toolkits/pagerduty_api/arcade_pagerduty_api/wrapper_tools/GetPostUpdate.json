@@ -1,18 +1,18 @@
 {
   "name": "GetPostUpdate",
-  "fully_qualified_name": "PagerdutyApi.GetPostUpdate@0.1.0",
-  "description": "Retrieve a specific post update by post and update ID.\n\nFetch a post update for a post using the post ID and post update ID on Pagerduty.",
+  "fully_qualified_name": "PagerdutyApi.GetPostUpdate@2.0.0",
+  "description": "Retrieve specific post updates by post and update IDs.\n\nUse this tool to get detailed information about a specific post update from a status page, using the specified post and update IDs. Scoped OAuth with `status_pages.read` is required.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique ID of the resource to retrieve the post update.",
+        "description": "The unique identifier for the resource to retrieve the post update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "status_page_post_id",
         "required": true,
-        "description": "The unique ID of the Status Page Post to retrieve the update for.",
+        "description": "The unique identifier for the Status Page Post to retrieve updates for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "post_id"
       },
       {
-        "name": "status_page_post_update_id",
+        "name": "post_update_id",
         "required": true,
-        "description": "The ID of the Status Page Post Update to be retrieved from Pagerduty.",
+        "description": "The ID of the Status Page Post Update required for fetching specific update details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "post_update_id"
       },
       {
-        "name": "accept_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "The `Accept` header used for versioning. Specify the API version required.",
+        "description": "Specify the `Accept` header to indicate the API versioning for the request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,13 +100,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/posts/{post_id}/post_updates/{post_update_id}",
@@ -151,7 +151,7 @@
       },
       {
         "name": "post_update_id",
-        "tool_parameter_name": "status_page_post_update_id",
+        "tool_parameter_name": "post_update_id",
         "description": "The ID of the Status Page Post Update.",
         "value_schema": {
           "val_type": "string",
@@ -169,7 +169,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -196,6 +196,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

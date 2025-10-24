@@ -1,18 +1,18 @@
 {
   "name": "RemoveTrelloWebhook",
-  "fully_qualified_name": "TrelloApi.RemoveTrelloWebhook@0.1.0",
-  "description": "Deletes a Trello webhook using its ID.\n\nThis tool is used to delete a specific Trello webhook by providing its unique ID. It should be called when there is a need to remove an existing webhook that is no longer required.",
+  "fully_qualified_name": "TrelloApi.RemoveTrelloWebhook@2.0.0",
+  "description": "Delete a Trello webhook by ID.\n\nUse this tool to delete a specific webhook in Trello by providing its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "webhook_id",
         "required": true,
-        "description": "The unique ID of the Trello webhook to be deleted.",
+        "description": "The ID of the Trello webhook you want to delete.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/webhooks/{id}",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

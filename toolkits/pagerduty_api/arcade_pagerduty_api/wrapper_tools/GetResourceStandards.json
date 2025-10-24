@@ -1,18 +1,18 @@
 {
   "name": "GetResourceStandards",
-  "fully_qualified_name": "PagerdutyApi.GetResourceStandards@0.1.0",
-  "description": "Retrieve standards for a specific resource in PagerDuty.\n\nUse this tool to list the standards applied to a specific resource in PagerDuty. Ideal for checking compliance or reviewing standard applications. Requires `standards.read` permission.",
+  "fully_qualified_name": "PagerdutyApi.GetResourceStandards@2.0.0",
+  "description": "Retrieve standards applied to a specified resource on PagerDuty.\n\nUse this tool to get a list of standards that are applied to a specified resource type and ID on PagerDuty. Requires 'standards.read' OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier of the resource for which to list the standards.",
+        "description": "The ID of the resource for which you want to list the applied standards.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "resource_type",
         "required": true,
-        "description": "The type of resource to list standards for. Accepted value: 'technical_services'.",
+        "description": "Specify the type of resource to which standards are applied, such as 'technical_services'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,9 +42,9 @@
         "http_endpoint_parameter_name": "resource_type"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_header",
         "required": true,
-        "description": "Specify the version of the API response format using this header, such as 'application/vnd.pagerduty.v2+json'.",
+        "description": "Specifies the versioning header for API response format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/standards/scores/{resource_type}/{id}",
@@ -140,7 +140,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

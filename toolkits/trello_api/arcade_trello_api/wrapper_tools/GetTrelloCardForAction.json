@@ -1,0 +1,216 @@
+{
+  "name": "GetTrelloCardForAction",
+  "fully_qualified_name": "TrelloApi.GetTrelloCardForAction@2.0.0",
+  "description": "Get details of a Trello card associated with an action.\n\nThis tool retrieves the details of a Trello card linked to a specific action. It should be called when you need information about the card associated with a particular Trello action.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "action_id",
+        "required": true,
+        "description": "The unique identifier of the action linked to the Trello card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the action"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "card_fields",
+        "required": false,
+        "description": "Specify 'all' to retrieve all fields or provide a comma-separated list of specific card fields like 'id,name,shortUrl'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "address",
+            "badges",
+            "checkItemStates",
+            "closed",
+            "coordinates",
+            "creationMethod",
+            "dueComplete",
+            "dateLastActivity",
+            "desc",
+            "descData",
+            "due",
+            "dueReminder",
+            "idBoard",
+            "idChecklists",
+            "idLabels",
+            "idList",
+            "idMembers",
+            "idMembersVoted",
+            "idShort",
+            "idAttachmentCover",
+            "labels",
+            "limits",
+            "locationName",
+            "manualCoverAttachment",
+            "name",
+            "pos",
+            "shortLink",
+            "shortUrl",
+            "subscribed",
+            "url",
+            "cover",
+            "isTemplate"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of card fields"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-actions-id-card'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/actions/{id}/card",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "fields",
+        "tool_parameter_name": "card_fields",
+        "description": "`all` or a comma-separated list of card fields",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "address",
+            "badges",
+            "checkItemStates",
+            "closed",
+            "coordinates",
+            "creationMethod",
+            "dueComplete",
+            "dateLastActivity",
+            "desc",
+            "descData",
+            "due",
+            "dueReminder",
+            "idBoard",
+            "idChecklists",
+            "idLabels",
+            "idList",
+            "idMembers",
+            "idMembersVoted",
+            "idShort",
+            "idAttachmentCover",
+            "labels",
+            "limits",
+            "locationName",
+            "manualCoverAttachment",
+            "name",
+            "pos",
+            "shortLink",
+            "shortUrl",
+            "subscribed",
+            "url",
+            "cover",
+            "isTemplate"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of card fields"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "action_id",
+        "description": "The ID of the action",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the action"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

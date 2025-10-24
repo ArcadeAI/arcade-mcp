@@ -1,18 +1,18 @@
 {
   "name": "GetChecklistItem",
-  "fully_qualified_name": "TrelloApi.GetChecklistItem@0.1.0",
-  "description": "Retrieve details of a specific checkitem from a checklist.\n\n",
+  "fully_qualified_name": "TrelloApi.GetChecklistItem@2.0.0",
+  "description": "Retrieve a specific checkitem from a checklist on Trello.\n\nThis tool is used to get details about a specific checkitem within a checklist on Trello. It should be called when you need information about a particular task or item in a checklist.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "checklist_id",
         "required": true,
-        "description": "ID of the checklist from which to retrieve the checkitem.",
+        "description": "The unique identifier of the checklist containing the desired checkitem.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "check_item_id",
         "required": true,
-        "description": "ID of the check item to retrieve from the checklist.",
+        "description": "ID of the specific check item to retrieve from the checklist.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "checkitem_fields",
         "required": false,
-        "description": "Specify the checkitem fields to retrieve: `all`, `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`.",
+        "description": "Specify which fields of the checkitem to retrieve. Options include `all`, `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -97,13 +97,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}",
@@ -135,6 +135,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "name, nameData, pos, state, due, dueReminder, idMember",
         "documentation_urls": []
       },
       {
@@ -152,6 +153,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -169,6 +171,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -190,6 +193,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

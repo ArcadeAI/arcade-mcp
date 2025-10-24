@@ -1,18 +1,18 @@
 {
   "name": "CreateEnterpriseAuthToken",
-  "fully_qualified_name": "TrelloApi.CreateEnterpriseAuthToken@0.1.0",
-  "description": "Create an auth token for a Trello enterprise.\n\nUse this tool to generate an authentication token for a specified Trello enterprise. It is typically called when access to enterprise-level features is required.",
+  "fully_qualified_name": "TrelloApi.CreateEnterpriseAuthToken@2.0.0",
+  "description": "Create an auth token for a Trello enterprise.\n\nThis tool generates an authentication token for a specified enterprise in Trello. Use it when managing enterprise-level access or automating processes that require specific enterprise authentication.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "ID of the enterprise for which you want to create an auth token.",
+        "description": "The unique ID of the enterprise for which the auth token will be generated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "token_expiration",
         "required": false,
-        "description": "Specify token expiration duration: `1hour`, `1day`, `30days`, or `never`.",
+        "description": "Specify the token's duration: `1hour`, `1day`, `30days`, or `never`. This determines how long the token will be valid.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/enterprises/{id}/tokens",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

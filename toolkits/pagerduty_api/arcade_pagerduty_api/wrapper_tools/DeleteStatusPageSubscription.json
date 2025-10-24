@@ -1,18 +1,18 @@
 {
   "name": "DeleteStatusPageSubscription",
-  "fully_qualified_name": "PagerdutyApi.DeleteStatusPageSubscription@0.1.0",
-  "description": "Delete a subscription for a status page by ID.\n\nUse this tool to delete a subscription from a status page using the status page ID and subscription ID. This should be called when you need to remove user subscriptions from specific status pages.",
+  "fully_qualified_name": "PagerdutyApi.DeleteStatusPageSubscription@2.0.0",
+  "description": "Delete a status page subscription by ID.\n\nUse this tool to delete a subscription for a specific status page by providing the status page ID and subscription ID. It requires the 'status_pages.write' permission with scoped OAuth.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier for the status page resource that needs subscription deletion.",
+        "description": "The unique identifier of the status page resource to delete the subscription from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "status_page_subscription_id",
         "required": true,
-        "description": "The ID of the Status Page subscription to be deleted.",
+        "description": "The unique identifier for the specific status page subscription to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "subscription_id"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "A string for the `Accept` header, used for API versioning.",
+        "description": "Specify the version of the API to use via the Accept header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/subscriptions/{subscription_id}",
@@ -136,7 +136,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -163,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

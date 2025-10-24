@@ -1,18 +1,18 @@
 {
   "name": "ListServiceAuditRecords",
-  "fully_qualified_name": "PagerdutyApi.ListServiceAuditRecords@0.1.0",
-  "description": "Retrieve a list of service audit records from Pagerduty.\n\nCall this tool to get audit records for a specific service in Pagerduty, useful for tracking changes or investigating issues. The records are sorted by execution time from newest to oldest, and support cursor-based pagination for large datasets.",
+  "fully_qualified_name": "PagerdutyApi.ListServiceAuditRecords@2.0.0",
+  "description": "Retrieve service audit records sorted by execution time.\n\nUse this tool to get audit records for a specific service from PagerDuty, sorted by execution time from newest to oldest. Ideal for monitoring actions and changes related to a service. Ensure proper OAuth scope with `audit_records.read`.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The ID of the resource to retrieve audit records for.",
+        "description": "The ID of the service for which audit records are being retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "api_version_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "The versioning header for the API, typically formatted like 'application/vnd.pagerduty+json;version=2'.",
+        "description": "Specifies the API version to be accepted in the response headers, used for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "The Content-Type header for specifying the format of the response. Use 'application/json'.",
+        "description": "Specifies the desired response format. The only accepted value is 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "result_limit",
         "required": false,
-        "description": "The maximum number of audit records to retrieve in one call.",
+        "description": "Specify the maximum number of audit records to return. Accepts an integer value.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "An optional string parameter used to request the next set of results in a paginated API response. It should be obtained from the `next_cursor` field of the previous response, or left empty to start from the beginning.",
+        "description": "Optional parameter to retrieve the next set of audit records. Use the token from `next_cursor` of the previous response. Defaults to the start if not provided.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,9 +87,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "start_date",
+        "name": "start_date_range",
         "required": false,
-        "description": "The start date for the search range. Defaults to 24 hours ago if not provided.",
+        "description": "The start of the date range for search. Defaults to 24 hours ago if not specified.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "since"
       },
       {
-        "name": "end_date_range",
+        "name": "end_date",
         "required": false,
-        "description": "The end date for the search range. Defaults to now if not specified. Must be within 31 days after the start date.",
+        "description": "The end of the date range for searching audit records. Defaults to `now()` if unspecified. Must be within 31 days after `start_date`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -147,13 +147,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/services/{id}/audit/records",
@@ -198,7 +198,7 @@
       },
       {
         "name": "since",
-        "tool_parameter_name": "start_date",
+        "tool_parameter_name": "start_date_range",
         "description": "The start of the date range over which you want to search. If not specified, defaults to `now() - 24 hours` (past 24 hours)",
         "value_schema": {
           "val_type": "string",
@@ -216,7 +216,7 @@
       },
       {
         "name": "until",
-        "tool_parameter_name": "end_date_range",
+        "tool_parameter_name": "end_date",
         "description": "The end of the date range over which you want to search. If not specified, defaults to `now()`. May not be more than 31 days after `since`.",
         "value_schema": {
           "val_type": "string",
@@ -252,7 +252,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "api_version_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -270,7 +270,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -299,6 +299,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

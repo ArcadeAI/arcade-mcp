@@ -1,11 +1,11 @@
 {
   "name": "GetAppUsageMetrics",
-  "fully_qualified_name": "MiroApi.GetAppUsageMetrics@0.1.0",
-  "description": "Fetch usage metrics for a specific app over a time range.\n\nCall this tool to obtain usage metrics for a specific app within a given time period. It's useful for tracking app performance and usage patterns. An app management API token is required to access this information.",
+  "fully_qualified_name": "MiroApi.GetAppUsageMetrics@2.0.0",
+  "description": "Retrieve usage metrics for a specific app over a time range.\n\nThis tool is used to obtain usage metrics for a specific app within a defined time period. It requires an app management API token and the 'boards:read' scope. Useful for monitoring app performance and usage patterns.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
@@ -27,7 +27,7 @@
       {
         "name": "end_date",
         "required": true,
-        "description": "End date of the period in UTC format (e.g., 2024-12-31).",
+        "description": "End date of the period in UTC format, e.g., 2024-12-31.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "endDate"
       },
       {
-        "name": "app_id",
+        "name": "application_id",
         "required": true,
-        "description": "The unique identifier of the app to retrieve usage metrics for. This ID specifies which app's data to fetch.",
+        "description": "The ID of the app to retrieve metrics for. Provide a valid app ID to obtain usage data.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "app_id"
       },
       {
-        "name": "group_metrics_by_period",
+        "name": "group_data_by_period",
         "required": false,
-        "description": "The time period to group the data by. Accepted values: 'DAY', 'WEEK', or 'MONTH'.",
+        "description": "Specify the time period for grouping data: 'DAY', 'WEEK', or 'MONTH'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -104,13 +104,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2-experimental/apps/{app_id}/metrics",
@@ -132,6 +132,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -149,11 +150,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "period",
-        "tool_parameter_name": "group_metrics_by_period",
+        "tool_parameter_name": "group_data_by_period",
         "description": "Group data by this time period.",
         "value_schema": {
           "val_type": "string",
@@ -170,11 +172,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "WEEK",
         "documentation_urls": []
       },
       {
         "name": "app_id",
-        "tool_parameter_name": "app_id",
+        "tool_parameter_name": "application_id",
         "description": "ID of the app to get metrics for.",
         "value_schema": {
           "val_type": "string",
@@ -187,6 +190,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -200,6 +204,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

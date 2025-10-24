@@ -1,0 +1,277 @@
+{
+  "name": "UpdateUserStatusNotificationRule",
+  "fully_qualified_name": "PagerdutyApi.UpdateUserStatusNotificationRule@2.0.0",
+  "description": "Update a user's status update notification rule.\n\nUse this tool to modify the notification settings for a user's status updates in PagerDuty. Useful for managing how users receive notifications in an account. Requires appropriate OAuth permissions.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier for the user resource to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "status_update_notification_rule_id",
+        "required": true,
+        "description": "The ID of the user's status update notification rule to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The status update notification rule ID on the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status_update_notification_rule_id"
+      },
+      {
+        "name": "accept_versioning_header",
+        "required": true,
+        "description": "Specify the version of the API to use with the `Accept` header. This is used for API versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Specify the content type for the request. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "user_status_update_notification_rule",
+        "required": false,
+        "description": "The user's status update notification rule to be updated, including contact method details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "status_update_notification_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "contact_method": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "A rule for contacting the user for Incident Status Updates."
+            }
+          },
+          "inner_properties": null,
+          "description": "The user's status update notification rule to be updated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateUserStatusUpdateNotificationRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/users/{id}/status_update_notification_rules/{status_update_notification_rule_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status_update_notification_rule_id",
+        "tool_parameter_name": "status_update_notification_rule_id",
+        "description": "The status update notification rule ID on the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The status update notification rule ID on the user."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "user_status_update_notification_rule",
+        "description": "The user's status update notification rule to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "status_update_notification_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "contact_method": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "A rule for contacting the user for Incident Status Updates."
+            }
+          },
+          "inner_properties": null,
+          "description": "The user's status update notification rule to be updated."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"status_update_notification_rule\": {\n            \"type\": \"object\",\n            \"description\": \"A rule for contacting the user for Incident Status Updates.\",\n            \"properties\": {\n              \"contact_method\": {\n                \"allOf\": [\n                  {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true\n                          },\n                          \"summary\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                          },\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true,\n                            \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                          },\n                          \"self\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"the API show URL at which the object is accessible\"\n                          },\n                          \"html_url\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                          }\n                        }\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"type\",\n                          \"id\"\n                        ]\n                      }\n                    ]\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"email_contact_method_reference\",\n                          \"phone_contact_method_reference\",\n                          \"push_notification_contact_method_reference\",\n                          \"sms_contact_method_reference\"\n                        ]\n                      }\n                    }\n                  }\n                ]\n              }\n            },\n            \"required\": [\n              \"contact_method\"\n            ],\n            \"example\": {\n              \"contact_method\": {\n                \"id\": \"PXPGF42\",\n                \"type\": \"email_contact_method_reference\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"status_update_notification_rule\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"status_update_notification_rule\": {\n              \"contact_method\": {\n                \"id\": \"PXPGF42\",\n                \"type\": \"email_contact_method_reference\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The user's status update notification rule to be updated.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

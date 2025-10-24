@@ -1,18 +1,18 @@
 {
   "name": "DeleteOauthClient",
-  "fully_qualified_name": "PagerdutyApi.DeleteOauthClient@0.1.0",
-  "description": "Delete an OAuth client and disassociate subscriptions.\n\nUse this tool to delete an OAuth client in Pagerduty. This action will also remove the OAuth client association from any webhook subscriptions using it. Requires admin or owner role permissions.",
+  "fully_qualified_name": "PagerdutyApi.DeleteOauthClient@2.0.0",
+  "description": "Delete an OAuth client from webhook subscriptions.\n\nThis tool deletes an OAuth client and removes its association from any webhook subscriptions using it. It requires admin or owner role permissions to execute.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The ID of the OAuth client to be deleted.",
+        "description": "The unique identifier of the OAuth client to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_header",
         "required": true,
-        "description": "Specifies the API version using the 'Accept' header for the request.",
+        "description": "The API version header used to specify the version of the endpoint. Required for version control.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the request. Must be 'application/json'.",
+        "description": "The Content-Type header for the request, typically 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/webhook_subscriptions/oauth_clients/{id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

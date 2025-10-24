@@ -1,0 +1,193 @@
+{
+  "name": "CreateServiceExtension",
+  "fully_qualified_name": "PagerdutyApi.CreateServiceExtension@2.0.0",
+  "description": "Create a new extension for a service in PagerDuty.\n\nThis tool is used to create a new extension in PagerDuty, representing an Extension Schema object attached to a service. It should be called when you need to add or register a new extension to enhance a service's functionality. Requires scoped OAuth: `extensions.write`.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "Specify the API version to use by setting the 'Accept' header as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "set_content_type_header",
+        "required": true,
+        "description": "Specify the content type for the request. Use 'application/json' for JSON formatted data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "extension_details",
+        "required": false,
+        "description": "JSON object representing the extension to be created, including necessary details for the extension schema.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "extension": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The extension to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createExtension'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/extensions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "set_content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "extension_details",
+        "description": "The extension to be created",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "extension": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The extension to be created"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"extension\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the extension.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"The type of object being created.\",\n                    \"default\": \"extension\",\n                    \"enum\": [\n                      \"extension\"\n                    ]\n                  },\n                  \"endpoint_url\": {\n                    \"type\": \"string\",\n                    \"format\": \"url\",\n                    \"description\": \"The url of the extension.\"\n                  },\n                  \"extension_objects\": {\n                    \"type\": \"array\",\n                    \"description\": \"The objects for which the extension applies\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"service_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  },\n                  \"extension_schema\": {\n                    \"allOf\": [\n                      {\n                        \"allOf\": [\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"id\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true\n                              },\n                              \"summary\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                              },\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true,\n                                \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                              },\n                              \"self\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"the API show URL at which the object is accessible\"\n                              },\n                              \"html_url\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                              }\n                            }\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"required\": [\n                              \"type\",\n                              \"id\"\n                            ]\n                          }\n                        ]\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                              \"extension_schema_reference\"\n                            ]\n                          }\n                        }\n                      }\n                    ]\n                  },\n                  \"temporarily_disabled\": {\n                    \"type\": \"boolean\",\n                    \"readOnly\": true,\n                    \"description\": \"Whether or not this extension is temporarily disabled; for example, a webhook extension that is repeatedly rejected by the server.\",\n                    \"default\": false\n                  },\n                  \"config\": {\n                    \"type\": \"object\",\n                    \"description\": \"The object that contains extension configuration values depending on the extension schema specification.\"\n                  }\n                },\n                \"required\": [\n                  \"extension_objects\",\n                  \"extension_schema\",\n                  \"name\"\n                ],\n                \"example\": {\n                  \"id\": \"PJU23I3\",\n                  \"endpoint_url\": \"https://example.com/receive_a_pagerduty_webhook\",\n                  \"name\": \"My Webhook\",\n                  \"summary\": \"My Webhook\",\n                  \"type\": \"extension\",\n                  \"extension_schema\": {\n                    \"id\": \"PJFWPEP\",\n                    \"type\": \"extension_schema_reference\"\n                  },\n                  \"extension_objects\": [\n                    {\n                      \"id\": \"PIJ90N7\",\n                      \"type\": \"service_reference\"\n                    }\n                  ],\n                  \"config\": {\n                    \"anykey\": \"anyvalue\"\n                  }\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"extension\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"extension\": {\n              \"endpoint_url\": \"https://example.com/receive_a_pagerduty_webhook\",\n              \"name\": \"My Webhook\",\n              \"extension_schema\": {\n                \"id\": \"PJFWPEP\",\n                \"type\": \"extension_schema_reference\"\n              },\n              \"extension_objects\": [\n                {\n                  \"id\": \"PIJ90N7\",\n                  \"type\": \"service_reference\"\n                }\n              ]\n            }\n          }\n        },\n        \"requestCustomHeaders\": {\n          \"summary\": \"Request Example with Custom Headers\",\n          \"value\": {\n            \"extension\": {\n              \"endpoint_url\": \"https://example.com/receive_a_pagerduty_webhook\",\n              \"name\": \"My Webhook\",\n              \"extension_schema\": {\n                \"id\": \"PJFWPEP\",\n                \"type\": \"extension_schema_reference\"\n              },\n              \"extension_objects\": [\n                {\n                  \"id\": \"PIJ90N7\",\n                  \"type\": \"service_reference\"\n                }\n              ],\n              \"config\": {\n                \"headers\": [\n                  {\n                    \"name\": \"Authorization\",\n                    \"value\": \"Token token=super_secret_token_value\"\n                  }\n                ]\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The extension to be created\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

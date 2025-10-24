@@ -1,0 +1,347 @@
+{
+  "name": "UpdateServiceFeatureEnablement",
+  "fully_qualified_name": "PagerdutyApi.UpdateServiceFeatureEnablement@2.0.0",
+  "description": "Update the feature enablement for a service addon.\n\nUpdate the feature enablement setting for a specific product addon on a PagerDuty service. This tool manages enabling or disabling the addon features. Currently, only 'aiops' is supported. Warnings may be returned if the account is not entitled to use AIOps features.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The ID of the PagerDuty resource to update the feature enablement for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "feature_enablement_identifier",
+        "required": true,
+        "description": "Specify the feature enablement identifier, typically the addon name. Currently, only 'aiops' is supported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "aiops"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The feature enablement identifier, typically the name of the product addon. Currently only `aiops` is supported."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "feature_name"
+      },
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "The `Accept` header for versioning. Specify the desired API version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Set the Content-Type of the request to 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "feature_enablement_setting",
+        "required": false,
+        "description": "JSON object detailing the feature enablement settings, including 'feature', 'enabled', 'updated_at', and 'warnings'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "enablement": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "feature": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the product addon whose set of features will be enabled or disabled."
+                },
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A boolean value indicating whether the specified product addon is enabled or disabled."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time the feature enablement was last updated."
+                },
+                "warnings": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "message": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The warning message."
+                    }
+                  },
+                  "description": "An array of warnings related to this feature enablement. Only present if warning conditions are met."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The feature enablement setting to apply."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateServiceFeatureEnablement'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/services/{id}/enablements/{feature_name}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "feature_name",
+        "tool_parameter_name": "feature_enablement_identifier",
+        "description": "The feature enablement identifier, typically the name of the product addon. Currently only `aiops` is supported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "aiops"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The feature enablement identifier, typically the name of the product addon. Currently only `aiops` is supported."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "feature_enablement_setting",
+        "description": "The feature enablement setting to apply.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "enablement": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "feature": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the product addon whose set of features will be enabled or disabled."
+                },
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A boolean value indicating whether the specified product addon is enabled or disabled."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time the feature enablement was last updated."
+                },
+                "warnings": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "message": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The warning message."
+                    }
+                  },
+                  "description": "An array of warnings related to this feature enablement. Only present if warning conditions are met."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The feature enablement setting to apply."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The feature enablement setting to apply.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"enablement\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"feature\": {\n                \"readOnly\": true,\n                \"type\": \"string\",\n                \"description\": \"The name of the product addon whose set of features will be enabled or disabled.\",\n                \"example\": \"aiops\"\n              },\n              \"enabled\": {\n                \"type\": \"boolean\",\n                \"description\": \"A boolean value indicating whether the specified product addon is enabled or disabled.\"\n              },\n              \"updated_at\": {\n                \"readOnly\": true,\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"The time the feature enablement was last updated.\"\n              },\n              \"warnings\": {\n                \"readOnly\": true,\n                \"type\": \"array\",\n                \"description\": \"An array of warnings related to this feature enablement. Only present if warning conditions are met.\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"message\": {\n                      \"type\": \"string\",\n                      \"description\": \"The warning message.\"\n                    }\n                  }\n                }\n              }\n            },\n            \"required\": [\n              \"enabled\"\n            ]\n          }\n        },\n        \"required\": [\n          \"enablement\"\n        ]\n      },\n      \"examples\": {\n        \"enable_aiops\": {\n          \"$ref\": \"#/components/examples/FeatureEnablementPutRequestEnable\"\n        },\n        \"disable_aiops\": {\n          \"$ref\": \"#/components/examples/FeatureEnablementPutRequestDisable\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

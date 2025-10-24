@@ -1,0 +1,544 @@
+{
+  "name": "UpdateUserAttributes",
+  "fully_qualified_name": "AirtableApi.UpdateUserAttributes@2.0.0",
+  "description": "Replace a user's attributes with new values.\n\nUse this tool to update all attributes for a specific user in the SCIM system. It allows setting the 'active' status to true or false, and requires full replacement of existing attributes.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "The unique identifier of the user whose attributes are to be replaced.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "user_attributes",
+        "required": false,
+        "description": "A JSON object containing new user attributes. Keys include 'active', 'addresses', 'emails', 'id', 'schemas', etc. Include all attributes that need to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates if the user is active or deactivated.\n\nSetting this is possible via the put and patch endpoints."
+            },
+            "addresses": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "emails": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "entitlements": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Provisioning client defined identifier."
+            },
+            "groups": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Airtable's unique user ID for this user."
+            },
+            "ims": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "locale": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "meta": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "nickName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "password": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "phoneNumbers": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "photos": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "preferredLanguage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "profileUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "roles": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's core user schema URI.\n\nYou can add the [enterprise extension](https://datatracker.ietf.org/doc/html/rfc7643#section-4.3)\nschema URI if you want to send extra properties for reporting.\n\nSee the optional user metadata table for details."
+            },
+            "timezone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom extension, see [SCIM Field Types](/api/scim-overview#scim-user-objects) for more"
+            },
+            "userName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Becomes the \"email\" field in Airtable. It must not be in use already, and\nthe email's domain must match the enterprise account."
+            },
+            "userType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-scim-user'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.scim.usersAndGroups:manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/scim/v2/Users/{userId}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "userId",
+        "tool_parameter_name": "user_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "user_attributes",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates if the user is active or deactivated.\n\nSetting this is possible via the put and patch endpoints."
+            },
+            "addresses": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "emails": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "entitlements": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Provisioning client defined identifier."
+            },
+            "groups": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Airtable's unique user ID for this user."
+            },
+            "ims": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "locale": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "meta": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "nickName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "password": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "phoneNumbers": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "photos": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "preferredLanguage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "profileUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "roles": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's core user schema URI.\n\nYou can add the [enterprise extension](https://datatracker.ietf.org/doc/html/rfc7643#section-4.3)\nschema URI if you want to send extra properties for reporting.\n\nSee the optional user metadata table for details."
+            },
+            "timezone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom extension, see [SCIM Field Types](/api/scim-overview#scim-user-objects) for more"
+            },
+            "userName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Becomes the \"email\" field in Airtable. It must not be in use already, and\nthe email's domain must match the enterprise account."
+            },
+            "userType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success response\": {\n          \"description\": \"Newly put user\",\n          \"summary\": \"Success response\",\n          \"value\": {\n            \"active\": true,\n            \"name\": {\n              \"familyName\": \"Jane\",\n              \"givenName\": \"Doe\"\n            },\n            \"schemas\": [\n              \"urn:ietf:params:scim:schemas:core:2.0:User\",\n              \"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User\"\n            ],\n            \"title\": \"Manager\",\n            \"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User\": {\n              \"costCenter\": \"Example cost center\",\n              \"department\": \"Example department\",\n              \"division\": \"Example division\",\n              \"manager\": {\n                \"displayName\": \"John Doe\",\n                \"value\": \"foo@bam.com\"\n              },\n              \"organization\": \"Example organization\"\n            },\n            \"userName\": \"foo@bar.com\"\n          }\n        }\n      },\n      \"schema\": {\n        \"description\": \"[SCIM User](https://datatracker.ietf.org/doc/html/rfc7643#section-4.1) objects with optional user metadata.\\n\\nSee [SCIM Field Types](/api/scim-overview#scim-user-objects) for more information about optional\\nuser metadata.\",\n        \"properties\": {\n          \"active\": {\n            \"description\": \"Indicates if the user is active or deactivated.\\n\\nSetting this is possible via the put and patch endpoints.\",\n            \"type\": [\n              \"boolean\",\n              \"null\"\n            ]\n          },\n          \"addresses\": {\n            \"anyOf\": [\n              {\n                \"items\": {\n                  \"properties\": {\n                    \"country\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"formatted\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"locality\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"postalCode\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"primary\": {\n                      \"type\": [\n                        \"boolean\",\n                        \"null\"\n                      ]\n                    },\n                    \"region\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"streetAddress\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"type\": {\n                      \"enum\": [\n                        \"work\",\n                        \"home\",\n                        \"other\",\n                        null\n                      ],\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    }\n                  },\n                  \"type\": \"object\"\n                },\n                \"type\": \"array\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ]\n          },\n          \"displayName\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"emails\": {\n            \"anyOf\": [\n              {\n                \"items\": {\n                  \"properties\": {\n                    \"display\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"primary\": {\n                      \"type\": [\n                        \"boolean\",\n                        \"null\"\n                      ]\n                    },\n                    \"type\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"value\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"value\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"type\": \"array\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ]\n          },\n          \"entitlements\": {\n            \"anyOf\": [\n              {\n                \"items\": {},\n                \"type\": \"array\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ]\n          },\n          \"externalId\": {\n            \"description\": \"Provisioning client defined identifier.\",\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"groups\": {\n            \"anyOf\": [\n              {\n                \"items\": {\n                  \"properties\": {\n                    \"$ref\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"value\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"value\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"type\": \"array\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ]\n          },\n          \"id\": {\n            \"description\": \"Airtable's unique user ID for this user.\",\n            \"type\": \"string\"\n          },\n          \"ims\": {\n            \"anyOf\": [\n              {\n                \"items\": {\n                  \"properties\": {\n                    \"display\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"primary\": {\n                      \"type\": [\n                        \"boolean\",\n                        \"null\"\n                      ]\n                    },\n                    \"type\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"value\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"value\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"type\": \"array\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ]\n          },\n          \"locale\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"meta\": {},\n          \"name\": {\n            \"anyOf\": [\n              {\n                \"properties\": {\n                  \"familyName\": {\n                    \"description\": \"Becomes the \\\"lastName\\\" field in Airtable.\",\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  },\n                  \"formatted\": {\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  },\n                  \"givenName\": {\n                    \"description\": \"Becomes the \\\"firstName\\\" field in Airtable.\",\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  },\n                  \"honorificPrefix\": {\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  },\n                  \"honorificSuffix\": {\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  },\n                  \"middleName\": {\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  }\n                },\n                \"type\": \"object\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ]\n          },\n          \"nickName\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"password\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"phoneNumbers\": {\n            \"anyOf\": [\n              {\n                \"items\": {\n                  \"properties\": {\n                    \"display\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"primary\": {\n                      \"type\": [\n                        \"boolean\",\n                        \"null\"\n                      ]\n                    },\n                    \"type\": {\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"value\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"value\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"type\": \"array\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ]\n          },\n          \"photos\": {\n            \"anyOf\": [\n              {\n                \"items\": {\n                  \"properties\": {\n                    \"primary\": {\n                      \"type\": [\n                        \"boolean\",\n                        \"null\"\n                      ]\n                    },\n                    \"type\": {\n                      \"enum\": [\n                        \"photo\",\n                        \"thumbnail\",\n                        null\n                      ],\n                      \"type\": [\n                        \"string\",\n                        \"null\"\n                      ]\n                    },\n                    \"value\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"value\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"type\": \"array\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ]\n          },\n          \"preferredLanguage\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"profileUrl\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"roles\": {\n            \"anyOf\": [\n              {\n                \"items\": {},\n                \"type\": \"array\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ]\n          },\n          \"schemas\": {\n            \"description\": \"A list of schemas, including at least SCIM's core user schema URI.\\n\\nYou can add the [enterprise extension](https://datatracker.ietf.org/doc/html/rfc7643#section-4.3)\\nschema URI if you want to send extra properties for reporting.\\n\\nSee the optional user metadata table for details.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"timezone\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"title\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User\": {\n            \"anyOf\": [\n              {\n                \"properties\": {\n                  \"costCenter\": {\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  },\n                  \"department\": {\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  },\n                  \"division\": {\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  },\n                  \"employeeNumber\": {\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  },\n                  \"manager\": {\n                    \"anyOf\": [\n                      {\n                        \"properties\": {\n                          \"$ref\": {\n                            \"type\": [\n                              \"string\",\n                              \"null\"\n                            ]\n                          },\n                          \"displayName\": {\n                            \"type\": [\n                              \"string\",\n                              \"null\"\n                            ]\n                          },\n                          \"value\": {\n                            \"type\": [\n                              \"string\",\n                              \"null\"\n                            ]\n                          }\n                        },\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"type\": \"null\"\n                      }\n                    ]\n                  },\n                  \"organization\": {\n                    \"type\": [\n                      \"string\",\n                      \"null\"\n                    ]\n                  }\n                },\n                \"type\": \"object\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Custom extension, see [SCIM Field Types](/api/scim-overview#scim-user-objects) for more\"\n          },\n          \"userName\": {\n            \"description\": \"Becomes the \\\"email\\\" field in Airtable. It must not be in use already, and\\nthe email's domain must match the enterprise account.\",\n            \"type\": \"string\"\n          },\n          \"userType\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          }\n        },\n        \"required\": [\n          \"schemas\",\n          \"userName\"\n        ],\n        \"type\": \"object\",\n        \"x-airtable-name\": \"SCIM user schema\",\n        \"x-airtable-tag\": \"scim\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "GetBusinessServiceDetails",
-  "fully_qualified_name": "PagerdutyApi.GetBusinessServiceDetails@0.1.0",
-  "description": "Retrieve details of an existing business service.\n\nUse this tool to get detailed information about a business service, which represents capabilities spanning multiple technical services.",
+  "fully_qualified_name": "PagerdutyApi.GetBusinessServiceDetails@2.0.0",
+  "description": "Retrieve details about a specific Business Service.\n\nThis tool retrieves comprehensive details about a Business Service in PagerDuty, which models capabilities across technical services and teams.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "business_service_id",
         "required": true,
-        "description": "The unique identifier of the business service to retrieve details for.",
+        "description": "The ID of the business service to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "api_version",
+        "name": "accept_header",
         "required": true,
-        "description": "Specify the API version using the 'Accept' header for versioning.",
+        "description": "The versioning header, usually a MIME type, to specify API version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specify the content type of the response. Use 'application/json'.",
+        "description": "Specify the media type of the response, typically 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/business_services/{id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "api_version",
+        "tool_parameter_name": "accept_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "GetCardStickers",
-  "fully_qualified_name": "TrelloApi.GetCardStickers@0.1.0",
-  "description": "Retrieve stickers from a Trello card.\n\nUse this tool to get all stickers placed on a specific Trello card by providing the card ID.",
+  "fully_qualified_name": "TrelloApi.GetCardStickers@2.0.0",
+  "description": "Get the stickers on a Trello card using its ID.\n\nUse this tool to retrieve all stickers associated with a specific Trello card by providing the card ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier of the Trello card from which to retrieve stickers.",
+        "description": "The unique identifier for a Trello card to retrieve its stickers.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "sticker_fields",
         "required": false,
-        "description": "Specify 'all' to retrieve all sticker fields or provide a comma-separated list of specific sticker fields to retrieve.",
+        "description": "Specify 'all' or a comma-separated list of sticker fields to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}/stickers",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

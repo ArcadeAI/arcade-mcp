@@ -1,11 +1,11 @@
 {
   "name": "ListSquareOnlineSites",
-  "fully_qualified_name": "SquareupApi.ListSquareOnlineSites@0.1.0",
-  "description": "Retrieve a list of Square Online sites for a seller.\n\nUse this tool to obtain a list of Square Online sites associated with a seller, ordered by their creation date. This is part of Square's early access program for online APIs.",
+  "fully_qualified_name": "SquareupApi.ListSquareOnlineSites@2.0.0",
+  "description": "List all Square Online sites for a seller.\n\nFetches a list of Square Online sites associated with a seller account, ordered by creation date. Useful for managing or reviewing existing sites.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": []
@@ -43,13 +43,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/sites",
@@ -66,6 +66,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

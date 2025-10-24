@@ -1,18 +1,18 @@
 {
   "name": "RemoveEnterpriseAdmin",
-  "fully_qualified_name": "TrelloApi.RemoveEnterpriseAdmin@0.1.0",
-  "description": "Remove a member as admin from a Trello enterprise.\n\nUse this tool to remove a member's admin rights from an enterprise in Trello. Note that this action is not available for enterprises using AdminHub for user management.",
+  "fully_qualified_name": "TrelloApi.RemoveEnterpriseAdmin@2.0.0",
+  "description": "Remove a member as admin from an enterprise.\n\nUse this tool to remove a specific member from the admin role within an enterprise on Trello. Note that this endpoint is unavailable for enterprises using AdminHub for user management.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "The ID of the Enterprise from which the admin will be removed.",
+        "description": "The Trello Enterprise ID from which to remove the member as admin.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "member_id_to_remove_admin",
+        "name": "member_id_to_remove",
         "required": true,
-        "description": "The unique ID of the member to remove as an admin from the enterprise.",
+        "description": "ID of the member to be removed as an admin from the enterprise.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/enterprises/{id}/admins/{idMember}",
@@ -100,11 +100,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "idMember",
-        "tool_parameter_name": "member_id_to_remove_admin",
+        "tool_parameter_name": "member_id_to_remove",
         "description": "ID of the member to be removed as an admin from enterprise.",
         "value_schema": {
           "val_type": "string",
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

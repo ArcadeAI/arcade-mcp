@@ -1,0 +1,307 @@
+{
+  "name": "CreateJobInSellerAccount",
+  "fully_qualified_name": "SquareupApi.CreateJobInSellerAccount@2.0.0",
+  "description": "Create a job for a seller account.\n\nThis tool is used to create a job in a seller's account, specifying the job title and its tip eligibility. It should be called when you need to define a new job role for team members in a seller's business operations.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "unique_creation_request_id",
+        "required": true,
+        "description": "A unique string to identify the `CreateJob` request, ensuring it is not processed multiple times.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the `CreateJob` request. Keys can be any valid string,\nbut must be unique for each request. For more information, see\n[Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "job_id",
+        "required": false,
+        "description": "Unique Square-assigned job ID. This is read-only and used internally by Square.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Read only** The unique Square-assigned ID of the job. If you need a job ID for an API request,\ncall [ListJobs](api-endpoint:Team-ListJobs) or use the ID returned when you created the job.\nYou can also get job IDs from a team member's wage setting."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "job.id"
+      },
+      {
+        "name": "job_title",
+        "required": false,
+        "description": "The title of the job to be created in the seller's account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of the job."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "job.title"
+      },
+      {
+        "name": "job_creation_timestamp",
+        "required": false,
+        "description": "The timestamp for when the job was created, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the job was created, in RFC 3339 format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "job.created_at"
+      },
+      {
+        "name": "job_last_updated_timestamp",
+        "required": false,
+        "description": "The timestamp indicating when the job was last updated, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the job was last updated, in RFC 3339 format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "job.updated_at"
+      },
+      {
+        "name": "job_version_readonly",
+        "required": false,
+        "description": "Read-only field for the current version of the job, used for optimistic concurrency in `UpdateJob` requests.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Read only** The current version of the job. Include this field in `UpdateJob` requests to enable\n[optimistic concurrency](https://developer.squareup.com/docs/working-with-apis/optimistic-concurrency)\ncontrol and avoid overwrites from concurrent requests. Requests fail if the provided version doesn't\nmatch the server version at the time of the request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "job.version"
+      },
+      {
+        "name": "is_tip_eligible",
+        "required": false,
+        "description": "Indicates whether team members can earn tips for the job. Accepts a boolean value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether team members can earn tips for the job."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "job.is_tip_eligible"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateJob'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "EMPLOYEES_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/team-members/jobs",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "job.id",
+        "tool_parameter_name": "job_id",
+        "description": "**Read only** The unique Square-assigned ID of the job. If you need a job ID for an API request,\ncall [ListJobs](api-endpoint:Team-ListJobs) or use the ID returned when you created the job.\nYou can also get job IDs from a team member's wage setting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Read only** The unique Square-assigned ID of the job. If you need a job ID for an API request,\ncall [ListJobs](api-endpoint:Team-ListJobs) or use the ID returned when you created the job.\nYou can also get job IDs from a team member's wage setting."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "job.title",
+        "tool_parameter_name": "job_title",
+        "description": "The title of the job.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of the job."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "job.is_tip_eligible",
+        "tool_parameter_name": "is_tip_eligible",
+        "description": "Indicates whether team members can earn tips for the job.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether team members can earn tips for the job."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "job.created_at",
+        "tool_parameter_name": "job_creation_timestamp",
+        "description": "The timestamp when the job was created, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the job was created, in RFC 3339 format."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "job.updated_at",
+        "tool_parameter_name": "job_last_updated_timestamp",
+        "description": "The timestamp when the job was last updated, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the job was last updated, in RFC 3339 format."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "job.version",
+        "tool_parameter_name": "job_version_readonly",
+        "description": "**Read only** The current version of the job. Include this field in `UpdateJob` requests to enable\n[optimistic concurrency](https://developer.squareup.com/docs/working-with-apis/optimistic-concurrency)\ncontrol and avoid overwrites from concurrent requests. Requests fail if the provided version doesn't\nmatch the server version at the time of the request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Read only** The current version of the job. Include this field in `UpdateJob` requests to enable\n[optimistic concurrency](https://developer.squareup.com/docs/working-with-apis/optimistic-concurrency)\ncontrol and avoid overwrites from concurrent requests. Requests fail if the provided version doesn't\nmatch the server version at the time of the request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_creation_request_id",
+        "description": "A unique identifier for the `CreateJob` request. Keys can be any valid string,\nbut must be unique for each request. For more information, see\n[Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the `CreateJob` request. Keys can be any valid string,\nbut must be unique for each request. For more information, see\n[Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents a [CreateJob](api-endpoint:Team-CreateJob) request.\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"job\",\n          \"idempotency_key\"\n        ],\n        \"properties\": {\n          \"job\": {\n            \"type\": \"object\",\n            \"description\": \"Represents a job that can be assigned to [team members](entity:TeamMember). This object defines the\\njob's title and tip eligibility. Compensation is defined in a [job assignment](entity:JobAssignment)\\nin a team member's wage setting.\",\n            \"x-release-status\": \"BETA\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"**Read only** The unique Square-assigned ID of the job. If you need a job ID for an API request,\\ncall [ListJobs](api-endpoint:Team-ListJobs) or use the ID returned when you created the job.\\nYou can also get job IDs from a team member's wage setting.\"\n              },\n              \"title\": {\n                \"type\": \"string\",\n                \"description\": \"The title of the job.\",\n                \"maxLength\": 150,\n                \"nullable\": true\n              },\n              \"is_tip_eligible\": {\n                \"type\": \"boolean\",\n                \"description\": \"Indicates whether team members can earn tips for the job.\",\n                \"nullable\": true\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the job was created, in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the job was last updated, in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"version\": {\n                \"type\": \"integer\",\n                \"description\": \"**Read only** The current version of the job. Include this field in `UpdateJob` requests to enable\\n[optimistic concurrency](https://developer.squareup.com/docs/working-with-apis/optimistic-concurrency)\\ncontrol and avoid overwrites from concurrent requests. Requests fail if the provided version doesn't\\nmatch the server version at the time of the request.\"\n              }\n            }\n          },\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique identifier for the `CreateJob` request. Keys can be any valid string,\\nbut must be unique for each request. For more information, see\\n[Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency).\",\n            \"minLength\": 1,\n            \"maxLength\": 45\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"idempotency-key-0\",\n          \"job\": {\n            \"is_tip_eligible\": true,\n            \"title\": \"Cashier\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

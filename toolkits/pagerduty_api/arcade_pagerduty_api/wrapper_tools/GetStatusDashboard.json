@@ -1,33 +1,33 @@
 {
   "name": "GetStatusDashboard",
-  "fully_qualified_name": "PagerdutyApi.GetStatusDashboard@0.1.0",
-  "description": "Retrieve a status dashboard using its URL slug.\n\nFetch a custom Status Dashboard from PagerDuty using a human-readable URL slug, which is typically a dash-separated string. This tool should be called when you need to access the status of specific dashboards created or modified in the UI.",
+  "fully_qualified_name": "PagerdutyApi.GetStatusDashboard@2.0.0",
+  "description": "Retrieve PagerDuty status dashboard details by ID.\n\nUse this tool to get detailed information about a specific PagerDuty status dashboard using its unique ID. This can be helpful for monitoring and analysis of service status.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "status_dashboard_url_slug",
+        "name": "status_dashboard_id",
         "required": true,
-        "description": "The human-readable URL slug for the status dashboard, typically a dash-separated string.",
+        "description": "The unique ID of the PagerDuty status dashboard to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The `url_slug` for a status dashboard"
+          "description": "The ID of the resource."
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "url_slug"
+        "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_header_version",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify the version of the API to use for fetching the status dashboard. This is set via the 'Accept' header.",
+        "description": "Pass the versioning information via the Accept header, e.g., \"application/vnd.pagerduty+json;version=2\".",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getStatusDashboardByUrlSlug'.",
+    "description": "Response from the API endpoint 'getStatusDashboardById'.",
     "available_modes": [
       "value",
       "error",
@@ -70,30 +70,30 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
-    "url": "https://api.pagerduty.com/status_dashboards/url_slugs/{url_slug}",
+    "url": "https://api.pagerduty.com/status_dashboards/{id}",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
-        "name": "url_slug",
-        "tool_parameter_name": "status_dashboard_url_slug",
-        "description": "The `url_slug` for a status dashboard",
+        "name": "id",
+        "tool_parameter_name": "status_dashboard_id",
+        "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The `url_slug` for a status dashboard"
+          "description": "The ID of the resource."
         },
         "accepted_as": "path",
         "required": true,
@@ -103,7 +103,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -130,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

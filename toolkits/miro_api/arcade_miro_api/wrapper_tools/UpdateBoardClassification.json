@@ -1,0 +1,204 @@
+{
+  "name": "UpdateBoardClassification",
+  "fully_qualified_name": "MiroApi.UpdateBoardClassification@2.0.0",
+  "description": "Update board classification for team boards in Miro.\n\nThis tool updates the classification for either non-classified or all boards within a specified team in an Enterprise Miro account. It requires the user to have Company Admin privileges and the required scope of 'boards:write'. Ideal for Enterprise plan users needing to organize board classifications efficiently.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization. Required for specifying which organization's team boards will be classified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique identifier for the team whose board classification is being updated. This is used to specify which team's boards will be affected by the API call.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the team"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "data_classification_label_id",
+        "required": false,
+        "description": "The ID of the data classification label to assign to a team's boards.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Data classification label id for team"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "labelId"
+      },
+      {
+        "name": "assign_to_not_classified_only",
+        "required": false,
+        "description": "If true, assign data classification only to non-classified boards; otherwise, assign to all boards.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Assign data classification label to not-classified only or to all boards of team"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notClassifiedOnly"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-dataclassification-team-boards-bulk'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/data-classification",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "id of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the organization"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "id of the team",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the team"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "labelId",
+        "tool_parameter_name": "data_classification_label_id",
+        "description": "Data classification label id for team",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Data classification label id for team"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "notClassifiedOnly",
+        "tool_parameter_name": "assign_to_not_classified_only",
+        "description": "Assign data classification label to not-classified only or to all boards of team",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Assign data classification label to not-classified only or to all boards of team"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"labelId\": {\n            \"type\": \"integer\",\n            \"description\": \"Data classification label id for team\",\n            \"format\": \"int64\",\n            \"example\": 3000457366756291000\n          },\n          \"notClassifiedOnly\": {\n            \"type\": \"boolean\",\n            \"description\": \"Assign data classification label to not-classified only or to all boards of team\",\n            \"example\": true\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

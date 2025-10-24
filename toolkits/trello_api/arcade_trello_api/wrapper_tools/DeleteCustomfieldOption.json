@@ -1,18 +1,18 @@
 {
-  "name": "DeleteCustomfieldOption",
-  "fully_qualified_name": "TrelloApi.DeleteCustomfieldOption@0.1.0",
-  "description": "Delete an option from a Custom Field dropdown on Trello.\n\nUse this tool to remove a specific option from a Custom Field dropdown in Trello. Ideal for maintaining updates or cleaning up unnecessary options.",
+  "name": "DeleteCustomFieldOption",
+  "fully_qualified_name": "TrelloApi.DeleteCustomFieldOption@2.0.0",
+  "description": "Delete an option from a Trello Custom Field dropdown.\n\nUse this tool to remove a specific option from the dropdown list of a Custom Field in Trello. This is helpful when an option is no longer needed or should be removed from the available choices.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "customfield_item_id",
+        "name": "custom_field_item_id",
         "required": true,
-        "description": "The ID of the custom field item from which the option will be deleted.",
+        "description": "ID of the customfielditem to identify which dropdown option to delete.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_field_option_id",
         "required": true,
-        "description": "ID of the custom field option to delete.",
+        "description": "ID of the custom field option to delete from the dropdown list.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "customfield_item_id",
+        "tool_parameter_name": "custom_field_item_id",
         "description": "ID of the customfielditem.",
         "value_schema": {
           "val_type": "string",
@@ -100,6 +100,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

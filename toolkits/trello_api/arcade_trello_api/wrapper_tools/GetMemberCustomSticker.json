@@ -1,18 +1,18 @@
 {
   "name": "GetMemberCustomSticker",
-  "fully_qualified_name": "TrelloApi.GetMemberCustomSticker@0.1.0",
-  "description": "Retrieve a specific custom sticker for a Trello member.\n\nUse this tool to get information about a custom sticker associated with a specific Trello member by providing the member's ID and the sticker's ID.",
+  "fully_qualified_name": "TrelloApi.GetMemberCustomSticker@2.0.0",
+  "description": "Retrieve a member's custom sticker from Trello.\n\nThis tool retrieves details about a specific custom sticker associated with a Trello member. It should be called when you need information about a member's custom sticker based on their member ID and the sticker ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member whose sticker is being retrieved.",
+        "description": "The ID or username of the Trello member whose custom sticker is to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "sticker_id",
         "required": true,
-        "description": "The ID of the uploaded custom sticker to retrieve for a Trello member.",
+        "description": "The unique identifier for the uploaded sticker. Required to fetch the sticker's details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "sticker_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of 'scaled', 'url' to get specific details about the sticker.",
+        "description": "Specify 'all' or a comma-separated list of 'scaled', 'url' to determine which sticker details to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -91,13 +91,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/customStickers/{idSticker}",
@@ -123,6 +123,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -140,6 +141,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -157,6 +159,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -178,6 +181,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

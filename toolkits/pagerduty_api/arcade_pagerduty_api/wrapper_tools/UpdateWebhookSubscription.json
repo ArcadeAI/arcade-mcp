@@ -1,0 +1,381 @@
+{
+  "name": "UpdateWebhookSubscription",
+  "fully_qualified_name": "PagerdutyApi.UpdateWebhookSubscription@2.0.0",
+  "description": "Update an existing webhook subscription.\n\nThis tool updates an existing webhook subscription in PagerDuty. It should be called when you need to change any details of a webhook subscription, except for the `delivery_method`. Ensure you have the required OAuth scope: `webhook_subscriptions.write`.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier of the webhook subscription to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "api_version_header",
+        "required": true,
+        "description": "Specify the API version to use by setting the Accept header, which acts as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Specifies the content type for the request, must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "webhook_subscription_description",
+        "required": false,
+        "description": "A short description of the webhook subscription.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short description of the webhook subscription."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webhook_subscription.description"
+      },
+      {
+        "name": "webhook_events",
+        "required": false,
+        "description": "List of outbound event types the subscription will receive.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The set of outbound event types the subscription will receive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webhook_subscription.events"
+      },
+      {
+        "name": "filter_object_id",
+        "required": false,
+        "description": "The ID of the object used as the filter. Required unless the filter type is account_reference.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the object being used as the filter.  This field is required for all filter types except account_reference."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webhook_subscription.filter.id"
+      },
+      {
+        "name": "filter_object_type",
+        "required": false,
+        "description": "Specify the type of object used as the filter: 'account_reference', 'service_reference', or 'team_reference'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "account_reference",
+            "service_reference",
+            "team_reference"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of object being used as the filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webhook_subscription.filter.type"
+      },
+      {
+        "name": "oauth_client_id",
+        "required": false,
+        "description": "The ID of the OAuth client for authenticating webhook requests. This field is optional.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the OAuth client to use for authenticating webhook requests. Optional field."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webhook_subscription.oauth_client_id"
+      },
+      {
+        "name": "send_webhook",
+        "required": false,
+        "description": "Set to true to send a webhook. Default is true. False to disable.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, a webhook will be sent. True is the default state. If false, a webhook will not be sent."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webhook_subscription.active"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateWebhookSubscription'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/webhook_subscriptions/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "api_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "webhook_subscription.description",
+        "tool_parameter_name": "webhook_subscription_description",
+        "description": "A short description of the webhook subscription.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short description of the webhook subscription."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "webhook_subscription.events",
+        "tool_parameter_name": "webhook_events",
+        "description": "The set of outbound event types the subscription will receive.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The set of outbound event types the subscription will receive."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "webhook_subscription.filter.id",
+        "tool_parameter_name": "filter_object_id",
+        "description": "The id of the object being used as the filter.  This field is required for all filter types except account_reference.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the object being used as the filter.  This field is required for all filter types except account_reference."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "webhook_subscription.filter.type",
+        "tool_parameter_name": "filter_object_type",
+        "description": "The type of object being used as the filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "account_reference",
+            "service_reference",
+            "team_reference"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of object being used as the filter."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "webhook_subscription.active",
+        "tool_parameter_name": "send_webhook",
+        "description": "If true, a webhook will be sent. True is the default state. If false, a webhook will not be sent.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, a webhook will be sent. True is the default state. If false, a webhook will not be sent."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "webhook_subscription.oauth_client_id",
+        "tool_parameter_name": "oauth_client_id",
+        "description": "The ID of the OAuth client to use for authenticating webhook requests. Optional field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the OAuth client to use for authenticating webhook requests. Optional field."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"webhook_subscription\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"description\": {\n                \"type\": \"string\",\n                \"description\": \"A short description of the webhook subscription.\"\n              },\n              \"events\": {\n                \"type\": \"array\",\n                \"description\": \"The set of outbound event types the subscription will receive.\",\n                \"minItems\": 1,\n                \"uniqueItems\": true,\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"filter\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The id of the object being used as the filter.  This field is required for all filter types except account_reference.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"The type of object being used as the filter.\",\n                    \"enum\": [\n                      \"account_reference\",\n                      \"service_reference\",\n                      \"team_reference\"\n                    ]\n                  }\n                }\n              },\n              \"active\": {\n                \"type\": \"boolean\",\n                \"description\": \"If true, a webhook will be sent. True is the default state. If false, a webhook will not be sent.\"\n              },\n              \"oauth_client_id\": {\n                \"type\": \"string\",\n                \"description\": \"The ID of the OAuth client to use for authenticating webhook requests. Optional field.\",\n                \"nullable\": true\n              }\n            }\n          }\n        }\n      },\n      \"examples\": {\n        \"request\": {\n          \"$ref\": \"#/components/examples/PutSubscriptionExample\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

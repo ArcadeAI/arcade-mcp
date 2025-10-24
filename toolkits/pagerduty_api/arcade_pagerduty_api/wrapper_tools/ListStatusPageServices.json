@@ -1,18 +1,18 @@
 {
   "name": "ListStatusPageServices",
-  "fully_qualified_name": "PagerdutyApi.ListStatusPageServices@0.1.0",
-  "description": "Retrieve a list of services for a specific status page.\n\nUse this tool to get details of all services associated with a status page by providing the status page ID. Requires appropriate OAuth permissions.",
+  "fully_qualified_name": "PagerdutyApi.ListStatusPageServices@2.0.0",
+  "description": "Retrieve services for a specific Status Page by ID.\n\nUse this tool to list all the services linked to a particular Status Page by providing the Status Page ID. Requires appropriate OAuth permissions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "status_page_id",
         "required": true,
-        "description": "The unique identifier for the status page whose services you want to list.",
+        "description": "The unique identifier of the Status Page to retrieve associated services.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "The versioning header for API requests, specified in the `Accept` format.",
+        "description": "Specify the `Accept` header for API versioning. This is used to determine the version of the API response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/services",
@@ -103,7 +103,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -130,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

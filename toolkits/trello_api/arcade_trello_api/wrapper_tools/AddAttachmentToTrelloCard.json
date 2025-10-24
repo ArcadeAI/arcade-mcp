@@ -1,18 +1,18 @@
 {
   "name": "AddAttachmentToTrelloCard",
-  "fully_qualified_name": "TrelloApi.AddAttachmentToTrelloCard@0.1.0",
-  "description": "Add an attachment to a Trello card.\n\nThis tool is used to attach a file or URL to a specific Trello card by its ID. It should be called when users need to add additional resources or files to a Trello card to enhance task management or provide context.",
+  "fully_qualified_name": "TrelloApi.AddAttachmentToTrelloCard@2.0.0",
+  "description": "Attach a file or link to a Trello card.\n\nUse this tool to add an attachment, such as a file or link, to a specific Trello card by providing the card's ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier of the Trello card to which the attachment will be added. This is a required parameter.",
+        "description": "The unique identifier of the Trello card to which the attachment will be added.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "attachment_name",
         "required": false,
-        "description": "The name of the attachment. Provide a descriptive title, maximum length 256 characters.",
+        "description": "The name of the attachment. Maximum length is 256 characters.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "name"
       },
       {
-        "name": "attachment_file",
+        "name": "file_attachment",
         "required": false,
-        "description": "The file to attach as multipart/form-data. Provide the file path or binary data.",
+        "description": "The file data to upload and attach to the Trello card as multipart/form-data.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "attachment_mime_type",
         "required": false,
-        "description": "The MIME type of the attachment. Example: 'image/png'. Max length 256.",
+        "description": "The MIME type of the attachment file. Should be a valid MIME type string (max 256 characters).",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "attachment_url",
         "required": false,
-        "description": "A URL to attach to the Trello card, starting with `http://` or `https://`.",
+        "description": "A URL to attach to the Trello card. Must start with 'http://' or 'https://'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "url"
       },
       {
-        "name": "use_attachment_as_cover",
+        "name": "use_as_card_cover",
         "required": false,
-        "description": "Set to true to use the new attachment as a cover for the card.",
+        "description": "Set to true to use the new attachment as the card cover.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -132,13 +132,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}/attachments",
@@ -160,11 +160,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "file",
-        "tool_parameter_name": "attachment_file",
+        "tool_parameter_name": "file_attachment",
         "description": "The file to attach, as multipart/form-data",
         "value_schema": {
           "val_type": "string",
@@ -177,6 +178,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -194,6 +196,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -211,11 +214,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "setCover",
-        "tool_parameter_name": "use_attachment_as_cover",
+        "tool_parameter_name": "use_as_card_cover",
         "description": "Determines whether to use the new attachment as a cover for the Card.",
         "value_schema": {
           "val_type": "boolean",
@@ -228,6 +232,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -245,6 +250,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -266,6 +272,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

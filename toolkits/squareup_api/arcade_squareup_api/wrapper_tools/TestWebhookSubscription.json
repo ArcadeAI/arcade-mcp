@@ -1,0 +1,138 @@
+{
+  "name": "TestWebhookSubscription",
+  "fully_qualified_name": "SquareupApi.TestWebhookSubscription@2.0.0",
+  "description": "Send a test event to a webhook subscription URL.\n\nUse this tool to verify if a webhook subscription is correctly configured by sending a test event to the specified notification URL.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_subscription_id",
+        "required": true,
+        "description": "The ID of the Webhook Subscription to test. This is required for sending a test event.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "[REQUIRED] The ID of the [Subscription](entity:WebhookSubscription) to test."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription_id"
+      },
+      {
+        "name": "test_event_type",
+        "required": false,
+        "description": "Specifies the event type for testing the webhook subscription. It must match an event type in the subscription's event list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The event type that will be used to test the [Subscription](entity:WebhookSubscription). The event type must be\ncontained in the list of event types in the [Subscription](entity:WebhookSubscription)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "event_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'TestWebhookSubscription'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/webhooks/subscriptions/{subscription_id}/test",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "tool_parameter_name": "webhook_subscription_id",
+        "description": "[REQUIRED] The ID of the [Subscription](entity:WebhookSubscription) to test.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "[REQUIRED] The ID of the [Subscription](entity:WebhookSubscription) to test."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "event_type",
+        "tool_parameter_name": "test_event_type",
+        "description": "The event type that will be used to test the [Subscription](entity:WebhookSubscription). The event type must be\ncontained in the list of event types in the [Subscription](entity:WebhookSubscription).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The event type that will be used to test the [Subscription](entity:WebhookSubscription). The event type must be\ncontained in the list of event types in the [Subscription](entity:WebhookSubscription)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Tests a [Subscription](entity:WebhookSubscription) by sending a test event to its notification URL.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"event_type\": {\n            \"type\": \"string\",\n            \"description\": \"The event type that will be used to test the [Subscription](entity:WebhookSubscription). The event type must be\\ncontained in the list of event types in the [Subscription](entity:WebhookSubscription).\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"event_type\": \"payment.created\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

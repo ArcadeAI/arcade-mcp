@@ -1,0 +1,230 @@
+{
+  "name": "UpdateMiroTag",
+  "fully_qualified_name": "MiroApi.UpdateMiroTag@2.0.0",
+  "description": "Update a tag on a Miro board.\n\nThis tool updates a specific tag on a Miro board using the provided board and tag IDs. Note that changes made via the API will not be visible in real time on the board; a page refresh is required to see updates.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_identifier",
+        "required": true,
+        "description": "Unique identifier (ID) of the board where the tag update should occur.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to update a specific tag."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "tag_unique_identifier",
+        "required": true,
+        "description": "Unique identifier for the tag you want to update on a Miro board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the tag that you want to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag_id"
+      },
+      {
+        "name": "tag_fill_color",
+        "required": false,
+        "description": "Specify the fill color for the tag. Choices are: red, light_green, cyan, yellow, magenta, green, blue, gray, violet, dark_green, dark_blue, black.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "red",
+            "light_green",
+            "cyan",
+            "yellow",
+            "magenta",
+            "green",
+            "blue",
+            "gray",
+            "violet",
+            "dark_green",
+            "dark_blue",
+            "black"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fill color for the tag."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fillColor"
+      },
+      {
+        "name": "tag_title",
+        "required": false,
+        "description": "Unique, case-sensitive text of the tag to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Text of the tag. Case-sensitive. Must be unique."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "title"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-tag'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/tags/{tag_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_identifier",
+        "description": "Unique identifier (ID) of the board where you want to update a specific tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to update a specific tag."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag_id",
+        "tool_parameter_name": "tag_unique_identifier",
+        "description": "Unique identifier (ID) of the tag that you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the tag that you want to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fillColor",
+        "tool_parameter_name": "tag_fill_color",
+        "description": "Fill color for the tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "red",
+            "light_green",
+            "cyan",
+            "yellow",
+            "magenta",
+            "green",
+            "blue",
+            "gray",
+            "violet",
+            "dark_green",
+            "dark_blue",
+            "black"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fill color for the tag."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "title",
+        "tool_parameter_name": "tag_title",
+        "description": "Text of the tag. Case-sensitive. Must be unique.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Text of the tag. Case-sensitive. Must be unique."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"fillColor\": {\n            \"type\": \"string\",\n            \"description\": \"Fill color for the tag.\",\n            \"enum\": [\n              \"red\",\n              \"light_green\",\n              \"cyan\",\n              \"yellow\",\n              \"magenta\",\n              \"green\",\n              \"blue\",\n              \"gray\",\n              \"violet\",\n              \"dark_green\",\n              \"dark_blue\",\n              \"black\"\n            ]\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"description\": \"Text of the tag. Case-sensitive. Must be unique.\",\n            \"example\": \"done\",\n            \"maxLength\": 120,\n            \"minLength\": 0\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

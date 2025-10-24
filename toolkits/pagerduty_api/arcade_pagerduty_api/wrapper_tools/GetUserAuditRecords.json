@@ -1,18 +1,18 @@
 {
   "name": "GetUserAuditRecords",
-  "fully_qualified_name": "PagerdutyApi.GetUserAuditRecords@0.1.0",
-  "description": "Retrieve audit records for a specified user from Pagerduty.\n\nThis tool fetches audit records related to specific changes made to a user in Pagerduty. The records are sorted by execution time and provide insights into user-related changes. Use this tool when you need to review or audit user modifications. It requires appropriate OAuth permissions.",
+  "fully_qualified_name": "PagerdutyApi.GetUserAuditRecords@2.0.0",
+  "description": "Retrieve audit records for a specified user.\n\nThis tool fetches audit records related to changes made to a specified user in PagerDuty. The records are ordered by the latest execution time. Use this tool to track changes to a user's account or settings.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "user_id",
         "required": true,
-        "description": "The unique ID of the user whose audit records you want to retrieve.",
+        "description": "The unique identifier for the user whose audit records are being retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "accept_version_header",
         "required": true,
-        "description": "Specifies the version of the API response. Use it to ensure compatibility with the expected API output format.",
+        "description": "The versioning header for the API response, specified using the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specify the media type of the request. Should be 'application/json'.",
+        "description": "Specifies the content type of the request. Should always be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "result_limit",
         "required": false,
-        "description": "Defines the maximum number of audit records to retrieve per request. The request will return up to this number of records, or fewer if the result set is smaller.",
+        "description": "Specifies the maximum number of audit records to retrieve in a single request.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "next_results_cursor",
+        "name": "pagination_cursor",
         "required": false,
-        "description": "Cursor for the next set of results. Use the `next_cursor` from the previous request to continue paging.",
+        "description": "Optional string to fetch the next set of results. Use the `next_cursor` from previous responses.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
       {
         "name": "start_date",
         "required": false,
-        "description": "The start of the date range for the audit record search. Defaults to 24 hours ago if not specified.",
+        "description": "The start date for the search range. Defaults to 24 hours ago if not specified.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "since"
       },
       {
-        "name": "end_date",
+        "name": "end_date_range",
         "required": false,
-        "description": "Specify the end date for the search range. Defaults to now; cannot exceed 31 days beyond the 'since' date.",
+        "description": "The end date for searching audit records. Defaults to now and cannot exceed 31 days after `since`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -147,13 +147,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/{id}/audit/records",
@@ -180,7 +180,7 @@
       },
       {
         "name": "cursor",
-        "tool_parameter_name": "next_results_cursor",
+        "tool_parameter_name": "pagination_cursor",
         "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n",
         "value_schema": {
           "val_type": "string",
@@ -216,7 +216,7 @@
       },
       {
         "name": "until",
-        "tool_parameter_name": "end_date",
+        "tool_parameter_name": "end_date_range",
         "description": "The end of the date range over which you want to search. If not specified, defaults to `now()`. May not be more than 31 days after `since`.",
         "value_schema": {
           "val_type": "string",
@@ -270,7 +270,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -299,6 +299,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

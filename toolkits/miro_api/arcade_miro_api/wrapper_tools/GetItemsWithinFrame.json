@@ -1,18 +1,18 @@
 {
   "name": "GetItemsWithinFrame",
-  "fully_qualified_name": "MiroApi.GetItemsWithinFrame@0.1.0",
-  "description": "Retrieve items within a specific frame in a Miro board.\n\nUse this tool to obtain items located within a particular frame on a Miro board. It supports cursor-based pagination for efficient data retrieval. Ideal for accessing and managing child items of a frame.",
+  "fully_qualified_name": "MiroApi.GetItemsWithinFrame@2.0.0",
+  "description": "Retrieve items within a specified frame on a Miro board.\n\nUse this tool to get a list of items located within a specific frame on a Miro board. It's useful for accessing grouped content within frames. The tool supports paginated results, using a cursor to fetch subsequent portions of data if the frame contains more items than the specified limit.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "frame_id",
         "required": true,
-        "description": "The ID of the frame to retrieve all child items from on the Miro board.",
+        "description": "The ID of the frame from which you want to retrieve the items. Required to locate the parent frame on the board.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "board_id",
         "required": true,
-        "description": "Unique identifier (ID) of the Miro board containing the frame to retrieve items from.",
+        "description": "Unique identifier (ID) of the board containing the frame to retrieve items from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "board_id_PlatformContainers"
       },
       {
-        "name": "results_limit",
+        "name": "item_retrieval_limit",
         "required": false,
-        "description": "The maximum number of items to return in the response. Helps control pagination size.",
+        "description": "Specifies the maximum number of items to return in one call. Used for pagination purposes.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "item_type",
+        "name": "item_type_filter",
         "required": false,
-        "description": "Specify the type of items to retrieve within the frame. Use for filtering by item type.",
+        "description": "Specify the type of items to retrieve within the frame. Leave blank to retrieve all types.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Cursor for pagination to retrieve the next set of results. Use the value from the previous response to continue fetching items.",
+        "description": "A string used for cursor-based pagination to fetch the next set of results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -115,13 +115,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/boards/{board_id_PlatformContainers}/items",
@@ -143,11 +143,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "results_limit",
+        "tool_parameter_name": "item_retrieval_limit",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -160,11 +161,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "10",
         "documentation_urls": []
       },
       {
         "name": "type",
-        "tool_parameter_name": "item_type",
+        "tool_parameter_name": "item_type_filter",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -177,6 +179,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -194,6 +197,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -211,6 +215,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -224,6 +229,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

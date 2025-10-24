@@ -1,18 +1,18 @@
 {
   "name": "RetrievePastIncidents",
-  "fully_qualified_name": "PagerdutyApi.RetrievePastIncidents@0.1.0",
-  "description": "Retrieve past incidents related to a specific incident.\n\nUse this tool to obtain a list of past incidents from the same service that share metadata with a given incident. Useful for analyzing historical incident data related to a service within the past 6 months. Requires authorization with scoped OAuth using `incidents.read`. Only available with Event Intelligence or Digital Operations plans.",
+  "fully_qualified_name": "PagerdutyApi.RetrievePastIncidents@2.0.0",
+  "description": "Retrieve past incidents with similar metadata.\n\nFetches incidents from the past 6 months that share similar metadata and were generated on the same service as a given incident. Available with Event Intelligence or Digital Operations plans only.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "incident_id",
         "required": true,
-        "description": "The identifier of the service or incident for which past incidents are to be retrieved.",
+        "description": "The unique identifier of the incident. Used to fetch past incidents with similar metadata.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "versioning_header",
+        "name": "api_version_header",
         "required": true,
-        "description": "Specify the version of the API using the 'Accept' header for versioning control.",
+        "description": "Specifies the API version to use by setting the Accept header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specifies the content type of the response. Use 'application/json'.",
+        "description": "Specify the content type for the request, typically 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "results_limit",
         "required": false,
-        "description": "Specify the number of past incidents to be returned.",
+        "description": "Specifies the maximum number of past incidents to return.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "include_total_count",
+        "name": "include_total_past_incidents",
         "required": false,
-        "description": "Set to true to include the total number of past incidents in the response. Default is false for faster performance.",
+        "description": "Set to true to include the total number of past incidents in the response. This may increase response time.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -117,13 +117,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incidents/{id}/past_incidents",
@@ -145,12 +145,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": 5,
         "documentation_urls": []
       },
       {
         "name": "total",
-        "tool_parameter_name": "include_total_count",
+        "tool_parameter_name": "include_total_past_incidents",
         "description": "By default the `total` field in the response body is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated with the total number of Past Incidents.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -163,12 +163,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "incident_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -186,7 +186,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "api_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -233,6 +233,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

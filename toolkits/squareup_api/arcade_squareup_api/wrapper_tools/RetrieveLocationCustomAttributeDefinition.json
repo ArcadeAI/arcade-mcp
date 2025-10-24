@@ -1,18 +1,18 @@
 {
   "name": "RetrieveLocationCustomAttributeDefinition",
-  "fully_qualified_name": "SquareupApi.RetrieveLocationCustomAttributeDefinition@0.1.0",
-  "description": "Retrieve location-related custom attribute definitions.\n\nRetrieves a custom attribute definition for a location from a Square seller account. Applicable when needing details on custom attributes for specific locations. Accessible only if visibility is set accordingly.",
+  "fully_qualified_name": "SquareupApi.RetrieveLocationCustomAttributeDefinition@2.0.0",
+  "description": "Retrieve a location's custom attribute definition.\n\nUse this tool to obtain the custom attribute definition for a specified location in a Square seller account. Ensure the attribute's visibility is set appropriately to access it.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "custom_attribute_definition_key",
+        "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute definition to retrieve, requiring a qualified key if not the owner.",
+        "description": "The key for the custom attribute definition to retrieve, using the qualified key if not the owner.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "key"
       },
       {
-        "name": "custom_attribute_definition_version",
+        "name": "current_custom_attribute_version",
         "required": false,
-        "description": "The version of the custom attribute definition for consistent reads. Must be equal to or less than the latest version to avoid errors.",
+        "description": "The version number of the custom attribute definition for consistent reads. Must match the current or higher version.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}",
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "version",
-        "tool_parameter_name": "custom_attribute_definition_version",
+        "tool_parameter_name": "current_custom_attribute_version",
         "description": "The current version of the custom attribute definition, which is used for strongly consistent\nreads to guarantee that you receive the most up-to-date data. When included in the request,\nSquare returns the specified version or a higher version if one exists. If the specified version\nis higher than the current version, Square returns a `BAD_REQUEST` error.",
         "value_schema": {
           "val_type": "integer",
@@ -102,11 +102,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "key",
-        "tool_parameter_name": "custom_attribute_definition_key",
+        "tool_parameter_name": "custom_attribute_key",
         "description": "The key of the custom attribute definition to retrieve. If the requesting application\nis not the definition owner, you must use the qualified key.",
         "value_schema": {
           "val_type": "string",
@@ -119,6 +120,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

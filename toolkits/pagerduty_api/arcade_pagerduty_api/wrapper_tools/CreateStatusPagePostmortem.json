@@ -1,0 +1,326 @@
+{
+  "name": "CreateStatusPagePostmortem",
+  "fully_qualified_name": "PagerdutyApi.CreateStatusPagePostmortem@2.0.0",
+  "description": "Create a postmortem for a status page post.\n\nUse this tool to generate a detailed postmortem for a specific status page post using its post ID. Requires appropriate access permissions.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique ID of the resource for which the postmortem is being created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "status_page_post_id",
+        "required": true,
+        "description": "The unique identifier of the status page post for which the postmortem is being created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "post_id"
+      },
+      {
+        "name": "accept_header_version",
+        "required": true,
+        "description": "Specify the API version using the Accept header for versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "postmortem_details",
+        "required": false,
+        "description": "JSON object containing details about the postmortem, including type, post ID, message, and notification preference.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "postmortem": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "status_page_post_postmortem"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the object returned by the API - in this case, a Status Page Post Postmortem."
+                },
+                "post": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page post unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page Post"
+                },
+                "message": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The message of the Postmortem (supports Rich-Text)."
+                },
+                "notify_subscribers": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not subscribers of the Status Page should be notified about the Postmortem."
+                }
+              },
+              "inner_properties": null,
+              "description": "Request to create/update a given Postmortem resource."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createStatusPagePostmortem'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/status_pages/{id}/posts/{post_id}/postmortem",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "post_id",
+        "tool_parameter_name": "status_page_post_id",
+        "description": "The ID of the Status Page Post.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "postmortem_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "postmortem": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "status_page_post_postmortem"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the object returned by the API - in this case, a Status Page Post Postmortem."
+                },
+                "post": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page post unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page Post"
+                },
+                "message": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The message of the Postmortem (supports Rich-Text)."
+                },
+                "notify_subscribers": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not subscribers of the Status Page should be notified about the Postmortem."
+                }
+              },
+              "inner_properties": null,
+              "description": "Request to create/update a given Postmortem resource."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"postmortem\": {\n            \"type\": \"object\",\n            \"title\": \"PostmortemRequest\",\n            \"description\": \"Request to create/update a given Postmortem resource.\",\n            \"properties\": {\n              \"type\": {\n                \"type\": \"string\",\n                \"description\": \"The type of the object returned by the API - in this case, a Status Page Post Postmortem.\",\n                \"nullable\": false,\n                \"readOnly\": true,\n                \"enum\": [\n                  \"status_page_post_postmortem\"\n                ],\n                \"default\": \"status_page_post_postmortem\"\n              },\n              \"post\": {\n                \"description\": \"Status Page Post\",\n                \"nullable\": false,\n                \"properties\": {\n                  \"id\": {\n                    \"description\": \"Status page post unique identifier\",\n                    \"type\": \"string\"\n                  },\n                  \"type\": {\n                    \"description\": \"A string that determines the schema of the object.\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"id\"\n                ],\n                \"type\": \"object\"\n              },\n              \"message\": {\n                \"type\": \"string\",\n                \"description\": \"The message of the Postmortem (supports Rich-Text).\",\n                \"nullable\": false,\n                \"maxLength\": 10000\n              },\n              \"notify_subscribers\": {\n                \"type\": \"boolean\",\n                \"description\": \"Whether or not subscribers of the Status Page should be notified about the Postmortem.\",\n                \"nullable\": false\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"message\",\n              \"post\",\n              \"notify_subscribers\"\n            ]\n          }\n        },\n        \"required\": [\n          \"post_update\"\n        ]\n      },\n      \"example\": {\n        \"postmortem\": {\n          \"message\": \"<p>Something wrong happened and this is a postmortem.<p>\",\n          \"notify_subscribers\": true,\n          \"post\": {\n            \"id\": \"P6F2CJ3\",\n            \"self\": \"https://api.pagerduty.com/status_pages/PR5LMML/posts/P6F2CJ3\",\n            \"type\": \"status_page_post\"\n          },\n          \"type\": \"status_page_post_postmortem\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

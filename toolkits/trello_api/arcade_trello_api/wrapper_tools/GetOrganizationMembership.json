@@ -1,18 +1,18 @@
 {
   "name": "GetOrganizationMembership",
-  "fully_qualified_name": "TrelloApi.GetOrganizationMembership@0.1.0",
-  "description": "Retrieve details of a specific organization membership.\n\nUse this tool to get detailed information about a specific membership within an organization on Trello. It is particularly useful for understanding the membership attributes or status for a given organization and membership ID.",
+  "fully_qualified_name": "TrelloApi.GetOrganizationMembership@2.0.0",
+  "description": "Retrieve a specific membership for an organization.\n\nThis tool retrieves information about a specific membership within an organization on Trello. It should be called when you need detailed information about a particular membership's status or details.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id_or_name",
         "required": true,
-        "description": "The ID or name of the Trello organization to retrieve membership details.",
+        "description": "The unique ID or name of the organization to fetch membership details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "membership_id",
         "required": true,
-        "description": "The ID of the membership to retrieve within an organization. Use this to specify which membership details to load.",
+        "description": "The ID of the membership to retrieve details for a specific organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "include_member_object",
         "required": false,
-        "description": "Include the Member object in the response when true.",
+        "description": "Include the Member object in the response when set to true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/organizations/{id}/memberships/{idMembership}",
@@ -115,6 +115,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -132,6 +133,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -149,6 +151,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -170,6 +173,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

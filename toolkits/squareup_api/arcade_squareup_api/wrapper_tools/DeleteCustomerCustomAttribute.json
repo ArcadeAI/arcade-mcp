@@ -1,11 +1,11 @@
 {
   "name": "DeleteCustomerCustomAttribute",
-  "fully_qualified_name": "SquareupApi.DeleteCustomerCustomAttribute@0.1.0",
-  "description": "Delete a custom attribute from a customer profile.\n\nDeletes a custom attribute from a customer profile, ensuring the visibility setting is `VISIBILITY_READ_WRITE_VALUES` for attributes owned by other applications.",
+  "fully_qualified_name": "SquareupApi.DeleteCustomerCustomAttribute@2.0.0",
+  "description": "Deletes a custom attribute from a customer profile.\n\nUse this tool to delete a custom attribute associated with a customer profile. Applicable when removing attributes with visibility set to READ_WRITE.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
@@ -27,7 +27,7 @@
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key identifying the custom attribute to delete, matching the definition in the Square account. Use the qualified key if the application isn't the definition owner.",
+        "description": "The key of the custom attribute to delete. Must match the key of a custom attribute definition in the Square seller account. Use the qualified key if not the definition owner.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes/{key}",
@@ -102,6 +102,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -119,6 +120,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

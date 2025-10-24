@@ -1,11 +1,11 @@
 {
   "name": "GetBoardItems",
-  "fully_qualified_name": "MiroApi.GetBoardItems@0.1.0",
-  "description": "Retrieve items from a Miro board.\n\nThis tool retrieves a list of items from a specific Miro board using a cursor-based pagination method. It can fetch all items, child items within a parent item, or specific types of items based on query parameters. Useful for managing and navigating board content efficiently.",
+  "fully_qualified_name": "MiroApi.GetBoardItems@2.0.0",
+  "description": "Retrieve items from a specific Miro board.\n\nThis tool retrieves items from a specific Miro board. It can fetch all items, child items within a parent, or specific types of items using query parameters. Results are paginated; use the cursor value from the previous response to get the next set of items.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "board_id"
       },
       {
-        "name": "item_limit",
+        "name": "pagination_limit",
         "required": false,
-        "description": "Specifies the maximum number of items to retrieve from the board in one request.",
+        "description": "The maximum number of items to return in a single call. Use this to control the size of the result set per request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "item_type",
         "required": false,
-        "description": "Specify the type of items to retrieve, such as 'shape'.",
+        "description": "Specify the type of items to retrieve from the board, such as 'shape'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The cursor value to retrieve the next set of results for board items. Use the value from the previous response's cursor to paginate through results.",
+        "description": "The cursor value to retrieve the next set of items from a board. Use the value returned in the previous response to paginate through results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2-experimental/boards/{board_id}/items",
@@ -117,7 +117,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "item_limit",
+        "tool_parameter_name": "pagination_limit",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -130,6 +130,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "10",
         "documentation_urls": []
       },
       {
@@ -149,6 +150,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -166,6 +168,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -183,6 +186,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -196,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

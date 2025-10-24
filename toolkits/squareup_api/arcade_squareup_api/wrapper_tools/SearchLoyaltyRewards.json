@@ -1,0 +1,216 @@
+{
+  "name": "SearchLoyaltyRewards",
+  "fully_qualified_name": "SquareupApi.SearchLoyaltyRewards@2.0.0",
+  "description": "Search for loyalty rewards with optional filters.\n\nThis tool searches for loyalty rewards and can retrieve results for all loyalty accounts when no filters are applied. If a query object is used, the `loyalty_account_id` is required, while `status` is optional. Results are sorted by `updated_at` in descending order.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "loyalty_account_id",
+        "required": false,
+        "description": "The ID of the loyalty account to which the loyalty reward belongs. Required if using a query object.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty account](entity:LoyaltyAccount) to which the loyalty reward belongs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.loyalty_account_id"
+      },
+      {
+        "name": "reward_status",
+        "required": false,
+        "description": "The status of the loyalty reward. Options: ISSUED, REDEEMED, DELETED.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ISSUED",
+            "REDEEMED",
+            "DELETED"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The status of the loyalty reward."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.status"
+      },
+      {
+        "name": "maximum_results",
+        "required": false,
+        "description": "The maximum number of loyalty reward results to return. Default is 30.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return in the response. The default value is 30."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A cursor for pagination to retrieve the next set of results from a previous call.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to \nthis endpoint. Provide this to retrieve the next set of \nresults for the original query.\nFor more information, \nsee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchLoyaltyRewards'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/rewards/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "query.loyalty_account_id",
+        "tool_parameter_name": "loyalty_account_id",
+        "description": "The ID of the [loyalty account](entity:LoyaltyAccount) to which the loyalty reward belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty account](entity:LoyaltyAccount) to which the loyalty reward belongs."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.status",
+        "tool_parameter_name": "reward_status",
+        "description": "The status of the loyalty reward.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ISSUED",
+            "REDEEMED",
+            "DELETED"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The status of the loyalty reward."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_results",
+        "description": "The maximum number of results to return in the response. The default value is 30.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return in the response. The default value is 30."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to \nthis endpoint. Provide this to retrieve the next set of \nresults for the original query.\nFor more information, \nsee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to \nthis endpoint. Provide this to retrieve the next set of \nresults for the original query.\nFor more information, \nsee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to search for loyalty rewards.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"The set of search requirements.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"loyalty_account_id\"\n            ],\n            \"properties\": {\n              \"loyalty_account_id\": {\n                \"type\": \"string\",\n                \"description\": \"The ID of the [loyalty account](entity:LoyaltyAccount) to which the loyalty reward belongs.\",\n                \"minLength\": 1\n              },\n              \"status\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"ISSUED\",\n                  \"REDEEMED\",\n                  \"DELETED\"\n                ],\n                \"x-enum-elements\": [\n                  {\n                    \"name\": \"ISSUED\",\n                    \"description\": \"The reward is issued.\"\n                  },\n                  {\n                    \"name\": \"REDEEMED\",\n                    \"description\": \"The reward is redeemed.\"\n                  },\n                  {\n                    \"name\": \"DELETED\",\n                    \"description\": \"The reward is deleted.\"\n                  }\n                ],\n                \"description\": \"The status of the loyalty reward.\",\n                \"x-release-status\": \"PUBLIC\"\n              }\n            }\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The maximum number of results to return in the response. The default value is 30.\",\n            \"minimum\": 1,\n            \"maximum\": 30\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"A pagination cursor returned by a previous call to \\nthis endpoint. Provide this to retrieve the next set of \\nresults for the original query.\\nFor more information, \\nsee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\"\n          }\n        },\n        \"example\": {\n          \"limit\": 10,\n          \"query\": {\n            \"loyalty_account_id\": \"5adcb100-07f1-4ee7-b8c6-6bb9ebc474bd\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "GetBusinessServiceDependencies",
-  "fully_qualified_name": "PagerdutyApi.GetBusinessServiceDependencies@0.1.0",
-  "description": "Fetch immediate dependencies of a specified Business Service.\n\nThis tool retrieves all immediate dependencies of a specified Business Service within Pagerduty. Business Services may involve multiple technical services and can be managed by different teams. Use this tool to understand the dependencies affecting a Business Service.",
+  "fully_qualified_name": "PagerdutyApi.GetBusinessServiceDependencies@2.0.0",
+  "description": "Retrieve immediate dependencies of a Business Service.\n\nThis tool retrieves all immediate dependencies of a specified Business Service in PagerDuty. It models capabilities that span multiple technical services and may be owned by various teams. Appropriate for understanding service dependencies in a business context.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "service_id",
         "required": true,
-        "description": "The unique identifier for the Business Service whose dependencies you want to fetch.",
+        "description": "The ID of the Business Service to retrieve its dependencies.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_versioning_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "The versioning header to specify API version, using the `Accept` header.",
+        "description": "Specifies the version using the `Accept` header for the API response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specifies the content type. Must be 'application/json'.",
+        "description": "Specify the type for the Content-Type header. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/service_dependencies/business_services/{id}",
@@ -102,7 +102,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "service_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_versioning_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

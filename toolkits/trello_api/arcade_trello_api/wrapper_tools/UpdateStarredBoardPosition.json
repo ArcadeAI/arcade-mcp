@@ -1,18 +1,18 @@
 {
   "name": "UpdateStarredBoardPosition",
-  "fully_qualified_name": "TrelloApi.UpdateStarredBoardPosition@0.1.0",
-  "description": "Update the position of a starred board on Trello.\n\nUse this tool to change the ordering of a user's starred boards on Trello by updating their position.",
+  "fully_qualified_name": "TrelloApi.UpdateStarredBoardPosition@2.0.0",
+  "description": "Update the position of a starred board in Trello.\n\nUse this tool to change the order of a starred board for a member in Trello by updating its position.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member whose starred board position is being updated.",
+        "description": "The ID or username of the Trello member to update the board position for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "board_star_id",
         "required": true,
-        "description": "The unique identifier for the board star. Used to specify which starred board's position to update.",
+        "description": "The unique identifier for the board star to update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "idStar"
       },
       {
-        "name": "new_position_for_starred_board",
+        "name": "new_board_position",
         "required": false,
-        "description": "Specify the new position for the starred board. Use 'top', 'bottom', or a positive float for a custom position.",
+        "description": "The new position for the starred board. Options are `top`, `bottom`, or a positive float for custom positioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/boardStars/{idStar}",
@@ -102,7 +102,7 @@
     "parameters": [
       {
         "name": "pos",
-        "tool_parameter_name": "new_position_for_starred_board",
+        "tool_parameter_name": "new_board_position",
         "description": "New position for the starred board. `top`, `bottom`, or a positive float.",
         "value_schema": {
           "val_type": "string",
@@ -115,6 +115,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -132,6 +133,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -149,6 +151,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -170,6 +173,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

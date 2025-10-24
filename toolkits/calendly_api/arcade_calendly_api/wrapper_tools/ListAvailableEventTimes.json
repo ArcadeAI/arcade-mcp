@@ -1,0 +1,171 @@
+{
+  "name": "ListAvailableEventTimes",
+  "fully_qualified_name": "CalendlyApi.ListAvailableEventTimes@2.0.0",
+  "description": "Retrieve available times for an event type within a date range.\n\nReturns available times for a specified event type within a maximum 7-day date range. Useful for scheduling and planning events.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_type_uri",
+        "required": true,
+        "description": "The URI associated with the event type to retrieve its available times.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The uri associated with the event type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "event_type"
+      },
+      {
+        "name": "availability_start_time",
+        "required": true,
+        "description": "The start time for the availability range. Must be a future date, not in the past.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start time of the requested availability range. Date cannot be in the past."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_time"
+      },
+      {
+        "name": "availability_end_time",
+        "required": true,
+        "description": "End time for the availability range, must be after the start time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End time of the requested availability range. Date must be in the future of start_time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_time"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-event-type-available-times'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/event_type_available_times",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "event_type",
+        "tool_parameter_name": "event_type_uri",
+        "description": "The uri associated with the event type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The uri associated with the event type"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_time",
+        "tool_parameter_name": "availability_start_time",
+        "description": "Start time of the requested availability range. Date cannot be in the past.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start time of the requested availability range. Date cannot be in the past."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_time",
+        "tool_parameter_name": "availability_end_time",
+        "description": "End time of the requested availability range. Date must be in the future of start_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End time of the requested availability range. Date must be in the future of start_time."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

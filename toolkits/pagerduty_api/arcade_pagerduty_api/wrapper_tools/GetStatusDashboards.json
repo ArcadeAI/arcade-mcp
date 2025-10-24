@@ -1,18 +1,18 @@
 {
   "name": "GetStatusDashboards",
-  "fully_qualified_name": "PagerdutyApi.GetStatusDashboards@0.1.0",
-  "description": "Retrieve all custom status dashboard views.\n\nUse this tool to get all custom Status Dashboard views associated with your Pagerduty account. It requires appropriate OAuth permissions.",
+  "fully_qualified_name": "PagerdutyApi.GetStatusDashboards@2.0.0",
+  "description": "Retrieve all custom Status Dashboard views for your account.\n\nUse this tool to get an overview of all Status Dashboard views configured in your PagerDuty account. Useful for monitoring and management purposes.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "accept_header_versioning",
         "required": true,
-        "description": "The Accept header versioning for the API request. Specify the API version you want to use.",
+        "description": "Specifies the versioning information via the Accept header for the request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_dashboards",
@@ -97,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

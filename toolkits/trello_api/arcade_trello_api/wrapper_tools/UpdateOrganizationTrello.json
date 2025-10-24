@@ -1,0 +1,511 @@
+{
+  "name": "UpdateOrganizationTrello",
+  "fully_qualified_name": "TrelloApi.UpdateOrganizationTrello@2.0.0",
+  "description": "Updates an organization's details in Trello.\n\nUse this tool to update the details of a specific organization in Trello. It should be called when you need to modify information such as the organization's name, description, or website.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id_or_name",
+        "required": true,
+        "description": "The ID or name of the Trello organization to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the Organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "organization_new_name",
+        "required": false,
+        "description": "A unique name for the organization with at least 3 lowercase letters, underscores, and numbers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A new name for the organization. At least 3 lowercase letters, underscores, and numbers. Must be unique"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "new_display_name",
+        "required": false,
+        "description": "A new display name for the organization. It must be at least 1 character long without leading or trailing spaces.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A new displayName for the organization. Must be at least 1 character long and not begin or end with a space."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "displayName"
+      },
+      {
+        "name": "organization_description",
+        "required": false,
+        "description": "A new description for the organization. Provide relevant and concise details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A new description for the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "desc"
+      },
+      {
+        "name": "organization_website",
+        "required": false,
+        "description": "A URL for the organization starting with `http://`, `https://`, or `null`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A URL starting with `http://`, `https://`, or `null`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "website"
+      },
+      {
+        "name": "google_apps_associated_domain",
+        "required": false,
+        "description": "The Google Apps domain to link this organization to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Google Apps domain to link this org to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/associatedDomain"
+      },
+      {
+        "name": "google_apps_version",
+        "required": false,
+        "description": "Set the Google Apps version to `1` or `2` for the organization.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`1` or `2`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/googleAppsVersion"
+      },
+      {
+        "name": "workspace_board_visibility_restriction",
+        "required": false,
+        "description": "Determines who in the Workspace can create Workspace-visible boards. Accepts one of: `admin`, `none`, `org`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who on the Workspace can make Workspace visible boards. One of `admin`, `none`, `org`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/boardVisibilityRestrict/org"
+      },
+      {
+        "name": "private_board_visibility",
+        "required": false,
+        "description": "Specifies who can create private boards in the organization. Options: `admin`, `none`, `org`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who can make private boards. One of: `admin`, `none`, `org`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/boardVisibilityRestrict/private"
+      },
+      {
+        "name": "public_board_visibility_permission",
+        "required": false,
+        "description": "Who on the Workspace can create public boards. Options are: `admin`, `none`, `org`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who on the Workspace can make public boards. One of: `admin`, `none`, `org`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/boardVisibilityRestrict/public"
+      },
+      {
+        "name": "organization_invite_restriction",
+        "required": false,
+        "description": "An email address with optional wildcard characters to restrict organization invites. Example: `subdomain.*.trello.com`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An email address with optional wildcard characters. (E.g. `subdomain.*.trello.com`)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/orgInviteRestrict"
+      },
+      {
+        "name": "workspace_visibility_permission",
+        "required": false,
+        "description": "Set the visibility level of the Workspace page. Accepts 'private' or 'public'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the Workspace page is publicly visible. One of: `private`, `public`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/permissionLevel"
+      },
+      {
+        "name": "prevent_external_members",
+        "required": false,
+        "description": "Set to true to prevent non-workspace members from being added to boards inside the Workspace.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether non-workspace members can be added to boards inside the Workspace"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/externalMembersDisabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-organizations-id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/organizations/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "organization_new_name",
+        "description": "A new name for the organization. At least 3 lowercase letters, underscores, and numbers. Must be unique",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A new name for the organization. At least 3 lowercase letters, underscores, and numbers. Must be unique"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "displayName",
+        "tool_parameter_name": "new_display_name",
+        "description": "A new displayName for the organization. Must be at least 1 character long and not begin or end with a space.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A new displayName for the organization. Must be at least 1 character long and not begin or end with a space."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "desc",
+        "tool_parameter_name": "organization_description",
+        "description": "A new description for the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A new description for the organization"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "website",
+        "tool_parameter_name": "organization_website",
+        "description": "A URL starting with `http://`, `https://`, or `null`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A URL starting with `http://`, `https://`, or `null`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/associatedDomain",
+        "tool_parameter_name": "google_apps_associated_domain",
+        "description": "The Google Apps domain to link this org to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Google Apps domain to link this org to."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/externalMembersDisabled",
+        "tool_parameter_name": "prevent_external_members",
+        "description": "Whether non-workspace members can be added to boards inside the Workspace",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether non-workspace members can be added to boards inside the Workspace"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/googleAppsVersion",
+        "tool_parameter_name": "google_apps_version",
+        "description": "`1` or `2`",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`1` or `2`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/boardVisibilityRestrict/org",
+        "tool_parameter_name": "workspace_board_visibility_restriction",
+        "description": "Who on the Workspace can make Workspace visible boards. One of `admin`, `none`, `org`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who on the Workspace can make Workspace visible boards. One of `admin`, `none`, `org`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/boardVisibilityRestrict/private",
+        "tool_parameter_name": "private_board_visibility",
+        "description": "Who can make private boards. One of: `admin`, `none`, `org`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who can make private boards. One of: `admin`, `none`, `org`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/boardVisibilityRestrict/public",
+        "tool_parameter_name": "public_board_visibility_permission",
+        "description": "Who on the Workspace can make public boards. One of: `admin`, `none`, `org`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who on the Workspace can make public boards. One of: `admin`, `none`, `org`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/orgInviteRestrict",
+        "tool_parameter_name": "organization_invite_restriction",
+        "description": "An email address with optional wildcard characters. (E.g. `subdomain.*.trello.com`)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An email address with optional wildcard characters. (E.g. `subdomain.*.trello.com`)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/permissionLevel",
+        "tool_parameter_name": "workspace_visibility_permission",
+        "description": "Whether the Workspace page is publicly visible. One of: `private`, `public`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the Workspace page is publicly visible. One of: `private`, `public`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "organization_id_or_name",
+        "description": "The ID or name of the Organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the Organization"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

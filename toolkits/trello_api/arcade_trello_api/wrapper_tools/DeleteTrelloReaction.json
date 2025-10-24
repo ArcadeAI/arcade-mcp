@@ -1,18 +1,18 @@
 {
   "name": "DeleteTrelloReaction",
-  "fully_qualified_name": "TrelloApi.DeleteTrelloReaction@0.1.0",
-  "description": "Delete a reaction from a Trello action.\n\nUse this tool to remove a specific reaction from a Trello action, given the action ID and reaction ID.",
+  "fully_qualified_name": "TrelloApi.DeleteTrelloReaction@2.0.0",
+  "description": "Deletes a specific reaction on a Trello action.\n\nUse this tool to delete a reaction from a specified action in Trello by providing the action ID and reaction ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "action_id",
         "required": true,
-        "description": "The unique identifier for the Trello action.",
+        "description": "The ID of the Trello action from which the reaction will be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "reaction_id",
         "required": true,
-        "description": "The unique identifier for the reaction to be deleted from the Trello action.",
+        "description": "The unique identifier of the reaction to be deleted from a Trello action.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/actions/{idAction}/reactions/{id}",
@@ -100,6 +100,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

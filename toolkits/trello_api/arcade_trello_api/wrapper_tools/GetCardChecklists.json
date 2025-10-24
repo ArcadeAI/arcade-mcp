@@ -1,18 +1,18 @@
 {
   "name": "GetCardChecklists",
-  "fully_qualified_name": "TrelloApi.GetCardChecklists@0.1.0",
-  "description": "Retrieve checklists from a specific Trello card.\n\nUse this tool to obtain all checklists associated with a particular card on Trello by providing the card ID.",
+  "fully_qualified_name": "TrelloApi.GetCardChecklists@2.0.0",
+  "description": "Retrieve checklists for a specified Trello card.\n\nUse this tool to access all checklists attached to a specific Trello card by providing the card ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique ID of the Trello card for which to retrieve the checklists. Required for identifying the specific card.",
+        "description": "The unique identifier of the Trello card for which checklists are retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "include_check_items",
         "required": false,
-        "description": "Specify 'all' to include all checkItems or 'none' to exclude them on the card's checklists.",
+        "description": "Specify whether to include all check items (`all`) or none (`none`).",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,9 +43,9 @@
         "http_endpoint_parameter_name": "checkItems"
       },
       {
-        "name": "checkitem_fields_selection",
+        "name": "include_checkitem_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of fields for checklist items: `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`.",
+        "description": "Specify 'all' for all fields or a comma-separated list of desired fields among: name, nameData, pos, state, type, due, dueReminder, idMember.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -69,7 +69,7 @@
       {
         "name": "include_all_checklists",
         "required": false,
-        "description": "Specify 'all' to retrieve all checklists or 'none' for none.",
+        "description": "Specify whether to include all checklists (`all`) or none (`none`) for the card. Accepted values are 'all' or 'none'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "filter"
       },
       {
-        "name": "card_info_fields",
+        "name": "card_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of: 'idBoard, idCard, name, pos' for card fields to return.",
+        "description": "Specify 'all' or list fields like `idBoard,idCard,name,pos` to include in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -139,13 +139,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}/checklists",
@@ -170,11 +170,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
         "name": "checkItem_fields",
-        "tool_parameter_name": "checkitem_fields_selection",
+        "tool_parameter_name": "include_checkitem_fields",
         "description": "`all` or a comma-separated list of: `name,nameData,pos,state,type,due,dueReminder,idMember`",
         "value_schema": {
           "val_type": "string",
@@ -196,6 +197,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "name,nameData,pos,state,due,dueReminder,idMember",
         "documentation_urls": []
       },
       {
@@ -216,11 +218,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
         "name": "fields",
-        "tool_parameter_name": "card_info_fields",
+        "tool_parameter_name": "card_fields",
         "description": "`all` or a comma-separated list of: `idBoard,idCard,name,pos`",
         "value_schema": {
           "val_type": "string",
@@ -240,6 +243,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -257,6 +261,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -278,6 +283,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "ListTeamMemberWages",
-  "fully_qualified_name": "SquareupApi.ListTeamMemberWages@0.1.0",
-  "description": "Retrieve paginated team member wages for a business.\n\nUse this tool to obtain a paginated list of wages for team members within a business. Ideal for managing payroll and financial records.",
+  "fully_qualified_name": "SquareupApi.ListTeamMemberWages@2.0.0",
+  "description": "Retrieve paginated list of team member wages for a business.\n\nThis tool retrieves a paginated list of wage details for team members in a business. It can be called when specific information about team member wages is needed.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "filter_by_team_member_id",
         "required": false,
-        "description": "Filter wages by specifying the team member's ID. Only wages for this team member will be returned.",
+        "description": "Filter wages to only those associated with the specified team member by ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "team_member_id"
       },
       {
-        "name": "results_per_page",
+        "name": "max_results_per_page",
         "required": false,
-        "description": "Specifies the maximum number of team member wages to return per page, ranging from 1 to 200. Default is 200.",
+        "description": "The maximum number of TeamMemberWage results to return per page, ranging from 1 to 200. Default is 200.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "next_page_cursor",
         "required": false,
-        "description": "A token used to fetch the next page of team member wage results.",
+        "description": "A pointer to the next page of team member wage results to fetch.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,13 +89,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/labor/team-member-wages",
@@ -117,11 +117,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "results_per_page",
+        "tool_parameter_name": "max_results_per_page",
         "description": "The maximum number of `TeamMemberWage` results to return per page. The number can range between\n1 and 200. The default is 200.",
         "value_schema": {
           "val_type": "integer",
@@ -134,6 +135,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -151,6 +153,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -164,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

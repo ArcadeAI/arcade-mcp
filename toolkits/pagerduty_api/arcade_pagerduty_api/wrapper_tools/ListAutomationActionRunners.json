@@ -1,18 +1,18 @@
 {
   "name": "ListAutomationActionRunners",
-  "fully_qualified_name": "PagerdutyApi.ListAutomationActionRunners@0.1.0",
-  "description": "Retrieve a list of Automation Action runners.\n\nThis tool retrieves a list of Automation Action runners sorted by runner name in alphabetical order. It should be called when you need information about available automation runners from Pagerduty.",
+  "fully_qualified_name": "PagerdutyApi.ListAutomationActionRunners@2.0.0",
+  "description": "Retrieve a list of Automation Action runners.\n\nFetches and lists the Automation Action runners that match provided query parameters, sorted by runner name. Useful for managing and reviewing automation runners on PagerDuty.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_versioning_header",
+        "name": "version_header",
         "required": true,
-        "description": "The versioning header for the API request, used in the 'Accept' field.",
+        "description": "Specifies the version of the API to use via the 'Accept' header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the response data. Must be set to 'application/json'.",
+        "description": "Specifies the content type of the request, typically set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,9 +42,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "maximum_results_limit",
+        "name": "result_limit",
         "required": false,
-        "description": "Specifies the maximum number of Automation Action runners to retrieve. This is the lesser of the provided value or the API's maximum limit.",
+        "description": "Specifies the maximum number of Automation Action runners to return in the response. The actual response will have a minimum of this limit or the maximum allowed by the API.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -57,9 +57,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "pagination_cursor",
+        "name": "next_cursor",
         "required": false,
-        "description": "Cursor for pagination through results. Use value from `next_cursor` of previous request or omit to start from the beginning.",
+        "description": "Optional cursor for requesting the next set of results. Use the value obtained from a previous response's `next_cursor`. If not provided, retrieval starts from the beginning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "filter_by_runner_name",
+        "name": "runner_name_filter",
         "required": false,
-        "description": "Filters results to include runners with names matching the provided substring (case insensitive).",
+        "description": "Filter results to include Automation Action runners with names matching this substring (case insensitive).",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,9 +87,9 @@
         "http_endpoint_parameter_name": "name"
       },
       {
-        "name": "additional_data_inclusion",
+        "name": "include_additional_data_elements",
         "required": false,
-        "description": "An array of strings specifying additional data elements to include in the response.",
+        "description": "List of additional data elements to include in the response. Each entry should be a string representing the type of data element to include.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -132,13 +132,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/automation_actions/runners",
@@ -147,7 +147,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "maximum_results_limit",
+        "tool_parameter_name": "result_limit",
         "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API.",
         "value_schema": {
           "val_type": "integer",
@@ -165,7 +165,7 @@
       },
       {
         "name": "cursor",
-        "tool_parameter_name": "pagination_cursor",
+        "tool_parameter_name": "next_cursor",
         "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n",
         "value_schema": {
           "val_type": "string",
@@ -183,7 +183,7 @@
       },
       {
         "name": "name",
-        "tool_parameter_name": "filter_by_runner_name",
+        "tool_parameter_name": "runner_name_filter",
         "description": "Filters results to include the ones matching the name (case insensitive substring matching)",
         "value_schema": {
           "val_type": "string",
@@ -201,7 +201,7 @@
       },
       {
         "name": "include[]",
-        "tool_parameter_name": "additional_data_inclusion",
+        "tool_parameter_name": "include_additional_data_elements",
         "description": "Includes additional data elements into the response",
         "value_schema": {
           "val_type": "array",
@@ -219,7 +219,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_versioning_header",
+        "tool_parameter_name": "version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -237,7 +237,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -266,6 +266,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

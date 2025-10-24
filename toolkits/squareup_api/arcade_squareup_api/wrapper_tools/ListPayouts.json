@@ -1,0 +1,317 @@
+{
+  "name": "ListPayouts",
+  "fully_qualified_name": "SquareupApi.ListPayouts@2.0.0",
+  "description": "Retrieve a list of payouts for the default location.\n\nThis tool retrieves all payouts for the default location. It allows filtering by location ID, status, time range, and ordering results. Ensure that `PAYOUTS_READ` is set for the OAuth scope.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "location_identifier",
+        "required": false,
+        "description": "The ID of the location for which to list the payouts. Defaults to the main location associated with the seller if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the location for which to list the payouts.\nBy default, payouts are returned for the default (main) location associated with the seller."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      },
+      {
+        "name": "filter_payout_status",
+        "required": false,
+        "description": "If provided, only payouts with the specified status ('SENT', 'FAILED', 'PAID') are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "SENT",
+            "FAILED",
+            "PAID"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only payouts with the given status are returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "begin_timestamp",
+        "required": false,
+        "description": "The starting timestamp for the payout creation time, in RFC 3339 format. Defaults to one year ago if not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp for the beginning of the payout creation time, in RFC 3339 format.\nInclusive. Default: The current time minus one year."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "begin_time"
+      },
+      {
+        "name": "end_time_rfc3339",
+        "required": false,
+        "description": "RFC 3339 timestamp marking the end of the payout creation time. Defaults to current time if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp for the end of the payout creation time, in RFC 3339 format.\nDefault: The current time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_time"
+      },
+      {
+        "name": "payout_sort_order",
+        "required": false,
+        "description": "Specifies the order for listing payouts. Use 'DESC' for descending or 'ASC' for ascending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which payouts are listed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_order"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A cursor for pagination, returned by a previous call. Use it to retrieve the next set of results. Be aware of changes in request parameters between calls.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\nIf request parameters change between requests, subsequent results may contain duplicates or missing records."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Maximum number of results per page. Defaults to 100 and cannot exceed 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to be returned in a single page.\nIt is possible to receive fewer results than the specified limit on a given page.\nThe default value of 100 is also the maximum allowed value. If the provided value is\ngreater than 100, it is ignored and the default value is used instead.\nDefault: `100`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListPayouts'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/payouts",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "location_id",
+        "tool_parameter_name": "location_identifier",
+        "description": "The ID of the location for which to list the payouts.\nBy default, payouts are returned for the default (main) location associated with the seller.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the location for which to list the payouts.\nBy default, payouts are returned for the default (main) location associated with the seller."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "filter_payout_status",
+        "description": "If provided, only payouts with the given status are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "SENT",
+            "FAILED",
+            "PAID"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only payouts with the given status are returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "begin_time",
+        "tool_parameter_name": "begin_timestamp",
+        "description": "The timestamp for the beginning of the payout creation time, in RFC 3339 format.\nInclusive. Default: The current time minus one year.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp for the beginning of the payout creation time, in RFC 3339 format.\nInclusive. Default: The current time minus one year."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_time",
+        "tool_parameter_name": "end_time_rfc3339",
+        "description": "The timestamp for the end of the payout creation time, in RFC 3339 format.\nDefault: The current time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp for the end of the payout creation time, in RFC 3339 format.\nDefault: The current time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_order",
+        "tool_parameter_name": "payout_sort_order",
+        "description": "The order in which payouts are listed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which payouts are listed."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\nIf request parameters change between requests, subsequent results may contain duplicates or missing records.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\nIf request parameters change between requests, subsequent results may contain duplicates or missing records."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "The maximum number of results to be returned in a single page.\nIt is possible to receive fewer results than the specified limit on a given page.\nThe default value of 100 is also the maximum allowed value. If the provided value is\ngreater than 100, it is ignored and the default value is used instead.\nDefault: `100`",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to be returned in a single page.\nIt is possible to receive fewer results than the specified limit on a given page.\nThe default value of 100 is also the maximum allowed value. If the provided value is\ngreater than 100, it is ignored and the default value is used instead.\nDefault: `100`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

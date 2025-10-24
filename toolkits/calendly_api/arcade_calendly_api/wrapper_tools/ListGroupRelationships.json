@@ -1,16 +1,16 @@
 {
   "name": "ListGroupRelationships",
-  "fully_qualified_name": "CalendlyApi.ListGroupRelationships@0.1.0",
-  "description": "Retrieve group relationships for a Calendly owner.\n\nThis tool returns a list of group relationships for a given owner in Calendly, which includes one membership record and multiple admin records, if available.",
+  "fully_qualified_name": "CalendlyApi.ListGroupRelationships@2.0.0",
+  "description": "Retrieve a list of group relationships for a given owner.\n\nUse this tool to get group relationship records, including one membership and multiple admin records for an owner.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "number_of_rows_to_return",
+        "name": "number_of_rows",
         "required": false,
         "description": "Specify the number of rows to return in the response.",
         "value_schema": {
@@ -27,7 +27,7 @@
       {
         "name": "pagination_token",
         "required": false,
-        "description": "Token for paginating through results, used for accessing the next or previous portion of the collection.",
+        "description": "Token to navigate to the next or previous portion of the collection.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "filter_by_organization",
         "required": false,
-        "description": "Indicates the results should be filtered by organization. Provide the organization's URI.",
+        "description": "Filter results by organization. Provide the organization ID or URI to narrow down the list of group relationships.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "organization"
       },
       {
-        "name": "filter_by_owner",
+        "name": "filter_by_owner_uri",
         "required": false,
-        "description": "Filter results by owner using a specific URI format: Organization Membership or Organization Invitation.",
+        "description": "The URI to filter results by owner, either an Organization Membership URI or Organization Invitation URI.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "filter_by_group",
         "required": false,
-        "description": "Indicate the group to filter the results by. Provide the group identifier as the value.",
+        "description": "Filter results by a specific group using a group identifier.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -115,13 +115,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/group_relationships",
@@ -130,7 +130,7 @@
     "parameters": [
       {
         "name": "count",
-        "tool_parameter_name": "number_of_rows_to_return",
+        "tool_parameter_name": "number_of_rows",
         "description": "The number of rows to return",
         "value_schema": {
           "val_type": "number",
@@ -143,6 +143,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": 20,
         "documentation_urls": []
       },
       {
@@ -160,6 +161,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -177,11 +179,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "owner",
-        "tool_parameter_name": "filter_by_owner",
+        "tool_parameter_name": "filter_by_owner_uri",
         "description": "Indicates the results should be filtered by owner <br>\nOne Of:\n  - Organization Membership URI - `https://api.calendly.com/organization_memberships/AAAAAAAAAAAAAAAA`\n  - Organization Invitation URI - `https://api.calendly.com/organizations/AAAAAAAAAAAAAAAA/invitations/BBBBBBBBBBBBBBBB`\n",
         "value_schema": {
           "val_type": "string",
@@ -194,6 +197,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -211,6 +215,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -224,6 +229,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

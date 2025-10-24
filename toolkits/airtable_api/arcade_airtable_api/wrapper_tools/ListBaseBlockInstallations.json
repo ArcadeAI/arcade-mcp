@@ -1,18 +1,18 @@
 {
   "name": "ListBaseBlockInstallations",
-  "fully_qualified_name": "AirtableApi.ListBaseBlockInstallations@0.1.0",
-  "description": "Lists basic information of base block installations.\n\nUse this tool to retrieve details about block installations in a specific Airtable base. It provides an overview of the blocks attached to the base, useful for managing or reviewing installed blocks.",
+  "fully_qualified_name": "AirtableApi.ListBaseBlockInstallations@2.0.0",
+  "description": "Retrieve basic info of block installations for a specific base.\n\nUse this tool to get a list of block installations within a specified base in Airtable. It provides basic information about each block installation, useful for managing and understanding block deployments in a base.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "base_identifier",
+        "name": "base_id",
         "required": true,
-        "description": "Unique identifier for the Airtable base to list block installations from.",
+        "description": "The unique identifier for a specific Airtable base to retrieve block installations from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/bases/{baseId}/blockInstallations",
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "baseId",
-        "tool_parameter_name": "base_identifier",
+        "tool_parameter_name": "base_id",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -101,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

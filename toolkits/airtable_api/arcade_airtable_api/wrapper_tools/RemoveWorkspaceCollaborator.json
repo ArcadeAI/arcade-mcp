@@ -1,18 +1,18 @@
 {
   "name": "RemoveWorkspaceCollaborator",
-  "fully_qualified_name": "AirtableApi.RemoveWorkspaceCollaborator@0.1.0",
-  "description": "Remove a collaborator from a workspace.\n\nCall this tool to delete a collaborator from an Airtable workspace, identified by workspace and user or group IDs.",
+  "fully_qualified_name": "AirtableApi.RemoveWorkspaceCollaborator@2.0.0",
+  "description": "Remove a collaborator from an Airtable workspace.\n\nUse this tool to remove a collaborator, identified by user or group ID, from a specified Airtable workspace.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "workspace_id",
         "required": true,
-        "description": "The unique identifier of the workspace from which the collaborator will be removed.",
+        "description": "The unique identifier of the Airtable workspace from which to remove a collaborator.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "workspaceId"
       },
       {
-        "name": "user_or_group_id",
+        "name": "collaborator_identifier",
         "required": true,
-        "description": "The ID of the user or group to remove from the workspace. It must be a valid string identifier.",
+        "description": "The ID of the user or group to be removed from the workspace.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/workspaces/{workspaceId}/collaborators/{userOrGroupId}",
@@ -107,7 +107,7 @@
       },
       {
         "name": "userOrGroupId",
-        "tool_parameter_name": "user_or_group_id",
+        "tool_parameter_name": "collaborator_identifier",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

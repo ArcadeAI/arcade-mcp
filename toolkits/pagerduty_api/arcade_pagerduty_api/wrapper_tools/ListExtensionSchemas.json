@@ -1,18 +1,18 @@
 {
   "name": "ListExtensionSchemas",
-  "fully_qualified_name": "PagerdutyApi.ListExtensionSchemas@0.1.0",
-  "description": "Retrieve all PagerDuty extension schemas.\n\nUse this tool to list all extension schemas available in PagerDuty, representing different types of outbound extensions like Generic Webhook, Slack, and ServiceNow. Useful for integrating with or understanding existing extension capabilities within PagerDuty.",
+  "fully_qualified_name": "PagerdutyApi.ListExtensionSchemas@2.0.0",
+  "description": "Retrieve a list of all PagerDuty extension schemas.\n\nThis tool fetches a list of all extension schemas in PagerDuty, representing outbound integrations like Webhooks, Slack, and ServiceNow. It should be called when needing details about available extension types. OAuth scope required: `extension_schemas.read`.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_header_version",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specifies the version of the API response. Used for versioning with the `Accept` header.",
+        "description": "Specify the API version using the `Accept` header for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "set_content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specify the content type of the request. Use 'application/json' for JSON format.",
+        "description": "Set the 'Content-Type' header, usually 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "The number of results to display per page when listing extension schemas.",
+        "description": "Specify the number of results to display per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "Offset to begin paginated search results. Provide an integer to specify the starting point in the data.",
+        "description": "The starting point for pagination in the result set, defined as the number of items to skip.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "include_total_in_pagination",
+        "name": "include_total_in_response",
         "required": false,
-        "description": "Set to true to include the total number of results in the pagination response. Set to false for faster response times.",
+        "description": "Set to true to populate the total field in pagination responses, providing the total count, which may affect response time.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -117,13 +117,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/extension_schemas",
@@ -168,7 +168,7 @@
       },
       {
         "name": "total",
-        "tool_parameter_name": "include_total_in_pagination",
+        "tool_parameter_name": "include_total_in_response",
         "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -181,12 +181,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -204,7 +204,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "set_content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -233,6 +233,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

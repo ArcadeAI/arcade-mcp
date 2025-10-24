@@ -1,18 +1,18 @@
 {
   "name": "ListBoardPowerUps",
-  "fully_qualified_name": "TrelloApi.ListBoardPowerUps@0.1.0",
-  "description": "Retrieve the Power-Ups enabled on a Trello board.\n\nUse this tool to get a list of all the Power-Ups currently active on a specific Trello board. It's useful for understanding which enhancements are applied to the board.",
+  "fully_qualified_name": "TrelloApi.ListBoardPowerUps@2.0.0",
+  "description": "Retrieve the Power-Ups enabled on a Trello board.\n\nUse this tool to get a list of Power-Ups (plugins) that are currently enabled on a specified Trello board. This can be useful for managing and understanding the capabilities of the board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_id",
         "required": true,
-        "description": "The unique identifier for the Trello board to list its Power-Ups.",
+        "description": "The unique identifier of the Trello board for which to list Power-Ups.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "power_up_status_filter",
+        "name": "power_up_filter",
         "required": false,
-        "description": "Specify whether to list 'enabled' or 'available' Power-Ups on the board.",
+        "description": "Specify the filter for Power-Ups: choose 'enabled' to list only those currently active on the board, or 'available' to list those that can be activated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -75,13 +75,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{id}/plugins",
@@ -90,7 +90,7 @@
     "parameters": [
       {
         "name": "filter",
-        "tool_parameter_name": "power_up_status_filter",
+        "tool_parameter_name": "power_up_filter",
         "description": "One of: `enabled` or `available`",
         "value_schema": {
           "val_type": "string",
@@ -106,6 +106,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "enabled",
         "documentation_urls": []
       },
       {
@@ -123,6 +124,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -144,6 +146,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

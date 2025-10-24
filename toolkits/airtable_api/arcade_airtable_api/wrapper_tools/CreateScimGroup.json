@@ -1,0 +1,143 @@
+{
+  "name": "CreateScimGroup",
+  "fully_qualified_name": "AirtableApi.CreateScimGroup@2.0.0",
+  "description": "Create a new SCIM group with no members.\n\nThis tool creates a new SCIM group without any members. It should be called when there's a need to set up a new group structure. To add members, use patch or put group endpoints.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "scim_group_details",
+        "required": false,
+        "description": "A JSON object with 'displayName' for the group name and 'schemas' as an array of schema URIs. 'displayName' must be unique.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Becomes the displayName of the group in Airtable. It must not be in use already."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's core group schema URI."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-scim-group'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.scim.usersAndGroups:manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/scim/v2/Groups",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "scim_group_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Becomes the displayName of the group in Airtable. It must not be in use already."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's core group schema URI."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Create user group example\": {\n          \"description\": \"Newly created group\",\n          \"summary\": \"Create user group example\",\n          \"value\": {\n            \"displayName\": \"ExampleGroup\",\n            \"schemas\": [\n              \"urn:ietf:params:scim:schemas:core:2.0:Group\"\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"displayName\": {\n            \"description\": \"Becomes the displayName of the group in Airtable. It must not be in use already.\",\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"schemas\": {\n            \"description\": \"A list of schemas, including at least SCIM's core group schema URI.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"schemas\",\n          \"displayName\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

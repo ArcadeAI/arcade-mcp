@@ -1,18 +1,18 @@
 {
   "name": "GetExtensionDetails",
-  "fully_qualified_name": "PagerdutyApi.GetExtensionDetails@0.1.0",
-  "description": "Retrieve details of a PagerDuty extension by ID.\n\nCall this tool to get detailed information about a specific PagerDuty extension using its ID. Useful for understanding configurations and properties attached to services.",
+  "fully_qualified_name": "PagerdutyApi.GetExtensionDetails@2.0.0",
+  "description": "Retrieve details about a specific extension on PagerDuty.\n\nUse this tool to obtain information about an existing extension associated with a service in PagerDuty. Useful for understanding extension configurations and their properties.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "extension_id",
+        "name": "resource_id",
         "required": true,
-        "description": "The unique ID of the PagerDuty extension to retrieve details for.",
+        "description": "The unique identifier of the extension resource to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "versioning_header",
         "required": true,
-        "description": "The versioning header for the API request. Specify the desired API version.",
+        "description": "The API versioning header used to specify the version of data to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Indicates the format of the request payload. Use \"application/json\" for JSON formatted data.",
+        "description": "Specify the request content type. Use 'application/json' for this API.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "include_additional_details",
         "required": false,
-        "description": "Specify additional details to include in the response. Options are 'extension_schemas', 'extension_objects', and 'temporarily_disabled'.",
+        "description": "Specify additional details to include, such as 'extension_schemas', 'extension_objects', or 'temporarily_disabled'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -106,13 +106,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/extensions/{id}",
@@ -143,7 +143,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "extension_id",
+        "tool_parameter_name": "resource_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -208,6 +208,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

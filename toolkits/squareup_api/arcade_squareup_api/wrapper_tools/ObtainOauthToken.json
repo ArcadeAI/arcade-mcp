@@ -1,0 +1,402 @@
+{
+  "name": "ObtainOauthToken",
+  "fully_qualified_name": "SquareupApi.ObtainOauthToken@2.0.0",
+  "description": "Obtain OAuth access and refresh tokens.\n\nThis tool is used to obtain an OAuth access token and refresh token using either the authorization_code or refresh_token grant type. It's applicable for both code flow and PKCE flow scenarios, depending on the credentials and additional parameters provided.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "application_id",
+        "required": true,
+        "description": "The Square-issued ID of your application, available as the Application ID in the Developer Console. Required for code and PKCE flows.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-issued ID of your application, which is available as the **Application ID**\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\n\nRequired for the code flow and PKCE flow for any grant type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "client_id"
+      },
+      {
+        "name": "oauth_grant_type",
+        "required": true,
+        "description": "Specifies the method for obtaining an OAuth access token. Choose from 'authorization_code', 'refresh_token', or 'migration_token'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The method used to obtain an OAuth access token. The request must include the\ncredential that corresponds to the specified grant type. Valid values are:\n- `authorization_code` - Requires the `code` field.\n- `refresh_token` - Requires the `refresh_token` field.\n- `migration_token` - LEGACY for access tokens obtained using a Square API version prior\nto 2019-03-13. Requires the `migration_token` field."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "grant_type"
+      },
+      {
+        "name": "application_client_secret",
+        "required": false,
+        "description": "The application's secret key from the Developer Console, required for code flow. Distinct from a personal access token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The secret key for your application, which is available as the **Application secret**\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\n\nRequired for the code flow for any grant type. Don't confuse your client secret with your\npersonal access token."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "client_secret"
+      },
+      {
+        "name": "authorization_code",
+        "required": false,
+        "description": "The authorization code for exchanging an OAuth access token, required for code flow and PKCE flow if `grant_type` is `authorization_code`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The authorization code to exchange for an OAuth access token. This is the `code`\nvalue that Square sent to your redirect URL in the authorization response.\n\nRequired for the code flow and PKCE flow if `grant_type` is `authorization_code`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "code"
+      },
+      {
+        "name": "application_redirect_url",
+        "required": false,
+        "description": "The registered redirect URL for your application. Required for code flow and PKCE flow if `grant_type` is `authorization_code`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The redirect URL for your application, which you registered as the **Redirect URL**\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\n\nRequired for the code flow and PKCE flow if `grant_type` is `authorization_code` and\nyou provided the `redirect_uri` parameter in your authorization URL."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "redirect_uri"
+      },
+      {
+        "name": "valid_refresh_token",
+        "required": false,
+        "description": "A valid refresh token used to generate a new OAuth access token, returned in a previous ObtainToken response. Required for the code and PKCE flow if grant_type is refresh_token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A valid refresh token used to generate a new OAuth access token. This is a\nrefresh token that was returned in a previous `ObtainToken` response.\n\nRequired for the code flow and PKCE flow if `grant_type` is `refresh_token`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "refresh_token"
+      },
+      {
+        "name": "legacy_migration_token",
+        "required": false,
+        "description": "A valid legacy access token for generating a new OAuth access token, required if `grant_type` is `migration_token`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "__LEGACY__ A valid access token (obtained using a Square API version prior to 2019-03-13)\nused to generate a new OAuth access token.\n\nRequired if `grant_type` is `migration_token`. For more information, see\n[Migrate to Using Refresh Tokens](https://developer.squareup.com/docs/oauth-api/migrate-to-refresh-tokens)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "migration_token"
+      },
+      {
+        "name": "requested_scopes",
+        "required": false,
+        "description": "List of permissions for the access token, like [\"MERCHANT_PROFILE_READ\", \"PAYMENTS_READ\"]. Optional for certain flows.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The list of permissions that are explicitly requested for the access token.\nFor example, [\"MERCHANT_PROFILE_READ\",\"PAYMENTS_READ\",\"BANK_ACCOUNTS_READ\"].\n\nThe returned access token is limited to the permissions that are the intersection\nof these requested permissions and those authorized by the provided `refresh_token`.\n\nOptional for the code flow and PKCE flow if `grant_type` is `refresh_token`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scopes"
+      },
+      {
+        "name": "pkce_code_verifier",
+        "required": false,
+        "description": "The secret your application generated for the authorization request, required for PKCE flow when `grant_type` is `authorization_code`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The secret your application generated for the authorization request used to\nobtain the authorization code. This is the source of the `code_challenge` hash you\nprovided in your authorization URL.\n\nRequired for the PKCE flow if `grant_type` is `authorization_code`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "code_verifier"
+      },
+      {
+        "name": "expire_token_in_24_hours",
+        "required": false,
+        "description": "Set to true to make the access token expire in 24 hours. Optional for any grant type.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the returned access token should expire in 24 hours.\n\nOptional for the code flow and PKCE flow for any grant type. The default value is `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "short_lived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ObtainToken'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/oauth2/token",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "client_id",
+        "tool_parameter_name": "application_id",
+        "description": "The Square-issued ID of your application, which is available as the **Application ID**\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\n\nRequired for the code flow and PKCE flow for any grant type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-issued ID of your application, which is available as the **Application ID**\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\n\nRequired for the code flow and PKCE flow for any grant type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "client_secret",
+        "tool_parameter_name": "application_client_secret",
+        "description": "The secret key for your application, which is available as the **Application secret**\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\n\nRequired for the code flow for any grant type. Don't confuse your client secret with your\npersonal access token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The secret key for your application, which is available as the **Application secret**\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\n\nRequired for the code flow for any grant type. Don't confuse your client secret with your\npersonal access token."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "code",
+        "tool_parameter_name": "authorization_code",
+        "description": "The authorization code to exchange for an OAuth access token. This is the `code`\nvalue that Square sent to your redirect URL in the authorization response.\n\nRequired for the code flow and PKCE flow if `grant_type` is `authorization_code`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The authorization code to exchange for an OAuth access token. This is the `code`\nvalue that Square sent to your redirect URL in the authorization response.\n\nRequired for the code flow and PKCE flow if `grant_type` is `authorization_code`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "redirect_uri",
+        "tool_parameter_name": "application_redirect_url",
+        "description": "The redirect URL for your application, which you registered as the **Redirect URL**\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\n\nRequired for the code flow and PKCE flow if `grant_type` is `authorization_code` and\nyou provided the `redirect_uri` parameter in your authorization URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The redirect URL for your application, which you registered as the **Redirect URL**\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\n\nRequired for the code flow and PKCE flow if `grant_type` is `authorization_code` and\nyou provided the `redirect_uri` parameter in your authorization URL."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "grant_type",
+        "tool_parameter_name": "oauth_grant_type",
+        "description": "The method used to obtain an OAuth access token. The request must include the\ncredential that corresponds to the specified grant type. Valid values are:\n- `authorization_code` - Requires the `code` field.\n- `refresh_token` - Requires the `refresh_token` field.\n- `migration_token` - LEGACY for access tokens obtained using a Square API version prior\nto 2019-03-13. Requires the `migration_token` field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The method used to obtain an OAuth access token. The request must include the\ncredential that corresponds to the specified grant type. Valid values are:\n- `authorization_code` - Requires the `code` field.\n- `refresh_token` - Requires the `refresh_token` field.\n- `migration_token` - LEGACY for access tokens obtained using a Square API version prior\nto 2019-03-13. Requires the `migration_token` field."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "refresh_token",
+        "tool_parameter_name": "valid_refresh_token",
+        "description": "A valid refresh token used to generate a new OAuth access token. This is a\nrefresh token that was returned in a previous `ObtainToken` response.\n\nRequired for the code flow and PKCE flow if `grant_type` is `refresh_token`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A valid refresh token used to generate a new OAuth access token. This is a\nrefresh token that was returned in a previous `ObtainToken` response.\n\nRequired for the code flow and PKCE flow if `grant_type` is `refresh_token`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "migration_token",
+        "tool_parameter_name": "legacy_migration_token",
+        "description": "__LEGACY__ A valid access token (obtained using a Square API version prior to 2019-03-13)\nused to generate a new OAuth access token.\n\nRequired if `grant_type` is `migration_token`. For more information, see\n[Migrate to Using Refresh Tokens](https://developer.squareup.com/docs/oauth-api/migrate-to-refresh-tokens).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "__LEGACY__ A valid access token (obtained using a Square API version prior to 2019-03-13)\nused to generate a new OAuth access token.\n\nRequired if `grant_type` is `migration_token`. For more information, see\n[Migrate to Using Refresh Tokens](https://developer.squareup.com/docs/oauth-api/migrate-to-refresh-tokens)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "scopes",
+        "tool_parameter_name": "requested_scopes",
+        "description": "The list of permissions that are explicitly requested for the access token.\nFor example, [\"MERCHANT_PROFILE_READ\",\"PAYMENTS_READ\",\"BANK_ACCOUNTS_READ\"].\n\nThe returned access token is limited to the permissions that are the intersection\nof these requested permissions and those authorized by the provided `refresh_token`.\n\nOptional for the code flow and PKCE flow if `grant_type` is `refresh_token`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The list of permissions that are explicitly requested for the access token.\nFor example, [\"MERCHANT_PROFILE_READ\",\"PAYMENTS_READ\",\"BANK_ACCOUNTS_READ\"].\n\nThe returned access token is limited to the permissions that are the intersection\nof these requested permissions and those authorized by the provided `refresh_token`.\n\nOptional for the code flow and PKCE flow if `grant_type` is `refresh_token`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "short_lived",
+        "tool_parameter_name": "expire_token_in_24_hours",
+        "description": "Indicates whether the returned access token should expire in 24 hours.\n\nOptional for the code flow and PKCE flow for any grant type. The default value is `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the returned access token should expire in 24 hours.\n\nOptional for the code flow and PKCE flow for any grant type. The default value is `false`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "code_verifier",
+        "tool_parameter_name": "pkce_code_verifier",
+        "description": "The secret your application generated for the authorization request used to\nobtain the authorization code. This is the source of the `code_challenge` hash you\nprovided in your authorization URL.\n\nRequired for the PKCE flow if `grant_type` is `authorization_code`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The secret your application generated for the authorization request used to\nobtain the authorization code. This is the source of the `code_challenge` hash you\nprovided in your authorization URL.\n\nRequired for the PKCE flow if `grant_type` is `authorization_code`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents an [ObtainToken](api-endpoint:OAuth-ObtainToken) request.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"client_id\",\n          \"grant_type\"\n        ],\n        \"properties\": {\n          \"client_id\": {\n            \"type\": \"string\",\n            \"description\": \"The Square-issued ID of your application, which is available as the **Application ID**\\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\\n\\nRequired for the code flow and PKCE flow for any grant type.\",\n            \"maxLength\": 191\n          },\n          \"client_secret\": {\n            \"type\": \"string\",\n            \"description\": \"The secret key for your application, which is available as the **Application secret**\\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\\n\\nRequired for the code flow for any grant type. Don't confuse your client secret with your\\npersonal access token.\",\n            \"minLength\": 2,\n            \"maxLength\": 1024,\n            \"nullable\": true\n          },\n          \"code\": {\n            \"type\": \"string\",\n            \"description\": \"The authorization code to exchange for an OAuth access token. This is the `code`\\nvalue that Square sent to your redirect URL in the authorization response.\\n\\nRequired for the code flow and PKCE flow if `grant_type` is `authorization_code`.\",\n            \"maxLength\": 191,\n            \"nullable\": true\n          },\n          \"redirect_uri\": {\n            \"type\": \"string\",\n            \"description\": \"The redirect URL for your application, which you registered as the **Redirect URL**\\non the **OAuth** page in the [Developer Console](https://developer.squareup.com/apps).\\n\\nRequired for the code flow and PKCE flow if `grant_type` is `authorization_code` and\\nyou provided the `redirect_uri` parameter in your authorization URL.\",\n            \"maxLength\": 2048,\n            \"nullable\": true\n          },\n          \"grant_type\": {\n            \"type\": \"string\",\n            \"description\": \"The method used to obtain an OAuth access token. The request must include the\\ncredential that corresponds to the specified grant type. Valid values are:\\n- `authorization_code` - Requires the `code` field.\\n- `refresh_token` - Requires the `refresh_token` field.\\n- `migration_token` - LEGACY for access tokens obtained using a Square API version prior\\nto 2019-03-13. Requires the `migration_token` field.\",\n            \"minLength\": 10,\n            \"maxLength\": 20\n          },\n          \"refresh_token\": {\n            \"type\": \"string\",\n            \"description\": \"A valid refresh token used to generate a new OAuth access token. This is a\\nrefresh token that was returned in a previous `ObtainToken` response.\\n\\nRequired for the code flow and PKCE flow if `grant_type` is `refresh_token`.\",\n            \"minLength\": 2,\n            \"maxLength\": 1024,\n            \"nullable\": true\n          },\n          \"migration_token\": {\n            \"type\": \"string\",\n            \"description\": \"__LEGACY__ A valid access token (obtained using a Square API version prior to 2019-03-13)\\nused to generate a new OAuth access token.\\n\\nRequired if `grant_type` is `migration_token`. For more information, see\\n[Migrate to Using Refresh Tokens](https://developer.squareup.com/docs/oauth-api/migrate-to-refresh-tokens).\",\n            \"minLength\": 2,\n            \"maxLength\": 1024,\n            \"nullable\": true\n          },\n          \"scopes\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The list of permissions that are explicitly requested for the access token.\\nFor example, [\\\"MERCHANT_PROFILE_READ\\\",\\\"PAYMENTS_READ\\\",\\\"BANK_ACCOUNTS_READ\\\"].\\n\\nThe returned access token is limited to the permissions that are the intersection\\nof these requested permissions and those authorized by the provided `refresh_token`.\\n\\nOptional for the code flow and PKCE flow if `grant_type` is `refresh_token`.\",\n            \"nullable\": true\n          },\n          \"short_lived\": {\n            \"type\": \"boolean\",\n            \"description\": \"Indicates whether the returned access token should expire in 24 hours.\\n\\nOptional for the code flow and PKCE flow for any grant type. The default value is `false`.\",\n            \"nullable\": true\n          },\n          \"code_verifier\": {\n            \"type\": \"string\",\n            \"description\": \"The secret your application generated for the authorization request used to\\nobtain the authorization code. This is the source of the `code_challenge` hash you\\nprovided in your authorization URL.\\n\\nRequired for the PKCE flow if `grant_type` is `authorization_code`.\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"client_id\": \"sq0idp-uaPHILoPzWZk3tlJqlML0g\",\n          \"client_secret\": \"sq0csp-30a-4C_tVOnTh14Piza2BfTPBXyLafLPWSzY1qAjeBfM\",\n          \"code\": \"sq0cgb-l0SBqxs4uwxErTVyYOdemg\",\n          \"grant_type\": \"authorization_code\"\n        },\n        \"x-sq-sdk-sample-code\": {\n          \"csharp\": \"/sdk_samples/ObtainToken/ObtainTokenRequest.csharp\",\n          \"java\": \"/sdk_samples/ObtainToken/ObtainTokenRequest.java\",\n          \"javascript\": \"/sdk_samples/ObtainToken/ObtainTokenRequest.javascript\",\n          \"php\": \"/sdk_samples/ObtainToken/ObtainTokenRequest.php\",\n          \"python\": \"/sdk_samples/ObtainToken/ObtainTokenRequest.python\",\n          \"ruby\": \"/sdk_samples/ObtainToken/ObtainTokenRequest.ruby\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

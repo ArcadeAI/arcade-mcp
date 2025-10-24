@@ -1,18 +1,18 @@
 {
   "name": "VoteOnTrelloCard",
-  "fully_qualified_name": "TrelloApi.VoteOnTrelloCard@0.1.0",
-  "description": "Vote on a Trello card on behalf of a member.\n\nUse this tool to cast a vote on a specified Trello card for a specific member. It should be called when you need to register a member's vote on a card.",
+  "fully_qualified_name": "TrelloApi.VoteOnTrelloCard@2.0.0",
+  "description": "Vote on a Trello card for a specific member.\n\nThis tool allows voting on a specific Trello card for a given member. It should be called when a user needs to add or confirm a vote on a Trello card on behalf of a member.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "member_id_to_vote_yes",
+        "name": "member_id_for_vote",
         "required": true,
-        "description": "The ID of the Trello member casting a 'yes' vote on the card.",
+        "description": "The ID of the member casting a 'yes' vote on the Trello card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique ID of the Trello card where the vote will be cast.",
+        "description": "The unique ID of the Trello card on which to vote.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}/membersVoted",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "value",
-        "tool_parameter_name": "member_id_to_vote_yes",
+        "tool_parameter_name": "member_id_for_vote",
         "description": "The ID of the member to vote 'yes' on the card",
         "value_schema": {
           "val_type": "string",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

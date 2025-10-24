@@ -1,18 +1,18 @@
 {
   "name": "GetUserNotificationRule",
-  "fully_qualified_name": "PagerdutyApi.GetUserNotificationRule@0.1.0",
-  "description": "Retrieve details of a user's notification rule from PagerDuty.\n\nThis tool retrieves information about a specific user's notification rule in PagerDuty. It is useful for understanding how a user is notified about incidents. Ensure you have the appropriate OAuth scope: `users:contact_methods.read`.",
+  "fully_qualified_name": "PagerdutyApi.GetUserNotificationRule@2.0.0",
+  "description": "Retrieve details about a user's notification rule.\n\nThis tool retrieves information about a user's notification rule in a PagerDuty account. It should be called when you need to understand how a user is notified regarding incidents. OAuth scope required: `users:contact_methods.read`.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "user_id",
         "required": true,
-        "description": "The unique identifier for the user whose notification rule is being accessed.",
+        "description": "The unique identifier of the user in PagerDuty. Required to fetch their notification rule.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "notification_rule_id",
         "required": true,
-        "description": "The ID of the notification rule for the specific user.",
+        "description": "The unique identifier for the user's notification rule to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "notification_rule_id"
       },
       {
-        "name": "versioning_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify the version of the API to use for the `Accept` header. This is used for versioning.",
+        "description": "Specify the version of the API using the `Accept` header format. This determines the versioning of the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specify the MIME type of the request body. Default is 'application/json'.",
+        "description": "The accepted content type for the response. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
       {
         "name": "include_additional_details",
         "required": false,
-        "description": "Specify additional details to include, such as 'contact_methods'.",
+        "description": "Specify additional details to include such as 'contact_methods'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -119,13 +119,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/{id}/notification_rules/{notification_rule_id}",
@@ -190,7 +190,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -237,6 +237,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

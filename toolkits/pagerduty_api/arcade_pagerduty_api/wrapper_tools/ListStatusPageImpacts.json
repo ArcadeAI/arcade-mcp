@@ -1,18 +1,18 @@
 {
   "name": "ListStatusPageImpacts",
-  "fully_qualified_name": "PagerdutyApi.ListStatusPageImpacts@0.1.0",
-  "description": "Retrieve impacts for a specific status page by ID.\n\nCall this tool to obtain a list of impacts for a status page identified by its ID. It requires the 'status_pages.read' scope for OAuth authentication.",
+  "fully_qualified_name": "PagerdutyApi.ListStatusPageImpacts@2.0.0",
+  "description": "Retrieve impacts for a specified status page by ID.\n\nUse this tool to fetch a list of impacts affecting a particular status page. This is helpful for monitoring and managing service disruptions and their effects. Ensure the necessary OAuth scope `status_pages.read` is granted to access the data.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "status_page_id",
         "required": true,
-        "description": "The unique identifier of the status page to retrieve impacts for.",
+        "description": "The ID of the status page to retrieve impacts for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "versioning_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify the API versioning header to be used, typically a string like 'application/vnd.pagerduty+json;version=2'.",
+        "description": "The `Accept` header used for versioning the API response. Provide a string value to specify the version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "filter_by_post_type",
         "required": false,
-        "description": "Specify the type of post to filter impacts by, such as 'incident' or 'maintenance'.",
+        "description": "Specify the type of posts to filter by: 'incident' or 'maintenance'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -88,13 +88,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/impacts",
@@ -142,7 +142,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -169,6 +169,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

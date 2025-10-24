@@ -1,18 +1,18 @@
 {
   "name": "DeleteAirtableBlockInstallation",
-  "fully_qualified_name": "AirtableApi.DeleteAirtableBlockInstallation@0.1.0",
-  "description": "Delete a block installation from an Airtable base.\n\nUse this tool to delete a block installation from an Airtable base. The deleted block installation can be recovered if needed.",
+  "fully_qualified_name": "AirtableApi.DeleteAirtableBlockInstallation@2.0.0",
+  "description": "Delete a block installation in Airtable, recoverable later.\n\nUse this tool when you need to delete a block installation from an Airtable base. The deletion is not permanent and can be recovered if needed.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "airtable_base_id",
         "required": true,
-        "description": "The unique identifier for the Airtable base from which the block installation will be deleted. This ID specifies the particular base in question.",
+        "description": "The unique identifier for the Airtable base from which the block installation will be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "block_installation_id",
         "required": true,
-        "description": "The unique identifier of the block installation to delete. This ID is required to specify which block installation to remove.",
+        "description": "The unique identifier of the block installation to be deleted. This is required to specify which block installation to remove.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/bases/{baseId}/blockInstallations/{blockInstallationId}",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

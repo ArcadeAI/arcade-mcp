@@ -1,18 +1,18 @@
 {
   "name": "DeleteTimecard",
-  "fully_qualified_name": "SquareupApi.DeleteTimecard@0.1.0",
-  "description": "Deletes a specified timecard.\n\nUse this tool to delete a timecard by its ID when managing labor records.",
+  "fully_qualified_name": "SquareupApi.DeleteTimecard@2.0.0",
+  "description": "Delete a specific timecard entry.\n\nThis tool deletes a specified timecard entry using its unique identifier. Use it when a timecard needs to be permanently removed from the system.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "timecard_id",
+        "name": "timecard_uuid",
         "required": true,
-        "description": "The UUID for the timecard to be deleted.",
+        "description": "The UUID for the Timecard being deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/labor/timecards/{id}",
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "timecard_id",
+        "tool_parameter_name": "timecard_uuid",
         "description": "The UUID for the `Timecard` being deleted.",
         "value_schema": {
           "val_type": "string",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

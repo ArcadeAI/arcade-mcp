@@ -1,0 +1,280 @@
+{
+  "name": "ManageEnterpriseAccountUser",
+  "fully_qualified_name": "AirtableApi.ManageEnterpriseAccountUser@2.0.0",
+  "description": "Manage users in enterprise accounts.\n\nUse this tool to update details of users within an enterprise account. It is suitable for modifying user information associated with managed users.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_account_id",
+        "required": true,
+        "description": "The unique identifier for the enterprise account. Required to manage users within the account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterpriseAccountId"
+      },
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "The unique identifier for the user to be managed within the enterprise account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "update_user_email",
+        "required": false,
+        "description": "New email for the user. Ensure enterprise account owns both original and destination domains. Follow SSO steps if applicable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enterprise account must own both the original and destination email domains.\n\n*WARNING:* If SSO is required for your enterprise account, you must follow these steps precisely to\navoid locking the end user out of their account or creating duplicate accounts.\n\n - Use this API to update the user's email to a new value (this effectively logs the user out)\n - Use your SSO provider's (e.g. Okta's) admin panel to update the user's email to the new value\n - Tell the user to log into Airtable with the new email"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "user_first_name",
+        "required": false,
+        "description": "The new first name of the user in the enterprise account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "firstName"
+      },
+      {
+        "name": "user_last_name",
+        "required": false,
+        "description": "The last name of the user to be updated in the enterprise account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "lastName"
+      },
+      {
+        "name": "user_state",
+        "required": false,
+        "description": "Specify the user's state as 'provisioned' or 'deactivated'. Only applicable for managed users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "provisioned",
+            "deactivated"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "[provisioned](/api/org-management-glossary#provisioned-user) | [deactivated](/api/org-management-glossary#deactivated-user)\nCan only change the state of [managed](/api/org-management-glossary#managed-user) users."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'manage-user'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.user:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterpriseAccountId",
+        "tool_parameter_name": "enterprise_account_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "userId",
+        "tool_parameter_name": "user_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "update_user_email",
+        "description": "Enterprise account must own both the original and destination email domains.\n\n*WARNING:* If SSO is required for your enterprise account, you must follow these steps precisely to\navoid locking the end user out of their account or creating duplicate accounts.\n\n - Use this API to update the user's email to a new value (this effectively logs the user out)\n - Use your SSO provider's (e.g. Okta's) admin panel to update the user's email to the new value\n - Tell the user to log into Airtable with the new email",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enterprise account must own both the original and destination email domains.\n\n*WARNING:* If SSO is required for your enterprise account, you must follow these steps precisely to\navoid locking the end user out of their account or creating duplicate accounts.\n\n - Use this API to update the user's email to a new value (this effectively logs the user out)\n - Use your SSO provider's (e.g. Okta's) admin panel to update the user's email to the new value\n - Tell the user to log into Airtable with the new email"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "firstName",
+        "tool_parameter_name": "user_first_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "lastName",
+        "tool_parameter_name": "user_last_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "user_state",
+        "description": "[provisioned](/api/org-management-glossary#provisioned-user) | [deactivated](/api/org-management-glossary#deactivated-user)\nCan only change the state of [managed](/api/org-management-glossary#managed-user) users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "provisioned",
+            "deactivated"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "[provisioned](/api/org-management-glossary#provisioned-user) | [deactivated](/api/org-management-glossary#deactivated-user)\nCan only change the state of [managed](/api/org-management-glossary#managed-user) users."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success\": {\n          \"description\": \"Success request\",\n          \"summary\": \"Success\",\n          \"value\": {\n            \"email\": \"foo@bar.com\",\n            \"firstName\": \"Foo\",\n            \"lastName\": \"Baz\",\n            \"state\": \"provisioned\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"email\": {\n            \"description\": \"Enterprise account must own both the original and destination email domains.\\n\\n*WARNING:* If SSO is required for your enterprise account, you must follow these steps precisely to\\navoid locking the end user out of their account or creating duplicate accounts.\\n\\n - Use this API to update the user's email to a new value (this effectively logs the user out)\\n - Use your SSO provider's (e.g. Okta's) admin panel to update the user's email to the new value\\n - Tell the user to log into Airtable with the new email\",\n            \"type\": \"string\"\n          },\n          \"firstName\": {\n            \"type\": \"string\"\n          },\n          \"lastName\": {\n            \"type\": \"string\"\n          },\n          \"state\": {\n            \"description\": \"[provisioned](/api/org-management-glossary#provisioned-user) | [deactivated](/api/org-management-glossary#deactivated-user)\\nCan only change the state of [managed](/api/org-management-glossary#managed-user) users.\",\n            \"enum\": [\n              \"provisioned\",\n              \"deactivated\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

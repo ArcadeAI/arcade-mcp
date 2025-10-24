@@ -1,0 +1,142 @@
+{
+  "name": "UnlinkCustomerFromGiftCard",
+  "fully_qualified_name": "SquareupApi.UnlinkCustomerFromGiftCard@2.0.0",
+  "description": "Unlink a customer from a gift card.\n\nThis tool is used to unlink or remove a customer from a gift card. Call this tool when you need to detach a customer's association with a specific gift card, also known as removing a card on file.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "gift_card_id_to_unlink",
+        "required": true,
+        "description": "The ID of the gift card to be unlinked from the customer. Required for unlinking process.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the gift card to be unlinked."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "gift_card_id"
+      },
+      {
+        "name": "customer_id_to_unlink",
+        "required": true,
+        "description": "The unique identifier of the customer to unlink from the gift card. Ensure it matches the correct customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the customer to unlink from the gift card."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UnlinkCustomerFromGiftCard'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "GIFTCARDS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/gift-cards/{gift_card_id}/unlink-customer",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "gift_card_id",
+        "tool_parameter_name": "gift_card_id_to_unlink",
+        "description": "The ID of the gift card to be unlinked.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the gift card to be unlinked."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "customer_id_to_unlink",
+        "description": "The ID of the customer to unlink from the gift card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the customer to unlink from the gift card."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to unlink a customer from a gift card.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"x-params-example\": \"?gift_card_id=gftc:71ea002277a34f8a945e284b04822edb\",\n        \"required\": [\n          \"customer_id\"\n        ],\n        \"properties\": {\n          \"customer_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the customer to unlink from the gift card.\",\n            \"minLength\": 1,\n            \"maxLength\": 191\n          }\n        },\n        \"example\": {\n          \"customer_id\": \"GKY0FZ3V717AH8Q2D821PNT2ZW\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

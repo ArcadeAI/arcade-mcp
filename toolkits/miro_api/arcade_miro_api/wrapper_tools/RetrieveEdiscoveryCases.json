@@ -1,18 +1,18 @@
 {
   "name": "RetrieveEdiscoveryCases",
-  "fully_qualified_name": "MiroApi.RetrieveEdiscoveryCases@0.1.0",
-  "description": "Get the list of eDiscovery cases for an organization.\n\nUse this tool to retrieve all the eDiscovery cases available in an organization. It is specifically for Enterprise plan users with the Enterprise Guard add-on, requiring Company Admin and eDiscovery Admin roles.",
+  "fully_qualified_name": "MiroApi.RetrieveEdiscoveryCases@2.0.0",
+  "description": "Retrieve eDiscovery cases for your organization.\n\nUse this tool to obtain a list of eDiscovery cases available within your organization. This is specifically for Enterprise plan users with the Enterprise Guard add-on. Ensure you have the Company Admin and eDiscovery Admin roles.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "maximum_items_in_result_list",
+        "name": "maximum_items",
         "required": true,
-        "description": "Specify the maximum number of items to include in the result list of eDiscovery cases.",
+        "description": "Specifies the maximum number of eDiscovery cases to retrieve in the result list.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "organization_id",
         "required": true,
-        "description": "The ID of the organization to retrieve eDiscovery cases for.",
+        "description": "The ID of the organization to retrieve the eDiscovery cases for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Used to navigate pages of results. Leave empty for the first page; use value from previous response for subsequent pages.",
+        "description": "Indicator for result position in pagination. Leave empty for first page; use previous request's cursor for subsequent pages.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/cases",
@@ -100,7 +100,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "maximum_items_in_result_list",
+        "tool_parameter_name": "maximum_items",
         "description": "The maximum number of items in the result list.",
         "value_schema": {
           "val_type": "integer",
@@ -113,6 +113,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": 100,
         "documentation_urls": []
       },
       {
@@ -130,6 +131,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -147,6 +149,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -160,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

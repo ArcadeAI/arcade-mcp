@@ -1,18 +1,18 @@
 {
   "name": "DisassociateAutomationActionFromTeam",
-  "fully_qualified_name": "PagerdutyApi.DisassociateAutomationActionFromTeam@0.1.0",
-  "description": "Disassociate an Automation Action from a team in Pagerduty.\n\nUse this tool to remove the association between a specific automation action and a team in Pagerduty when changes in team management or responsibilities occur.",
+  "fully_qualified_name": "PagerdutyApi.DisassociateAutomationActionFromTeam@2.0.0",
+  "description": "Disassociate an automation action from a team in PagerDuty.\n\nUse this tool to disassociate a specified automation action from a specific team in PagerDuty. Useful for removing team associations with automation actions when they are no longer needed.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier of the resource to be disassociated. It should be a string.",
+        "description": "The ID of the automation action to disassociate from the team.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "team_identifier",
+        "name": "team_id",
         "required": true,
-        "description": "The unique identifier for the team to disassociate from the automation action.",
+        "description": "The unique identifier of the team to be disassociated from an automation action.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "team_id"
       },
       {
-        "name": "versioning_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "The value for the `Accept` header used to specify the API version.",
+        "description": "A string specifying the version of the API to use for processing requests.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specify the format for the request body. Must be 'application/json'.",
+        "description": "Specify the content type for the request. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/automation_actions/actions/{id}/teams/{team_id}",
@@ -135,7 +135,7 @@
       },
       {
         "name": "team_id",
-        "tool_parameter_name": "team_identifier",
+        "tool_parameter_name": "team_id",
         "description": "The team ID",
         "value_schema": {
           "val_type": "string",
@@ -153,7 +153,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

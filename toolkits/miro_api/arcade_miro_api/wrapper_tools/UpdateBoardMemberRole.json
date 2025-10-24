@@ -1,0 +1,183 @@
+{
+  "name": "UpdateBoardMemberRole",
+  "fully_qualified_name": "MiroApi.UpdateBoardMemberRole@2.0.0",
+  "description": "Update the role of a Miro board member.\n\nThis tool updates the role of a member on a Miro board. It should be called when you need to change a member's role on a specific board. Ensure you have the required 'boards:write' scope and consider rate limiting (Level 2) when using this tool.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_unique_identifier",
+        "required": true,
+        "description": "Unique identifier for the board where the member role will be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board for which you want to update the role of the board member."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "board_member_unique_id",
+        "required": true,
+        "description": "Unique identifier of the board member whose role needs updating.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board member whose role you want to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_member_id"
+      },
+      {
+        "name": "board_member_role",
+        "required": false,
+        "description": "The new role to assign to the board member. Options: 'viewer', 'commenter', 'editor', 'coowner', 'owner'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "viewer",
+            "commenter",
+            "editor",
+            "coowner",
+            "owner"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Role of the board member."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "role"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-board-member'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/members/{board_member_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_unique_identifier",
+        "description": "Unique identifier (ID) of the board for which you want to update the role of the board member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board for which you want to update the role of the board member."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_member_id",
+        "tool_parameter_name": "board_member_unique_id",
+        "description": "Unique identifier (ID) of the board member whose role you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board member whose role you want to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "role",
+        "tool_parameter_name": "board_member_role",
+        "description": "Role of the board member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "viewer",
+            "commenter",
+            "editor",
+            "coowner",
+            "owner"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Role of the board member."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "commenter",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"role\": {\n            \"type\": \"string\",\n            \"default\": \"commenter\",\n            \"description\": \"Role of the board member.\",\n            \"enum\": [\n              \"viewer\",\n              \"commenter\",\n              \"editor\",\n              \"coowner\",\n              \"owner\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

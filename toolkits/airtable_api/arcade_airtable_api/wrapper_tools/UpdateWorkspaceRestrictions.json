@@ -1,0 +1,187 @@
+{
+  "name": "UpdateWorkspaceRestrictions",
+  "fully_qualified_name": "AirtableApi.UpdateWorkspaceRestrictions@2.0.0",
+  "description": "Updates sharing restrictions for an Airtable workspace.\n\nUse this tool to modify the sharing restrictions settings of a specific Airtable workspace by providing the workspace ID.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The unique identifier for the Airtable workspace to update restrictions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workspaceId"
+      },
+      {
+        "name": "invite_creation_restriction",
+        "required": false,
+        "description": "Defines who can create invites in the workspace. Choose between 'unrestricted' or 'onlyOwners'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "unrestricted",
+            "onlyOwners"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "inviteCreationRestriction"
+      },
+      {
+        "name": "share_creation_restriction",
+        "required": false,
+        "description": "Specify the sharing creation restriction. Choose between 'unrestricted' or 'onlyOwners'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "unrestricted",
+            "onlyOwners"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "shareCreationRestriction"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-workspace-restrictions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "workspacesAndBases:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/workspaces/{workspaceId}/updateRestrictions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "workspaceId",
+        "tool_parameter_name": "workspace_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "inviteCreationRestriction",
+        "tool_parameter_name": "invite_creation_restriction",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "unrestricted",
+            "onlyOwners"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "shareCreationRestriction",
+        "tool_parameter_name": "share_creation_restriction",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "unrestricted",
+            "onlyOwners"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Example request\": {\n          \"description\": \"Example Request\",\n          \"summary\": \"Example request\",\n          \"value\": {\n            \"inviteCreationRestriction\": \"onlyOwners\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"inviteCreationRestriction\": {\n            \"enum\": [\n              \"unrestricted\",\n              \"onlyOwners\"\n            ],\n            \"type\": \"string\"\n          },\n          \"shareCreationRestriction\": {\n            \"enum\": [\n              \"unrestricted\",\n              \"onlyOwners\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

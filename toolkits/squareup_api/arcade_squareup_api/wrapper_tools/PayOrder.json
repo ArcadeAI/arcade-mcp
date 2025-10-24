@@ -1,0 +1,209 @@
+{
+  "name": "PayOrder",
+  "fully_qualified_name": "SquareupApi.PayOrder@2.0.0",
+  "description": "Settle an order using approved payments.\n\nThis tool is used to pay for an order with approved payments, or to mark an order with a total of 0 as paid. Ensure all payments reference the order correctly. Useful for completing transactions with delayed capture payments.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "order_id",
+        "required": true,
+        "description": "The unique identifier of the order to be paid.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the order being paid."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_id"
+      },
+      {
+        "name": "unique_transaction_identifier",
+        "required": true,
+        "description": "A unique string to identify the request and ensure the prevention of duplicate payments. Reuse the same key for retrying the same request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A value you specify that uniquely identifies this request among requests you have sent. If\nyou are unsure whether a particular payment request was completed successfully, you can reattempt\nit with the same idempotency key without worrying about duplicate payments.\n\nFor more information, see [Idempotency](https://developer.squareup.com/docs/working-with-apis/idempotency)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "order_version",
+        "required": false,
+        "description": "Specify the version of the order to be paid. Defaults to latest if not provided.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The version of the order being paid. If not supplied, the latest version will be paid."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_version"
+      },
+      {
+        "name": "payment_ids_to_collect",
+        "required": false,
+        "description": "Array of payment IDs to collect; total must match the order total.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the [payments](entity:Payment) to collect.\nThe payment total must match the order total."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "payment_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'PayOrder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "PAYMENTS_WRITE",
+          "ORDERS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/orders/{order_id}/pay",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "order_id",
+        "tool_parameter_name": "order_id",
+        "description": "The ID of the order being paid.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the order being paid."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_transaction_identifier",
+        "description": "A value you specify that uniquely identifies this request among requests you have sent. If\nyou are unsure whether a particular payment request was completed successfully, you can reattempt\nit with the same idempotency key without worrying about duplicate payments.\n\nFor more information, see [Idempotency](https://developer.squareup.com/docs/working-with-apis/idempotency).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A value you specify that uniquely identifies this request among requests you have sent. If\nyou are unsure whether a particular payment request was completed successfully, you can reattempt\nit with the same idempotency key without worrying about duplicate payments.\n\nFor more information, see [Idempotency](https://developer.squareup.com/docs/working-with-apis/idempotency)."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order_version",
+        "tool_parameter_name": "order_version",
+        "description": "The version of the order being paid. If not supplied, the latest version will be paid.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The version of the order being paid. If not supplied, the latest version will be paid."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "payment_ids",
+        "tool_parameter_name": "payment_ids_to_collect",
+        "description": "The IDs of the [payments](entity:Payment) to collect.\nThe payment total must match the order total.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the [payments](entity:Payment) to collect.\nThe payment total must match the order total."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines the fields that are included in requests to the\\n[PayOrder](api-endpoint:Orders-PayOrder) endpoint.\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"idempotency_key\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A value you specify that uniquely identifies this request among requests you have sent. If\\nyou are unsure whether a particular payment request was completed successfully, you can reattempt\\nit with the same idempotency key without worrying about duplicate payments.\\n\\nFor more information, see [Idempotency](https://developer.squareup.com/docs/working-with-apis/idempotency).\",\n            \"minLength\": 1,\n            \"maxLength\": 192\n          },\n          \"order_version\": {\n            \"type\": \"integer\",\n            \"description\": \"The version of the order being paid. If not supplied, the latest version will be paid.\",\n            \"nullable\": true\n          },\n          \"payment_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The IDs of the [payments](entity:Payment) to collect.\\nThe payment total must match the order total.\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"c043a359-7ad9-4136-82a9-c3f1d66dcbff\",\n          \"payment_ids\": [\n            \"EnZdNAlWCmfh6Mt5FMNST1o7taB\",\n            \"0LRiVlbXVwe8ozu4KbZxd12mvaB\"\n          ]\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "GetUserGroupInfo",
-  "fully_qualified_name": "AirtableApi.GetUserGroupInfo@0.1.0",
-  "description": "Retrieve basic information about a specific user group.\n\nThis tool is used to obtain fundamental details regarding a specific user group by providing the group ID. It is useful when you need to access metadata related to user groups in Airtable.",
+  "fully_qualified_name": "AirtableApi.GetUserGroupInfo@2.0.0",
+  "description": "Retrieve basic information about a specific user group.\n\nUse this tool to obtain key details for a specific user group by providing the group ID. It is useful when you need to display or process user group information.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "group_id",
+        "name": "user_group_id",
         "required": true,
-        "description": "The unique identifier for the user group you want to retrieve information about. This should be provided as a string.",
+        "description": "Provide the identifier for the user group to retrieve its basic information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "groupId"
       },
       {
-        "name": "include_additional_fields",
+        "name": "include_additional_info",
         "required": false,
-        "description": "An array specifying which additional fields to include in the response. Each entry should be a string representing a field name.",
+        "description": "An array of strings specifying additional data to be included in the response, such as 'members' or 'permissions'.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/groups/{groupId}",
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "include",
-        "tool_parameter_name": "include_additional_fields",
+        "tool_parameter_name": "include_additional_info",
         "description": "",
         "value_schema": {
           "val_type": "array",
@@ -107,7 +107,7 @@
       },
       {
         "name": "groupId",
-        "tool_parameter_name": "group_id",
+        "tool_parameter_name": "user_group_id",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

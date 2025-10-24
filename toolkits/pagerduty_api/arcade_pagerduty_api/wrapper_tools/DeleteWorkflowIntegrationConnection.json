@@ -1,11 +1,11 @@
 {
   "name": "DeleteWorkflowIntegrationConnection",
-  "fully_qualified_name": "PagerdutyApi.DeleteWorkflowIntegrationConnection@0.1.0",
-  "description": "Delete a workflow integration connection in PagerDuty.\n\nUse this tool to delete a specific workflow integration connection in PagerDuty. Ensure you have the necessary OAuth scope: `workflow_integrations:connections.write`.",
+  "fully_qualified_name": "PagerdutyApi.DeleteWorkflowIntegrationConnection@2.0.0",
+  "description": "Delete a Workflow Integration Connection on PagerDuty.\n\nUse this tool to remove a specific workflow integration connection from PagerDuty. Ideal for scenarios where you need to manage or clean up integration settings. Requires appropriate OAuth permissions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
@@ -27,7 +27,7 @@
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier of the resource to be deleted.",
+        "description": "The unique identifier for the resource to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_versioning_header",
         "required": true,
-        "description": "Specifies the `Accept` header for versioning the API request. Required for specifying the API version.",
+        "description": "The `Accept` header specifies the version of the API to use for this request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/workflows/integrations/{integration_id}/connections/{id}",
@@ -136,7 +136,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -163,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

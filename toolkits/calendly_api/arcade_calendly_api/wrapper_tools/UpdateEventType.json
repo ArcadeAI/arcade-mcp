@@ -1,0 +1,374 @@
+{
+  "name": "UpdateEventType",
+  "fully_qualified_name": "CalendlyApi.UpdateEventType@2.0.0",
+  "description": "Update details of an existing event type with Calendly.\n\nUse this tool to update an existing one-on-one event type in Calendly. This tool is specifically for modifying event types categorized as 'solo' or one-on-one.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_type_uuid",
+        "required": true,
+        "description": "The unique identifier for the event type to be updated. This is essential for specifying which one-on-one event type you intend to modify.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "uuid"
+      },
+      {
+        "name": "event_details",
+        "required": true,
+        "description": "JSON object containing details to update an event type, including active status, name, color, description, duration, duration options, locale, and locations.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates if the event type is active or not"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The event type name"
+            },
+            "color": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The hexadecimal color value of the event type's scheduling page"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The event type description"
+            },
+            "duration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The length of sessions booked with this event type. Must be one of the duration options if they're provided."
+            },
+            "duration_options": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A maximum of 4 unique options is allowed. Each option must be >= 1 and <= 720."
+            },
+            "locale": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "de",
+                "en",
+                "es",
+                "fr",
+                "it",
+                "nl",
+                "pt",
+                "uk"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The locale on the event type, used to determine the language of the event type's scheduling page"
+            },
+            "locations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "kind": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ask_invitee",
+                    "custom",
+                    "google_conference",
+                    "gotomeeting_conference",
+                    "inbound_call",
+                    "microsoft_teams_conference",
+                    "outbound_call",
+                    "physical",
+                    "webex_conference",
+                    "zoom_conference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "location": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "additional_info": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "phone_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Configuration information for each possible location for this Event Type"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-event-type'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/event_types/{uuid}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "uuid",
+        "tool_parameter_name": "event_type_uuid",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "event_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates if the event type is active or not"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The event type name"
+            },
+            "color": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The hexadecimal color value of the event type's scheduling page"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The event type description"
+            },
+            "duration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The length of sessions booked with this event type. Must be one of the duration options if they're provided."
+            },
+            "duration_options": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A maximum of 4 unique options is allowed. Each option must be >= 1 and <= 720."
+            },
+            "locale": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "de",
+                "en",
+                "es",
+                "fr",
+                "it",
+                "nl",
+                "pt",
+                "uk"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The locale on the event type, used to determine the language of the event type's scheduling page"
+            },
+            "locations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "kind": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ask_invitee",
+                    "custom",
+                    "google_conference",
+                    "gotomeeting_conference",
+                    "inbound_call",
+                    "microsoft_teams_conference",
+                    "outbound_call",
+                    "physical",
+                    "webex_conference",
+                    "zoom_conference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "location": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "additional_info": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "phone_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Configuration information for each possible location for this Event Type"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"active\": {\n            \"type\": \"boolean\",\n            \"description\": \"Indicates if the event type is active or not\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The event type name\",\n            \"example\": \"15 Minute Meeting\"\n          },\n          \"color\": {\n            \"description\": \"The hexadecimal color value of the event type's scheduling page\",\n            \"type\": \"string\",\n            \"pattern\": \"^#[a-f\\\\d]{6}$\",\n            \"example\": \"#fff200\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"The event type description\",\n            \"example\": \"15 Minute Meeting\"\n          },\n          \"duration\": {\n            \"type\": \"integer\",\n            \"description\": \"The length of sessions booked with this event type. Must be one of the duration options if they're provided.\",\n            \"example\": 15,\n            \"minimum\": 1,\n            \"maximum\": 720\n          },\n          \"duration_options\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\"\n            },\n            \"example\": [\n              1,\n              13,\n              15,\n              720\n            ],\n            \"description\": \"A maximum of 4 unique options is allowed. Each option must be >= 1 and <= 720.\"\n          },\n          \"locale\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"de\",\n              \"en\",\n              \"es\",\n              \"fr\",\n              \"it\",\n              \"nl\",\n              \"pt\",\n              \"uk\"\n            ],\n            \"example\": \"de\",\n            \"description\": \"The locale on the event type, used to determine the language of the event type's scheduling page\"\n          },\n          \"locations\": {\n            \"type\": \"array\",\n            \"description\": \"Configuration information for each possible location for this Event Type\",\n            \"items\": {\n              \"title\": \"LocationConfiguration\",\n              \"x-stoplight\": {\n                \"id\": \"7vwr4rsld2j8d\"\n              },\n              \"x-tags\": [\n                \"Event Types\"\n              ],\n              \"type\": \"object\",\n              \"description\": \"A configuration for an EventType's location\",\n              \"x-examples\": {\n                \"example-1\": {\n                  \"kind\": \"zoom_conference\"\n                }\n              },\n              \"x-internal\": false,\n              \"nullable\": true,\n              \"properties\": {\n                \"kind\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"ask_invitee\",\n                    \"custom\",\n                    \"google_conference\",\n                    \"gotomeeting_conference\",\n                    \"inbound_call\",\n                    \"microsoft_teams_conference\",\n                    \"outbound_call\",\n                    \"physical\",\n                    \"webex_conference\",\n                    \"zoom_conference\"\n                  ]\n                },\n                \"location\": {\n                  \"type\": \"string\"\n                },\n                \"additional_info\": {\n                  \"type\": \"string\"\n                },\n                \"phone_number\": {\n                  \"type\": \"string\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

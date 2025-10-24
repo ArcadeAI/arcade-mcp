@@ -1,18 +1,18 @@
 {
   "name": "GetUserDetails",
-  "fully_qualified_name": "PagerdutyApi.GetUserDetails@0.1.0",
-  "description": "Retrieve detailed information about a PagerDuty user.\n\nUse this tool to obtain detailed information about a specific user in a PagerDuty account. It provides insights into the user's ability to interact with incidents and other data on the account. This tool requires 'users.read' permission to access the user's information.",
+  "fully_qualified_name": "PagerdutyApi.GetUserDetails@2.0.0",
+  "description": "Retrieve details about a specific PagerDuty user.\n\nThis tool is used to get detailed information about an existing user in a PagerDuty account. Useful for accessing user-specific data to manage interactions with incidents and other account activities.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "user_id",
         "required": true,
-        "description": "The unique ID of the PagerDuty user to retrieve details for.",
+        "description": "The unique identifier for the specific PagerDuty user whose details are to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_header_version",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specifies the API version via the `Accept` header for versioning responses.",
+        "description": "The `Accept` header specifying the API version for the response. Use for version control.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Specify the content type for the request header. Must be 'application/json'.",
+        "description": "Specifies the media type for the response. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,9 +57,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "include_models",
+        "name": "additional_models_to_include",
         "required": false,
-        "description": "Specify additional models to include in the response. Options: 'contact_methods', 'notification_rules', 'teams', 'subdomains'.",
+        "description": "Specify additional models (e.g., 'contact_methods', 'notification_rules') to include in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -107,13 +107,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/{id}",
@@ -122,7 +122,7 @@
     "parameters": [
       {
         "name": "include[]",
-        "tool_parameter_name": "include_models",
+        "tool_parameter_name": "additional_models_to_include",
         "description": "Array of additional Models to include in response.",
         "value_schema": {
           "val_type": "string",
@@ -163,7 +163,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -210,6 +210,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

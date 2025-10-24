@@ -1,18 +1,18 @@
 {
   "name": "DeleteServiceEventRule",
-  "fully_qualified_name": "PagerdutyApi.DeleteServiceEventRule@0.1.0",
-  "description": "Delete an event rule from a service in Pagerduty.\n\nUse this tool to delete an event rule from a specified service within Pagerduty. This is important for managing and updating service event rules as part of migrating to Event Orchestration. Ensure you have the required OAuth access: `services.write`.",
+  "fully_qualified_name": "PagerdutyApi.DeleteServiceEventRule@2.0.0",
+  "description": "Delete an event rule from a service in PagerDuty.\n\nUse this tool to delete a specific event rule from a service using its service and rule IDs. Note that event rules will soon be deprecated, and migration to Event Orchestration is recommended.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "service_id",
         "required": true,
-        "description": "The ID of the resource from which the event rule will be deleted.",
+        "description": "The unique identifier of the service resource from which to delete the event rule.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "event_rule_id",
         "required": true,
-        "description": "The unique identifier of the Event Rule to delete from a service.",
+        "description": "The ID of the Event Rule to be deleted. Use this to specify which rule to remove.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "accept_version_header",
         "required": true,
-        "description": "The `Accept` header for specifying the API version in the request.",
+        "description": "Specifies the API version using the `Accept` header for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the `Content-Type` for the request, typically `application/json`.",
+        "description": "Specify the content type of the request, typically 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/services/{id}/rules/{rule_id}",
@@ -117,7 +117,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "service_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -171,7 +171,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

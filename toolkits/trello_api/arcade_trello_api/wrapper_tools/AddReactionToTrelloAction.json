@@ -1,0 +1,247 @@
+{
+  "name": "AddReactionToTrelloAction",
+  "fully_qualified_name": "TrelloApi.AddReactionToTrelloAction@2.0.0",
+  "description": "Add a reaction to a Trello action.\n\nUse this tool to add a new reaction to a specific action within Trello. It should be called when you want to express feedback or sentiment on an action item on Trello.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "action_id",
+        "required": true,
+        "description": "The ID of the Trello action to which you want to add a reaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the action"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idAction"
+      },
+      {
+        "name": "emoji_short_name",
+        "required": false,
+        "description": "The short name of the emoji to add as a reaction, like 'thumbsup' or 'smile'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The primary `shortName` of the emoji to add. See [/emoji](#emoji)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "shortName"
+      },
+      {
+        "name": "emoji_skin_variation",
+        "required": false,
+        "description": "Specifies the `skinVariation` for the emoji being added as a reaction, like default or medium-light.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `skinVariation` of the emoji to add. See [/emoji](#emoji)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "skinVariation"
+      },
+      {
+        "name": "native_emoji_unicode",
+        "required": false,
+        "description": "The native unicode emoji to add as a reaction. It should be a valid emoji character.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The emoji to add as a native unicode emoji. See [/emoji](#emoji)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "native"
+      },
+      {
+        "name": "emoji_unified_value",
+        "required": false,
+        "description": "The `unified` value of the emoji to add to the Trello action. This is a code representing the emoji and is used to specify the exact emoji to add.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `unified` value of the emoji to add. See [/emoji](#emoji)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unified"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-actions-idaction-reactions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/actions/{idAction}/reactions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "idAction",
+        "tool_parameter_name": "action_id",
+        "description": "The ID of the action",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the action"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "shortName",
+        "tool_parameter_name": "emoji_short_name",
+        "description": "The primary `shortName` of the emoji to add. See [/emoji](#emoji)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The primary `shortName` of the emoji to add. See [/emoji](#emoji)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "skinVariation",
+        "tool_parameter_name": "emoji_skin_variation",
+        "description": "The `skinVariation` of the emoji to add. See [/emoji](#emoji)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `skinVariation` of the emoji to add. See [/emoji](#emoji)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "native",
+        "tool_parameter_name": "native_emoji_unicode",
+        "description": "The emoji to add as a native unicode emoji. See [/emoji](#emoji)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The emoji to add as a native unicode emoji. See [/emoji](#emoji)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "unified",
+        "tool_parameter_name": "emoji_unified_value",
+        "description": "The `unified` value of the emoji to add. See [/emoji](#emoji)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `unified` value of the emoji to add. See [/emoji](#emoji)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"shortName\": {\n            \"type\": \"string\",\n            \"description\": \"The primary `shortName` of the emoji to add. See [/emoji](#emoji)\"\n          },\n          \"skinVariation\": {\n            \"type\": \"string\",\n            \"description\": \"The `skinVariation` of the emoji to add. See [/emoji](#emoji)\"\n          },\n          \"native\": {\n            \"type\": \"string\",\n            \"description\": \"The emoji to add as a native unicode emoji. See [/emoji](#emoji)\"\n          },\n          \"unified\": {\n            \"type\": \"string\",\n            \"description\": \"The `unified` value of the emoji to add. See [/emoji](#emoji)\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

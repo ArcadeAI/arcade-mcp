@@ -1,18 +1,18 @@
 {
   "name": "DeleteScimUser",
-  "fully_qualified_name": "AirtableApi.DeleteScimUser@0.1.0",
-  "description": "Delete a single SCIM user from Airtable.\n\nUse this tool to delete a SCIM user from Airtable, except for the admin owning the authentication token or the sole owner of a workspace with multiple collaborators.",
+  "fully_qualified_name": "AirtableApi.DeleteScimUser@2.0.0",
+  "description": "Delete a SCIM user from the system.\n\nThe tool deletes a single SCIM user, except the admin owning the token or the sole owner of a multi-collaborator workspace. Refer to the SCIM specification for more details.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "user_id",
+        "name": "scim_user_id",
         "required": true,
-        "description": "The unique identifier of the SCIM user to be deleted. Ensure it is not the admin using the auth token or the sole owner of a multi-collaborator workspace.",
+        "description": "Unique identifier for the SCIM user to delete. Cannot be the admin using the authentication token or the sole owner of a multi-collaborator workspace.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/scim/v2/Users/{userId}",
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "userId",
-        "tool_parameter_name": "user_id",
+        "tool_parameter_name": "scim_user_id",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -101,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,274 @@
+{
+  "name": "RetrieveInventoryCounts",
+  "fully_qualified_name": "SquareupApi.RetrieveInventoryCounts@2.0.0",
+  "description": "Retrieve current inventory counts for specific items and locations.\n\nCall this tool to get current inventory counts for specified catalog objects at specific locations. Results are sorted by newest first and can be filtered by changes since a given timestamp to facilitate synchronization.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_catalog_object_ids",
+        "required": false,
+        "description": "A list of `CatalogObject` IDs to filter the inventory results. Only applicable when set.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The filter to return results by `CatalogObject` ID.\nThe filter is applicable only when set.  The default is null."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "catalog_object_ids"
+      },
+      {
+        "name": "filter_by_location_ids",
+        "required": false,
+        "description": "An array of Location IDs to filter inventory counts. Only applicable when set.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The filter to return results by `Location` ID.\nThis filter is applicable only when set. The default is null."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_ids"
+      },
+      {
+        "name": "filter_by_updated_after_timestamp",
+        "required": false,
+        "description": "Filter results to include only those with a `calculated_at` timestamp after the specified RFC 3339 time. Default is the UNIX epoch.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The filter to return results with their `calculated_at` value\nafter the given time as specified in an RFC 3339 timestamp.\nThe default value is the UNIX epoch of (`1970-01-01T00:00:00Z`)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_after"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A pagination cursor to retrieve the next set of results for the original query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this to retrieve the next set of results for the original query.\n\nSee the [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination) guide for more information."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "inventory_state_filters",
+        "required": false,
+        "description": "Filter results by specific inventory states. Ignored states: NONE, SOLD, UNLINKED_RETURN. Provide as an array of strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The filter to return results by `InventoryState`. The filter is only applicable when set.\nIgnored are untracked states of `NONE`, `SOLD`, and `UNLINKED_RETURN`.\nThe default is null."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "states"
+      },
+      {
+        "name": "record_limit",
+        "required": false,
+        "description": "Specify the number of inventory count records to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of [records](entity:InventoryCount) to return."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BatchRetrieveInventoryCounts'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVENTORY_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/inventory/counts/batch-retrieve",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "catalog_object_ids",
+        "tool_parameter_name": "filter_by_catalog_object_ids",
+        "description": "The filter to return results by `CatalogObject` ID.\nThe filter is applicable only when set.  The default is null.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The filter to return results by `CatalogObject` ID.\nThe filter is applicable only when set.  The default is null."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_ids",
+        "tool_parameter_name": "filter_by_location_ids",
+        "description": "The filter to return results by `Location` ID.\nThis filter is applicable only when set. The default is null.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The filter to return results by `Location` ID.\nThis filter is applicable only when set. The default is null."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_after",
+        "tool_parameter_name": "filter_by_updated_after_timestamp",
+        "description": "The filter to return results with their `calculated_at` value\nafter the given time as specified in an RFC 3339 timestamp.\nThe default value is the UNIX epoch of (`1970-01-01T00:00:00Z`).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The filter to return results with their `calculated_at` value\nafter the given time as specified in an RFC 3339 timestamp.\nThe default value is the UNIX epoch of (`1970-01-01T00:00:00Z`)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this to retrieve the next set of results for the original query.\n\nSee the [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination) guide for more information.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this to retrieve the next set of results for the original query.\n\nSee the [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination) guide for more information."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "states",
+        "tool_parameter_name": "inventory_state_filters",
+        "description": "The filter to return results by `InventoryState`. The filter is only applicable when set.\nIgnored are untracked states of `NONE`, `SOLD`, and `UNLINKED_RETURN`.\nThe default is null.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The filter to return results by `InventoryState`. The filter is only applicable when set.\nIgnored are untracked states of `NONE`, `SOLD`, and `UNLINKED_RETURN`.\nThe default is null."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "record_limit",
+        "description": "The number of [records](entity:InventoryCount) to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of [records](entity:InventoryCount) to return."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"catalog_object_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The filter to return results by `CatalogObject` ID.\\nThe filter is applicable only when set.  The default is null.\",\n            \"nullable\": true\n          },\n          \"location_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The filter to return results by `Location` ID.\\nThis filter is applicable only when set. The default is null.\",\n            \"nullable\": true\n          },\n          \"updated_after\": {\n            \"type\": \"string\",\n            \"description\": \"The filter to return results with their `calculated_at` value\\nafter the given time as specified in an RFC 3339 timestamp.\\nThe default value is the UNIX epoch of (`1970-01-01T00:00:00Z`).\",\n            \"nullable\": true\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"A pagination cursor returned by a previous call to this endpoint.\\nProvide this to retrieve the next set of results for the original query.\\n\\nSee the [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination) guide for more information.\",\n            \"nullable\": true\n          },\n          \"states\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"CUSTOM\",\n                \"IN_STOCK\",\n                \"SOLD\",\n                \"RETURNED_BY_CUSTOMER\",\n                \"RESERVED_FOR_SALE\",\n                \"SOLD_ONLINE\",\n                \"ORDERED_FROM_VENDOR\",\n                \"RECEIVED_FROM_VENDOR\",\n                \"IN_TRANSIT_TO\",\n                \"NONE\",\n                \"WASTE\",\n                \"UNLINKED_RETURN\",\n                \"COMPOSED\",\n                \"DECOMPOSED\",\n                \"SUPPORTED_BY_NEWER_VERSION\",\n                \"IN_TRANSIT\"\n              ],\n              \"x-enum-elements\": [\n                {\n                  \"name\": \"CUSTOM\",\n                  \"description\": \"The related quantity of items are in a custom state. **READ-ONLY**:\\nthe Inventory API cannot move quantities to or from this state.\"\n                },\n                {\n                  \"name\": \"IN_STOCK\",\n                  \"description\": \"The related quantity of items are on hand and available for sale.\"\n                },\n                {\n                  \"name\": \"SOLD\",\n                  \"description\": \"The related quantity of items were sold as part of an itemized\\ntransaction. Quantities in the `SOLD` state are no longer tracked.\"\n                },\n                {\n                  \"name\": \"RETURNED_BY_CUSTOMER\",\n                  \"description\": \"The related quantity of items were returned through the Square Point\\nof Sale application, but are not yet available for sale. **READ-ONLY**:\\nthe Inventory API cannot move quantities to or from this state.\"\n                },\n                {\n                  \"name\": \"RESERVED_FOR_SALE\",\n                  \"description\": \"The related quantity of items are on hand, but not currently\\navailable for sale. **READ-ONLY**: the Inventory API cannot move\\nquantities to or from this state.\"\n                },\n                {\n                  \"name\": \"SOLD_ONLINE\",\n                  \"description\": \"The related quantity of items were sold online. **READ-ONLY**: the\\nInventory API cannot move quantities to or from this state.\"\n                },\n                {\n                  \"name\": \"ORDERED_FROM_VENDOR\",\n                  \"description\": \"The related quantity of items were ordered from a vendor but not yet\\nreceived. **READ-ONLY**: the Inventory API cannot move quantities to or\\nfrom this state.\"\n                },\n                {\n                  \"name\": \"RECEIVED_FROM_VENDOR\",\n                  \"description\": \"The related quantity of items were received from a vendor but are\\nnot yet available for sale. **READ-ONLY**: the Inventory API cannot move\\nquantities to or from this state.\"\n                },\n                {\n                  \"name\": \"IN_TRANSIT_TO\",\n                  \"description\": \"Replaced by `IN_TRANSIT` to represent quantities\\nof items that are in transit between locations.\"\n                },\n                {\n                  \"name\": \"NONE\",\n                  \"description\": \"A placeholder indicating that the related quantity of items are not\\ncurrently tracked in Square. Transferring quantities from the `NONE` state\\nto a tracked state (e.g., `IN_STOCK`) introduces stock into the system.\"\n                },\n                {\n                  \"name\": \"WASTE\",\n                  \"description\": \"The related quantity of items are lost or damaged and cannot be\\nsold.\"\n                },\n                {\n                  \"name\": \"UNLINKED_RETURN\",\n                  \"description\": \"The related quantity of items were returned but not linked to a\\nprevious transaction. Unlinked returns are not tracked in Square.\\nTransferring a quantity from `UNLINKED_RETURN` to a tracked state (e.g.,\\n`IN_STOCK`) introduces new stock into the system.\"\n                },\n                {\n                  \"name\": \"COMPOSED\",\n                  \"description\": \"The related quantity of items that are part of a composition consisting one or more components.\"\n                },\n                {\n                  \"name\": \"DECOMPOSED\",\n                  \"description\": \"The related quantity of items that are part of a component.\"\n                },\n                {\n                  \"name\": \"SUPPORTED_BY_NEWER_VERSION\",\n                  \"description\": \"This state is not supported by this version of the Square API. We recommend that you upgrade the client to use the appropriate version of the Square API supporting this state.\"\n                },\n                {\n                  \"name\": \"IN_TRANSIT\",\n                  \"description\": \"The related quantity of items are in transit between locations. **READ-ONLY:** the Inventory API cannot currently be used to move quantities to or from this inventory state.\"\n                }\n              ],\n              \"description\": \"Indicates the state of a tracked item quantity in the lifecycle of goods.\",\n              \"x-release-status\": \"PUBLIC\"\n            },\n            \"description\": \"The filter to return results by `InventoryState`. The filter is only applicable when set.\\nIgnored are untracked states of `NONE`, `SOLD`, and `UNLINKED_RETURN`.\\nThe default is null.\",\n            \"nullable\": true\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The number of [records](entity:InventoryCount) to return.\",\n            \"minimum\": 1,\n            \"maximum\": 1000,\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"catalog_object_ids\": [\n            \"W62UWFY35CWMYGVWK6TWJDNI\"\n          ],\n          \"location_ids\": [\n            \"59TNP9SA8VGDA\"\n          ],\n          \"updated_after\": \"2016-11-16T00:00:00.000Z\"\n        },\n        \"x-sq-sdk-sample-code\": {\n          \"csharp\": \"/sdk_samples/Inventory/BatchRetrieveInventoryCounts/BatchRetrieveInventoryCountsRequest.csharp\",\n          \"java\": \"/sdk_samples/Inventory/BatchRetrieveInventoryCounts/BatchRetrieveInventoryCountsRequest.java\",\n          \"javascript\": \"/sdk_samples/Inventory/BatchRetrieveInventoryCounts/BatchRetrieveInventoryCountsRequest.javascript\",\n          \"php\": \"/sdk_samples/Inventory/BatchRetrieveInventoryCounts/BatchRetrieveInventoryCountsRequest.php\",\n          \"python\": \"/sdk_samples/Inventory/BatchRetrieveInventoryCounts/BatchRetrieveInventoryCountsRequest.python\",\n          \"ruby\": \"/sdk_samples/Inventory/BatchRetrieveInventoryCounts/BatchRetrieveInventoryCountsRequest.ruby\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "name": "RevokeMiroAccessToken",
+  "fully_qualified_name": "MiroApi.RevokeMiroAccessToken@2.0.0",
+  "description": "Revoke the current Miro access token.\n\nThis tool revokes the current access token for Miro, rendering both the access and refresh tokens invalid. It should be called when you need to terminate access to Miro resources. The application remains installed for the user, even after token revocation.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "miro_access_token",
+        "required": true,
+        "description": "The Miro access token that needs to be revoked, rendering it and the refresh token unusable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The access token to be revoked."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "accessToken"
+      },
+      {
+        "name": "client_id",
+        "required": true,
+        "description": "The client ID associated with the access token for Miro. Required for token revocation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The client ID associated with the access token."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "clientId"
+      },
+      {
+        "name": "client_secret",
+        "required": true,
+        "description": "The client secret associated with the access token to be revoked. This is required for validation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The client secret associated with the access token."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "clientSecret"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'revoke-token-v2'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/oauth/revoke",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "accessToken",
+        "tool_parameter_name": "miro_access_token",
+        "description": "The access token to be revoked.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The access token to be revoked."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "clientId",
+        "tool_parameter_name": "client_id",
+        "description": "The client ID associated with the access token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The client ID associated with the access token."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "clientSecret",
+        "tool_parameter_name": "client_secret",
+        "description": "The client secret associated with the access token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The client secret associated with the access token."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"accessToken\": {\n            \"type\": \"string\",\n            \"description\": \"The access token to be revoked.\"\n          },\n          \"clientId\": {\n            \"type\": \"string\",\n            \"description\": \"The client ID associated with the access token.\"\n          },\n          \"clientSecret\": {\n            \"type\": \"string\",\n            \"description\": \"The client secret associated with the access token.\"\n          }\n        },\n        \"required\": [\n          \"accessToken\",\n          \"clientId\",\n          \"clientSecret\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

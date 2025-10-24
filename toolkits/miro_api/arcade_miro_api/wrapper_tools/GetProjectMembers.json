@@ -1,18 +1,18 @@
 {
   "name": "GetProjectMembers",
-  "fully_qualified_name": "MiroApi.GetProjectMembers@0.1.0",
-  "description": "Retrieve members of a specified project for Enterprise users.\n\nThis tool retrieves the list of members for a specific project in Miro, available exclusively for Enterprise plan users with the Company Admin role. It should be called when you need to know who is part of a particular project team.",
+  "fully_qualified_name": "MiroApi.GetProjectMembers@2.0.0",
+  "description": "Retrieve members of a specific project.\n\nFetches the list of members involved in a specific project. Available only for Enterprise plan users with Company Admin role. Requires 'projects:read' scope.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id",
         "required": true,
-        "description": "The unique ID of the organization to which the project belongs.",
+        "description": "The ID of the organization to which the project belongs.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "team_id",
         "required": true,
-        "description": "The ID of the team to which the project belongs. This should be a string representing the unique identifier for the team.",
+        "description": "The unique ID of the team associated with the project.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "team_id"
       },
       {
-        "name": "project_id",
+        "name": "project_identifier",
         "required": true,
-        "description": "The unique identifier of the project for which to retrieve member details.",
+        "description": "The unique identifier of the project to retrieve its members.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "maximum_results_per_call",
         "required": false,
-        "description": "The maximum number of project members to return in a single call. If exceeded, a cursor for pagination is provided.",
+        "description": "Specifies the maximum number of project members to return per call. Additional results can be accessed via the cursor parameter.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The cursor for pagination. Leave empty for the first page or use the value returned in the last call for subsequent pages.",
+        "description": "Indicator for the page position in the result set. Leave empty for the first page; use the prior response's cursor for next pages.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -115,13 +115,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/projects/{project_id}/members",
@@ -143,6 +143,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": 100,
         "documentation_urls": []
       },
       {
@@ -160,6 +161,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -177,6 +179,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -194,11 +197,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "project_id",
-        "tool_parameter_name": "project_id",
+        "tool_parameter_name": "project_identifier",
         "description": "The ID of the project for which you want to retrieve the list of members.",
         "value_schema": {
           "val_type": "string",
@@ -211,6 +215,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -224,6 +229,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

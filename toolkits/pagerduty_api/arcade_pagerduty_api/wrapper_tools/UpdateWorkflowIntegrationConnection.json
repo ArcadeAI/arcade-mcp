@@ -1,18 +1,18 @@
 {
   "name": "UpdateWorkflowIntegrationConnection",
-  "fully_qualified_name": "PagerdutyApi.UpdateWorkflowIntegrationConnection@0.1.0",
-  "description": "Update an existing Workflow Integration Connection.\n\nThis tool updates an existing Workflow Integration Connection in Pagerduty. It requires the `workflow_integrations:connections.write` permission scope and is used when modifications to an integration connection are needed.",
+  "fully_qualified_name": "PagerdutyApi.UpdateWorkflowIntegrationConnection@2.0.0",
+  "description": "Update an existing Workflow Integration Connection.\n\nCall this tool to update the connection details of a specific workflow integration in PagerDuty. Useful for modifying existing configurations in integrations.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "workflow_integration_id",
+        "name": "integration_id",
         "required": true,
-        "description": "The ID of the Workflow Integration to be updated.",
+        "description": "The ID of the Workflow Integration to be updated. Required to specify which integration connection to modify.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "resource_id",
         "required": true,
-        "description": "The ID of the resource to update in the workflow integration connection.",
+        "description": "The ID of the resource to be updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "accept_header_version",
         "required": true,
-        "description": "The `Accept` header for specifying the API version. Used as a versioning header.",
+        "description": "The API version specified in the `Accept` header for versioning the request. Provide the version required by the API.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_format",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specify the media type of the resource. Only 'application/json' is supported.",
+        "description": "Specify the MIME type for the request body. Typically 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/workflows/integrations/{integration_id}/connections/{id}",
@@ -117,7 +117,7 @@
     "parameters": [
       {
         "name": "integration_id",
-        "tool_parameter_name": "workflow_integration_id",
+        "tool_parameter_name": "integration_id",
         "description": "The ID of the Workflow Integration",
         "value_schema": {
           "val_type": "string",
@@ -171,7 +171,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_format",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

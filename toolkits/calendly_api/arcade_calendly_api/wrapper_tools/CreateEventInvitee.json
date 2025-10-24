@@ -1,0 +1,317 @@
+{
+  "name": "CreateEventInvitee",
+  "fully_qualified_name": "CalendlyApi.CreateEventInvitee@2.0.0",
+  "description": "Create a new event invitee on Calendly.\n\nThis tool is used to create a new event invitee on Calendly. It triggers standard notifications, calendar invites, reschedules, and workflows as if booked via the Calendly interface. Note that only users on paid Calendly plans can access this feature.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "invitee_details",
+        "required": true,
+        "description": "A JSON object containing details for creating an event invitee, including event type, start time, invitee information (name, email, etc.), location, questions and answers, tracking, and optionally event guests' emails (max 10).",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "event_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Canonical reference (unique identifier) for the event type being scheduled "
+            },
+            "start_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The start time in UTC of the scheduled event"
+            },
+            "invitee": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The full name of the invitee. **Required if** `first_name` **is not provided**"
+                },
+                "first_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The first name of the invitee. **Required if** `name` **is not provided**"
+                },
+                "last_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The last name of the invitee"
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email of the invitee"
+                },
+                "timezone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timezone of the invitee"
+                },
+                "text_reminder_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Invitee's phone number for SMS reminders. Must be a valid phone number (e.g. +14155551234)"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "location": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "questions_and_answers": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            },
+            "tracking": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "event_guests": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Emails of invitee guests. Max 10."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-invitee'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/invitees",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "invitee_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "event_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Canonical reference (unique identifier) for the event type being scheduled "
+            },
+            "start_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The start time in UTC of the scheduled event"
+            },
+            "invitee": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The full name of the invitee. **Required if** `first_name` **is not provided**"
+                },
+                "first_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The first name of the invitee. **Required if** `name` **is not provided**"
+                },
+                "last_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The last name of the invitee"
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email of the invitee"
+                },
+                "timezone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timezone of the invitee"
+                },
+                "text_reminder_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Invitee's phone number for SMS reminders. Must be a valid phone number (e.g. +14155551234)"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "location": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "questions_and_answers": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            },
+            "tracking": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "event_guests": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Emails of invitee guests. Max 10."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"event_type\",\n          \"start_time\",\n          \"invitee\"\n        ],\n        \"properties\": {\n          \"event_type\": {\n            \"type\": \"string\",\n            \"x-stoplight\": {\n              \"id\": \"a7jkew1bxxq4j\"\n            },\n            \"format\": \"uri\",\n            \"description\": \"Canonical reference (unique identifier) for the event type being scheduled \",\n            \"example\": \"https://api.calendly.com/event_types/AAAAAAAAAAAAAAAA\"\n          },\n          \"start_time\": {\n            \"type\": \"string\",\n            \"x-stoplight\": {\n              \"id\": \"esu3e9ko2ic4f\"\n            },\n            \"format\": \"date-time\",\n            \"description\": \"The start time in UTC of the scheduled event\",\n            \"example\": \"2019-08-07T06:05:04.321123Z\"\n          },\n          \"invitee\": {\n            \"x-stoplight\": {\n              \"id\": \"33r4biixcw7aa\"\n            },\n            \"type\": \"object\",\n            \"required\": [\n              \"email\",\n              \"timezone\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"type\": \"string\",\n                \"x-stoplight\": {\n                  \"id\": \"0fmuo5ttqa3ys\"\n                },\n                \"description\": \"The full name of the invitee. **Required if** `first_name` **is not provided**\",\n                \"example\": \"John Smith\"\n              },\n              \"first_name\": {\n                \"type\": \"string\",\n                \"x-stoplight\": {\n                  \"id\": \"mtx5mufknvhuj\"\n                },\n                \"description\": \"The first name of the invitee. **Required if** `name` **is not provided**\",\n                \"example\": \"John\"\n              },\n              \"last_name\": {\n                \"type\": \"string\",\n                \"x-stoplight\": {\n                  \"id\": \"r96jzm1mdj3fv\"\n                },\n                \"description\": \"The last name of the invitee\",\n                \"example\": \"Smith\"\n              },\n              \"email\": {\n                \"type\": \"string\",\n                \"x-stoplight\": {\n                  \"id\": \"2nkp8zp5zotz0\"\n                },\n                \"description\": \"The email of the invitee\",\n                \"example\": \"test@example.com\"\n              },\n              \"timezone\": {\n                \"type\": \"string\",\n                \"x-stoplight\": {\n                  \"id\": \"gsxlntypi4xwm\"\n                },\n                \"description\": \"The timezone of the invitee\",\n                \"example\": \"America/New_York\"\n              },\n              \"text_reminder_number\": {\n                \"type\": \"string\",\n                \"x-stoplight\": {\n                  \"id\": \"up34qo0c1sxon\"\n                },\n                \"description\": \"Invitee's phone number for SMS reminders. Must be a valid phone number (e.g. +14155551234)\",\n                \"example\": \"+1 888-888-8888\"\n              }\n            }\n          },\n          \"location\": {\n            \"$ref\": \"./models/InviteeLocation.yaml\"\n          },\n          \"questions_and_answers\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"$ref\": \"./models/InviteeQuestionAndAnswer.yaml\"\n            }\n          },\n          \"tracking\": {\n            \"$ref\": \"./models/InviteeTracking.yaml\"\n          },\n          \"event_guests\": {\n            \"type\": \"array\",\n            \"x-stoplight\": {\n              \"id\": \"ws09zf1b2zd2i\"\n            },\n            \"description\": \"Emails of invitee guests. Max 10.\",\n            \"maxItems\": 10,\n            \"items\": {\n              \"x-stoplight\": {\n                \"id\": \"fy506ehfvcubw\"\n              },\n              \"type\": \"string\",\n              \"format\": \"email\",\n              \"example\": \"janedoe@calendly.com\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

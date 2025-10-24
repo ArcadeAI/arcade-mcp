@@ -1,18 +1,18 @@
 {
   "name": "UpdateMemberNotificationBlockedKeys",
-  "fully_qualified_name": "TrelloApi.UpdateMemberNotificationBlockedKeys@0.1.0",
-  "description": "Update blocked notification keys for a member's channel.\n\nUse this tool to update the list of blocked notification keys for a specific channel of a Trello member. This is useful to customize notification preferences on a per-channel basis.",
+  "fully_qualified_name": "TrelloApi.UpdateMemberNotificationBlockedKeys@2.0.0",
+  "description": "Update a member's blocked notification keys on Trello.\n\nThis tool updates the blocked notification keys for a specific member on a designated channel in Trello. Use this to manage which notifications a member will not receive.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "member_id_or_username",
+        "name": "member_identifier",
         "required": true,
-        "description": "The ID or username of the Trello member whose notification settings you want to update.",
+        "description": "The unique ID or username of the Trello member to update notification settings for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,47 +25,38 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "notification_channel",
-        "required": true,
-        "description": "Specifies the channel (e.g., 'email') on which to block notifications.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "email"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "Channel to block notifications on"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "channel"
-      },
-      {
         "name": "blocked_notification_keys",
         "required": true,
-        "description": "Comma-separated list of notification keys to block for the member's channel. Valid keys include 'notification_comment_card', 'notification_added_a_due_date', etc.",
+        "description": "JSON object containing 'channel' set to 'email' and 'blockedKeys' as a key or array of keys to block.",
         "value_schema": {
-          "val_type": "string",
+          "val_type": "json",
           "inner_val_type": null,
-          "enum": [
-            "notification_comment_card",
-            "notification_added_a_due_date",
-            "notification_changed_due_date",
-            "notification_card_due_soon",
-            "notification_removed_from_card",
-            "notification_added_attachment_to_card",
-            "notification_created_card",
-            "notification_moved_card",
-            "notification_archived_card",
-            "notification_unarchived_card"
-          ],
-          "properties": null,
+          "enum": null,
+          "properties": {
+            "channel": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "email"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "blockedKeys": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Blocked key or array of blocked keys."
+            }
+          },
           "inner_properties": null,
-          "description": "Singular key or comma-separated list of notification keys"
+          "description": ""
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "blockedKeys"
+        "http_endpoint_parameter_name": "requestBody"
       }
     ]
   },
@@ -100,22 +91,22 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
-    "url": "https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}/{blockedKeys}",
+    "url": "https://api.trello.com/1/members/{id}/notificationsChannelSettings",
     "http_method": "PUT",
     "headers": {},
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "member_id_or_username",
+        "tool_parameter_name": "member_identifier",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",
@@ -128,53 +119,44 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
-        "name": "channel",
-        "tool_parameter_name": "notification_channel",
-        "description": "Channel to block notifications on",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "email"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "Channel to block notifications on"
-        },
-        "accepted_as": "path",
-        "required": true,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "blockedKeys",
+        "name": "requestBody",
         "tool_parameter_name": "blocked_notification_keys",
-        "description": "Singular key or comma-separated list of notification keys",
+        "description": "",
         "value_schema": {
-          "val_type": "string",
+          "val_type": "json",
           "inner_val_type": null,
-          "enum": [
-            "notification_comment_card",
-            "notification_added_a_due_date",
-            "notification_changed_due_date",
-            "notification_card_due_soon",
-            "notification_removed_from_card",
-            "notification_added_attachment_to_card",
-            "notification_created_card",
-            "notification_moved_card",
-            "notification_archived_card",
-            "notification_unarchived_card"
-          ],
-          "properties": null,
+          "enum": null,
+          "properties": {
+            "channel": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "email"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "blockedKeys": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Blocked key or array of blocked keys."
+            }
+          },
           "inner_properties": null,
-          "description": "Singular key or comma-separated list of notification keys"
+          "description": ""
         },
-        "accepted_as": "path",
+        "accepted_as": "body",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -196,6 +178,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"channel\",\n          \"blockedKeys\"\n        ],\n        \"properties\": {\n          \"channel\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"email\"\n            ],\n            \"example\": \"email\"\n          },\n          \"blockedKeys\": {\n            \"description\": \"Blocked key or array of blocked keys.\",\n            \"oneOf\": [\n              {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"notification_comment_card\",\n                  \"notification_added_a_due_date\",\n                  \"notification_changed_due_date\",\n                  \"notification_card_due_soon\",\n                  \"notification_removed_from_card\",\n                  \"notification_added_attachment_to_card\",\n                  \"notification_created_card\",\n                  \"notification_moved_card\",\n                  \"notification_archived_card\",\n                  \"notification_unarchived_card\"\n                ],\n                \"example\": \"notification_comment_card\"\n              },\n              {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"notification_comment_card\",\n                    \"notification_added_a_due_date\",\n                    \"notification_changed_due_date\",\n                    \"notification_card_due_soon\",\n                    \"notification_removed_from_card\",\n                    \"notification_added_attachment_to_card\",\n                    \"notification_created_card\",\n                    \"notification_moved_card\",\n                    \"notification_archived_card\",\n                    \"notification_unarchived_card\"\n                  ],\n                  \"example\": \"notification_comment_card\"\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
   }
 }

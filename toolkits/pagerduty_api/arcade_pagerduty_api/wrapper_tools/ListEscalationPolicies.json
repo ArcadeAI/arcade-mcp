@@ -1,18 +1,18 @@
 {
   "name": "ListEscalationPolicies",
-  "fully_qualified_name": "PagerdutyApi.ListEscalationPolicies@0.1.0",
-  "description": "Retrieve all existing escalation policies for alerts.\n\nThis tool retrieves a list of all escalation policies, which define alert notifications for users over time. It requires scope authorization for access.",
+  "fully_qualified_name": "PagerdutyApi.ListEscalationPolicies@2.0.0",
+  "description": "Retrieve all current escalation policies.\n\nUse this tool to obtain a list of all existing escalation policies, which define alerting priorities for users. Requires appropriate OAuth scope for access.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_version_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specifies the API version to accept as a versioning header. Used for API response version control.",
+        "description": "Specifies the API version to be used in the request. Use the `Accept` header for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Indicate the media type for the response, typically 'application/json'.",
+        "description": "Specifies the media type of the resource. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "Specifies the number of escalation policy results returned per page. Used for pagination.",
+        "description": "Specifies the number of escalation policy results to display per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "The starting point for pagination in the search results. Specify an integer to skip past a number of elements.",
+        "description": "Offset to start pagination for search results.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "filter_by_name",
+        "name": "name_filter_query",
         "required": false,
-        "description": "Filters results to include only records with names matching the query.",
+        "description": "A string to filter results by matching escalation policy names.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
       {
         "name": "filter_by_user_ids",
         "required": false,
-        "description": "Array of user IDs to filter escalation policies where these users are targets.",
+        "description": "Filters the results to show only escalation policies where any specified user is a target. Provide an array of user IDs.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "user_ids[]"
       },
       {
-        "name": "filter_by_team_ids",
+        "name": "team_ids",
         "required": false,
-        "description": "An array of team IDs to filter results. Only returns policies for specified teams. Requires `teams` ability.",
+        "description": "A list of team IDs to filter escalation policies. Requires 'teams' ability.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -119,7 +119,7 @@
       {
         "name": "additional_models_to_include",
         "required": false,
-        "description": "Array specifying additional models ('services', 'teams', 'targets') to include in response.",
+        "description": "Array of models to include in the response. Options: 'services', 'teams', 'targets'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -136,9 +136,9 @@
         "http_endpoint_parameter_name": "include[]"
       },
       {
-        "name": "sort_results_by",
+        "name": "sort_by_field",
         "required": false,
-        "description": "Specify the field to sort the results on, such as 'name', 'name:asc', or 'name:desc'.",
+        "description": "Specify the sorting field for results: 'name', 'name:asc', or 'name:desc'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -155,9 +155,9 @@
         "http_endpoint_parameter_name": "sort_by"
       },
       {
-        "name": "include_total_in_response",
+        "name": "include_total_in_pagination",
         "required": false,
-        "description": "Set to true to include the total field in pagination responses, showing the total number of entries.",
+        "description": "Set to true to include the total count of records in the pagination response. False ensures faster response times by setting it to null.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -200,13 +200,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/escalation_policies",
@@ -251,7 +251,7 @@
       },
       {
         "name": "total",
-        "tool_parameter_name": "include_total_in_response",
+        "tool_parameter_name": "include_total_in_pagination",
         "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -264,12 +264,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "query",
-        "tool_parameter_name": "filter_by_name",
+        "tool_parameter_name": "name_filter_query",
         "description": "Filters the result, showing only the records whose name matches the query.",
         "value_schema": {
           "val_type": "string",
@@ -305,7 +305,7 @@
       },
       {
         "name": "team_ids[]",
-        "tool_parameter_name": "filter_by_team_ids",
+        "tool_parameter_name": "team_ids",
         "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the `teams` ability to use this parameter.",
         "value_schema": {
           "val_type": "array",
@@ -345,7 +345,7 @@
       },
       {
         "name": "sort_by",
-        "tool_parameter_name": "sort_results_by",
+        "tool_parameter_name": "sort_by_field",
         "description": "Used to specify the field you wish to sort the results on.",
         "value_schema": {
           "val_type": "string",
@@ -362,12 +362,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": "name",
         "documentation_urls": []
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -385,7 +385,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -414,6 +414,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

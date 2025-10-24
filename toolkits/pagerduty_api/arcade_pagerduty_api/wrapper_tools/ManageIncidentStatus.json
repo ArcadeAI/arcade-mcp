@@ -1,0 +1,597 @@
+{
+  "name": "ManageIncidentStatus",
+  "fully_qualified_name": "PagerdutyApi.ManageIncidentStatus@2.0.0",
+  "description": "Manage PagerDuty incident status and assignments.\n\nThis tool allows you to acknowledge, resolve, escalate, or reassign a PagerDuty incident. It should be used when you need to update the status or assignment of an existing incident. OAuth scope 'incidents.write' is required.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_id",
+        "required": true,
+        "description": "The unique identifier of the incident to be managed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_header_version",
+        "required": true,
+        "description": "Specifies the versioning for the API request as an Accept header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Set to 'application/json' for the request content type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "user_email_for_request",
+        "required": true,
+        "description": "Email address of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "From"
+      },
+      {
+        "name": "incident_update_parameters",
+        "required": false,
+        "description": "JSON containing details to update the incident, including status, priority, title, and assignments.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "incident": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident",
+                    "incident_reference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident type."
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "resolved",
+                    "acknowledged",
+                    "triggered"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The new status of the incident. If the incident is currently resolved, setting the status to \"triggered\" or \"acknowledged\" will reopen it. When reopening an incident to the \"triggered\" status, it will be assigned based on the assignees or escalation_policy fields in the request, otherwise it will be assigned to the current Escalation Policy. When reopening an incident to the \"acknowledged\" status, it will be assigned to the current user."
+                },
+                "priority": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The priority of the incident. Can be provided as a priority object or a string matching a priority name. If a string is provided, the highest priority with a matching name will be used."
+                },
+                "resolution": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The resolution for this incident. This field is used only when setting the incident status to resolved.\nThe value provided here is added to the incident\u2019s 'Resolve' log entry as a note and will not be displayed directly in the UI.\n"
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The new title of the incident."
+                },
+                "escalation_level": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Escalate the incident to this level in the escalation policy."
+                },
+                "assignments": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "assignee": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "description": "Assign the incident to these assignees."
+                },
+                "incident_type": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the Incident Type."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "escalation_policy": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "urgency": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "high",
+                    "low"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The urgency of the incident."
+                },
+                "conference_bridge": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conference_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The phone number of the conference call for the conference bridge. Phone numbers should be formatted like +1 415-555-1212,,,,1234#, where a comma (,) represents a one-second wait and pound (#) completes access code input."
+                    },
+                    "conference_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An URL for the conference bridge. This could be a link to a web conference or Slack channel."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "service": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the service."
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "service_reference"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of the reference."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Assign the incident to this service."
+                }
+              },
+              "inner_properties": null,
+              "description": "The parameters of the incident to update."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateIncident'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "incident_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "From",
+        "tool_parameter_name": "user_email_for_request",
+        "description": "The email address of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_update_parameters",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "incident": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident",
+                    "incident_reference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident type."
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "resolved",
+                    "acknowledged",
+                    "triggered"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The new status of the incident. If the incident is currently resolved, setting the status to \"triggered\" or \"acknowledged\" will reopen it. When reopening an incident to the \"triggered\" status, it will be assigned based on the assignees or escalation_policy fields in the request, otherwise it will be assigned to the current Escalation Policy. When reopening an incident to the \"acknowledged\" status, it will be assigned to the current user."
+                },
+                "priority": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The priority of the incident. Can be provided as a priority object or a string matching a priority name. If a string is provided, the highest priority with a matching name will be used."
+                },
+                "resolution": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The resolution for this incident. This field is used only when setting the incident status to resolved.\nThe value provided here is added to the incident\u2019s 'Resolve' log entry as a note and will not be displayed directly in the UI.\n"
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The new title of the incident."
+                },
+                "escalation_level": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Escalate the incident to this level in the escalation policy."
+                },
+                "assignments": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "assignee": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "description": "Assign the incident to these assignees."
+                },
+                "incident_type": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the Incident Type."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "escalation_policy": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "urgency": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "high",
+                    "low"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The urgency of the incident."
+                },
+                "conference_bridge": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conference_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The phone number of the conference call for the conference bridge. Phone numbers should be formatted like +1 415-555-1212,,,,1234#, where a comma (,) represents a one-second wait and pound (#) completes access code input."
+                    },
+                    "conference_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An URL for the conference bridge. This could be a link to a web conference or Slack channel."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "service": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the service."
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "service_reference"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of the reference."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Assign the incident to this service."
+                }
+              },
+              "inner_properties": null,
+              "description": "The parameters of the incident to update."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"incident\": {\n            \"type\": \"object\",\n            \"description\": \"The parameters of the incident to update.\",\n            \"properties\": {\n              \"type\": {\n                \"type\": \"string\",\n                \"description\": \"The incident type.\",\n                \"enum\": [\n                  \"incident\",\n                  \"incident_reference\"\n                ]\n              },\n              \"status\": {\n                \"type\": \"string\",\n                \"description\": \"The new status of the incident. If the incident is currently resolved, setting the status to \\\"triggered\\\" or \\\"acknowledged\\\" will reopen it. When reopening an incident to the \\\"triggered\\\" status, it will be assigned based on the assignees or escalation_policy fields in the request, otherwise it will be assigned to the current Escalation Policy. When reopening an incident to the \\\"acknowledged\\\" status, it will be assigned to the current user.\",\n                \"enum\": [\n                  \"resolved\",\n                  \"acknowledged\",\n                  \"triggered\"\n                ]\n              },\n              \"priority\": {\n                \"description\": \"The priority of the incident. Can be provided as a priority object or a string matching a priority name. If a string is provided, the highest priority with a matching name will be used.\",\n                \"oneOf\": [\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"id\": {\n                        \"type\": \"string\",\n                        \"description\": \"The ID of the priority.\"\n                      },\n                      \"name\": {\n                        \"type\": \"string\",\n                        \"description\": \"The user-provided short name of the priority.\"\n                      },\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"description\": \"The type of the reference.\",\n                        \"enum\": [\n                          \"priority\",\n                          \"priority_reference\"\n                        ]\n                      }\n                    },\n                    \"required\": [\n                      \"id\",\n                      \"type\"\n                    ]\n                  },\n                  {\n                    \"type\": \"string\",\n                    \"description\": \"A string matching the name of a priority. If provided, the highest priority with a matching name will be used.\"\n                  }\n                ]\n              },\n              \"resolution\": {\n                \"type\": \"string\",\n                \"description\": \"The resolution for this incident. This field is used only when setting the incident status to resolved.\\nThe value provided here is added to the incident\\u2019s 'Resolve' log entry as a note and will not be displayed directly in the UI.\\n\"\n              },\n              \"title\": {\n                \"type\": \"string\",\n                \"description\": \"The new title of the incident.\"\n              },\n              \"escalation_level\": {\n                \"type\": \"integer\",\n                \"description\": \"Escalate the incident to this level in the escalation policy.\"\n              },\n              \"assignments\": {\n                \"type\": \"array\",\n                \"description\": \"Assign the incident to these assignees.\",\n                \"items\": {\n                  \"properties\": {\n                    \"assignee\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"user_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  }\n                }\n              },\n              \"incident_type\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the Incident Type.\"\n                  }\n                }\n              },\n              \"escalation_policy\": {\n                \"allOf\": [\n                  {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true\n                          },\n                          \"summary\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                          },\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true,\n                            \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                          },\n                          \"self\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"the API show URL at which the object is accessible\"\n                          },\n                          \"html_url\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                          }\n                        }\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"type\",\n                          \"id\"\n                        ]\n                      }\n                    ]\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"escalation_policy_reference\"\n                        ]\n                      }\n                    }\n                  }\n                ]\n              },\n              \"urgency\": {\n                \"type\": \"string\",\n                \"description\": \"The urgency of the incident.\",\n                \"enum\": [\n                  \"high\",\n                  \"low\"\n                ]\n              },\n              \"conference_bridge\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"conference_number\": {\n                    \"type\": \"string\",\n                    \"description\": \"The phone number of the conference call for the conference bridge. Phone numbers should be formatted like +1 415-555-1212,,,,1234#, where a comma (,) represents a one-second wait and pound (#) completes access code input.\"\n                  },\n                  \"conference_url\": {\n                    \"type\": \"string\",\n                    \"format\": \"url\",\n                    \"description\": \"An URL for the conference bridge. This could be a link to a web conference or Slack channel.\"\n                  }\n                }\n              },\n              \"service\": {\n                \"type\": \"object\",\n                \"description\": \"Assign the incident to this service.\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The ID of the service.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"The type of the reference.\",\n                    \"enum\": [\n                      \"service_reference\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"id\",\n                  \"type\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ]\n          }\n        },\n        \"required\": [\n          \"incident\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"incident\": {\n              \"type\": \"incident_reference\",\n              \"status\": \"acknowledged\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

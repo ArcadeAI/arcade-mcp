@@ -1,18 +1,18 @@
 {
   "name": "DeleteAirtableView",
-  "fully_qualified_name": "AirtableApi.DeleteAirtableView@0.1.0",
-  "description": "Deletes a specified view in Airtable.\n\nUse this tool to delete a specific view from an Airtable base. Ideal when views are no longer needed and need to be removed from the database.",
+  "fully_qualified_name": "AirtableApi.DeleteAirtableView@2.0.0",
+  "description": "Deletes a specific view in Airtable by ID.\n\nUse this tool to delete a specific view from an Airtable base. Provide the base ID and view ID to perform the deletion.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "airtable_base_id",
         "required": true,
-        "description": "The unique identifier for the Airtable base from which the view is to be deleted. This is required to locate the specific base within Airtable.",
+        "description": "The ID of the Airtable base from which the view will be deleted. Must be a valid string identifier.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "baseId"
       },
       {
-        "name": "view_id_for_deletion",
+        "name": "view_identifier",
         "required": true,
-        "description": "The ID of the view to be deleted from Airtable. Required for specifying which view to remove.",
+        "description": "The unique identifier of the Airtable view to delete. Required to specify which view to remove.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/bases/{baseId}/views/{viewId}",
@@ -107,7 +107,7 @@
       },
       {
         "name": "viewId",
-        "tool_parameter_name": "view_id_for_deletion",
+        "tool_parameter_name": "view_identifier",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

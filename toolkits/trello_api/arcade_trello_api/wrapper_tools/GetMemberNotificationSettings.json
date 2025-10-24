@@ -1,16 +1,16 @@
 {
   "name": "GetMemberNotificationSettings",
-  "fully_qualified_name": "TrelloApi.GetMemberNotificationSettings@0.1.0",
-  "description": "Retrieve a member's notification channel settings on Trello.\n\nThis tool is used to get the notification settings for a specific member in Trello. Useful for understanding how and through which channels a member receives notifications.",
+  "fully_qualified_name": "TrelloApi.GetMemberNotificationSettings@2.0.0",
+  "description": "Retrieve a Trello member's notification settings.\n\nUse this tool to obtain the notification channel settings for a specific Trello member identified by their ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "member_id_or_username",
+        "name": "member_identifier",
         "required": true,
         "description": "The ID or username of the Trello member to retrieve notification settings for.",
         "value_schema": {
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/notificationsChannelSettings",
@@ -72,7 +72,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "member_id_or_username",
+        "tool_parameter_name": "member_identifier",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

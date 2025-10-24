@@ -1,0 +1,175 @@
+{
+  "name": "RedeemLoyaltyReward",
+  "fully_qualified_name": "SquareupApi.RedeemLoyaltyReward@2.0.0",
+  "description": "Redeem a loyalty reward for a customer purchase.\n\nUse this tool to mark a loyalty reward as redeemed after a customer has completed a purchase. Suitable for use when processing orders outside the Orders API. Once redeemed, rewards cannot be reversed.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "loyalty_reward_id",
+        "required": true,
+        "description": "The unique ID of the loyalty reward to redeem. Required for specifying which reward to process.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty reward](entity:LoyaltyReward) to redeem."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward_id"
+      },
+      {
+        "name": "idempotency_key",
+        "required": true,
+        "description": "A unique string to identify this `RedeemLoyaltyReward` request, ensuring uniqueness for each request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this `RedeemLoyaltyReward` request. \nKeys can be any valid string, but must be unique for every request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "location_id",
+        "required": true,
+        "description": "The ID of the location where the loyalty reward is redeemed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [location](entity:Location) where the reward is redeemed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'RedeemLoyaltyReward'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/rewards/{reward_id}/redeem",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "reward_id",
+        "tool_parameter_name": "loyalty_reward_id",
+        "description": "The ID of the [loyalty reward](entity:LoyaltyReward) to redeem.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty reward](entity:LoyaltyReward) to redeem."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "idempotency_key",
+        "description": "A unique string that identifies this `RedeemLoyaltyReward` request. \nKeys can be any valid string, but must be unique for every request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this `RedeemLoyaltyReward` request. \nKeys can be any valid string, but must be unique for every request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_id",
+        "tool_parameter_name": "location_id",
+        "description": "The ID of the [location](entity:Location) where the reward is redeemed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [location](entity:Location) where the reward is redeemed."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to redeem a loyalty reward.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"x-params-example\": \"?reward_id=9f18ac21-233a-31c3-be77-b45840f5a810\",\n        \"required\": [\n          \"idempotency_key\",\n          \"location_id\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this `RedeemLoyaltyReward` request. \\nKeys can be any valid string, but must be unique for every request.\",\n            \"minLength\": 1,\n            \"maxLength\": 128\n          },\n          \"location_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the [location](entity:Location) where the reward is redeemed.\",\n            \"minLength\": 1\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"98adc7f7-6963-473b-b29c-f3c9cdd7d994\",\n          \"location_id\": \"P034NEENMD09F\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

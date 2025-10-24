@@ -1,18 +1,18 @@
 {
   "name": "DeactivateEnterpriseMember",
-  "fully_qualified_name": "TrelloApi.DeactivateEnterpriseMember@0.1.0",
-  "description": "Deactivate a member from an enterprise on Trello.\n\nDeactivate an enterprise member on Trello, unless the enterprise uses AdminHub for user management.",
+  "fully_qualified_name": "TrelloApi.DeactivateEnterpriseMember@2.0.0",
+  "description": "Deactivate a member in a Trello enterprise.\n\nDeactivate a member of a Trello enterprise unless the enterprise uses AdminHub for user management.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "The ID of the enterprise from which to deactivate a member.",
+        "description": "The ID of the enterprise from which the member should be deactivated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_id_to_deactivate",
         "required": true,
-        "description": "ID of the member to deactivate in the enterprise.",
+        "description": "The ID of the member to deactivate in a Trello enterprise.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "idMember"
       },
       {
-        "name": "user_deactivation_status",
+        "name": "deactivate_member",
         "required": true,
-        "description": "Set to true to deactivate the user; false keeps them active.",
+        "description": "Set to True to deactivate the member, False to keep active.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "value"
       },
       {
-        "name": "member_field_values",
+        "name": "nested_member_fields",
         "required": false,
-        "description": "Comma-separated list of valid member field values, currently only 'id' is supported.",
+        "description": "Comma-separated list of valid values for the nested member field resource.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "fields"
       },
       {
-        "name": "organization_field",
+        "name": "organization_fields",
         "required": false,
-        "description": "Specify the organization attribute to retrieve, such as 'id' or 'name'.",
+        "description": "Comma-separated list of fields related to the organization, such as 'id' or 'name'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -90,9 +90,9 @@
         "http_endpoint_parameter_name": "organization_fields"
       },
       {
-        "name": "board_field_values",
+        "name": "board_fields_to_include",
         "required": false,
-        "description": "A comma-separated list of fields related to the board resource, such as 'id', 'name', or 'url'.",
+        "description": "Specify which board fields should be included. Use values like 'id', 'name', 'desc', etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -154,13 +154,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/enterprises/{id}/members/{idMember}/deactivated",
@@ -169,7 +169,7 @@
     "parameters": [
       {
         "name": "value",
-        "tool_parameter_name": "user_deactivation_status",
+        "tool_parameter_name": "deactivate_member",
         "description": "Determines whether the user is deactivated or not.",
         "value_schema": {
           "val_type": "boolean",
@@ -182,11 +182,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "fields",
-        "tool_parameter_name": "member_field_values",
+        "tool_parameter_name": "nested_member_fields",
         "description": "A comma separated list of any valid values that the [nested member field resource]() accepts.",
         "value_schema": {
           "val_type": "string",
@@ -201,11 +202,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "organization_fields",
-        "tool_parameter_name": "organization_field",
+        "tool_parameter_name": "organization_fields",
         "description": "Any valid value that the [nested organization resource](/cloud/trello/guides/rest-api/nested-resources/) accepts.",
         "value_schema": {
           "val_type": "string",
@@ -221,11 +223,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "board_fields",
-        "tool_parameter_name": "board_field_values",
+        "tool_parameter_name": "board_fields_to_include",
         "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts.",
         "value_schema": {
           "val_type": "string",
@@ -255,6 +258,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -272,6 +276,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -289,6 +294,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -310,6 +316,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

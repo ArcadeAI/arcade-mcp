@@ -1,18 +1,18 @@
 {
   "name": "ListEventTypes",
-  "fully_qualified_name": "SquareupApi.ListEventTypes@0.1.0",
-  "description": "Retrieve all event types available for webhooks and querying.\n\nUse this tool to list all the event types you can subscribe to as webhooks or query via the Events API. It helps in understanding which events are trackable and can be used for notifications or further analysis.",
+  "fully_qualified_name": "SquareupApi.ListEventTypes@2.0.0",
+  "description": "Retrieve available event types for webhooks and API queries.\n\nFetches all event types that can be subscribed to as webhooks or queried via the Events API using Squareup.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "api_version",
         "required": false,
-        "description": "Specify the API version to list event types. This overrides the default application version.",
+        "description": "Specify the API version to list event types, overriding the application's default version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/events/types",
@@ -83,6 +83,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,216 @@
+{
+  "name": "BatchManageUserMembership",
+  "fully_qualified_name": "AirtableApi.BatchManageUserMembership@2.0.0",
+  "description": "Batch manage user membership in enterprise accounts.\n\nThis tool allows changing a user's membership status between unmanaged and organization member in an enterprise account. It handles membership updates in batches and returns outcomes for each user processed, including any errors encountered. Use when managing user roles within organizations.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_account_id",
+        "required": true,
+        "description": "The unique identifier of the enterprise account in which user membership will be managed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterpriseAccountId"
+      },
+      {
+        "name": "user_membership_updates",
+        "required": false,
+        "description": "A JSON object containing user details for membership status updates. Each entry should include either the user's 'id' or 'email' and the desired 'state' ('managed' or 'unmanaged').",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "users": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A user ID"
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "managed",
+                    "unmanaged"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "[managed](/api/org-management-glossary#managed-user) | [unmanaged](/api/org-management-glossary#unmanaged-user)"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'manage-user-membership'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.user:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/claim",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterpriseAccountId",
+        "tool_parameter_name": "enterprise_account_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "user_membership_updates",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "users": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A user ID"
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "managed",
+                    "unmanaged"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "[managed](/api/org-management-glossary#managed-user) | [unmanaged](/api/org-management-glossary#unmanaged-user)"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success response\": {\n          \"description\": \"Success Response\",\n          \"summary\": \"Success response\",\n          \"value\": {\n            \"users\": [\n              {\n                \"id\": \"usrL2PNC5o3H4lBEi\",\n                \"state\": \"managed\"\n              },\n              {\n                \"email\": \"foo@bar.com\",\n                \"state\": \"unmanaged\"\n              },\n              {\n                \"email\": \"bam@bam.com\",\n                \"state\": \"managed\"\n              },\n              {\n                \"id\": \"usrsOEchC9xuwRgKk\",\n                \"state\": \"unmanaged\"\n              },\n              {\n                \"id\": \"usrL2PNC5o3H4lBEi\",\n                \"state\": \"managed\"\n              },\n              {\n                \"email\": \"user@unverifiedDomain.com\",\n                \"state\": \"managed\"\n              },\n              {\n                \"email\": \"user@externalDomain.com\",\n                \"state\": \"managed\"\n              },\n              {\n                \"id\": \"usrGcrteE5fUMqq0R\",\n                \"state\": \"managed\"\n              },\n              {\n                \"id\": \"usrqccqnMB2eHylqB\",\n                \"state\": \"managed\"\n              },\n              {\n                \"id\": \"usrogvSbotRtzdtZW\",\n                \"state\": \"unmanaged\"\n              },\n              {\n                \"email\": \"foo@bam.com\",\n                \"state\": \"unmanaged\"\n              },\n              {\n                \"id\": \"usrcQYqV90vkqUDXv\",\n                \"state\": \"unmanaged\"\n              }\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"users\": {\n            \"items\": {\n              \"properties\": {\n                \"email\": {\n                  \"type\": \"string\"\n                },\n                \"id\": {\n                  \"description\": \"A user ID\",\n                  \"type\": \"string\"\n                },\n                \"state\": {\n                  \"description\": \"[managed](/api/org-management-glossary#managed-user) | [unmanaged](/api/org-management-glossary#unmanaged-user)\",\n                  \"enum\": [\n                    \"managed\",\n                    \"unmanaged\"\n                  ],\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"state\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"users\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "ListOauthClients",
-  "fully_qualified_name": "PagerdutyApi.ListOauthClients@0.1.0",
-  "description": "Retrieve all OAuth clients for webhook subscriptions.\n\nCall this tool to list all OAuth clients associated with webhook subscriptions in a Pagerduty account. This requires admin or owner role permissions and can list up to 10 clients per account.",
+  "fully_qualified_name": "PagerdutyApi.ListOauthClients@2.0.0",
+  "description": "Retrieve all OAuth clients for webhook subscriptions.\n\nUse this tool to list all OAuth clients associated with webhook subscriptions. Requires admin or owner role permissions and is limited to a maximum of 10 clients per account.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_header_version",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specify the version for the `Accept` header in API requests.",
+        "description": "Specifies the API version using the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Specify the content type for the request. Only 'application/json' is supported.",
+        "description": "Specify the content type for the request. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/webhook_subscriptions/oauth_clients",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

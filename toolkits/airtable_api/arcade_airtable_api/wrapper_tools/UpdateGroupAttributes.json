@@ -1,0 +1,210 @@
+{
+  "name": "UpdateGroupAttributes",
+  "fully_qualified_name": "AirtableApi.UpdateGroupAttributes@2.0.0",
+  "description": "Replace a group's attributes with new values.\n\nUse this tool to update all attributes of a specified group with new values in Airtable. Call this when a complete group update is necessary.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_id",
+        "required": true,
+        "description": "The unique identifier for the group whose attributes need to be replaced.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "groupId"
+      },
+      {
+        "name": "new_group_attributes",
+        "required": false,
+        "description": "JSON object containing new group attributes such as displayName, members, and schemas. Use this to replace all existing group attributes.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Becomes the displayName of the group in Airtable. It must not be in use already."
+            },
+            "members": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Represents the user ID of a group member"
+                }
+              },
+              "description": "List of members of the group."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's core group schema URI."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-scim-group'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.scim.usersAndGroups:manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/scim/v2/Groups/{groupId}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "groupId",
+        "tool_parameter_name": "group_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_group_attributes",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Becomes the displayName of the group in Airtable. It must not be in use already."
+            },
+            "members": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Represents the user ID of a group member"
+                }
+              },
+              "description": "List of members of the group."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's core group schema URI."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Put user group example\": {\n          \"description\": \"Newly put group\",\n          \"summary\": \"Put user group example\",\n          \"value\": {\n            \"displayName\": \"Updated Example Group\",\n            \"members\": [\n              {\n                \"value\": \"usrI7HMkO7sAefUHk\"\n              }\n            ],\n            \"schemas\": [\n              \"urn:ietf:params:scim:schemas:core:2.0:Group\"\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"displayName\": {\n            \"description\": \"Becomes the displayName of the group in Airtable. It must not be in use already.\",\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"members\": {\n            \"description\": \"List of members of the group.\",\n            \"items\": {\n              \"properties\": {\n                \"value\": {\n                  \"description\": \"Represents the user ID of a group member\",\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"value\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"schemas\": {\n            \"description\": \"A list of schemas, including at least SCIM's core group schema URI.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"schemas\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

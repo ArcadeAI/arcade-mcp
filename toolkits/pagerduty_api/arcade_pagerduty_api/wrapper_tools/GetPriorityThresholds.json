@@ -1,18 +1,18 @@
 {
   "name": "GetPriorityThresholds",
-  "fully_qualified_name": "PagerdutyApi.GetPriorityThresholds@0.1.0",
-  "description": "Retrieve priority threshold information for an account.\n\nFetches the global priority threshold to determine which incidents impact business services. Useful for understanding incident impacts based on set priorities.",
+  "fully_qualified_name": "PagerdutyApi.GetPriorityThresholds@2.0.0",
+  "description": "Retrieve priority threshold details for an account.\n\nThis tool retrieves the priority threshold information set for an account, including the global threshold impacting business services. It helps determine which incidents are considered impactful based on their priority.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "versioning_header",
         "required": true,
-        "description": "Specifies the API version in the 'Accept' header format.",
+        "description": "The `Accept` header used for versioning the API call. Specify the version of the API you need.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/business_services/priority_thresholds",
@@ -97,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

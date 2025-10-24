@@ -1,18 +1,18 @@
 {
   "name": "ListWorkspaceMemberships",
-  "fully_qualified_name": "TrelloApi.ListWorkspaceMemberships@0.1.0",
-  "description": "Retrieve memberships of a specific Workspace on Trello.\n\nUse this tool to fetch a list of all memberships within a specified Trello Workspace. This can help identify members and their roles in the Workspace.",
+  "fully_qualified_name": "TrelloApi.ListWorkspaceMemberships@2.0.0",
+  "description": "Retrieve memberships of a Trello Workspace.\n\nUse this tool to obtain a list of all memberships in a specified Trello Workspace. Useful for understanding who belongs to a Workspace and their roles.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id_or_name",
         "required": true,
-        "description": "The ID or name of the Trello Workspace to list memberships for.",
+        "description": "The ID or name of the Trello Workspace you want to retrieve memberships for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "membership_filter",
         "required": false,
-        "description": "Filter memberships by status: 'all', 'active', 'admin', 'deactivated', 'me', 'normal'. Use a comma-separated list for multiple.",
+        "description": "Filter memberships: use `all` or a comma-separated list of `active`, `admin`, `deactivated`, `me`, `normal`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -49,7 +49,7 @@
       {
         "name": "include_member_objects",
         "required": false,
-        "description": "Set to true to include Member objects with the Memberships. Useful for detailed member info.",
+        "description": "Whether to include Member objects with the Workspace memberships. `True` to include, `False` to exclude.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -94,13 +94,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/organizations/{id}/memberships",
@@ -129,6 +129,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -146,6 +147,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -163,6 +165,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -184,6 +187,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

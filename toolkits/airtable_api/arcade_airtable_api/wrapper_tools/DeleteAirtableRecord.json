@@ -1,18 +1,18 @@
 {
   "name": "DeleteAirtableRecord",
-  "fully_qualified_name": "AirtableApi.DeleteAirtableRecord@0.1.0",
-  "description": "Delete a specific record from an Airtable base and table.\n\nThis tool deletes a single record from a specified Airtable base and table. Use it when you need to remove entry data permanently.",
+  "fully_qualified_name": "AirtableApi.DeleteAirtableRecord@2.0.0",
+  "description": "Deletes a single record from an Airtable base and table.\n\nUse this tool to delete a specific record from a specified table within an Airtable base by providing the base ID, table ID or name, and record ID.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "airtable_base_id",
         "required": true,
-        "description": "The unique identifier for the Airtable base from which the record will be deleted.",
+        "description": "The unique identifier for the Airtable base from which the record will be deleted. This ID is required to specify the correct base.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "baseId"
       },
       {
-        "name": "table_id_or_name",
+        "name": "table_identifier",
         "required": true,
-        "description": "The ID or name of the table from which to delete the record.",
+        "description": "The ID or name of the Airtable table from which the record should be deleted. This specifies which table within the base to target.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "tableIdOrName"
       },
       {
-        "name": "record_id_to_delete",
+        "name": "record_id",
         "required": true,
-        "description": "The ID of the record to be deleted from the specified table in Airtable.",
+        "description": "The unique identifier of the record to be deleted from the specified table in Airtable.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,13 +89,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}",
@@ -122,7 +122,7 @@
       },
       {
         "name": "tableIdOrName",
-        "tool_parameter_name": "table_id_or_name",
+        "tool_parameter_name": "table_identifier",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -140,7 +140,7 @@
       },
       {
         "name": "recordId",
-        "tool_parameter_name": "record_id_to_delete",
+        "tool_parameter_name": "record_id",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

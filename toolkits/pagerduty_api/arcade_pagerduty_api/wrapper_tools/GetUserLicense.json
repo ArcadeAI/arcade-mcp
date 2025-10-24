@@ -1,18 +1,18 @@
 {
   "name": "GetUserLicense",
-  "fully_qualified_name": "PagerdutyApi.GetUserLicense@0.1.0",
-  "description": "Retrieve the license allocated to a Pagerduty user.\n\nUse this tool to get detailed information about the license assigned to a specific user on Pagerduty. Useful for managing user permissions and account settings.",
+  "fully_qualified_name": "PagerdutyApi.GetUserLicense@2.0.0",
+  "description": "Retrieve the license allocated to a user.\n\nThis tool fetches the license information assigned to a specific user in the PagerDuty system. It should be called when there is a need to know the license status or allocation for a particular user. Requires appropriate OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "user_id",
         "required": true,
-        "description": "The unique identifier for the user whose license information is being retrieved.",
+        "description": "The unique identifier of the user to fetch license information for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "api_version_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Defines the API version using the `Accept` header for versioning.",
+        "description": "Specify the version of the API to be used via the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "This sets the Content-Type header for the API call. Use `application/json`.",
+        "description": "Specifies the media type as 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/{id}/license",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "api_version_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

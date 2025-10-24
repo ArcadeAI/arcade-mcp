@@ -1,18 +1,18 @@
 {
   "name": "RemoveProjectMember",
-  "fully_qualified_name": "MiroApi.RemoveProjectMember@0.1.0",
-  "description": "Remove a member from a Miro project.\n\nThis tool removes a specified member from a project within the Miro platform. Note that the member will still remain part of the team even after being removed from the project. This action requires enterprise-level access and can only be performed by a Company Admin.",
+  "fully_qualified_name": "MiroApi.RemoveProjectMember@2.0.0",
+  "description": "Remove a member from a Miro project.\n\nThis tool removes a specified member from a project within Miro. The user remains part of the team despite being removed from the project. This action is exclusive to Enterprise plan users with Company Admin roles.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id",
         "required": true,
-        "description": "The ID of the organization associated with the project.",
+        "description": "The ID of the organization to which the project belongs.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "team_id",
         "required": true,
-        "description": "The unique identifier for the team associated with the project from which a member is being removed.",
+        "description": "The ID of the team to which the project belongs, required for specifying the project context.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "project_identifier",
         "required": true,
-        "description": "The unique identifier of the project from which a member will be removed.",
+        "description": "The unique identifier for the project from which to remove a member. This ID is required to specify the project accurately.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "member_id",
         "required": true,
-        "description": "The ID of the member to remove from the Miro project. This ID is necessary to specify which member will be removed.",
+        "description": "The ID of the member to be removed from the project.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,13 +100,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/projects/{project_id}/members/{member_id}",
@@ -128,6 +128,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -145,6 +146,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -162,6 +164,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -179,6 +182,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -192,6 +196,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }
