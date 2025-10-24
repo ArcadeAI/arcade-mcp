@@ -1,0 +1,137 @@
+{
+  "name": "DeleteGroupRule",
+  "fully_qualified_name": "OktaApi.DeleteGroupRule@0.1.0",
+  "description": "Deletes a specific group rule by its ID.\n\nUse this tool to delete a group rule from the Okta system by providing the specific group rule ID when the rule is no longer needed.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_rule_id",
+        "required": true,
+        "description": "The unique ID of the group rule to be deleted. Required for identifying which group rule to remove.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the group rule"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "groupRuleId"
+      },
+      {
+        "name": "remove_users",
+        "required": false,
+        "description": "Set to true to remove users from groups assigned by this rule.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If set to `true`, removes users from groups assigned by this rule"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "removeUsers"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteGroupRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.groups.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/groups/rules/{groupRuleId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "removeUsers",
+        "tool_parameter_name": "remove_users",
+        "description": "If set to `true`, removes users from groups assigned by this rule",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If set to `true`, removes users from groups assigned by this rule"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "groupRuleId",
+        "tool_parameter_name": "group_rule_id",
+        "description": "The `id` of the group rule",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the group rule"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

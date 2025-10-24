@@ -1,0 +1,137 @@
+{
+  "name": "DeleteOauth2Scope",
+  "fully_qualified_name": "OktaApi.DeleteOauth2Scope@0.1.0",
+  "description": "Deletes a custom OAuth2 token scope by its ID.\n\nCall this tool to remove a specific custom token scope from an authorization server using its ID. Useful for managing and updating authentication configurations.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "authorization_server_id",
+        "required": true,
+        "description": "The unique ID of the authorization server from which the custom token scope is to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "authServerId"
+      },
+      {
+        "name": "scope_id",
+        "required": true,
+        "description": "The ID of the custom token scope to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of Scope"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scopeId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteOAuth2Scope'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.authorizationServers.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/authorizationServers/{authServerId}/scopes/{scopeId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "authServerId",
+        "tool_parameter_name": "authorization_server_id",
+        "description": "`id` of the Authorization Server",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "scopeId",
+        "tool_parameter_name": "scope_id",
+        "description": "`id` of Scope",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of Scope"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

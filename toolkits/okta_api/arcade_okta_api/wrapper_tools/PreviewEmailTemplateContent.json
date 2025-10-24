@@ -1,0 +1,169 @@
+{
+  "name": "PreviewEmailTemplateContent",
+  "fully_qualified_name": "OktaApi.PreviewEmailTemplateContent@0.1.0",
+  "description": "Retrieve a preview of an email template's default content.\n\nThis tool fetches a preview of an email template's default content with populated variable references using the current user's context. It considers the user's language if custom languages for Okta Email Templates are enabled.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "brand_id",
+        "required": true,
+        "description": "The ID of the brand for which the email template preview is to be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the brand"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "brandId"
+      },
+      {
+        "name": "email_template_name",
+        "required": true,
+        "description": "The name of the email template to preview. This specifies which template's content will be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the email template"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "templateName"
+      },
+      {
+        "name": "email_language",
+        "required": false,
+        "description": "The language for the email template. Defaults to the current user's language if unspecified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The language to use for the email. Defaults to the current user's language if unspecified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "language"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getEmailDefaultPreview'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.templates.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/brands/{brandId}/templates/email/{templateName}/default-content/preview",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "language",
+        "tool_parameter_name": "email_language",
+        "description": "The language to use for the email. Defaults to the current user's language if unspecified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The language to use for the email. Defaults to the current user's language if unspecified."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "brandId",
+        "tool_parameter_name": "brand_id",
+        "description": "The ID of the brand",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the brand"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "templateName",
+        "tool_parameter_name": "email_template_name",
+        "description": "The name of the email template",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the email template"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

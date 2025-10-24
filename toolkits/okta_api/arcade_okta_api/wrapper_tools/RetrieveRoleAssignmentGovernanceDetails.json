@@ -1,0 +1,169 @@
+{
+  "name": "RetrieveRoleAssignmentGovernanceDetails",
+  "fully_qualified_name": "OktaApi.RetrieveRoleAssignmentGovernanceDetails@0.1.0",
+  "description": "Retrieve governance details for a user's role assignment.\n\nThis tool retrieves governance source information for a specific role assigned to a user. It should be called when you need detailed governance data about a user's role assignment identified by specific role and grant IDs.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "The unique identifier for an existing Okta user. This ID is required to retrieve governance details related to their role assignments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "role_assignment_id",
+        "required": true,
+        "description": "The ID of the role assignment linked to the user. Required for retrieving governance details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the role assignment"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "roleAssignmentId"
+      },
+      {
+        "name": "grant_id",
+        "required": true,
+        "description": "The ID for the specific grant related to the user's role assignment. This is used to retrieve governance details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Grant ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "grantId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getRoleAssignmentGovernanceGrant'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.roles.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users/{userId}/roles/{roleAssignmentId}/governance/{grantId}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "userId",
+        "tool_parameter_name": "user_id",
+        "description": "ID of an existing Okta user",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "roleAssignmentId",
+        "tool_parameter_name": "role_assignment_id",
+        "description": "The `id` of the role assignment",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the role assignment"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "grantId",
+        "tool_parameter_name": "grant_id",
+        "description": "Grant ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Grant ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

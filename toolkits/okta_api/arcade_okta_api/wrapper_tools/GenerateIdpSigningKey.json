@@ -1,0 +1,137 @@
+{
+  "name": "GenerateIdpSigningKey",
+  "fully_qualified_name": "OktaApi.GenerateIdpSigningKey@0.1.0",
+  "description": "Generate a new X.509 certificate for IdP signing.\n\nThis tool generates a new X.509 certificate for an identity provider (IdP) signing key, used for signing assertions sent to the IdP. To utilize the new key, update your IdP using the returned key's `kid` in the signing credential.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "idp_key_credential_expiry_years",
+        "required": true,
+        "description": "Enter the number of years the IdP certificate should remain valid.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "expiry of the IdP key credential"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "validityYears"
+      },
+      {
+        "name": "identity_provider_id",
+        "required": true,
+        "description": "The unique identifier for the identity provider (IdP).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of IdP"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idpId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'generateIdentityProviderSigningKey'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.idps.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/idps/{idpId}/credentials/keys/generate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "validityYears",
+        "tool_parameter_name": "idp_key_credential_expiry_years",
+        "description": "expiry of the IdP key credential",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "expiry of the IdP key credential"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idpId",
+        "tool_parameter_name": "identity_provider_id",
+        "description": "`id` of IdP",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of IdP"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "name": "DeactivateIdentityProvider",
+  "fully_qualified_name": "OktaApi.DeactivateIdentityProvider@0.1.0",
+  "description": "Deactivate an active identity provider (IdP).\n\nUse this tool to deactivate an active identity provider when it's no longer needed or needs to be temporarily disabled.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "identity_provider_id",
+        "required": true,
+        "description": "The unique identifier for the identity provider you wish to deactivate.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of IdP"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idpId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deactivateIdentityProvider'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.idps.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/idps/{idpId}/lifecycle/deactivate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "idpId",
+        "tool_parameter_name": "identity_provider_id",
+        "description": "`id` of IdP",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of IdP"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

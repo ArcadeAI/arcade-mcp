@@ -1,0 +1,105 @@
+{
+  "name": "VerifyEventHook",
+  "fully_qualified_name": "OktaApi.VerifyEventHook@0.1.0",
+  "description": "Verify the status of an Okta event hook.\n\nThis tool verifies if an Okta event hook is correctly set up by matching the `eventHookId`. It ensures the event hook can receive events by confirming its status as either `ACTIVE` or `VERIFIED`. Call this tool to check the readiness of an event hook in Okta.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_hook_id",
+        "required": true,
+        "description": "The unique identifier for the Event Hook to verify its setup and status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Event Hook"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "eventHookId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'verifyEventHook'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.eventHooks.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/eventHooks/{eventHookId}/lifecycle/verify",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "eventHookId",
+        "tool_parameter_name": "event_hook_id",
+        "description": "`id` of the Event Hook",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Event Hook"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

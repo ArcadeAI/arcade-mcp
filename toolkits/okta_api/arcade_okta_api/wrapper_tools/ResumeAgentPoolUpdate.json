@@ -1,0 +1,137 @@
+{
+  "name": "ResumeAgentPoolUpdate",
+  "fully_qualified_name": "OktaApi.ResumeAgentPoolUpdate@0.1.0",
+  "description": "Resume a running or queued agent pool update.\n\nUse this tool to resume an update for a specific agent pool that is either running or queued. This is useful when updates need to be restarted or continued after a pause.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "agent_pool_id",
+        "required": true,
+        "description": "The ID of the agent pool to resume update for. Required to specify which pool's update is being resumed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the agent pool for which the settings apply to"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "poolId"
+      },
+      {
+        "name": "update_id",
+        "required": true,
+        "description": "The unique ID of the update to be resumed for the specified agent pool.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updateId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'resumeAgentPoolsUpdate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.agentPools.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/agentPools/{poolId}/updates/{updateId}/resume",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "poolId",
+        "tool_parameter_name": "agent_pool_id",
+        "description": "ID of the agent pool for which the settings apply to",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the agent pool for which the settings apply to"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "updateId",
+        "tool_parameter_name": "update_id",
+        "description": "ID of the update",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
