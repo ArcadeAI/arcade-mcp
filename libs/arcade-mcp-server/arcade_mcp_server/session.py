@@ -13,6 +13,8 @@ import uuid
 from enum import Enum
 from typing import Any
 
+import anyio
+
 from arcade_mcp_server.context import Context
 from arcade_mcp_server.exceptions import RequestError, SessionError
 from arcade_mcp_server.types import (
@@ -138,7 +140,6 @@ class RequestManager:
 
         async with self._lock:
             future = self._pending_requests.get(str(request_id))
-
         if future and not future.done():
             if "error" in message:
                 logger.debug(f"Response id={request_id} contains error; propagating")
@@ -335,25 +336,28 @@ class ServerSession:
         """
         Run the session message loop.
 
-        Reads messages from the stream and processes them.
+        Reads messages from the stream and processes them concurrently
+        to allow server-initiated requests to be handled while tools execute.
         """
         if not self.read_stream:
             raise SessionError("No read stream available")
 
-        try:
-            async for message in self.read_stream:
-                if message:
-                    await self._process_message(message)
-        except asyncio.CancelledError:
-            pass
-        except Exception as e:
-            await self.server.logger.exception("Session error")
-            raise SessionError(f"Session error: {e}") from e
-        finally:
-            # Cleanup
-            if self._request_manager:
-                # Cancel any pending requests
-                await self._cleanup_pending_requests()
+        async with anyio.create_task_group() as tg:
+            try:
+                async for message in self.read_stream:
+                    if message:
+                        # Process messages concurrently so the loop can continue reading
+                        tg.start_soon(self._process_message, message)
+            except asyncio.CancelledError:
+                pass
+            except Exception as e:
+                await self.server.logger.exception("Session error")
+                raise SessionError(f"Session error: {e}") from e
+            finally:
+                # Cleanup
+                if self._request_manager:
+                    # Cancel any pending requests
+                    await self._cleanup_pending_requests()
 
     async def _process_message(self, message: str) -> None:
         """Process a single message."""
