@@ -805,18 +805,18 @@ def deploy_server_logic(
         deployment_toolkits = DeploymentToolkits(bundles=[toolkit_bundle])
 
         if server_already_exists(engine_url, config.api.key, server_name):
-            create_request = UpdateDeploymentRequest(
+            update_request = UpdateDeploymentRequest(
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
             )
-            update_deployment(engine_url, config.api.key, server_name, create_request.model_dump())
+            update_deployment(engine_url, config.api.key, server_name, update_request.model_dump())
         else:
-            update_request = CreateDeploymentRequest(
+            create_request = CreateDeploymentRequest(
                 name=server_name,
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
             )
-            deploy_server_to_engine(engine_url, config.api.key, update_request.model_dump(), debug)
+            deploy_server_to_engine(engine_url, config.api.key, create_request.model_dump(), debug)
     except Exception as e:
         raise ValueError(f"Deployment failed: {e}") from e
 
