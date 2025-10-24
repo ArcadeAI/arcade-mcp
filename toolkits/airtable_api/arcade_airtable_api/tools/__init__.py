@@ -1406,14 +1406,14 @@ async def refresh_webhook_lifespan(
         "The unique identifier of the webhook to extend. Ensure it is an active webhook with an expiration.",  # noqa: E501
     ],
     webhook_request_body: Annotated[
-        dict[str, str] | None,
+        dict[str, Any] | None,
         "JSON payload required for refreshing the webhook. Include necessary fields per API documentation.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'refresh-a-webhook'."]:
     """Extend the expiration time of an active webhook.
 
     Use this tool to extend the life of an active webhook in Airtable. The new expiration time will be set to 7 days after the refresh time. This operation requires creator-level permissions and is applicable only to webhooks with an expiration time."""  # noqa: E501
-    request_data = remove_none_values(webhook_request_body)
+    request_data = remove_none_values(webhook_request_body or {})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/bases/{baseId}/webhooks/{webhookId}/refresh".format(  # noqa: UP032
@@ -4887,14 +4887,14 @@ async def logout_enterprise_user(
     ],
     enterprise_user_id: Annotated[str, "The unique identifier of the enterprise user to log out."],
     logout_request_body: Annotated[
-        dict[str, str] | None,
+        dict[str, Any] | None,
         "A JSON object containing necessary details to process the logout request.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'logout-user'."]:
     """Logs out an enterprise account user from the system.
 
     This tool logs out a user from an enterprise account, available only for ELA and FLA internal enterprise account users and managed enterprise users."""  # noqa: E501
-    request_data = remove_none_values(logout_request_body)
+    request_data = remove_none_values(logout_request_body or {})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}/logout".format(  # noqa: UP032

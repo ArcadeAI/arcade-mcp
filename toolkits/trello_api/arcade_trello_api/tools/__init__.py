@@ -2127,7 +2127,7 @@ async def get_trello_card_by_id(
     include_attachments: Annotated[
         str | None,
         "Specify if attachments should be returned. Use 'true' for all attachments, 'false' for none, or 'cover' for cover attachments only.",  # noqa: E501
-    ] = False,
+    ] = "false",
     include_check_item_states: Annotated[
         bool | None,
         "Set to `true` to include check item states of the card; `false` to exclude them.",
@@ -4612,7 +4612,7 @@ async def get_enterprise_by_id(
     ] = False,
     member_count: Annotated[
         int | None, "Specify the number of members to retrieve, ranging from 0 to 100."
-    ] = "10",
+    ] = 10,
     member_fields: Annotated[
         str | None,
         "Specify one of: `avatarHash`, `fullName`, `initials`, `username` to filter member fields.",
@@ -4636,7 +4636,7 @@ async def get_enterprise_by_id(
     member_start_index: Annotated[
         int | None,
         "Specify the starting index for paginated members. Accepts any integer between 0 and 100.",
-    ] = "1",
+    ] = 1,
     organization_fields_value: Annotated[
         str | None, "Specify valid values for nested organization fields as accepted by the API."
     ] = "none",
@@ -4825,7 +4825,7 @@ async def get_enterprise_users(
     return_managed_members_only: Annotated[
         bool | None,
         "Specify true to return only managed members, false for only unmanaged, or omit for both.",
-    ] = "none",
+    ] = None,
     search_query: Annotated[
         str | None, "String to search for members by email or full name starting with this value."
     ] = "none",
@@ -6689,7 +6689,7 @@ async def get_custom_board_backgrounds(
 ]:
     """Retrieve a member's custom board backgrounds on Trello.
 
-    Use this tool to get a specific member’s custom board backgrounds from Trello. Ideal for when you need to display or manage a user's personalized board aesthetics."""  # noqa: E501
+    Use this tool to get a specific member's custom board backgrounds from Trello. Ideal for when you need to display or manage a user's personalized board aesthetics."""  # noqa: E501
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
@@ -7124,13 +7124,11 @@ async def get_member_notifications(
     ] = None,
     notification_limit: Annotated[
         int | None, "The maximum number of notifications to retrieve, capped at 1000."
-    ] = "50",
+    ] = 50,
     notification_read_status_filter: Annotated[
         str | None, "Specify read status to filter notifications: `all`, `read`, or `unread`."
     ] = "all",
-    page_number: Annotated[
-        int | None, "The page number for pagination. Maximum value is 100."
-    ] = "0",
+    page_number: Annotated[int | None, "The page number for pagination. Maximum value is 100."] = 0,
     since_notification_id: Annotated[
         str | None,
         "A notification ID to start retrieving notifications from. Useful for fetching notifications after a specific point.",  # noqa: E501
@@ -9470,10 +9468,10 @@ async def trello_search(
     max_members_returned: Annotated[
         int | None,
         "The maximum number of members to return in the search results. Maximum value is 1000.",
-    ] = "10",
+    ] = 10,
     max_workspaces_to_return: Annotated[
         int | None, "The maximum number of Workspaces to return. Accepts an integer up to 1000."
-    ] = "10",
+    ] = 10,
     maximum_boards_returned: Annotated[
         int | None, "The maximum number of boards to return. Must be an integer up to 1000."
     ] = 10,
