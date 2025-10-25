@@ -667,18 +667,33 @@ class MCPServer:
 
             # Attach tool_context to current model context for this request
             mctx = get_current_model_context()
+            saved_tool_context: ToolContext | None = None
+
             if mctx is not None:
+                # Save the current tool context so we can restore it after the call
+                # This prevents context leakage from callee back to caller in the case of tool chaining.
+                saved_tool_context = ToolContext(
+                    authorization=mctx.authorization,
+                    secrets=mctx.secrets,
+                    metadata=mctx.metadata,
+                    user_id=mctx.user_id,
+                )
                 mctx.set_tool_context(tool_context)
 
-            # Execute tool
-            result = await ToolExecutor.run(
-                func=tool.tool,
-                definition=tool.definition,
-                input_model=tool.input_model,
-                output_model=tool.output_model,
-                context=mctx if mctx is not None else tool_context,
-                **input_params,
-            )
+            try:
+                # Execute tool
+                result = await ToolExecutor.run(
+                    func=tool.tool,
+                    definition=tool.definition,
+                    input_model=tool.input_model,
+                    output_model=tool.output_model,
+                    context=mctx if mctx is not None else tool_context,
+                    **input_params,
+                )
+            finally:
+                # Restore the original tool context to prevent context leakage to parent tools in the case of tool chaining.
+                if mctx is not None and saved_tool_context is not None:
+                    mctx.set_tool_context(saved_tool_context)
 
             # Convert result
             if result.value is not None:

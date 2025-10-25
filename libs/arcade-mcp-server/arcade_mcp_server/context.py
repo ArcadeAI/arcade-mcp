@@ -26,21 +26,24 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import uuid
 import weakref
 from builtins import list as builtins_list
 from contextvars import ContextVar, Token
 from typing import Any, cast
 
 from arcade_core.context import ModelContext as ModelContextProtocol
-from arcade_core.executor import ToolExecutor
 from arcade_core.schema import (
-    ToolCallOutput,
     ToolContext,
 )
 
 from arcade_mcp_server.types import (
+    CallToolParams,
+    CallToolRequest,
+    CallToolResult,
     ClientCapabilities,
     ElicitResult,
+    JSONRPCError,
     LoggingLevel,
     ModelHint,
     ModelPreferences,
@@ -493,38 +496,24 @@ class Tools(_ContextComponent):
         tools = await self._ctx.server._tool_manager.list_tools()
         return cast(list[Any], tools)
 
-    async def call_raw(self, name: str, params: dict[str, Any]) -> ToolCallOutput:
-        tool = await self._ctx.server._tool_manager.get_tool(name)
-        tool_context = await self._ctx.server._create_tool_context(tool, self._ctx._session)
-        # Attach to current model context for the duration of this call
-        self._ctx.set_tool_context(tool_context)
-        func = tool.tool
-        if asyncio.iscoroutinefunction(func):
-
-            async def async_func(**kw: Any) -> Any:
-                return await func(**kw)
-
-        else:
-
-            async def async_func(**kw: Any) -> Any:
-                return func(**kw)
-
-        result = await ToolExecutor.run(
-            func=async_func,
-            definition=tool.definition,
-            input_model=tool.input_model,
-            output_model=tool.output_model,
-            context=self._ctx,
-            **params,
+    async def call_raw(self, name: str, params: dict[str, Any]) -> CallToolResult:
+        internal_id = f"internal-{uuid.uuid4()}"
+        request = CallToolRequest(
+            id=internal_id,
+            params=CallToolParams(name=name, arguments=params),
         )
 
-        return cast(ToolCallOutput, result)
+        response = await self._ctx.server._handle_call_tool(request, self._ctx._session)
 
-    async def call(self, name: str, params: dict[str, Any]) -> Any:
-        result = await self.call_raw(name, params)
-        if result.error:
-            raise ValueError(result.error.message)  # TODO determine what type of error to raise
-        return result.value
+        if isinstance(response, JSONRPCError):
+            error_message = response.error.get("message", "Unknown error")
+            return CallToolResult(
+                content=[{"type": "text", "text": error_message}],
+                structuredContent={"error": error_message},
+                isError=True,
+            )
+
+        return cast(CallToolResult, response.result)
 
 
 class Prompts(_ContextComponent):
