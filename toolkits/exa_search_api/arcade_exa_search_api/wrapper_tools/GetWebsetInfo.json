@@ -1,0 +1,137 @@
+{
+  "name": "GetWebsetInfo",
+  "fully_qualified_name": "ExaWebsetsApi.GetWebsetInfo@0.1.0",
+  "description": "Retrieve information about a specific Webset using its ID.\n\nThis tool is used to obtain detailed information about a specific Webset by providing its ID. It should be called when you need to access data related to a particular Webset instance.",
+  "toolkit": {
+    "name": "ArcadeExaSearchApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webset_identifier",
+        "required": true,
+        "description": "The ID or external ID of the Webset for retrieval.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id or externalId of the Webset."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "expand_resources",
+        "required": false,
+        "description": "Provide an array of resource names to expand in the response for detailed information.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Expand the response with the specified resources"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'websets-get'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_SEARCH_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa_search API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/v0/websets/{id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "expand",
+        "tool_parameter_name": "expand_resources",
+        "description": "Expand the response with the specified resources",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Expand the response with the specified resources"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "webset_identifier",
+        "description": "The id or externalId of the Webset.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id or externalId of the Webset."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_SEARCH_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
