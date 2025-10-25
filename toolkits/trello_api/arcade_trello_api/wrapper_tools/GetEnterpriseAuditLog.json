@@ -1,18 +1,18 @@
 {
   "name": "GetEnterpriseAuditLog",
-  "fully_qualified_name": "TrelloApi.GetEnterpriseAuditLog@0.1.0",
-  "description": "Retrieve actions from an enterprise's audit log.\n\nFetches an array of actions related to an Enterprise object for audit purposes from Trello's audit log. Useful for analyzing enterprise activities and administrative changes.",
+  "fully_qualified_name": "TrelloApi.GetEnterpriseAuditLog@2.0.0",
+  "description": "Retrieve audit log actions for a specific enterprise.\n\nThis tool returns actions related to the Enterprise object for populating data from an Enterprise's audit log page. Requires an Enterprise admin token.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "ID of the enterprise whose audit log actions are to be retrieved.",
+        "description": "Specify the ID of the enterprise to retrieve audit log actions for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/enterprises/{id}/auditlog",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

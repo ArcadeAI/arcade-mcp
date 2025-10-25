@@ -1,0 +1,682 @@
+{
+  "name": "ListCreditNotes",
+  "fully_qualified_name": "ZohoBooksApi.ListCreditNotes@0.1.0",
+  "description": "Retrieve and filter a list of credit notes.\n\nRetrieve a paginated list of credit notes using filters and sorting based on date, status, amount, customer details, items, taxes, and custom fields.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "ID of the organization for which you want to list credit notes. Required for identification and retrieval.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "credit_note_number",
+        "required": false,
+        "description": "Filter credit notes by a specific credit note number. The number must be a unique identifier, up to 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by specific credit note number. Use this parameter to search for a particular credit note by its unique number. Max-Length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "creditnote_number"
+      },
+      {
+        "name": "filter_date",
+        "required": false,
+        "description": "Filter credit notes by the date they were raised. Use yyyy-mm-dd format to search for specific credit notes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by the date they were raised. Use yyyy-mm-dd format to search for credit notes created on a specific date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "filter_by_status",
+        "required": false,
+        "description": "Specify the status to filter credit notes. Options include: 'open', 'closed', 'void', or 'draft'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by their current status. Allowed values: <code>open</code>, <code>closed</code>, <code>void</code>, or <code>draft</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "filter_by_total_amount",
+        "required": false,
+        "description": "Filter credit notes by their total amount. Input a specific total value to retrieve matching credit notes.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by their total amount. Use this parameter to search for credit notes with a specific total value."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "filter_by_reference_number",
+        "required": false,
+        "description": "Filter credit notes by their reference number, limited to 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by their reference number. Use this parameter to search for credit notes with a specific reference number. Max-Length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "filter_by_customer_name",
+        "required": false,
+        "description": "Filter credit notes by customer name. Use to search for credit notes associated with a specific customer. Max-Length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by customer name. Use this parameter to search for credit notes associated with a specific customer. Max-Length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_name"
+      },
+      {
+        "name": "filter_by_item_name",
+        "required": false,
+        "description": "Search for credit notes by item name. Maximum length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by item name. Use this parameter to search for credit notes containing specific items. Max-Length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_name"
+      },
+      {
+        "name": "filter_by_customer_id",
+        "required": false,
+        "description": "Search for credit notes associated with a specific customer using the customer ID. Retrieve customer IDs from the contacts API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by customer ID. Use this parameter to search for credit notes associated with a specific customer. Retrieve customer IDs from the contacts API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "filter_by_item_description",
+        "required": false,
+        "description": "Filter credit notes by item description. Use 'startswith:' or 'contains:' for flexible matching. Max length of 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by item description. Supports variants <code>item_description_startswith</code> and <code>item_description_contains</code> for flexible searching. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_description"
+      },
+      {
+        "name": "filter_by_item_id",
+        "required": false,
+        "description": "Filter credit notes by item ID to find notes containing a specific item. Obtain item IDs from the items API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by item ID. Use this parameter to search for credit notes containing a specific item. Retrieve item IDs from the items API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "filter_by_line_item_id",
+        "required": false,
+        "description": "Search for credit notes containing a specific line item using its ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by line item ID. Use this parameter to search for credit notes containing a specific line item within the credit note."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "line_item_id"
+      },
+      {
+        "name": "filter_by_tax_id",
+        "required": false,
+        "description": "Filter credit notes using a specific tax ID. Retrieve the tax ID from the taxes API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by tax ID. Use this parameter to search for credit notes with a specific tax applied. Retrieve tax IDs from the taxes API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tax_id"
+      },
+      {
+        "name": "status_filter",
+        "required": false,
+        "description": "Filter credit notes by status using predefined values: 'Status.All', 'Status.Open', 'Status.Draft', 'Status.Closed', 'Status.Void'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by status using predefined status values. Allowed values: <code>Status.All</code>, <code>Status.Open</code>, <code>Status.Draft</code>, <code>Status.Closed</code>, and <code>Status.Void</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "search_text",
+        "required": false,
+        "description": "Search credit notes across multiple fields like credit note number, customer name, and reference number. Max-length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search credit notes using text search across multiple fields. Searches credit note number, customer name, and reference number. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_credit_notes_by_column",
+        "required": false,
+        "description": "Specify the column by which to sort the credit notes. Allowed values: 'customer_name', 'creditnote_number', 'balance', 'total', 'date', and 'created_time'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort credit notes by specified column. Allowed values: <code>customer_name</code>, <code>creditnote_number</code>, <code>balance</code>, <code>total</code>, <code>date</code>, and <code>created_time</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Page number for pagination. Specify which page of results to retrieve. Default is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number for pagination. Specify which page of results to retrieve. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Specify the number of credit notes to be returned per page for pagination. Default is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records per page for pagination. Controls how many credit notes are returned in each page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_credit_notes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.creditnotes.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/creditnotes",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "creditnote_number",
+        "tool_parameter_name": "credit_note_number",
+        "description": "Filter credit notes by specific credit note number. Use this parameter to search for a particular credit note by its unique number. Max-Length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by specific credit note number. Use this parameter to search for a particular credit note by its unique number. Max-Length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "filter_date",
+        "description": "Filter credit notes by the date they were raised. Use yyyy-mm-dd format to search for credit notes created on a specific date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by the date they were raised. Use yyyy-mm-dd format to search for credit notes created on a specific date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "filter_by_status",
+        "description": "Filter credit notes by their current status. Allowed values: <code>open</code>, <code>closed</code>, <code>void</code>, or <code>draft</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by their current status. Allowed values: <code>open</code>, <code>closed</code>, <code>void</code>, or <code>draft</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "filter_by_total_amount",
+        "description": "Filter credit notes by their total amount. Use this parameter to search for credit notes with a specific total value.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by their total amount. Use this parameter to search for credit notes with a specific total value."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "filter_by_reference_number",
+        "description": "Filter credit notes by their reference number. Use this parameter to search for credit notes with a specific reference number. Max-Length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by their reference number. Use this parameter to search for credit notes with a specific reference number. Max-Length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_name",
+        "tool_parameter_name": "filter_by_customer_name",
+        "description": "Filter credit notes by customer name. Use this parameter to search for credit notes associated with a specific customer. Max-Length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by customer name. Use this parameter to search for credit notes associated with a specific customer. Max-Length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_name",
+        "tool_parameter_name": "filter_by_item_name",
+        "description": "Filter credit notes by item name. Use this parameter to search for credit notes containing specific items. Max-Length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by item name. Use this parameter to search for credit notes containing specific items. Max-Length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "filter_by_customer_id",
+        "description": "Filter credit notes by customer ID. Use this parameter to search for credit notes associated with a specific customer. Retrieve customer IDs from the contacts API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by customer ID. Use this parameter to search for credit notes associated with a specific customer. Retrieve customer IDs from the contacts API."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_description",
+        "tool_parameter_name": "filter_by_item_description",
+        "description": "Filter credit notes by item description. Supports variants <code>item_description_startswith</code> and <code>item_description_contains</code> for flexible searching. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by item description. Supports variants <code>item_description_startswith</code> and <code>item_description_contains</code> for flexible searching. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "filter_by_item_id",
+        "description": "Filter credit notes by item ID. Use this parameter to search for credit notes containing a specific item. Retrieve item IDs from the items API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by item ID. Use this parameter to search for credit notes containing a specific item. Retrieve item IDs from the items API."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "line_item_id",
+        "tool_parameter_name": "filter_by_line_item_id",
+        "description": "Filter credit notes by line item ID. Use this parameter to search for credit notes containing a specific line item within the credit note.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by line item ID. Use this parameter to search for credit notes containing a specific line item within the credit note."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tax_id",
+        "tool_parameter_name": "filter_by_tax_id",
+        "description": "Filter credit notes by tax ID. Use this parameter to search for credit notes with a specific tax applied. Retrieve tax IDs from the taxes API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by tax ID. Use this parameter to search for credit notes with a specific tax applied. Retrieve tax IDs from the taxes API."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "status_filter",
+        "description": "Filter credit notes by status using predefined status values. Allowed values: <code>Status.All</code>, <code>Status.Open</code>, <code>Status.Draft</code>, <code>Status.Closed</code>, and <code>Status.Void</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter credit notes by status using predefined status values. Allowed values: <code>Status.All</code>, <code>Status.Open</code>, <code>Status.Draft</code>, <code>Status.Closed</code>, and <code>Status.Void</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_text",
+        "description": "Search credit notes using text search across multiple fields. Searches credit note number, customer name, and reference number. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search credit notes using text search across multiple fields. Searches credit note number, customer name, and reference number. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_credit_notes_by_column",
+        "description": "Sort credit notes by specified column. Allowed values: <code>customer_name</code>, <code>creditnote_number</code>, <code>balance</code>, <code>total</code>, <code>date</code>, and <code>created_time</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort credit notes by specified column. Allowed values: <code>customer_name</code>, <code>creditnote_number</code>, <code>balance</code>, <code>total</code>, <code>date</code>, and <code>created_time</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Page number for pagination. Specify which page of results to retrieve. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number for pagination. Specify which page of results to retrieve. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records per page for pagination. Controls how many credit notes are returned in each page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records per page for pagination. Controls how many credit notes are returned in each page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,292 @@
+{
+  "name": "CreateTransferOrder",
+  "fully_qualified_name": "SquareupApi.CreateTransferOrder@2.0.0",
+  "description": "Create a draft transfer order between locations.\n\nThis tool creates a new transfer order in DRAFT status to move CatalogItemVariations between different locations within a Square account. It should be called when there's a need to initiate the transfer of items, allowing you to add or remove items, modify quantities, or update shipping information before finalizing.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "transfer_order_data",
+        "required": true,
+        "description": "JSON object containing fields to define a new transfer order. Includes source/destination locations, items, and any additional details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this CreateTransferOrder request. Keys can be\nany valid string but must be unique for every CreateTransferOrder request."
+            },
+            "transfer_order": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "source_location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The source [Location](entity:Location) that will send the items. Must be an active location\nin your Square account with sufficient inventory of the requested items."
+                },
+                "destination_location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The destination [Location](entity:Location) that will receive the items. Must be an active location\nin your Square account"
+                },
+                "expected_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Expected transfer date in RFC 3339 format (e.g. \"2023-10-01T12:00:00Z\")."
+                },
+                "notes": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Optional notes about the transfer"
+                },
+                "tracking_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Optional shipment tracking number"
+                },
+                "created_by_team_member_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the [TeamMember](entity:TeamMember) creating this transfer order. Used for tracking\nand auditing purposes."
+                },
+                "line_items": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "item_variation_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the [CatalogItemVariation](entity:CatalogItemVariation) to transfer. Must reference a valid\nitem variation in the [Catalog](api:Catalog). The item variation must be:\n- Active and available for sale\n- Enabled for inventory tracking\n- Available at the source location"
+                    },
+                    "quantity_ordered": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Total quantity ordered"
+                    }
+                  },
+                  "description": "List of [CatalogItemVariation](entity:CatalogItemVariation)s to transfer, including quantities"
+                }
+              },
+              "inner_properties": null,
+              "description": "Data for creating a new transfer order to move [CatalogItemVariation](entity:CatalogItemVariation)s\nbetween [Location](entity:Location)s. Used with the [CreateTransferOrder](api-endpoint:TransferOrders-CreateTransferOrder)\nendpoint."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateTransferOrder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVENTORY_READ",
+          "INVENTORY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/transfer-orders",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "transfer_order_data",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this CreateTransferOrder request. Keys can be\nany valid string but must be unique for every CreateTransferOrder request."
+            },
+            "transfer_order": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "source_location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The source [Location](entity:Location) that will send the items. Must be an active location\nin your Square account with sufficient inventory of the requested items."
+                },
+                "destination_location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The destination [Location](entity:Location) that will receive the items. Must be an active location\nin your Square account"
+                },
+                "expected_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Expected transfer date in RFC 3339 format (e.g. \"2023-10-01T12:00:00Z\")."
+                },
+                "notes": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Optional notes about the transfer"
+                },
+                "tracking_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Optional shipment tracking number"
+                },
+                "created_by_team_member_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the [TeamMember](entity:TeamMember) creating this transfer order. Used for tracking\nand auditing purposes."
+                },
+                "line_items": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "item_variation_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the [CatalogItemVariation](entity:CatalogItemVariation) to transfer. Must reference a valid\nitem variation in the [Catalog](api:Catalog). The item variation must be:\n- Active and available for sale\n- Enabled for inventory tracking\n- Available at the source location"
+                    },
+                    "quantity_ordered": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Total quantity ordered"
+                    }
+                  },
+                  "description": "List of [CatalogItemVariation](entity:CatalogItemVariation)s to transfer, including quantities"
+                }
+              },
+              "inner_properties": null,
+              "description": "Data for creating a new transfer order to move [CatalogItemVariation](entity:CatalogItemVariation)s\nbetween [Location](entity:Location)s. Used with the [CreateTransferOrder](api-endpoint:TransferOrders-CreateTransferOrder)\nendpoint."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Request to create a new transfer order.\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"idempotency_key\",\n          \"transfer_order\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this CreateTransferOrder request. Keys can be\\nany valid string but must be unique for every CreateTransferOrder request.\",\n            \"minLength\": 1\n          },\n          \"transfer_order\": {\n            \"type\": \"object\",\n            \"description\": \"Data for creating a new transfer order to move [CatalogItemVariation](entity:CatalogItemVariation)s\\nbetween [Location](entity:Location)s. Used with the [CreateTransferOrder](api-endpoint:TransferOrders-CreateTransferOrder)\\nendpoint.\",\n            \"x-release-status\": \"BETA\",\n            \"required\": [\n              \"source_location_id\",\n              \"destination_location_id\"\n            ],\n            \"properties\": {\n              \"source_location_id\": {\n                \"type\": \"string\",\n                \"description\": \"The source [Location](entity:Location) that will send the items. Must be an active location\\nin your Square account with sufficient inventory of the requested items.\",\n                \"minLength\": 1,\n                \"maxLength\": 64\n              },\n              \"destination_location_id\": {\n                \"type\": \"string\",\n                \"description\": \"The destination [Location](entity:Location) that will receive the items. Must be an active location\\nin your Square account\",\n                \"minLength\": 1,\n                \"maxLength\": 64\n              },\n              \"expected_at\": {\n                \"type\": \"string\",\n                \"description\": \"Expected transfer date in RFC 3339 format (e.g. \\\"2023-10-01T12:00:00Z\\\").\",\n                \"nullable\": true\n              },\n              \"notes\": {\n                \"type\": \"string\",\n                \"description\": \"Optional notes about the transfer\",\n                \"maxLength\": 4096,\n                \"nullable\": true\n              },\n              \"tracking_number\": {\n                \"type\": \"string\",\n                \"description\": \"Optional shipment tracking number\",\n                \"maxLength\": 64,\n                \"nullable\": true\n              },\n              \"created_by_team_member_id\": {\n                \"type\": \"string\",\n                \"description\": \"ID of the [TeamMember](entity:TeamMember) creating this transfer order. Used for tracking\\nand auditing purposes.\",\n                \"maxLength\": 64,\n                \"nullable\": true\n              },\n              \"line_items\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"description\": \"Data for creating a new transfer order line item. Each line item specifies a \\n[CatalogItemVariation](entity:CatalogItemVariation) and quantity to transfer.\",\n                  \"x-release-status\": \"BETA\",\n                  \"required\": [\n                    \"item_variation_id\",\n                    \"quantity_ordered\"\n                  ],\n                  \"properties\": {\n                    \"item_variation_id\": {\n                      \"type\": \"string\",\n                      \"description\": \"ID of the [CatalogItemVariation](entity:CatalogItemVariation) to transfer. Must reference a valid\\nitem variation in the [Catalog](api:Catalog). The item variation must be:\\n- Active and available for sale\\n- Enabled for inventory tracking\\n- Available at the source location\",\n                      \"minLength\": 1,\n                      \"maxLength\": 64\n                    },\n                    \"quantity_ordered\": {\n                      \"type\": \"string\",\n                      \"description\": \"Total quantity ordered\",\n                      \"minLength\": 1,\n                      \"maxLength\": 16,\n                      \"pattern\": \"^(0|[1-9]\\\\d*)(\\\\.\\\\d{1,4})?$\"\n                    }\n                  }\n                },\n                \"description\": \"List of [CatalogItemVariation](entity:CatalogItemVariation)s to transfer, including quantities\",\n                \"nullable\": true\n              }\n            }\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"65cc0586-3e82-384s-b524-3885cffd52\",\n          \"transfer_order\": {\n            \"created_by_team_member_id\": \"EXAMPLE_TEAM_MEMBER_ID_789\",\n            \"destination_location_id\": \"EXAMPLE_DEST_LOCATION_ID_456\",\n            \"expected_at\": \"2025-11-09T05:00:00Z\",\n            \"line_items\": [\n              {\n                \"item_variation_id\": \"EXAMPLE_ITEM_VARIATION_ID_001\",\n                \"quantity_ordered\": \"5\"\n              },\n              {\n                \"item_variation_id\": \"EXAMPLE_ITEM_VARIATION_ID_002\",\n                \"quantity_ordered\": \"3\"\n              }\n            ],\n            \"notes\": \"Example transfer order for inventory redistribution between locations\",\n            \"source_location_id\": \"EXAMPLE_SOURCE_LOCATION_ID_123\",\n            \"tracking_number\": \"TRACK123456789\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

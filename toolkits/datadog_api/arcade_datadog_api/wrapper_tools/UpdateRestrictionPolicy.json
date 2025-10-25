@@ -1,0 +1,316 @@
+{
+  "name": "UpdateRestrictionPolicy",
+  "fully_qualified_name": "DatadogApi.UpdateRestrictionPolicy@0.1.0",
+  "description": "Update the restriction policy for a Datadog resource.\n\nUse this tool to update the restriction policy associated with various Datadog resources, such as dashboards, integration services, notebooks, and more. You can specify the resource type and the new access permissions like viewer, editor, or others depending on the resource.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_identifier",
+        "required": true,
+        "description": "Identifier of the resource, formatted as `type:id`. Includes supported types like `dashboard`, `integration-service`, `notebook`, and others.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Identifier, formatted as `type:id`. Supported types: `dashboard`, `integration-service`, `integration-webhook`, `notebook`, `reference-table`, `security-rule`, `slo`, `workflow`, `app-builder-app`, `connection`, `connection-group`, `rum-application`, `cross-org-connection`, `spreadsheet`, `on-call-schedule`, `on-call-escalation-policy`, `on-call-team-routing-rules."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "resource_id"
+      },
+      {
+        "name": "restriction_policy_payload",
+        "required": true,
+        "description": "The payload for the restriction policy update, including attributes like bindings, principals, and relation types.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "bindings": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "principals": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "An array of principals. A principal is a subject or group of subjects.\nEach principal is formatted as `type:id`. Supported types: `role`, `team`, `user`, and `org`.\nThe org ID can be obtained through the api/v2/current_user API.\nThe user principal type accepts service account IDs."
+                        },
+                        "relation": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The role/level of access."
+                        }
+                      },
+                      "description": "An array of bindings."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Restriction policy attributes."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The identifier, always equivalent to the value specified in the `resource_id` path parameter."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "restriction_policy"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Restriction policy type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Restriction policy object."
+            }
+          },
+          "inner_properties": null,
+          "description": "Restriction policy payload"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "allow_self_lockout",
+        "required": false,
+        "description": "Set to true to allow admins to remove their own access from the resource. Default is false, preventing self-lockout.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allows admins (users with the `user_access_manage` permission) to remove their own access from the resource if set to `true`. By default, this is set to `false`, preventing admins from locking themselves out."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "allow_self_lockout"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateRestrictionPolicy'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/restriction_policy/{resource_id}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "allow_self_lockout",
+        "tool_parameter_name": "allow_self_lockout",
+        "description": "Allows admins (users with the `user_access_manage` permission) to remove their own access from the resource if set to `true`. By default, this is set to `false`, preventing admins from locking themselves out.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allows admins (users with the `user_access_manage` permission) to remove their own access from the resource if set to `true`. By default, this is set to `false`, preventing admins from locking themselves out."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "resource_id",
+        "tool_parameter_name": "resource_identifier",
+        "description": "Identifier, formatted as `type:id`. Supported types: `dashboard`, `integration-service`, `integration-webhook`, `notebook`, `reference-table`, `security-rule`, `slo`, `workflow`, `app-builder-app`, `connection`, `connection-group`, `rum-application`, `cross-org-connection`, `spreadsheet`, `on-call-schedule`, `on-call-escalation-policy`, `on-call-team-routing-rules.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Identifier, formatted as `type:id`. Supported types: `dashboard`, `integration-service`, `integration-webhook`, `notebook`, `reference-table`, `security-rule`, `slo`, `workflow`, `app-builder-app`, `connection`, `connection-group`, `rum-application`, `cross-org-connection`, `spreadsheet`, `on-call-schedule`, `on-call-escalation-policy`, `on-call-team-routing-rules."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "restriction_policy_payload",
+        "description": "Restriction policy payload",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "bindings": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "principals": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "An array of principals. A principal is a subject or group of subjects.\nEach principal is formatted as `type:id`. Supported types: `role`, `team`, `user`, and `org`.\nThe org ID can be obtained through the api/v2/current_user API.\nThe user principal type accepts service account IDs."
+                        },
+                        "relation": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The role/level of access."
+                        }
+                      },
+                      "description": "An array of bindings."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Restriction policy attributes."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The identifier, always equivalent to the value specified in the `resource_id` path parameter."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "restriction_policy"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Restriction policy type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Restriction policy object."
+            }
+          },
+          "inner_properties": null,
+          "description": "Restriction policy payload"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Update request for a restriction policy.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Restriction policy object.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Restriction policy attributes.\",\n                \"example\": {\n                  \"bindings\": []\n                },\n                \"properties\": {\n                  \"bindings\": {\n                    \"description\": \"An array of bindings.\",\n                    \"items\": {\n                      \"description\": \"Specifies which principals are associated with a relation.\",\n                      \"properties\": {\n                        \"principals\": {\n                          \"description\": \"An array of principals. A principal is a subject or group of subjects.\\nEach principal is formatted as `type:id`. Supported types: `role`, `team`, `user`, and `org`.\\nThe org ID can be obtained through the api/v2/current_user API.\\nThe user principal type accepts service account IDs.\",\n                          \"example\": [\n                            \"role:00000000-0000-1111-0000-000000000000\"\n                          ],\n                          \"items\": {\n                            \"description\": \"Subject or group of subjects. Each principal is formatted as `type:id`.\\nSupported types: `role`, `team`, `user`, and `org`.\\nThe org ID can be obtained through the api/v2/current_user API.\\nThe user principal type accepts service account IDs.\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"relation\": {\n                          \"description\": \"The role/level of access.\",\n                          \"example\": \"editor\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"relation\",\n                        \"principals\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"bindings\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The identifier, always equivalent to the value specified in the `resource_id` path parameter.\",\n                \"example\": \"dashboard:abc-def-ghi\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"restriction_policy\",\n                \"description\": \"Restriction policy type.\",\n                \"enum\": [\n                  \"restriction_policy\"\n                ],\n                \"example\": \"restriction_policy\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"RESTRICTION_POLICY\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"id\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Restriction policy payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

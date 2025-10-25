@@ -1,0 +1,226 @@
+{
+  "name": "UpdateAutomationActionRunner",
+  "fully_qualified_name": "PagerdutyApi.UpdateAutomationActionRunner@2.0.0",
+  "description": "Update an Automation Action runner in PagerDuty.\n\nThis tool updates the configuration of a specific Automation Action runner in PagerDuty. It should be called when you need to modify the settings or details of an existing runner, such as changing the runner's parameters or status.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier of the Automation Action runner to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "Specifies the API version for the request. Used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the request body. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "automation_runner_details",
+        "required": true,
+        "description": "JSON object containing details of the Automation Action runner to be updated. Include parameters and settings to modify.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "runner": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateAutomationActionsRunner'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/automation_actions/runners/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "automation_runner_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "runner": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"runner\": {\n            \"oneOf\": [\n              {\n                \"type\": \"object\",\n                \"title\": \"RunnerSidecarBody\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 255,\n                    \"example\": \"us-west-2 prod runner\"\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 1024,\n                    \"example\": \"us-west-2 runner provisioned in the production environment by the SRE team\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"title\": \"RunnerRunbookBody\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 255,\n                    \"example\": \"us-west-2 prod runner\"\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 1024,\n                    \"example\": \"us-west-2 runner provisioned in the production environment by the SRE team\"\n                  },\n                  \"runbook_base_uri\": {\n                    \"type\": \"string\",\n                    \"description\": \"The base URI of the Runbook server to connect to. May only contain alphanumeric characters, periods, underscores and dashes. Specified as the subdomain portion of an RBA host, as in <runbook_base_uri>.runbook.pagerduty.cloud\",\n                    \"maxLength\": 255,\n                    \"example\": \"subdomain\"\n                  },\n                  \"runbook_api_key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 64,\n                    \"description\": \"The API key to connect to the Runbook server with. If omitted, the previously stored value will remain unchanged\"\n                  }\n                }\n              }\n            ],\n            \"discriminator\": {\n              \"propertyName\": \"runner_type\"\n            }\n          }\n        },\n        \"required\": [\n          \"runner\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"value\": {\n            \"runner\": {\n              \"name\": \"us-west-2 prod sidecar runner\",\n              \"description\": \"us-west-2 prod sidecar runner provisioned by SRE\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

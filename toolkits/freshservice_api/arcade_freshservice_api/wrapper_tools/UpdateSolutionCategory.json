@@ -1,0 +1,280 @@
+{
+  "name": "UpdateSolutionCategory",
+  "fully_qualified_name": "FreshserviceApi.UpdateSolutionCategory@1.0.0",
+  "description": "Update a solution category in Freshservice by ID.\n\nUse this tool to update a specific solution category in Freshservice by providing the category ID.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "solution_category_id",
+        "required": true,
+        "description": "The ID of the solution category to be updated in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the solution category which has to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "category_id"
+      },
+      {
+        "name": "category_unique_id",
+        "required": false,
+        "description": "Unique identifier of the solution category to update. It must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the solution category"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "solution_category_name",
+        "required": false,
+        "description": "The new name for the solution category to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the solution category"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "solution_category_description",
+        "required": false,
+        "description": "Provide a description for the solution category being updated. This should be a brief textual summary.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description of the solution category"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "solution_category_position",
+        "required": false,
+        "description": "The position of the solution category in the category listing. Determines the order when there are multiple categories.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the solution category in the category listing. When there are more than 1 categories, then this will determine the position."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position"
+      },
+      {
+        "name": "is_default_category",
+        "required": false,
+        "description": "Indicates if the solution category is a default one, which restricts modifications like adding folders, deletion, or renaming.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If this is a default category shipped with the product. You cannot add folders to the default category. You cannot delete or rename this category"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "default_category"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-solution-category'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/categories/{category_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "category_id",
+        "tool_parameter_name": "solution_category_id",
+        "description": "ID of the solution category which has to be updated",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the solution category which has to be updated"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "category_unique_id",
+        "description": "Unique identifier of the solution category",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the solution category"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "solution_category_name",
+        "description": "Name of the solution category",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the solution category"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "solution_category_description",
+        "description": "Description of the solution category",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description of the solution category"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "position",
+        "tool_parameter_name": "solution_category_position",
+        "description": "The position of the solution category in the category listing. When there are more than 1 categories, then this will determine the position.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the solution category in the category listing. When there are more than 1 categories, then this will determine the position."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "default_category",
+        "tool_parameter_name": "is_default_category",
+        "description": "If this is a default category shipped with the product. You cannot add folders to the default category. You cannot delete or rename this category",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If this is a default category shipped with the product. You cannot add folders to the default category. You cannot delete or rename this category"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Category that needs to be updated\",\n  \"content\": {\n    \"*/*\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the solution category\",\n            \"format\": \"int64\",\n            \"example\": 1400092834723\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the solution category\",\n            \"example\": \"FAQ\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description of the solution category\",\n            \"example\": \"Employee FAQ\"\n          },\n          \"position\": {\n            \"type\": \"integer\",\n            \"description\": \"The position of the solution category in the category listing. When there are more than 1 categories, then this will determine the position.\",\n            \"format\": \"int32\",\n            \"example\": 1\n          },\n          \"default_category\": {\n            \"type\": \"boolean\",\n            \"description\": \"If this is a default category shipped with the product. You cannot add folders to the default category. You cannot delete or rename this category\",\n            \"example\": true\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "MarkAllNotificationsRead",
-  "fully_qualified_name": "TrelloApi.MarkAllNotificationsRead@0.1.0",
-  "description": "Mark all Trello notifications as read.\n\nUse this tool to mark all notifications in Trello as read, helping users manage their notification inbox efficiently.",
+  "fully_qualified_name": "TrelloApi.MarkAllNotificationsRead@2.0.0",
+  "description": "Marks all Trello notifications as read.\n\nUse this tool to mark all notifications in Trello as read. This is useful for clearing unread notification indicators.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "notification_ids_to_mark",
+        "name": "notification_ids",
         "required": false,
-        "description": "A list of notification IDs to mark as read or unread. Useful for managing specific notifications.",
+        "description": "A list of notification IDs to mark as read or unread. Useful for grouping related notifications.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "ids"
       },
       {
-        "name": "mark_notifications_read",
+        "name": "mark_as_read",
         "required": false,
-        "description": "Boolean to specify whether to mark notifications as read (true) or unread (false). Defaults to true (mark as read).",
+        "description": "Specify true to mark notifications as read or false to mark as unread. Defaults to true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/notifications/all/read",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "read",
-        "tool_parameter_name": "mark_notifications_read",
+        "tool_parameter_name": "mark_as_read",
         "description": "Boolean to specify whether to mark as read or unread (defaults to `true`, marking as read)",
         "value_schema": {
           "val_type": "boolean",
@@ -100,11 +100,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
         "name": "ids",
-        "tool_parameter_name": "notification_ids_to_mark",
+        "tool_parameter_name": "notification_ids",
         "description": "A comma-seperated list of IDs. Allows specifying an array of notification IDs to change the read state for. This will become useful as we add grouping of notifications to the UI, with a single button to mark all notifications in the group as read/unread.",
         "value_schema": {
           "val_type": "array",
@@ -117,6 +118,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

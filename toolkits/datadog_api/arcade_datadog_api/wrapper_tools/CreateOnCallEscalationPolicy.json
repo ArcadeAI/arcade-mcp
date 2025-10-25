@@ -1,0 +1,469 @@
+{
+  "name": "CreateOnCallEscalationPolicy",
+  "fully_qualified_name": "DatadogApi.CreateOnCallEscalationPolicy@0.1.0",
+  "description": "Create a new On-Call escalation policy in Datadog.\n\nThis tool is used to create a new On-Call escalation policy in Datadog. Call this tool when you need to set up or adjust escalation protocols within your team for handling alerts.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "escalation_policy_details",
+        "required": true,
+        "description": "JSON object containing details for creating the escalation policy, including attributes, relationships, and resource type.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specifies the name for the new escalation policy."
+                    },
+                    "resolve_page_on_policy_end": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the page is automatically resolved when the policy ends."
+                    },
+                    "retries": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specifies how many times the escalation sequence is retried if there is no response."
+                    },
+                    "steps": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "assignment": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "default",
+                            "round-robin"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Specifies how this escalation step will assign targets (example `default` or `round-robin`)."
+                        },
+                        "escalate_after_seconds": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines how many seconds to wait before escalating to the next step."
+                        },
+                        "targets": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the unique identifier for this target."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users",
+                                "schedules",
+                                "teams"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the type of escalation target (example `users`, `schedules`, or `teams`)."
+                            }
+                          },
+                          "description": "Specifies the collection of escalation targets for this step."
+                        }
+                      },
+                      "description": "A list of escalation steps, each defining assignment, escalation timeout, and targets for the new policy."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines the attributes for creating an escalation policy, including its description, name, resolution behavior, retries, and steps."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "teams": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of the team in this relationship."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "teams"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Teams resource type."
+                            }
+                          },
+                          "description": "An array of team references for this schedule."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Associates teams with this schedule in a data structure."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents relationships in an escalation policy creation request, including references to teams."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "policies"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates that the resource is of type `policies`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Represents the data for creating an escalation policy, including its attributes, relationships, and resource type."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_relationships",
+        "required": false,
+        "description": "Comma-separated list of included relationships to return. Allowed values: teams, steps, steps.targets.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of included relationships to be returned. Allowed values: `teams`, `steps`, `steps.targets`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateOnCallEscalationPolicy'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/on-call/escalation-policies",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include",
+        "tool_parameter_name": "include_relationships",
+        "description": "Comma-separated list of included relationships to be returned. Allowed values: `teams`, `steps`, `steps.targets`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of included relationships to be returned. Allowed values: `teams`, `steps`, `steps.targets`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "escalation_policy_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specifies the name for the new escalation policy."
+                    },
+                    "resolve_page_on_policy_end": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the page is automatically resolved when the policy ends."
+                    },
+                    "retries": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specifies how many times the escalation sequence is retried if there is no response."
+                    },
+                    "steps": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "assignment": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "default",
+                            "round-robin"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Specifies how this escalation step will assign targets (example `default` or `round-robin`)."
+                        },
+                        "escalate_after_seconds": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines how many seconds to wait before escalating to the next step."
+                        },
+                        "targets": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the unique identifier for this target."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users",
+                                "schedules",
+                                "teams"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the type of escalation target (example `users`, `schedules`, or `teams`)."
+                            }
+                          },
+                          "description": "Specifies the collection of escalation targets for this step."
+                        }
+                      },
+                      "description": "A list of escalation steps, each defining assignment, escalation timeout, and targets for the new policy."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines the attributes for creating an escalation policy, including its description, name, resolution behavior, retries, and steps."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "teams": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of the team in this relationship."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "teams"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Teams resource type."
+                            }
+                          },
+                          "description": "An array of team references for this schedule."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Associates teams with this schedule in a data structure."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents relationships in an escalation policy creation request, including references to teams."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "policies"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates that the resource is of type `policies`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Represents the data for creating an escalation policy, including its attributes, relationships, and resource type."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Represents a request to create a new escalation policy, including the policy data.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"name\": \"Escalation Policy 1\",\n              \"resolve_page_on_policy_end\": true,\n              \"retries\": 2,\n              \"steps\": [\n                {\n                  \"assignment\": \"default\",\n                  \"escalate_after_seconds\": 3600,\n                  \"targets\": [\n                    {\n                      \"id\": \"00000000-aba1-0000-0000-000000000000\",\n                      \"type\": \"users\"\n                    },\n                    {\n                      \"id\": \"00000000-aba2-0000-0000-000000000000\",\n                      \"type\": \"schedules\"\n                    },\n                    {\n                      \"id\": \"00000000-aba3-0000-0000-000000000000\",\n                      \"type\": \"teams\"\n                    }\n                  ]\n                },\n                {\n                  \"assignment\": \"round-robin\",\n                  \"escalate_after_seconds\": 3600,\n                  \"targets\": [\n                    {\n                      \"id\": \"00000000-aba1-0000-0000-000000000000\",\n                      \"type\": \"users\"\n                    },\n                    {\n                      \"id\": \"00000000-abb1-0000-0000-000000000000\",\n                      \"type\": \"users\"\n                    }\n                  ]\n                }\n              ]\n            },\n            \"relationships\": {\n              \"teams\": {\n                \"data\": [\n                  {\n                    \"id\": \"00000000-da3a-0000-0000-000000000000\",\n                    \"type\": \"teams\"\n                  }\n                ]\n              }\n            },\n            \"type\": \"policies\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Represents the data for creating an escalation policy, including its attributes, relationships, and resource type.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Defines the attributes for creating an escalation policy, including its description, name, resolution behavior, retries, and steps.\",\n                \"properties\": {\n                  \"name\": {\n                    \"description\": \"Specifies the name for the new escalation policy.\",\n                    \"example\": \"On-Call Escalation Policy\",\n                    \"type\": \"string\"\n                  },\n                  \"resolve_page_on_policy_end\": {\n                    \"description\": \"Indicates whether the page is automatically resolved when the policy ends.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"retries\": {\n                    \"description\": \"Specifies how many times the escalation sequence is retried if there is no response.\",\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"steps\": {\n                    \"description\": \"A list of escalation steps, each defining assignment, escalation timeout, and targets for the new policy.\",\n                    \"items\": {\n                      \"description\": \"Defines a single escalation step within an escalation policy creation request. Contains assignment strategy, escalation timeout, and a list of targets.\",\n                      \"properties\": {\n                        \"assignment\": {\n                          \"description\": \"Specifies how this escalation step will assign targets (example `default` or `round-robin`).\",\n                          \"enum\": [\n                            \"default\",\n                            \"round-robin\"\n                          ],\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"DEFAULT\",\n                            \"ROUND_ROBIN\"\n                          ]\n                        },\n                        \"escalate_after_seconds\": {\n                          \"description\": \"Defines how many seconds to wait before escalating to the next step.\",\n                          \"example\": 3600,\n                          \"format\": \"int64\",\n                          \"type\": \"integer\"\n                        },\n                        \"targets\": {\n                          \"description\": \"Specifies the collection of escalation targets for this step.\",\n                          \"example\": [\n                            \"users\"\n                          ],\n                          \"items\": {\n                            \"description\": \"Defines a single escalation target within a step for an escalation policy creation request. Contains `id` and `type`.\",\n                            \"properties\": {\n                              \"id\": {\n                                \"description\": \"Specifies the unique identifier for this target.\",\n                                \"example\": \"00000000-aba1-0000-0000-000000000000\",\n                                \"type\": \"string\"\n                              },\n                              \"type\": {\n                                \"description\": \"Specifies the type of escalation target (example `users`, `schedules`, or `teams`).\",\n                                \"enum\": [\n                                  \"users\",\n                                  \"schedules\",\n                                  \"teams\"\n                                ],\n                                \"example\": \"users\",\n                                \"type\": \"string\",\n                                \"x-enum-varnames\": [\n                                  \"USERS\",\n                                  \"SCHEDULES\",\n                                  \"TEAMS\"\n                                ]\n                              }\n                            },\n                            \"type\": \"object\"\n                          },\n                          \"type\": \"array\"\n                        }\n                      },\n                      \"required\": [\n                        \"targets\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"steps\"\n                ],\n                \"type\": \"object\"\n              },\n              \"relationships\": {\n                \"description\": \"Represents relationships in an escalation policy creation request, including references to teams.\",\n                \"properties\": {\n                  \"teams\": {\n                    \"description\": \"Associates teams with this schedule in a data structure.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"An array of team references for this schedule.\",\n                        \"items\": {\n                          \"description\": \"Relates a team to this schedule, identified by `id` and `type` (must be `teams`).\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"The unique identifier of the team in this relationship.\",\n                              \"example\": \"00000000-da3a-0000-0000-000000000000\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"teams\",\n                              \"description\": \"Teams resource type.\",\n                              \"enum\": [\n                                \"teams\"\n                              ],\n                              \"example\": \"teams\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"TEAMS\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"type\",\n                            \"id\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"policies\",\n                \"description\": \"Indicates that the resource is of type `policies`.\",\n                \"enum\": [\n                  \"policies\"\n                ],\n                \"example\": \"policies\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"POLICIES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

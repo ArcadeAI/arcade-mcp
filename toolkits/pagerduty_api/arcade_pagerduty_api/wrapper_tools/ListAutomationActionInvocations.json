@@ -1,0 +1,314 @@
+{
+  "name": "ListAutomationActionInvocations",
+  "fully_qualified_name": "PagerdutyApi.ListAutomationActionInvocations@2.0.0",
+  "description": "Retrieve a list of automation action invocations.\n\nCall this tool to obtain a list of automation action invocations from PagerDuty. This can be useful for tracking and managing automation actions within your system.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "String specifying the API version using the 'Accept' header for versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the format of the data being sent. Use 'application/json' for JSON format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "filter_by_invocation_state",
+        "required": false,
+        "description": "Filter the invocations by their state. Options include 'prepared', 'created', 'sent', 'queued', 'running', 'aborted', 'completed', 'error', or 'unknown'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "prepared",
+            "created",
+            "sent",
+            "queued",
+            "running",
+            "aborted",
+            "completed",
+            "error",
+            "unknown"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Invocation state"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "invocation_state"
+      },
+      {
+        "name": "exclude_invocation_state",
+        "required": false,
+        "description": "Filter out invocations not in the specified state. Supported states: prepared, created, sent, queued, running, aborted, completed, error, unknown.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "prepared",
+            "created",
+            "sent",
+            "queued",
+            "running",
+            "aborted",
+            "completed",
+            "error",
+            "unknown"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Invocation state inverse filter (matches invocations NOT in the specified state)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "not_invocation_state"
+      },
+      {
+        "name": "incident_id",
+        "required": false,
+        "description": "The unique identifier for the incident. Use this to filter invocations related to a specific incident.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Incident ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "incident_id"
+      },
+      {
+        "name": "action_id",
+        "required": false,
+        "description": "The unique identifier for the action to filter invocations by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Action ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "action_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listAutomationActionInvocations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/automation_actions/invocations",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "invocation_state",
+        "tool_parameter_name": "filter_by_invocation_state",
+        "description": "Invocation state",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "prepared",
+            "created",
+            "sent",
+            "queued",
+            "running",
+            "aborted",
+            "completed",
+            "error",
+            "unknown"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Invocation state"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "not_invocation_state",
+        "tool_parameter_name": "exclude_invocation_state",
+        "description": "Invocation state inverse filter (matches invocations NOT in the specified state)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "prepared",
+            "created",
+            "sent",
+            "queued",
+            "running",
+            "aborted",
+            "completed",
+            "error",
+            "unknown"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Invocation state inverse filter (matches invocations NOT in the specified state)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "incident_id",
+        "tool_parameter_name": "incident_id",
+        "description": "Incident ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Incident ID"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "action_id",
+        "tool_parameter_name": "action_id",
+        "description": "Action ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Action ID"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

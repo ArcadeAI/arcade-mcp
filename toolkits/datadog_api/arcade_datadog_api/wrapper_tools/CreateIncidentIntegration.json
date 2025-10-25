@@ -1,0 +1,313 @@
+{
+  "name": "CreateIncidentIntegration",
+  "fully_qualified_name": "DatadogApi.CreateIncidentIntegration@0.1.0",
+  "description": "Create incident integration metadata for an incident.\n\nUse this tool to create integration metadata related to a specific incident in Datadog. It facilitates linking external integrations to an incident for enhanced tracking and management.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_uuid",
+        "required": true,
+        "description": "The unique identifier (UUID) of the incident to create integration metadata for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "incident_id"
+      },
+      {
+        "name": "incident_integration_metadata",
+        "required": true,
+        "description": "JSON payload containing incident integration metadata. Must include attributes like created, modified, integration_type, metadata, status, and type.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "created": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident todo was created."
+                    },
+                    "incident_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "UUID of the incident this integration metadata is connected to."
+                    },
+                    "integration_type": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A number indicating the type of integration this metadata is for. 1 indicates Slack;\n8 indicates Jira."
+                    },
+                    "metadata": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Incident integration metadata's metadata attribute."
+                    },
+                    "modified": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident todo was last modified."
+                    },
+                    "status": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A number indicating the status of this integration metadata. 0 indicates unknown;\n1 indicates pending; 2 indicates complete; 3 indicates manually created;\n4 indicates manually updated; 5 indicates failed."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Incident integration metadata's attributes for a create request."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_integrations"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Integration metadata resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Incident integration metadata data for a create request."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident integration metadata payload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateIncidentIntegration'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/incidents/{incident_id}/relationships/integrations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "incident_id",
+        "tool_parameter_name": "incident_uuid",
+        "description": "The UUID of the incident.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_integration_metadata",
+        "description": "Incident integration metadata payload.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "created": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident todo was created."
+                    },
+                    "incident_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "UUID of the incident this integration metadata is connected to."
+                    },
+                    "integration_type": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A number indicating the type of integration this metadata is for. 1 indicates Slack;\n8 indicates Jira."
+                    },
+                    "metadata": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Incident integration metadata's metadata attribute."
+                    },
+                    "modified": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident todo was last modified."
+                    },
+                    "status": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A number indicating the status of this integration metadata. 0 indicates unknown;\n1 indicates pending; 2 indicates complete; 3 indicates manually created;\n4 indicates manually updated; 5 indicates failed."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Incident integration metadata's attributes for a create request."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_integrations"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Integration metadata resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Incident integration metadata data for a create request."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident integration metadata payload."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Create request for an incident integration metadata.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Incident integration metadata data for a create request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Incident integration metadata's attributes for a create request.\",\n                \"properties\": {\n                  \"created\": {\n                    \"description\": \"Timestamp when the incident todo was created.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"incident_id\": {\n                    \"description\": \"UUID of the incident this integration metadata is connected to.\",\n                    \"example\": \"00000000-aaaa-0000-0000-000000000000\",\n                    \"type\": \"string\"\n                  },\n                  \"integration_type\": {\n                    \"description\": \"A number indicating the type of integration this metadata is for. 1 indicates Slack;\\n8 indicates Jira.\",\n                    \"example\": 1,\n                    \"format\": \"int32\",\n                    \"maximum\": 9,\n                    \"type\": \"integer\"\n                  },\n                  \"metadata\": {\n                    \"description\": \"Incident integration metadata's metadata attribute.\",\n                    \"oneOf\": [\n                      {\n                        \"description\": \"Incident integration metadata for the Slack integration.\",\n                        \"properties\": {\n                          \"channels\": {\n                            \"description\": \"Array of Slack channels in this integration metadata.\",\n                            \"example\": [],\n                            \"items\": {\n                              \"description\": \"Item in the Slack integration metadata channel array.\",\n                              \"properties\": {\n                                \"channel_id\": {\n                                  \"description\": \"Slack channel ID.\",\n                                  \"example\": \"C0123456789\",\n                                  \"type\": \"string\"\n                                },\n                                \"channel_name\": {\n                                  \"description\": \"Name of the Slack channel.\",\n                                  \"example\": \"#example-channel-name\",\n                                  \"type\": \"string\"\n                                },\n                                \"redirect_url\": {\n                                  \"description\": \"URL redirecting to the Slack channel.\",\n                                  \"example\": \"https://slack.com/app_redirect?channel=C0123456789&team=T01234567\",\n                                  \"type\": \"string\"\n                                },\n                                \"team_id\": {\n                                  \"description\": \"Slack team ID.\",\n                                  \"example\": \"T01234567\",\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"required\": [\n                                \"channel_id\",\n                                \"channel_name\",\n                                \"redirect_url\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"required\": [\n                          \"channels\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"Incident integration metadata for the Jira integration.\",\n                        \"properties\": {\n                          \"issues\": {\n                            \"description\": \"Array of Jira issues in this integration metadata.\",\n                            \"example\": [],\n                            \"items\": {\n                              \"description\": \"Item in the Jira integration metadata issue array.\",\n                              \"properties\": {\n                                \"account\": {\n                                  \"description\": \"URL of issue's Jira account.\",\n                                  \"example\": \"https://example.atlassian.net\",\n                                  \"type\": \"string\"\n                                },\n                                \"issue_key\": {\n                                  \"description\": \"Jira issue's issue key.\",\n                                  \"example\": \"PROJ-123\",\n                                  \"type\": \"string\"\n                                },\n                                \"issuetype_id\": {\n                                  \"description\": \"Jira issue's issue type.\",\n                                  \"example\": \"1000\",\n                                  \"type\": \"string\"\n                                },\n                                \"project_key\": {\n                                  \"description\": \"Jira issue's project keys.\",\n                                  \"example\": \"PROJ\",\n                                  \"type\": \"string\"\n                                },\n                                \"redirect_url\": {\n                                  \"description\": \"URL redirecting to the Jira issue.\",\n                                  \"example\": \"https://example.atlassian.net/browse/PROJ-123\",\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"required\": [\n                                \"project_key\",\n                                \"account\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"required\": [\n                          \"issues\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"Incident integration metadata for the Microsoft Teams integration.\",\n                        \"properties\": {\n                          \"teams\": {\n                            \"description\": \"Array of Microsoft Teams in this integration metadata.\",\n                            \"example\": [],\n                            \"items\": {\n                              \"description\": \"Item in the Microsoft Teams integration metadata teams array.\",\n                              \"properties\": {\n                                \"ms_channel_id\": {\n                                  \"description\": \"Microsoft Teams channel ID.\",\n                                  \"example\": \"19:abc00abcdef00a0abcdef0abcdef0a@thread.tacv2\",\n                                  \"type\": \"string\"\n                                },\n                                \"ms_channel_name\": {\n                                  \"description\": \"Microsoft Teams channel name.\",\n                                  \"example\": \"incident-0001-example\",\n                                  \"type\": \"string\"\n                                },\n                                \"ms_tenant_id\": {\n                                  \"description\": \"Microsoft Teams tenant ID.\",\n                                  \"example\": \"00000000-abcd-0005-0000-000000000000\",\n                                  \"type\": \"string\"\n                                },\n                                \"redirect_url\": {\n                                  \"description\": \"URL redirecting to the Microsoft Teams channel.\",\n                                  \"example\": \"https://teams.microsoft.com/l/channel/19%3Aabc00abcdef00a0abcdef0abcdef0a%40thread.tacv2/conversations?groupId=12345678-abcd-dcba-abcd-1234567890ab&tenantId=00000000-abcd-0005-0000-000000000000\",\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"required\": [\n                                \"ms_tenant_id\",\n                                \"ms_channel_id\",\n                                \"ms_channel_name\",\n                                \"redirect_url\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"required\": [\n                          \"teams\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"modified\": {\n                    \"description\": \"Timestamp when the incident todo was last modified.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"status\": {\n                    \"description\": \"A number indicating the status of this integration metadata. 0 indicates unknown;\\n1 indicates pending; 2 indicates complete; 3 indicates manually created;\\n4 indicates manually updated; 5 indicates failed.\",\n                    \"format\": \"int32\",\n                    \"maximum\": 5,\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"integration_type\",\n                  \"metadata\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"incident_integrations\",\n                \"description\": \"Integration metadata resource type.\",\n                \"enum\": [\n                  \"incident_integrations\"\n                ],\n                \"example\": \"incident_integrations\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"INCIDENT_INTEGRATIONS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Incident integration metadata payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

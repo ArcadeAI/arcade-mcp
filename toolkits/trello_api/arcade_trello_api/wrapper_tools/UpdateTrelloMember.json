@@ -1,18 +1,18 @@
 {
   "name": "UpdateTrelloMember",
-  "fully_qualified_name": "TrelloApi.UpdateTrelloMember@0.1.0",
-  "description": "Update a member's information on Trello.\n\nUse this tool to update details of a Trello member by specifying their ID. This is useful for modifying user information or settings.",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloMember@2.0.0",
+  "description": "Update Trello member details.\n\nThis tool updates a member's information in Trello. It should be called when there is a need to modify a member's details, such as changing their username or bio.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "member_identifier",
+        "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member to update.",
+        "description": "The ID or username of the Trello member to be updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "new_member_full_name",
+        "name": "new_full_name",
         "required": false,
-        "description": "New name for the member. It should not begin or end with a space.",
+        "description": "The new name for the member. Ensure it does not begin or end with a space.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "member_initials",
         "required": false,
-        "description": "New initials for the member, between 1 and 4 characters long.",
+        "description": "New initials for the member. Must be 1-4 characters long.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "new_username",
         "required": false,
-        "description": "New username for the member. Must be unique, at least 3 characters long, only lowercase letters, underscores, and numbers.",
+        "description": "The new username for the Trello member. It must be at least 3 characters long and can only contain lowercase letters, underscores, and numbers. The username must be unique within Trello.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "member_bio",
         "required": false,
-        "description": "Biography or description for the member. Allows personalization or additional information about the member.",
+        "description": "Biography of the member. Provide a brief description or update to the member's bio as a string.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "bio"
       },
       {
-        "name": "avatar_source_option",
+        "name": "avatar_source",
         "required": false,
-        "description": "Specify the source for the avatar. Options: 'gravatar', 'none', 'upload'.",
+        "description": "Source of the avatar; must be one of: 'gravatar', 'none', or 'upload'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -106,7 +106,7 @@
       {
         "name": "preferred_locale",
         "required": false,
-        "description": "Specify the preferred language locale for the member.",
+        "description": "Specifies the preferred locale for the member's settings. This should be a valid locale string (e.g., 'en_US').",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -119,9 +119,9 @@
         "http_endpoint_parameter_name": "prefs/locale"
       },
       {
-        "name": "update_interval_minutes",
+        "name": "summary_notification_interval",
         "required": false,
-        "description": "Set the interval for summaries in minutes. Use `-1` to disable, `1` for frequent, or `60` for hourly updates.",
+        "description": "Time interval in minutes for summary notifications. Use `-1` to disable, `1` for every minute, or `60` for hourly notifications.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -136,7 +136,7 @@
       {
         "name": "enable_color_blind_mode",
         "required": false,
-        "description": "Enable or disable color blind mode for the member. `true` to enable; `false` to disable.",
+        "description": "Set to true to enable color blind mode preferences for the member, false to disable.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -181,13 +181,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}",
@@ -196,7 +196,7 @@
     "parameters": [
       {
         "name": "fullName",
-        "tool_parameter_name": "new_member_full_name",
+        "tool_parameter_name": "new_full_name",
         "description": "New name for the member. Cannot begin or end with a space.",
         "value_schema": {
           "val_type": "string",
@@ -209,6 +209,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -226,6 +227,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -243,6 +245,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -260,11 +263,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "avatarSource",
-        "tool_parameter_name": "avatar_source_option",
+        "tool_parameter_name": "avatar_source",
         "description": "One of: `gravatar`, `none`, `upload`",
         "value_schema": {
           "val_type": "string",
@@ -281,6 +285,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -298,6 +303,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -315,11 +321,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "prefs/minutesBetweenSummaries",
-        "tool_parameter_name": "update_interval_minutes",
+        "tool_parameter_name": "summary_notification_interval",
         "description": "`-1` for disabled, `1`, or `60`",
         "value_schema": {
           "val_type": "integer",
@@ -332,11 +339,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "member_identifier",
+        "tool_parameter_name": "member_id_or_username",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",
@@ -349,6 +357,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -370,6 +379,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

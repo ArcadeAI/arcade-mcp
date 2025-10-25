@@ -1,18 +1,18 @@
 {
   "name": "UpdateTrelloLabel",
-  "fully_qualified_name": "TrelloApi.UpdateTrelloLabel@0.1.0",
-  "description": "Update a Trello label by its ID.\n\nUse this tool to update the details of a specific Trello label using its ID. Useful for changing label attributes such as name or color.",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloLabel@2.0.0",
+  "description": "Update Trello label details using its ID.\n\nUse this tool to update the details of a specific Trello label by providing its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "label_id",
         "required": true,
-        "description": "The unique ID of the Trello label to update.",
+        "description": "The unique identifier for the Trello label to update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "name"
       },
       {
-        "name": "new_label_color",
+        "name": "label_color",
         "required": false,
-        "description": "The desired new color for the Trello label. Choose from options: yellow, purple, blue, red, green, orange, black, sky, pink, lime.",
+        "description": "Specify the new color for the label. Allowed colors: yellow, purple, blue, red, green, orange, black, sky, pink, lime.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -98,13 +98,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/labels/{id}",
@@ -126,11 +126,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "color",
-        "tool_parameter_name": "new_label_color",
+        "tool_parameter_name": "label_color",
         "description": "The new color for the label. See: [fields](/cloud/trello/guides/rest-api/object-definitions/) for color options",
         "value_schema": {
           "val_type": "string",
@@ -154,6 +155,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -171,6 +173,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -192,6 +195,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

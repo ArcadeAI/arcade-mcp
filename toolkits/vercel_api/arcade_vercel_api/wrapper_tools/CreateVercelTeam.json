@@ -1,0 +1,370 @@
+{
+  "name": "CreateVercelTeam",
+  "fully_qualified_name": "VercelApi.CreateVercelTeam@0.1.0",
+  "description": "Create a new team in your Vercel account.\n\nUse this tool to create a new team under your Vercel account by specifying a team slug, and optionally a team name. This is useful for organizing projects and members under a unified group.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_slug",
+        "required": true,
+        "description": "The desired slug for the new team, used as a team identifier.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The desired slug for the Team"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "team_name",
+        "required": false,
+        "description": "The desired name for the Team. If not provided, it will be generated from the slug.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The desired name for the Team. It will be generated from the provided slug if nothing is provided"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "session_referrer",
+        "required": false,
+        "description": "Referrer URL for the session initiating the team creation process.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Session referrer"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attribution.sessionReferrer"
+      },
+      {
+        "name": "session_landing_page",
+        "required": false,
+        "description": "The URL of the landing page where the session started. This is used for session attribution on Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Session landing page"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attribution.landingPage"
+      },
+      {
+        "name": "signup_referrer_page",
+        "required": false,
+        "description": "The referrer URL of the page before the signup page, used for tracking attribution.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Referrer to the signup page"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attribution.pageBeforeConversionPage"
+      },
+      {
+        "name": "utm_source",
+        "required": false,
+        "description": "The UTM source identifier, indicating where the traffic originates from, such as a search engine or newsletter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UTM source"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attribution.utm.utmSource"
+      },
+      {
+        "name": "utm_medium",
+        "required": false,
+        "description": "The medium through which the user arrived, such as email, social, or cpc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UTM medium"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attribution.utm.utmMedium"
+      },
+      {
+        "name": "utm_campaign_name",
+        "required": false,
+        "description": "Specifies the UTM campaign name for tracking purposes when creating a team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UTM campaign"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attribution.utm.utmCampaign"
+      },
+      {
+        "name": "utm_term",
+        "required": false,
+        "description": "The UTM term used for tracking specific keywords in marketing campaigns.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UTM term"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attribution.utm.utmTerm"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/teams",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The desired slug for the Team",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The desired slug for the Team"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "team_name",
+        "description": "The desired name for the Team. It will be generated from the provided slug if nothing is provided",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The desired name for the Team. It will be generated from the provided slug if nothing is provided"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attribution.sessionReferrer",
+        "tool_parameter_name": "session_referrer",
+        "description": "Session referrer",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Session referrer"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attribution.landingPage",
+        "tool_parameter_name": "session_landing_page",
+        "description": "Session landing page",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Session landing page"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attribution.pageBeforeConversionPage",
+        "tool_parameter_name": "signup_referrer_page",
+        "description": "Referrer to the signup page",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Referrer to the signup page"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attribution.utm.utmSource",
+        "tool_parameter_name": "utm_source",
+        "description": "UTM source",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UTM source"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attribution.utm.utmMedium",
+        "tool_parameter_name": "utm_medium",
+        "description": "UTM medium",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UTM medium"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attribution.utm.utmCampaign",
+        "tool_parameter_name": "utm_campaign_name",
+        "description": "UTM campaign",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UTM campaign"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attribution.utm.utmTerm",
+        "tool_parameter_name": "utm_term",
+        "description": "UTM term",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UTM term"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"slug\"\n        ],\n        \"properties\": {\n          \"slug\": {\n            \"example\": \"a-random-team\",\n            \"description\": \"The desired slug for the Team\",\n            \"type\": \"string\",\n            \"maxLength\": 48\n          },\n          \"name\": {\n            \"example\": \"A Random Team\",\n            \"description\": \"The desired name for the Team. It will be generated from the provided slug if nothing is provided\",\n            \"type\": \"string\",\n            \"maxLength\": 256\n          },\n          \"attribution\": {\n            \"type\": \"object\",\n            \"description\": \"Attribution information for the session or current page\",\n            \"properties\": {\n              \"sessionReferrer\": {\n                \"type\": \"string\",\n                \"description\": \"Session referrer\"\n              },\n              \"landingPage\": {\n                \"type\": \"string\",\n                \"description\": \"Session landing page\"\n              },\n              \"pageBeforeConversionPage\": {\n                \"type\": \"string\",\n                \"description\": \"Referrer to the signup page\"\n              },\n              \"utm\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"utmSource\": {\n                    \"type\": \"string\",\n                    \"description\": \"UTM source\"\n                  },\n                  \"utmMedium\": {\n                    \"type\": \"string\",\n                    \"description\": \"UTM medium\"\n                  },\n                  \"utmCampaign\": {\n                    \"type\": \"string\",\n                    \"description\": \"UTM campaign\"\n                  },\n                  \"utmTerm\": {\n                    \"type\": \"string\",\n                    \"description\": \"UTM term\"\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

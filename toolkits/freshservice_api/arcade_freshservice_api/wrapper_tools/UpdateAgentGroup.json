@@ -1,0 +1,374 @@
+{
+  "name": "UpdateAgentGroup",
+  "fully_qualified_name": "FreshserviceApi.UpdateAgentGroup@1.0.0",
+  "description": "Update an existing Agent Group in Freshservice.\n\nThis tool updates an existing agent group in Freshservice. It should be called when modifications to group details are required.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "agent_group_id",
+        "required": true,
+        "description": "The unique identifier of the agent group to update. This should be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of agent group to retrieve"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "agent_group_id"
+      },
+      {
+        "name": "agent_group_update_details",
+        "required": true,
+        "description": "JSON object containing details of the agent group to update, including id, name, description, business hours, escalation settings, members, and other properties.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent group"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the agent group"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the agent group"
+            },
+            "business_hours_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the business hours configuration associated with the group"
+            },
+            "escalate_to": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Unique ID of the user to whom an escalation email is sent if a ticket in this group is unassigned. To create/update a group with an escalate_to value of \u2018none\u2019, please set the value of this parameter to \u2018null\u2019."
+            },
+            "agent_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<DEPRECATED> Array of user IDs of agents who belong to the group."
+            },
+            "members": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of user IDs of agents who are members of the group."
+            },
+            "observers": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of user IDs of agents who are observers of the group."
+            },
+            "group_leaders": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of user IDs of agents who are leaders of the group."
+            },
+            "auto_ticket_assign": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Describes the automatic ticket assignment type. Will not be supported if the \"Round Robin\" feature is disabled for the account. Set to true if automatic ticket assignment is enabled, and false otherwise."
+            },
+            "restricted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Signifies whether the group is a resricted group"
+            },
+            "approval_required": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Signifies whether approval is required from group leaders to add agents to the group, delete the group, disable restricted mode on the group, or disable approvals."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the agent group was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the agent group was last modified"
+            }
+          },
+          "inner_properties": null,
+          "description": "Agent group that needs to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-agent-group'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/agent_groups/{agent_group_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "agent_group_id",
+        "tool_parameter_name": "agent_group_id",
+        "description": "ID of agent group to retrieve",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of agent group to retrieve"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "agent_group_update_details",
+        "description": "Agent group that needs to be updated",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent group"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the agent group"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the agent group"
+            },
+            "business_hours_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the business hours configuration associated with the group"
+            },
+            "escalate_to": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Unique ID of the user to whom an escalation email is sent if a ticket in this group is unassigned. To create/update a group with an escalate_to value of \u2018none\u2019, please set the value of this parameter to \u2018null\u2019."
+            },
+            "agent_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<DEPRECATED> Array of user IDs of agents who belong to the group."
+            },
+            "members": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of user IDs of agents who are members of the group."
+            },
+            "observers": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of user IDs of agents who are observers of the group."
+            },
+            "group_leaders": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of user IDs of agents who are leaders of the group."
+            },
+            "auto_ticket_assign": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Describes the automatic ticket assignment type. Will not be supported if the \"Round Robin\" feature is disabled for the account. Set to true if automatic ticket assignment is enabled, and false otherwise."
+            },
+            "restricted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Signifies whether the group is a resricted group"
+            },
+            "approval_required": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Signifies whether approval is required from group leaders to add agents to the group, delete the group, disable restricted mode on the group, or disable approvals."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the agent group was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the agent group was last modified"
+            }
+          },
+          "inner_properties": null,
+          "description": "Agent group that needs to be updated"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Agent group that needs to be updated\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the agent group\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 12345\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the agent group\",\n            \"example\": \"Analysts\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description about the agent group\",\n            \"example\": \"IT Analysts Agent group\"\n          },\n          \"business_hours_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the business hours configuration associated with the group\",\n            \"format\": \"int64\",\n            \"example\": 3458\n          },\n          \"escalate_to\": {\n            \"type\": \"integer\",\n            \"description\": \"The Unique ID of the user to whom an escalation email is sent if a ticket in this group is unassigned. To create/update a group with an escalate_to value of \\u2018none\\u2019, please set the value of this parameter to \\u2018null\\u2019.\",\n            \"format\": \"int64\",\n            \"example\": 234123423\n          },\n          \"agent_ids\": {\n            \"type\": \"array\",\n            \"description\": \"<DEPRECATED> Array of user IDs of agents who belong to the group.\",\n            \"example\": [\n              \"2342342\",\n              \"9943044\"\n            ],\n            \"items\": {\n              \"type\": \"string\",\n              \"format\": \"int64\"\n            }\n          },\n          \"members\": {\n            \"type\": \"array\",\n            \"description\": \"Array of user IDs of agents who are members of the group.\",\n            \"example\": [\n              \"9284729\",\n              \"9349857\"\n            ],\n            \"items\": {\n              \"type\": \"string\",\n              \"format\": \"int64\"\n            }\n          },\n          \"observers\": {\n            \"type\": \"array\",\n            \"description\": \"Array of user IDs of agents who are observers of the group.\",\n            \"example\": [\n              \"3457384\",\n              \"9827342\"\n            ],\n            \"items\": {\n              \"type\": \"string\",\n              \"format\": \"int64\"\n            }\n          },\n          \"group_leaders\": {\n            \"type\": \"array\",\n            \"description\": \"Array of user IDs of agents who are leaders of the group.\",\n            \"example\": [\n              \"4785820\",\n              \"5672910\"\n            ],\n            \"items\": {\n              \"type\": \"string\",\n              \"format\": \"int64\"\n            }\n          },\n          \"auto_ticket_assign\": {\n            \"type\": \"boolean\",\n            \"description\": \"Describes the automatic ticket assignment type. Will not be supported if the \\\"Round Robin\\\" feature is disabled for the account. Set to true if automatic ticket assignment is enabled, and false otherwise.\",\n            \"example\": true\n          },\n          \"restricted\": {\n            \"type\": \"boolean\",\n            \"description\": \"Signifies whether the group is a resricted group\",\n            \"example\": true\n          },\n          \"approval_required\": {\n            \"type\": \"boolean\",\n            \"description\": \"Signifies whether approval is required from group leaders to add agents to the group, delete the group, disable restricted mode on the group, or disable approvals.\",\n            \"example\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the agent group was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-19T06:24:30Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the agent group was last modified\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-19T06:24:30Z\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

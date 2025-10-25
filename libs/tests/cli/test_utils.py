@@ -239,12 +239,14 @@ def test_compute_login_url(inputs: dict, expected_output: str):
     assert login_url == expected_output
 
 
-def test_resolve_provider_api_key():
+def test_resolve_provider_api_key(monkeypatch):
     resolved_api_key = resolve_provider_api_key(Provider.OPENAI, "123")
     assert resolved_api_key == "123"
 
     resolved_api_key = resolve_provider_api_key("not-a-provider", None)
     assert resolved_api_key is None
 
+    # Ensure OPENAI_API_KEY is not set in the environment for this test
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     resolved_api_key = resolve_provider_api_key(Provider.OPENAI, None)
     assert resolved_api_key is None

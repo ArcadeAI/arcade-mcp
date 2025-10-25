@@ -1,18 +1,18 @@
 {
   "name": "RetrieveMerchantInfo",
-  "fully_qualified_name": "SquareupApi.RetrieveMerchantInfo@0.1.0",
-  "description": "Retrieve details of a specific merchant using merchant ID.\n\nUse this tool to obtain the `Merchant` object details by providing the `merchant_id`. It should be called when users need specific information about a merchant via their unique ID.",
+  "fully_qualified_name": "SquareupApi.RetrieveMerchantInfo@2.0.0",
+  "description": "Retrieve merchant details using their ID.\n\nUse this tool to get comprehensive information about a merchant by providing the merchant ID. This is useful for obtaining merchant-specific data, such as business details or other relevant merchant information.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "merchant_id",
         "required": true,
-        "description": "The unique ID of the merchant to retrieve. Use 'me' to access the current accessible merchant.",
+        "description": "The ID of the merchant to retrieve. Use 'me' to get the merchant accessible to this call.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/merchants/{merchant_id}",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

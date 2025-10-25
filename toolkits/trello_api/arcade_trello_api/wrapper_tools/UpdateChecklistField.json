@@ -1,18 +1,18 @@
 {
   "name": "UpdateChecklistField",
-  "fully_qualified_name": "TrelloApi.UpdateChecklistField@0.1.0",
-  "description": "Update a specific field on a Trello checklist.\n\nUse this tool to update a specific field on a Trello checklist by providing the checklist ID and the field to be updated.",
+  "fully_qualified_name": "TrelloApi.UpdateChecklistField@2.0.0",
+  "description": "Updates a specific field of a checklist on Trello.\n\nThis tool updates a specified field on an existing checklist in Trello by its ID. It should be used when modifications to checklist attributes are needed.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "checklist_name_update_value",
+        "name": "checklist_name_value",
         "required": true,
-        "description": "The new name for the checklist. Must be a string between 1 and 16384 characters.",
+        "description": "The new name for the checklist. Must be a string of length 1 to 16384.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "checklist_id",
         "required": true,
-        "description": "The unique identifier of the checklist to update.",
+        "description": "ID of the checklist to be updated. This is required to specify which checklist field to modify.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "field_to_update",
+        "name": "checklist_field",
         "required": true,
-        "description": "Specify the checklist field to update, either 'name' or 'pos'.",
+        "description": "Specify the checklist field to update. Options are 'name' or 'pos'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -90,13 +90,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/checklists/{id}/{field}",
@@ -105,7 +105,7 @@
     "parameters": [
       {
         "name": "value",
-        "tool_parameter_name": "checklist_name_update_value",
+        "tool_parameter_name": "checklist_name_value",
         "description": "The value to change the checklist name to. Should be a string of length 1 to 16384.",
         "value_schema": {
           "val_type": "string",
@@ -118,6 +118,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -135,11 +136,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "field",
-        "tool_parameter_name": "field_to_update",
+        "tool_parameter_name": "checklist_field",
         "description": "Field to update.",
         "value_schema": {
           "val_type": "string",
@@ -155,6 +157,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -176,6 +179,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "UpdateTrelloChecklist",
-  "fully_qualified_name": "TrelloApi.UpdateTrelloChecklist@0.1.0",
-  "description": "Update an existing Trello checklist.\n\nUse this tool to update the details of an existing checklist on Trello. It is useful when modifications to the checklist content or status are required.",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloChecklist@2.0.0",
+  "description": "Update an existing checklist on Trello.\n\nUse this tool to update an existing checklist in Trello. Typically called when checklist modifications are needed, such as changing item details or statuses.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "checklist_id",
         "required": true,
-        "description": "The unique identifier for the checklist to be updated.",
+        "description": "ID of the checklist to update on Trello. This is required to specify which checklist needs updating.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "checklist_name",
         "required": false,
-        "description": "Name of the checklist being created or updated. Must be between 1 and 16384 characters.",
+        "description": "Name of the checklist to update. Must be 1 to 16,384 characters long.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "checklist_position",
         "required": false,
-        "description": "Defines the position of the checklist on the card: 'top', 'bottom', or a positive number.",
+        "description": "Specify the position of the checklist on the card. Options are `top`, `bottom`, or a positive number indicating the precise position.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/checklists/{id}",
@@ -115,6 +115,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -132,6 +133,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -149,6 +151,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -170,6 +173,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

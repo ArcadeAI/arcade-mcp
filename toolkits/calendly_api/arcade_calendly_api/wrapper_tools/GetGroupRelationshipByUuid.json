@@ -1,18 +1,18 @@
 {
   "name": "GetGroupRelationshipByUuid",
-  "fully_qualified_name": "CalendlyApi.GetGroupRelationshipByUuid@0.1.0",
-  "description": "Retrieve a group relationship using its UUID.\n\nUse this tool to get details about a specific group relationship by providing its UUID. It is useful for obtaining information about group connections within Calendly.",
+  "fully_qualified_name": "CalendlyApi.GetGroupRelationshipByUuid@2.0.0",
+  "description": "Retrieve group relationship details using a UUID.\n\nThis tool fetches the details of a group relationship in Calendly by using the unique identifier (UUID). Use it when you need to access specific group relationship information.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "group_relationship_uuid",
         "required": true,
-        "description": "The UUID of the group relationship to retrieve details for. This is a unique identifier for the group within Calendly.",
+        "description": "The unique identifier (UUID) of the group relationship to retrieve details for. Use this to specify which relationship to fetch.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/group_relationships/{uuid}",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

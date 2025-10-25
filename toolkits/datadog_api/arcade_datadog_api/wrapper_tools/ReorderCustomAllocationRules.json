@@ -1,0 +1,182 @@
+{
+  "name": "ReorderCustomAllocationRules",
+  "fully_qualified_name": "DatadogApi.ReorderCustomAllocationRules@0.1.0",
+  "description": "Change execution order of custom allocation rules in Datadog.\n\nUse this tool to reorder custom allocation rules by specifying the complete list of rule IDs in the desired sequence. Lower indices are executed first, so arrange them according to priority.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "rules_order_list",
+        "required": true,
+        "description": "A JSON array of rule objects specifying the complete and desired execution order of custom allocation rules. Each object must include an 'id' of the rule and 'type' set to 'arbitrary_rule'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `ReorderRuleResourceData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "arbitrary_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Arbitrary rule resource type."
+                }
+              },
+              "description": "The `ReorderRuleResourceArray` `data`."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ReorderCustomAllocationRules'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/arbitrary_rule/reorder",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "rules_order_list",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `ReorderRuleResourceData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "arbitrary_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Arbitrary rule resource type."
+                }
+              },
+              "description": "The `ReorderRuleResourceArray` `data`."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The definition of `ReorderRuleResourceArray` object.\",\n        \"example\": {\n          \"data\": [\n            {\n              \"id\": \"456\",\n              \"type\": \"arbitrary_rule\"\n            },\n            {\n              \"id\": \"123\",\n              \"type\": \"arbitrary_rule\"\n            },\n            {\n              \"id\": \"789\",\n              \"type\": \"arbitrary_rule\"\n            }\n          ]\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The `ReorderRuleResourceArray` `data`.\",\n            \"items\": {\n              \"description\": \"The definition of `ReorderRuleResourceData` object.\",\n              \"properties\": {\n                \"id\": {\n                  \"description\": \"The `ReorderRuleResourceData` `id`.\",\n                  \"type\": \"string\"\n                },\n                \"type\": {\n                  \"default\": \"arbitrary_rule\",\n                  \"description\": \"Arbitrary rule resource type.\",\n                  \"enum\": [\n                    \"arbitrary_rule\"\n                  ],\n                  \"example\": \"arbitrary_rule\",\n                  \"type\": \"string\",\n                  \"x-enum-varnames\": [\n                    \"ARBITRARY_RULE\"\n                  ]\n                }\n              },\n              \"required\": [\n                \"type\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

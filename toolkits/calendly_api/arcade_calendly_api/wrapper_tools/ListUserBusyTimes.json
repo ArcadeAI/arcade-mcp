@@ -1,11 +1,11 @@
 {
   "name": "ListUserBusyTimes",
-  "fully_qualified_name": "CalendlyApi.ListUserBusyTimes@0.1.0",
-  "description": "Retrieve user's scheduled events in a date range.\n\nGet an ascending list of user's internal and external events within a specified date range, up to 7 days. External events are returned for configured calendars only.",
+  "fully_qualified_name": "CalendlyApi.ListUserBusyTimes@2.0.0",
+  "description": "Retrieve user's scheduled events within a specific date range.\n\nUse this tool to obtain an ascending list of all internal and external events scheduled for a user within a specified date range, up to 7 days. External events are returned only if calendars are set to \"Check for conflicts.\" This tool is helpful for checking availability or scheduling new events based on the user's current commitments.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
@@ -27,7 +27,7 @@
       {
         "name": "availability_start_time",
         "required": true,
-        "description": "Start time of the requested availability range. The date cannot be in the past and must be formatted correctly.",
+        "description": "Start time for the availability range. The date must not be in the past.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "start_time"
       },
       {
-        "name": "availability_end_time",
+        "name": "end_time",
         "required": true,
-        "description": "End time for the requested availability range; must be after the start time.",
+        "description": "End time for the requested availability range, must be after the start_time.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/user_busy_times",
@@ -113,6 +113,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -130,11 +131,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "end_time",
-        "tool_parameter_name": "availability_end_time",
+        "tool_parameter_name": "end_time",
         "description": "End time of the requested availability range. Date must be in the future of start_time.",
         "value_schema": {
           "val_type": "string",
@@ -147,6 +149,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -160,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

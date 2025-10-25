@@ -1,0 +1,186 @@
+{
+  "name": "ResumeSubscription",
+  "fully_qualified_name": "SquareupApi.ResumeSubscription@2.0.0",
+  "description": "Resume a paused or deactivated subscription.\n\nUse this tool to schedule a resume action for subscriptions that are currently paused or deactivated.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "required": true,
+        "description": "The ID of the subscription to resume. Provide a valid subscription ID string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the subscription to resume."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription_id"
+      },
+      {
+        "name": "subscription_resume_effective_date",
+        "required": false,
+        "description": "The `YYYY-MM-DD`-formatted date when the subscription is reactivated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `YYYY-MM-DD`-formatted date when the subscription reactivated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "resume_effective_date"
+      },
+      {
+        "name": "resume_change_timing",
+        "required": false,
+        "description": "Specify when the pending change to resume the subscription takes effect. Choose between 'IMMEDIATE' or 'END_OF_BILLING_CYCLE'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "IMMEDIATE",
+            "END_OF_BILLING_CYCLE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Supported timings when a pending change, as an action, takes place to a subscription."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "resume_change_timing"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ResumeSubscription'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ITEMS_READ",
+          "INVOICES_WRITE",
+          "CUSTOMERS_READ",
+          "SUBSCRIPTIONS_WRITE",
+          "ORDERS_WRITE",
+          "PAYMENTS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/subscriptions/{subscription_id}/resume",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "tool_parameter_name": "subscription_id",
+        "description": "The ID of the subscription to resume.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the subscription to resume."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "resume_effective_date",
+        "tool_parameter_name": "subscription_resume_effective_date",
+        "description": "The `YYYY-MM-DD`-formatted date when the subscription reactivated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `YYYY-MM-DD`-formatted date when the subscription reactivated."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "resume_change_timing",
+        "tool_parameter_name": "resume_change_timing",
+        "description": "Supported timings when a pending change, as an action, takes place to a subscription.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "IMMEDIATE",
+            "END_OF_BILLING_CYCLE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Supported timings when a pending change, as an action, takes place to a subscription."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines input parameters in a request to the\\n[ResumeSubscription](api-endpoint:Subscriptions-ResumeSubscription) endpoint.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"resume_effective_date\": {\n            \"type\": \"string\",\n            \"description\": \"The `YYYY-MM-DD`-formatted date when the subscription reactivated.\",\n            \"x-release-status\": \"BETA\",\n            \"nullable\": true\n          },\n          \"resume_change_timing\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"IMMEDIATE\",\n              \"END_OF_BILLING_CYCLE\"\n            ],\n            \"x-enum-elements\": [\n              {\n                \"name\": \"IMMEDIATE\",\n                \"description\": \"The action occurs immediately.\"\n              },\n              {\n                \"name\": \"END_OF_BILLING_CYCLE\",\n                \"description\": \"The action occurs at the end of the billing cycle.\"\n              }\n            ],\n            \"description\": \"Supported timings when a pending change, as an action, takes place to a subscription.\",\n            \"x-release-status\": \"BETA\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

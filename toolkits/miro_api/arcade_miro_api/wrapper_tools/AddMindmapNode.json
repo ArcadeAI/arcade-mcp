@@ -1,0 +1,303 @@
+{
+  "name": "AddMindmapNode",
+  "fully_qualified_name": "MiroApi.AddMindmapNode@2.0.0",
+  "description": "Add a new mind map node to a Miro board.\n\nThis tool adds a new node to a mind map on a Miro board. It can create root or child nodes with specified x, y coordinates for positioning. Use it when you want to expand a mind map with additional nodes on a specified board.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "Unique identifier (ID) of the board where the new mind map node will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to create the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "node_type",
+        "required": false,
+        "description": "Specifies the type of mind map node. Use 'text' as the current valid type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of item used as mind map node. Currently, `type` can only be equal to `text`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.nodeView.data.type"
+      },
+      {
+        "name": "mindmap_node_content",
+        "required": false,
+        "description": "The text content to display within the mind map node.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The actual text (content) that appears in the mind map node."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.nodeView.data.content"
+      },
+      {
+        "name": "x_coordinate",
+        "required": false,
+        "description": "X-axis coordinate for node placement on the board. Defaults to `0`, placing the node at the center along the x-axis.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position.x"
+      },
+      {
+        "name": "y_coordinate",
+        "required": false,
+        "description": "Y-coordinate for item placement on the board. Defaults to 0 if not specified, placing it at the board's center.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position.y"
+      },
+      {
+        "name": "node_width_pixels",
+        "required": false,
+        "description": "Width of the mind map node in pixels. Specifies how wide the node will appear on the board.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Width of the item, in pixels."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "geometry.width"
+      },
+      {
+        "name": "parent_frame_id",
+        "required": false,
+        "description": "Unique identifier (ID) of the parent node or frame for the mind map node.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the parent frame for the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parent.id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-mindmap-nodes-experimental'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2-experimental/boards/{board_id}/mindmap_nodes",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_id",
+        "description": "Unique identifier (ID) of the board where you want to create the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to create the item."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.nodeView.data.type",
+        "tool_parameter_name": "node_type",
+        "description": "Type of item used as mind map node. Currently, `type` can only be equal to `text`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of item used as mind map node. Currently, `type` can only be equal to `text`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.nodeView.data.content",
+        "tool_parameter_name": "mindmap_node_content",
+        "description": "The actual text (content) that appears in the mind map node.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The actual text (content) that appears in the mind map node."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "position.x",
+        "tool_parameter_name": "x_coordinate",
+        "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "position.y",
+        "tool_parameter_name": "y_coordinate",
+        "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "geometry.width",
+        "tool_parameter_name": "node_width_pixels",
+        "description": "Width of the item, in pixels.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Width of the item, in pixels."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "parent.id",
+        "tool_parameter_name": "parent_frame_id",
+        "description": "Unique identifier (ID) of the parent frame for the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the parent frame for the item."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"description\": \"Contains mind map node data, such as the title, content, or description.\",\n            \"properties\": {\n              \"nodeView\": {\n                \"type\": \"object\",\n                \"description\": \"Contains information like data about the mind map node.\",\n                \"properties\": {\n                  \"data\": {\n                    \"type\": \"object\",\n                    \"description\": \"Contains the information about the mind map text.\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"description\": \"Type of item used as mind map node. Currently, `type` can only be equal to `text`.\",\n                        \"example\": \"text\"\n                      },\n                      \"content\": {\n                        \"type\": \"string\",\n                        \"description\": \"The actual text (content) that appears in the mind map node.\",\n                        \"example\": \"Sample text\"\n                      }\n                    },\n                    \"required\": [\n                      \"type\"\n                    ]\n                  }\n                }\n              }\n            },\n            \"required\": [\n              \"nodeView\"\n            ]\n          },\n          \"position\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates.\",\n            \"properties\": {\n              \"x\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"X-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              },\n              \"y\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Y-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              }\n            }\n          },\n          \"geometry\": {\n            \"type\": \"object\",\n            \"description\": \"Contains width of the item.\",\n            \"properties\": {\n              \"width\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Width of the item, in pixels.\",\n                \"example\": 320\n              }\n            }\n          },\n          \"parent\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the parent frame for the item.\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"format\": \"int64\",\n                \"description\": \"Unique identifier (ID) of the parent frame for the item.\",\n                \"example\": \"3074457362577955300\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"data\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

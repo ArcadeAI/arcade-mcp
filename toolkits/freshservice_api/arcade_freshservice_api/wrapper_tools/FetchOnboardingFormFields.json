@@ -1,0 +1,417 @@
+{
+  "name": "FetchOnboardingFormFields",
+  "fully_qualified_name": "FreshserviceApi.FetchOnboardingFormFields@1.0.0",
+  "description": "Retrieve all fields from the onboarding request form.\n\nUse this tool to get a list of fields contained in the onboarding initiator form via Freshservice.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "onboarding_form_request_body",
+        "required": false,
+        "description": "A JSON structure defining fields for the onboarding initiator form, including placeholder, label, name, position, whether it's required, default values, field type, dynamic sections, choices, and sections.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "placeholder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "position": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "required": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "default": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "field_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dynamic_sections": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "choices": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            },
+            "sections": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "section_fields": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "placeholder": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "label": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "position": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "required": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "default": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "field_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "data_source": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-onboarding-request-form'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/onboarding_requests/form",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "onboarding_form_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "placeholder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "position": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "required": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "default": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "field_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dynamic_sections": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "choices": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            },
+            "sections": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "section_fields": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "placeholder": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "label": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "position": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "required": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "default": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "field_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "data_source": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": "{\n  \"content\": {\n    \"*/*\": {\n      \"schema\": {\n        \"required\": [\n          \"choices\",\n          \"default\",\n          \"dynamic_sections\",\n          \"field_type\",\n          \"label\",\n          \"name\",\n          \"placeholder\",\n          \"position\",\n          \"required\",\n          \"sections\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"placeholder\": {\n            \"minLength\": 1,\n            \"type\": \"string\"\n          },\n          \"label\": {\n            \"minLength\": 1,\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"minLength\": 1,\n            \"type\": \"string\"\n          },\n          \"position\": {\n            \"type\": \"number\"\n          },\n          \"required\": {\n            \"type\": \"boolean\"\n          },\n          \"default\": {\n            \"type\": \"boolean\"\n          },\n          \"field_type\": {\n            \"minLength\": 1,\n            \"type\": \"string\"\n          },\n          \"dynamic_sections\": {\n            \"type\": \"boolean\"\n          },\n          \"choices\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {}\n            }\n          },\n          \"sections\": {\n            \"minItems\": 1,\n            \"uniqueItems\": true,\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"values\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {}\n                  }\n                },\n                \"section_fields\": {\n                  \"minItems\": 1,\n                  \"uniqueItems\": true,\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"required\": [\n                      \"data_source\",\n                      \"default\",\n                      \"field_type\",\n                      \"label\",\n                      \"name\",\n                      \"placeholder\",\n                      \"position\",\n                      \"required\"\n                    ],\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"placeholder\": {\n                        \"type\": \"string\"\n                      },\n                      \"label\": {\n                        \"minLength\": 1,\n                        \"type\": \"string\"\n                      },\n                      \"name\": {\n                        \"minLength\": 1,\n                        \"type\": \"string\"\n                      },\n                      \"position\": {\n                        \"type\": \"number\"\n                      },\n                      \"required\": {\n                        \"type\": \"boolean\"\n                      },\n                      \"default\": {\n                        \"type\": \"boolean\"\n                      },\n                      \"field_type\": {\n                        \"minLength\": 1,\n                        \"type\": \"string\"\n                      },\n                      \"data_source\": {\n                        \"type\": \"number\"\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          }\n        },\n        \"description\": \"\",\n        \"x-examples\": {\n          \"example-1\": {\n            \"placeholder\": \"Enter Heirachy\",\n            \"label\": \"Hierarchy\",\n            \"name\": \"cf_hierarchy\",\n            \"position\": 10,\n            \"required\": false,\n            \"default\": false,\n            \"field_type\": \"custom_dropdown\",\n            \"dynamic_sections\": true,\n            \"choices\": [\n              \"L3\",\n              \"L2\",\n              \"L1\"\n            ],\n            \"sections\": [\n              {\n                \"values\": [\n                  \"L3\",\n                  \"L2\"\n                ],\n                \"section_fields\": [\n                  {\n                    \"placeholder\": \"\",\n                    \"label\": \"Assets\",\n                    \"name\": \"cf_assets\",\n                    \"position\": 1,\n                    \"required\": false,\n                    \"default\": false,\n                    \"field_type\": \"custom_lookup_bigint\",\n                    \"data_source\": 4\n                  },\n                  {\n                    \"placeholder\": \"Select Location\",\n                    \"label\": \"Location\",\n                    \"name\": \"cf_location\",\n                    \"position\": 2,\n                    \"required\": false,\n                    \"default\": false,\n                    \"field_type\": \"custom_lookup_bigint\",\n                    \"data_source\": 1\n                  }\n                ]\n              },\n              {\n                \"values\": [\n                  \"L1\"\n                ],\n                \"section_fields\": [\n                  {\n                    \"placeholder\": \"\",\n                    \"label\": \"Assets_2\",\n                    \"name\": \"cf_asset2_@\",\n                    \"position\": 1,\n                    \"required\": false,\n                    \"default\": false,\n                    \"field_type\": \"custom_lookup_bigint\",\n                    \"data_source\": 4\n                  },\n                  {\n                    \"placeholder\": \"Select Location\",\n                    \"label\": \"Location_2\",\n                    \"name\": \"cf_location_2\",\n                    \"position\": 2,\n                    \"required\": false,\n                    \"default\": false,\n                    \"field_type\": \"custom_lookup_bigint\",\n                    \"data_source\": 1\n                  }\n                ]\n              }\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

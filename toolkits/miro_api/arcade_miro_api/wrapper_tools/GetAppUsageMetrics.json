@@ -1,0 +1,212 @@
+{
+  "name": "GetAppUsageMetrics",
+  "fully_qualified_name": "MiroApi.GetAppUsageMetrics@2.0.0",
+  "description": "Retrieve usage metrics for a specific app over a time range.\n\nThis tool is used to obtain usage metrics for a specific app within a defined time period. It requires an app management API token and the 'boards:read' scope. Useful for monitoring app performance and usage patterns.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_date_utc",
+        "required": true,
+        "description": "Start date of the period in UTC format (e.g., 2024-12-31).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date of the period in UTC format. For example, 2024-12-31."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "startDate"
+      },
+      {
+        "name": "end_date",
+        "required": true,
+        "description": "End date of the period in UTC format, e.g., 2024-12-31.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date of the period in UTC format. For example, 2024-12-31."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "endDate"
+      },
+      {
+        "name": "application_id",
+        "required": true,
+        "description": "The ID of the app to retrieve metrics for. Provide a valid app ID to obtain usage data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the app to get metrics for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "app_id"
+      },
+      {
+        "name": "group_data_by_period",
+        "required": false,
+        "description": "Specify the time period for grouping data: 'DAY', 'WEEK', or 'MONTH'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DAY",
+            "WEEK",
+            "MONTH"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Group data by this time period."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "period"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-metrics'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2-experimental/apps/{app_id}/metrics",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "startDate",
+        "tool_parameter_name": "start_date_utc",
+        "description": "Start date of the period in UTC format. For example, 2024-12-31.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date of the period in UTC format. For example, 2024-12-31."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "endDate",
+        "tool_parameter_name": "end_date",
+        "description": "End date of the period in UTC format. For example, 2024-12-31.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date of the period in UTC format. For example, 2024-12-31."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "period",
+        "tool_parameter_name": "group_data_by_period",
+        "description": "Group data by this time period.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DAY",
+            "WEEK",
+            "MONTH"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Group data by this time period."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "WEEK",
+        "documentation_urls": []
+      },
+      {
+        "name": "app_id",
+        "tool_parameter_name": "application_id",
+        "description": "ID of the app to get metrics for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the app to get metrics for."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

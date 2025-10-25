@@ -1,0 +1,157 @@
+{
+  "name": "ListCsatSurveys",
+  "fully_qualified_name": "FreshserviceApi.ListCsatSurveys@1.0.0",
+  "description": "Retrieve a list of all CSAT surveys in Freshservice.\n\nThis tool should be called to get an overview of all Customer Satisfaction (CSAT) surveys available in the Freshservice platform.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_active_surveys",
+        "required": false,
+        "description": "Filter to return only active (1) or inactive (0) surveys.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to filter out active / inactive surveys. E.g. Passing the parameter active=1 will list the active survey."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "active"
+      },
+      {
+        "name": "entries_per_page",
+        "required": false,
+        "description": "Specify the number of survey entries to retrieve per page in a paginated list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of entries to retrieve in each page of a paginated list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "retrieve_page_number",
+        "required": false,
+        "description": "Specify the page number of CSAT surveys to retrieve from the list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-surveys'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/surveys",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "active",
+        "tool_parameter_name": "filter_active_surveys",
+        "description": "Query param to filter out active / inactive surveys. E.g. Passing the parameter active=1 will list the active survey.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to filter out active / inactive surveys. E.g. Passing the parameter active=1 will list the active survey."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "entries_per_page",
+        "description": "The number of entries to retrieve in each page of a paginated list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of entries to retrieve in each page of a paginated list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "retrieve_page_number",
+        "description": "The page number to retrieve.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

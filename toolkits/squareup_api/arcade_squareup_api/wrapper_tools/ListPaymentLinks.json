@@ -1,18 +1,18 @@
 {
   "name": "ListPaymentLinks",
-  "fully_qualified_name": "SquareupApi.ListPaymentLinks@0.1.0",
-  "description": "Retrieve all available payment links from Squareup.\n\nUse this tool to list all payment links generated in your Squareup account. It helps in managing and reviewing payment links efficiently.",
+  "fully_qualified_name": "SquareupApi.ListPaymentLinks@2.0.0",
+  "description": "Lists all online payment links for Squareup.\n\nUse this tool to retrieve a list of all payment links created in Squareup's online checkout system.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A string cursor for paginating results. Use it to fetch the next set of results from a previous query. Leave blank to get the first page.",
+        "description": "A pagination cursor from a previous call to fetch the next set of results. If not provided, returns the first page.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "results_per_page_limit",
         "required": false,
-        "description": "Sets the maximum number of payment links to return per page. Defaults to 100, ignored if negative or exceeds 1000.",
+        "description": "Advisory limit on number of results per page. Ignored if negative, zero, or over 1000. Defaults to 100.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/online-checkout/payment-links",
@@ -102,6 +102,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -119,6 +120,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

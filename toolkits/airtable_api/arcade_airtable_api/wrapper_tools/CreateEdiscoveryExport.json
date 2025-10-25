@@ -1,0 +1,192 @@
+{
+  "name": "CreateEdiscoveryExport",
+  "fully_qualified_name": "AirtableApi.CreateEdiscoveryExport@2.0.0",
+  "description": "Initiate an eDiscovery export request.\n\nUse this tool to create an eDiscovery export request in Airtable. It returns an ID to check the status and download the export.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_account_id",
+        "required": true,
+        "description": "The unique identifier for the enterprise account. Required for creating an eDiscovery export.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterpriseAccountId"
+      },
+      {
+        "name": "ediscovery_request_body",
+        "required": false,
+        "description": "JSON object with export details, including baseId, includeCsvFormat, and shouldSendEmailOnCompletion.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "baseId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Base ID to create eDiscovery export for."
+            },
+            "includeCsvFormat": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set, also export the base as CSVs (in a zipped file). Once the export is\nready for download, the URL to the zip file will be available in the `csvZipDownloadUrl` attribute."
+            },
+            "shouldSendEmailOnCompletion": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set, an email will be sent to the user who initiated the export once the\nexport is ready for download."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-ediscovery-export'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.exports:manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/exports",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterpriseAccountId",
+        "tool_parameter_name": "enterprise_account_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "ediscovery_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "baseId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Base ID to create eDiscovery export for."
+            },
+            "includeCsvFormat": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set, also export the base as CSVs (in a zipped file). Once the export is\nready for download, the URL to the zip file will be available in the `csvZipDownloadUrl` attribute."
+            },
+            "shouldSendEmailOnCompletion": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set, an email will be sent to the user who initiated the export once the\nexport is ready for download."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Error Response\": {\n          \"description\": \"Invalid base ID\",\n          \"summary\": \"Error Response\",\n          \"value\": {\n            \"baseId\": \"appLkNDICXNqxSDhG\"\n          }\n        },\n        \"Success Response\": {\n          \"description\": \"Success Response\",\n          \"summary\": \"Success Response\",\n          \"value\": {\n            \"baseId\": \"appLkNDICXNqxSDhG\",\n            \"includeCsvFormat\": true,\n            \"shouldSendEmailOnCompletion\": true\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"baseId\": {\n            \"description\": \"Base ID to create eDiscovery export for.\",\n            \"type\": \"string\"\n          },\n          \"includeCsvFormat\": {\n            \"description\": \"If set, also export the base as CSVs (in a zipped file). Once the export is\\nready for download, the URL to the zip file will be available in the `csvZipDownloadUrl` attribute.\",\n            \"type\": \"boolean\"\n          },\n          \"shouldSendEmailOnCompletion\": {\n            \"description\": \"If set, an email will be sent to the user who initiated the export once the\\nexport is ready for download.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"required\": [\n          \"baseId\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

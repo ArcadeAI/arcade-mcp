@@ -1,0 +1,427 @@
+{
+  "name": "CreateAwsCurConfig",
+  "fully_qualified_name": "DatadogApi.CreateAwsCurConfig@0.1.0",
+  "description": "Create an AWS CUR config for Cloud Cost Management.\n\nUse this tool to create a Cloud Cost Management account for an AWS Cost and Usage Report (CUR) configuration.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "aws_cur_config_type",
+        "required": true,
+        "description": "Type of AWS CUR config post request. Choose from available options: 'aws_cur_config_post_request'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "aws_cur_config_post_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of AWS CUR config Post Request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "excluded_aws_account_ids",
+        "required": false,
+        "description": "List of AWS account IDs to exclude from the billing dataset. Used when `include_new_accounts` is `true`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.account_filters.excluded_accounts"
+      },
+      {
+        "name": "included_aws_account_ids",
+        "required": false,
+        "description": "List of AWS account IDs to be included in the billing dataset, used when `include_new_accounts` is `false`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.account_filters.included_accounts"
+      },
+      {
+        "name": "aws_account_id",
+        "required": false,
+        "description": "The AWS account ID for which the CUR config is created. This is required to specify which AWS account the configuration applies to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.account_id"
+      },
+      {
+        "name": "aws_bucket_name_for_cur",
+        "required": false,
+        "description": "The AWS bucket name used to store the Cost and Usage Report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS bucket name used to store the Cost and Usage Report."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.bucket_name"
+      },
+      {
+        "name": "bucket_region",
+        "required": false,
+        "description": "The AWS region where the bucket is located.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The region the bucket is located in."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.bucket_region"
+      },
+      {
+        "name": "report_month",
+        "required": false,
+        "description": "Specify the month for the AWS Cost and Usage Report. Use an integer (1-12) to represent the month.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The month of the report."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.months"
+      },
+      {
+        "name": "report_name",
+        "required": false,
+        "description": "The name of the Cost and Usage Report to create for AWS CUR configuration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Cost and Usage Report."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.report_name"
+      },
+      {
+        "name": "report_prefix",
+        "required": false,
+        "description": "The prefix for the Cost and Usage Report (CUR).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The report prefix used for the Cost and Usage Report."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.report_prefix"
+      },
+      {
+        "name": "include_new_member_accounts",
+        "required": false,
+        "description": "Set to true to automatically include new member accounts by default in your billing dataset.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not to automatically include new member accounts by default in your billing dataset."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.account_filters.include_new_accounts"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateCostAWSCURConfig'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/aws_cur_config",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.account_filters.excluded_accounts",
+        "tool_parameter_name": "excluded_aws_account_ids",
+        "description": "The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.account_filters.include_new_accounts",
+        "tool_parameter_name": "include_new_member_accounts",
+        "description": "Whether or not to automatically include new member accounts by default in your billing dataset.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not to automatically include new member accounts by default in your billing dataset."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.account_filters.included_accounts",
+        "tool_parameter_name": "included_aws_account_ids",
+        "description": "The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.account_id",
+        "tool_parameter_name": "aws_account_id",
+        "description": "The AWS account ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account ID."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.bucket_name",
+        "tool_parameter_name": "aws_bucket_name_for_cur",
+        "description": "The AWS bucket name used to store the Cost and Usage Report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS bucket name used to store the Cost and Usage Report."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.bucket_region",
+        "tool_parameter_name": "bucket_region",
+        "description": "The region the bucket is located in.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The region the bucket is located in."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.months",
+        "tool_parameter_name": "report_month",
+        "description": "The month of the report.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The month of the report."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.report_name",
+        "tool_parameter_name": "report_name",
+        "description": "The name of the Cost and Usage Report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Cost and Usage Report."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.report_prefix",
+        "tool_parameter_name": "report_prefix",
+        "description": "The report prefix used for the Cost and Usage Report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The report prefix used for the Cost and Usage Report."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "aws_cur_config_type",
+        "description": "Type of AWS CUR config Post Request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "aws_cur_config_post_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of AWS CUR config Post Request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "aws_cur_config_post_request",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"AWS CUR config Post Request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"AWS CUR config Post data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for AWS CUR config Post Request.\",\n                \"properties\": {\n                  \"account_filters\": {\n                    \"description\": \"The account filtering configuration.\",\n                    \"properties\": {\n                      \"excluded_accounts\": {\n                        \"description\": \"The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`.\",\n                        \"example\": [\n                          \"123456789123\",\n                          \"123456789143\"\n                        ],\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"include_new_accounts\": {\n                        \"description\": \"Whether or not to automatically include new member accounts by default in your billing dataset.\",\n                        \"example\": true,\n                        \"nullable\": true,\n                        \"type\": \"boolean\"\n                      },\n                      \"included_accounts\": {\n                        \"description\": \"The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`.\",\n                        \"example\": [\n                          \"123456789123\",\n                          \"123456789143\"\n                        ],\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"account_id\": {\n                    \"description\": \"The AWS account ID.\",\n                    \"example\": \"123456789123\",\n                    \"type\": \"string\"\n                  },\n                  \"bucket_name\": {\n                    \"description\": \"The AWS bucket name used to store the Cost and Usage Report.\",\n                    \"example\": \"dd-cost-bucket\",\n                    \"type\": \"string\"\n                  },\n                  \"bucket_region\": {\n                    \"description\": \"The region the bucket is located in.\",\n                    \"example\": \"us-east-1\",\n                    \"type\": \"string\"\n                  },\n                  \"months\": {\n                    \"description\": \"The month of the report.\",\n                    \"format\": \"int32\",\n                    \"maximum\": 36,\n                    \"type\": \"integer\"\n                  },\n                  \"report_name\": {\n                    \"description\": \"The name of the Cost and Usage Report.\",\n                    \"example\": \"dd-report-name\",\n                    \"type\": \"string\"\n                  },\n                  \"report_prefix\": {\n                    \"description\": \"The report prefix used for the Cost and Usage Report.\",\n                    \"example\": \"dd-report-prefix\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"account_id\",\n                  \"bucket_name\",\n                  \"report_name\",\n                  \"report_prefix\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"aws_cur_config_post_request\",\n                \"description\": \"Type of AWS CUR config Post Request.\",\n                \"enum\": [\n                  \"aws_cur_config_post_request\"\n                ],\n                \"example\": \"aws_cur_config_post_request\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"AWS_CUR_CONFIG_POST_REQUEST\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

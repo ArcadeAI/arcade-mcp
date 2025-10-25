@@ -1,0 +1,346 @@
+{
+  "name": "GetFreshserviceAgents",
+  "fully_qualified_name": "FreshserviceApi.GetFreshserviceAgents@1.0.0",
+  "description": "Retrieve a list of all agents in Freshservice.\n\nUse this tool to get a comprehensive list of all agents currently registered in Freshservice.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "entries_per_page",
+        "required": false,
+        "description": "The number of entries to retrieve per page in a paginated list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of entries to retrieve in each page of a paginated list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The page number to retrieve in a paginated list of agents.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "agent_email_address",
+        "required": false,
+        "description": "The email address for which the corresponding requester needs to be listed. Useful for filtering agents by their email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address for which the corresponding requester needs to be listed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "mobile_phone_number_filter",
+        "required": false,
+        "description": "Specify the mobile phone number to filter and list corresponding requesters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mobile phone number for which the corresponding requesters need to be listed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mobile_phone_number"
+      },
+      {
+        "name": "filter_by_work_phone_number",
+        "required": false,
+        "description": "Filter agents based on their work phone number. Provide the exact work phone number to retrieve corresponding requesters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The work phone number for which the corresponding requesters need to be listed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "work_phone_number"
+      },
+      {
+        "name": "agent_employment_type",
+        "required": false,
+        "description": "Specifies whether to list full-time or occasional agents. Accepts values: 'fulltime' or 'occasional'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Signifies whether the agents to be listed are full-time agents or occasional agents. Supports two possible values - fulltime, occasional."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "agent_filter_query",
+        "required": false,
+        "description": "A URL-encoded query string to filter the list of agents. Supports fields like first_name, job_title, created_at, etc. Example: \"job_title:'HR Manager' AND created_at:>'2018-08-10'\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The simple or compound query which needs to be applied as a filter to the list of agents. This string needs to be URL encoded.<br/> Supported Query Parameters:<br/>first_name, last_name, job_title, email, work_phone_number, mobile_phone_number, department_id, reporting_manager_id, time_zone, language, location_id, created_at, updated_at, (all custom fields).<br/>Sample Query: https://account.freshservice.com/api/v2/agents?query=\"job_titile:'HR Manager' AND created_at:>'2018-08-10'\""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query"
+      },
+      {
+        "name": "filter_active_accounts",
+        "required": false,
+        "description": "Set to true to list only active accounts. Not setting this filter returns both active and deactivated accounts.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Signifies if the user accounts to be listed are active (true), or have been deactivated. Not applying this filter returns both active and deactivated accounts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "active"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-agents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/agents",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "per_page",
+        "tool_parameter_name": "entries_per_page",
+        "description": "The number of entries to retrieve in each page of a paginated list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of entries to retrieve in each page of a paginated list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "The page number to retrieve.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "agent_email_address",
+        "description": "The email address for which the corresponding requester needs to be listed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address for which the corresponding requester needs to be listed."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "mobile_phone_number",
+        "tool_parameter_name": "mobile_phone_number_filter",
+        "description": "The mobile phone number for which the corresponding requesters need to be listed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mobile phone number for which the corresponding requesters need to be listed."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "work_phone_number",
+        "tool_parameter_name": "filter_by_work_phone_number",
+        "description": "The work phone number for which the corresponding requesters need to be listed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The work phone number for which the corresponding requesters need to be listed."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "agent_employment_type",
+        "description": "Signifies whether the agents to be listed are full-time agents or occasional agents. Supports two possible values - fulltime, occasional.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Signifies whether the agents to be listed are full-time agents or occasional agents. Supports two possible values - fulltime, occasional."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "active",
+        "tool_parameter_name": "filter_active_accounts",
+        "description": "Signifies if the user accounts to be listed are active (true), or have been deactivated. Not applying this filter returns both active and deactivated accounts.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Signifies if the user accounts to be listed are active (true), or have been deactivated. Not applying this filter returns both active and deactivated accounts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query",
+        "tool_parameter_name": "agent_filter_query",
+        "description": "The simple or compound query which needs to be applied as a filter to the list of agents. This string needs to be URL encoded.<br/> Supported Query Parameters:<br/>first_name, last_name, job_title, email, work_phone_number, mobile_phone_number, department_id, reporting_manager_id, time_zone, language, location_id, created_at, updated_at, (all custom fields).<br/>Sample Query: https://account.freshservice.com/api/v2/agents?query=\"job_titile:'HR Manager' AND created_at:>'2018-08-10'\"",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The simple or compound query which needs to be applied as a filter to the list of agents. This string needs to be URL encoded.<br/> Supported Query Parameters:<br/>first_name, last_name, job_title, email, work_phone_number, mobile_phone_number, department_id, reporting_manager_id, time_zone, language, location_id, created_at, updated_at, (all custom fields).<br/>Sample Query: https://account.freshservice.com/api/v2/agents?query=\"job_titile:'HR Manager' AND created_at:>'2018-08-10'\""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

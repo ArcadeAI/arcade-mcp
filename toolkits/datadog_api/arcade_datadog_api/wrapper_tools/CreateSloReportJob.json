@@ -1,0 +1,266 @@
+{
+  "name": "CreateSloReportJob",
+  "fully_qualified_name": "DatadogApi.CreateSloReportJob@0.1.0",
+  "description": "Initiate the generation of an SLO report in Datadog.\n\nUse this tool to start an SLO report job in Datadog. Once created, the job processes asynchronously, and a CSV report becomes available for download. Utilize the returned `report_id` to check status and access the report.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "from_timestamp_epoch_seconds",
+        "required": true,
+        "description": "The starting timestamp for the SLO report in epoch seconds. Specifies when the report should begin.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `from` timestamp for the report in epoch seconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.from_ts"
+      },
+      {
+        "name": "slo_query_filter",
+        "required": true,
+        "description": "The query string to filter SLO results, e.g., 'service:<service-name>' or 'slo-name'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The query string used to filter SLO results. Some examples of queries include `service:<service-name>` and `slo-name`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.query"
+      },
+      {
+        "name": "report_to_timestamp",
+        "required": true,
+        "description": "The epoch timestamp representing the end time for the SLO report.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `to` timestamp for the report in epoch seconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.to_ts"
+      },
+      {
+        "name": "report_generation_frequency",
+        "required": false,
+        "description": "The frequency for generating report data. Options: daily, weekly, monthly.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "daily",
+            "weekly",
+            "monthly"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The frequency at which report data is to be generated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.interval"
+      },
+      {
+        "name": "report_timezone",
+        "required": false,
+        "description": "The timezone to determine the start and end of each interval for the SLO report. It affects how intervals such as weekly start at 12am on Sunday in the specified timezone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timezone used to determine the start and end of each interval. For example, weekly intervals start at 12am on Sunday in the specified timezone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.timezone"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateSLOReportJob'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/slo/report",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.from_ts",
+        "tool_parameter_name": "from_timestamp_epoch_seconds",
+        "description": "The `from` timestamp for the report in epoch seconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `from` timestamp for the report in epoch seconds."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.interval",
+        "tool_parameter_name": "report_generation_frequency",
+        "description": "The frequency at which report data is to be generated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "daily",
+            "weekly",
+            "monthly"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The frequency at which report data is to be generated."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.query",
+        "tool_parameter_name": "slo_query_filter",
+        "description": "The query string used to filter SLO results. Some examples of queries include `service:<service-name>` and `slo-name`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The query string used to filter SLO results. Some examples of queries include `service:<service-name>` and `slo-name`."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.timezone",
+        "tool_parameter_name": "report_timezone",
+        "description": "The timezone used to determine the start and end of each interval. For example, weekly intervals start at 12am on Sunday in the specified timezone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timezone used to determine the start and end of each interval. For example, weekly intervals start at 12am on Sunday in the specified timezone."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.to_ts",
+        "tool_parameter_name": "report_to_timestamp",
+        "description": "The `to` timestamp for the report in epoch seconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `to` timestamp for the report in epoch seconds."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The SLO report request body.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The data portion of the SLO report request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The attributes portion of the SLO report request.\",\n                \"properties\": {\n                  \"from_ts\": {\n                    \"description\": \"The `from` timestamp for the report in epoch seconds.\",\n                    \"example\": 1690901870,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"interval\": {\n                    \"description\": \"The frequency at which report data is to be generated.\",\n                    \"enum\": [\n                      \"daily\",\n                      \"weekly\",\n                      \"monthly\"\n                    ],\n                    \"example\": \"weekly\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"DAILY\",\n                      \"WEEKLY\",\n                      \"MONTHLY\"\n                    ]\n                  },\n                  \"query\": {\n                    \"description\": \"The query string used to filter SLO results. Some examples of queries include `service:<service-name>` and `slo-name`.\",\n                    \"example\": \"slo_type:metric\",\n                    \"type\": \"string\"\n                  },\n                  \"timezone\": {\n                    \"description\": \"The timezone used to determine the start and end of each interval. For example, weekly intervals start at 12am on Sunday in the specified timezone.\",\n                    \"example\": \"America/New_York\",\n                    \"type\": \"string\"\n                  },\n                  \"to_ts\": {\n                    \"description\": \"The `to` timestamp for the report in epoch seconds.\",\n                    \"example\": 1706803070,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"query\",\n                  \"from_ts\",\n                  \"to_ts\"\n                ],\n                \"type\": \"object\"\n              }\n            },\n            \"required\": [\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Create SLO report job request body.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

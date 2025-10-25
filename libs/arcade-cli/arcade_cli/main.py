@@ -8,8 +8,9 @@ import webbrowser
 from pathlib import Path
 from typing import Optional
 
-import httpx
+import click
 import typer
+from arcade_core.constants import CREDENTIALS_FILE_PATH
 from arcadepy import Arcade
 from rich.console import Console
 from rich.text import Text
@@ -19,16 +20,13 @@ import arcade_cli.secret as secret
 import arcade_cli.worker as worker
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
-    CREDENTIALS_FILE_PATH,
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
-from arcade_cli.deployment import Deployment
 from arcade_cli.display import (
     display_eval_results,
 )
 from arcade_cli.show import show_logic
-from arcade_cli.toolkit_docs import generate_toolkit_docs
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     Provider,
@@ -473,164 +471,200 @@ def configure(
     client: str = typer.Argument(
         ...,
         help="The MCP client to configure (claude, cursor, vscode)",
+        click_type=click.Choice(["claude", "cursor", "vscode"], case_sensitive=False),
+        show_choices=True,
+    ),
+    entrypoint_file: str = typer.Option(
+        "server.py",
+        "--entrypoint",
+        "-e",
+        help="The name of the Python file in the current directory that runs the server. This file must run the server when invoked directly. Only used for stdio servers.",
+        rich_help_panel="Stdio Options",
+    ),
+    transport: str = typer.Option(
+        "stdio",
+        "--transport",
+        "-t",
+        help="The transport to use for the MCP server configuration",
+        click_type=click.Choice(["stdio", "http"], case_sensitive=False),
+        show_choices=True,
     ),
     server_name: Optional[str] = typer.Option(
         None,
-        "--server",
-        "-s",
-        help="Name of the server to connect to (defaults to current directory name)",
+        "--name",
+        "-n",
+        help="Optional name of the server to set in the configuration file (defaults to the name of the current directory)",
+        rich_help_panel="Configuration File Options",
     ),
-    from_local: bool = typer.Option(
-        False,
-        "--from-local",
-        help="Connect to a local MCP server",
-        is_flag=True,
-    ),
-    from_arcade: bool = typer.Option(
-        False,
-        "--from-arcade",
-        help="Connect to an Arcade Cloud MCP server",
-        is_flag=True,
+    host: str = typer.Option(
+        "local",
+        "--host",
+        "-h",
+        help="The host of the HTTP server to configure. Use 'local' to connect to a local MCP server or 'arcade' to connect to an Arcade Cloud MCP server.",
+        click_type=click.Choice(["local", "arcade"], case_sensitive=False),
+        show_choices=True,
+        rich_help_panel="HTTP Options",
     ),
     port: int = typer.Option(
         8000,
         "--port",
         "-p",
-        help="Port for local servers",
+        help="Port for local HTTP servers",
+        rich_help_panel="HTTP Options",
     ),
-    path: Optional[Path] = typer.Option(
+    config_path: Optional[Path] = typer.Option(
         None,
-        "--path",
-        "-f",
+        "--config",
+        "-c",
         exists=False,
         help="Optional path to a specific MCP client config file (overrides default path)",
+        rich_help_panel="Configuration File Options",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Configure MCP clients to connect to your server.
 
+    The default behavior is to configure the specified client for a local stdio server that
+    runs when the server.py file in the current directory is invoked directly.
+
     Examples:
-        arcade configure claude --from-local
-        arcade configure cursor --from-local --port 8080
-        arcade configure vscode --from-local --path .vscode/mcp.json
-        arcade configure claude --from-arcade --server my_server_name
+        arcade configure claude
+        arcade configure cursor --transport http --port 8080
+        arcade configure vscode --host arcade --entrypoint my_server.py --config .vscode/mcp.json
+        arcade configure claude --host local --name my_server_name
     """
     from arcade_cli.configure import configure_client
 
     try:
         configure_client(
             client=client,
+            entrypoint_file=entrypoint_file,
             server_name=server_name,
-            from_local=from_local,
-            from_arcade=from_arcade,
+            transport=transport,
+            host=host,
             port=port,
-            path=path,
+            config_path=config_path,
         )
     except Exception as e:
         handle_cli_error(f"Failed to configure {client}", e, debug)
 
 
-@cli.command(help="Deploy servers to Arcade Cloud", rich_help_panel="Run", hidden=True)
+@cli.command(
+    name="deploy",
+    help="Deploy MCP servers to Arcade",
+    rich_help_panel="Run",
+)
 def deploy(
-    deployment_file: str = typer.Option(
-        "worker.toml",
-        "--deployment-file",
-        "-d",
-        help="The deployment file to deploy.",
+    entrypoint: str = typer.Option(
+        "server.py",
+        "--entrypoint",
+        "-e",
+        help="Relative path to the Python file that runs the MCPApp instance (relative to project root). This file must execute the `run()` method on your `MCPApp` instance when invoked directly.",
     ),
-    cloud_host: str = typer.Option(
-        PROD_CLOUD_HOST,
-        "--cloud-host",
-        "-c",
-        help="The Arcade Cloud host to deploy to.",
-        hidden=True,
+    skip_validate: bool = typer.Option(
+        False,
+        "--skip-validate",
+        "--yolo",
+        help="Skip running the server locally for health/metadata checks. "
+        "When set, you must provide `--server-name` and `--server-version`. "
+        "Secret handling is controlled by `--secrets`.",
+        rich_help_panel="Advanced",
     ),
-    cloud_port: Optional[int] = typer.Option(
+    server_name: Optional[str] = typer.Option(
         None,
-        "--cloud-port",
-        "-cp",
-        help="The port of the Arcade Cloud host.",
-        hidden=True,
+        "--server-name",
+        "-n",
+        help="Explicit server name to use when `--skip-validate` is set. Only used when `--skip-validate` is set.",
+        rich_help_panel="Advanced",
+    ),
+    server_version: Optional[str] = typer.Option(
+        None,
+        "--server-version",
+        "-v",
+        help="Explicit server version to use when `--skip-validate` is set. Only used when `--skip-validate` is set.",
+        rich_help_panel="Advanced",
+    ),
+    secrets: str = typer.Option(
+        "auto",
+        "--secrets",
+        "-s",
+        help=(
+            "How to upsert secrets before deploy:\n"
+            "  `auto` (default): During validation, discover required secret KEYS and upsert only those. "
+            "If `--skip-validate` is set, `auto` becomes `skip`.\n"
+            "  `all`: Upsert every key/value pair from your server's .env file regardless of what the server needs.\n"
+            "  `skip`: Do not upsert any secrets (assumes they are already present in Arcade)."
+        ),
+        show_choices=True,
+        rich_help_panel="Advanced",
+        click_type=click.Choice(["auto", "all", "skip"], case_sensitive=False),
     ),
     host: str = typer.Option(
         PROD_ENGINE_HOST,
         "--host",
         "-h",
-        help="The Arcade Engine host to register the server to.",
+        help="The Arcade Engine host to deploy to",
+        hidden=True,
     ),
     port: Optional[int] = typer.Option(
         None,
         "--port",
         "-p",
-        help="The port of the Arcade Engine host.",
+        help="The port of the Arcade Engine",
+        hidden=True,
     ),
     force_tls: bool = typer.Option(
         False,
         "--tls",
-        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+        help="Force TLS for the connection to the Arcade Engine",
+        hidden=True,
     ),
     force_no_tls: bool = typer.Option(
         False,
         "--no-tls",
-        help="Whether to disable TLS for the connection to the Arcade Engine.",
+        help="Disable TLS for the connection to the Arcade Engine",
+        hidden=True,
     ),
-    debug: bool = typer.Option(False, "--debug", help="Show debug information"),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
-    Deploy a server to Arcade Cloud.
+    Deploy an MCP server directly to Arcade Engine.
+
+    This command should be run from the root of your MCP server package
+    (the directory containing pyproject.toml).
+
+    Examples:
+        cd my_mcp_server/
+        arcade deploy
+        arcade deploy --entrypoint src/server.py
+        arcade deploy --skip-validate --server-name my_server_name --server-version 1.0.0
     """
+    from arcade_cli.deploy import deploy_server_logic
 
-    config = validate_and_get_config()
-    engine_url = compute_base_url(force_tls, force_no_tls, host, port)
-    engine_client = Arcade(api_key=config.api.key, base_url=engine_url)
-    cloud_url = compute_base_url(force_tls, force_no_tls, cloud_host, cloud_port)
-    cloud_client = httpx.Client(
-        base_url=cloud_url, headers={"Authorization": f"Bearer {config.api.key}"}
-    )
+    if skip_validate and not (server_name and server_version):
+        handle_cli_error(
+            "When --skip-validate is set, you must provide --server-name and --server-version.",
+            should_exit=True,
+        )
+    if skip_validate and secrets == "auto":
+        secrets = "skip"
 
-    # Fetch deployment configuration
     try:
-        deployment = Deployment.from_toml(Path(deployment_file))
+        deploy_server_logic(
+            entrypoint=entrypoint,
+            skip_validate=skip_validate,
+            server_name=server_name,
+            server_version=server_version,
+            secrets=secrets,
+            host=host,
+            port=port,
+            force_tls=force_tls,
+            force_no_tls=force_no_tls,
+            debug=debug,
+        )
     except Exception as e:
-        handle_cli_error("Failed to parse deployment file", e, debug)
-
-    with console.status(f"Deploying {len(deployment.worker)} servers"):
-        for worker in deployment.worker:
-            console.log(f"Deploying '{worker.config.id}...'", style="dim")
-            try:
-                # Discover and upload secrets
-                required_secret_keys = worker.get_required_secrets()
-                for secret_key in required_secret_keys:
-                    secret_value = os.getenv(secret_key)
-                    if not secret_value:
-                        console.log(
-                            f"⚠️ Secret '{secret_key}' not found in environment, skipping.",
-                            style="yellow",
-                        )
-                        continue
-                    try:
-                        secret._upsert_secret_to_engine(
-                            engine_url, config.api.key, secret_key, secret_value
-                        )
-                    except Exception as e:
-                        handle_cli_error(
-                            f"Failed to upload secret '{secret_key}'", e, debug, should_exit=False
-                        )
-                    else:
-                        console.log(
-                            f"✅ Secret '{secret_key}' uploaded successfully",
-                            style="dim green",
-                        )
-
-                # Attempt to deploy worker
-                worker.request().execute(cloud_client, engine_client)
-                console.log(
-                    f"✅ Server '{worker.config.id}' deployed successfully.",
-                    style="dim",
-                )
-            except Exception as e:
-                handle_cli_error(f"Failed to deploy server '{worker.config.id}'", e, debug)
+        handle_cli_error("Failed to deploy server", e, debug)
 
 
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
@@ -691,115 +725,6 @@ def dashboard(
             )
     except Exception as e:
         handle_cli_error("Failed to open dashboard", e, debug)
-
-
-@cli.command(
-    help=(
-        "Generate documentation for a server. "
-        "Note: make sure to have the server installed in your current Python environment "
-        "before running this command."
-    ),
-    rich_help_panel="Document",
-    hidden=True,
-)
-def docs(
-    server_name: str = typer.Option(
-        ...,
-        "--server-name",
-        "-n",
-        help="The name of the server to generate documentation for.",
-    ),
-    server_dir: str = typer.Option(
-        ...,
-        "--server-dir",
-        "-t",
-        help=(
-            "The path to the server root directory (where the server code is implemented). "
-            "Works with relative and absolute paths."
-        ),
-    ),
-    docs_dir: str = typer.Option(
-        ...,
-        "--docs-dir",
-        "-r",
-        help="The path to the root of the Arcade docs repository. Works with relative and absolute paths.",
-    ),
-    docs_section: str = typer.Option(
-        "",
-        "--docs-section",
-        "-s",
-        help=(
-            "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
-            "This should be the name of the folder in /pages/tools. "
-            "Defaults to an empty string (generate the docs in the root of /pages/tools)"
-        ),
-    ),
-    openai_model: str = typer.Option(
-        "gpt-5-mini",
-        "--openai-model",
-        "-m",
-        help=(
-            "A few parts of the documentation are generated using OpenAI API. "
-            "Choose one of the 'gpt-4o' and 'gpt-5' series models."
-        ),
-        show_default=True,
-    ),
-    openai_api_key: str = typer.Option(
-        None,
-        "--openai-api-key",
-        "-o",
-        help="The OpenAI API key. If not provided, will get it from the `OPENAI_API_KEY` env var.",
-    ),
-    skip_tool_call_examples: bool = typer.Option(
-        False,
-        "--skip-tool-call-examples",
-        "-se",
-        help="Whether to skip generating tool call examples in Python and Javascript.",
-        show_default=True,
-    ),
-    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
-) -> None:
-    if not openai_model.startswith("gpt-4o") and not openai_model.startswith("gpt-5"):
-        console.print(
-            f"Attention: '{openai_model}' is not a valid OpenAI model. "
-            "Please choose one of the 'gpt-4o' and 'gpt-5' series models.",
-            style="bold red",
-        )
-        handle_cli_error(
-            f"Attention: '{openai_model}' is not a valid OpenAI model. "
-            "Please choose one of the 'gpt-4o' and 'gpt-5' series models."
-        )
-
-    try:
-        success = generate_toolkit_docs(
-            console=console,
-            toolkit_name=server_name,
-            toolkit_dir=server_dir,
-            docs_dir=docs_dir,
-            docs_section=docs_section,
-            openai_model=openai_model,
-            openai_api_key=openai_api_key,
-            tool_call_examples=not skip_tool_call_examples,
-            debug=debug,
-        )
-    except Exception as error:
-        handle_cli_error(
-            message=f"Failed to generate documentation for '{server_name}' in '{docs_dir}'",
-            error=error,
-            debug=debug,
-        )
-        success = False
-
-    if success:
-        console.print(
-            f"Generated documentation for '{server_name}' in '{docs_dir}'",
-            style="bold green",
-        )
-    else:
-        console.print(
-            f"Failed to generate documentation for '{server_name}' in '{docs_dir}'",
-            style="bold red",
-        )
 
 
 @cli.callback()

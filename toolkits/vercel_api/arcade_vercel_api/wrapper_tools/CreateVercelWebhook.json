@@ -1,0 +1,238 @@
+{
+  "name": "CreateVercelWebhook",
+  "fully_qualified_name": "VercelApi.CreateVercelWebhook@0.1.0",
+  "description": "Create a new webhook in Vercel projects.\n\nThis tool is used to create a new webhook in Vercel. It should be called when you need to set up automated notifications or integrations by creating a webhook within your Vercel projects.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_url",
+        "required": true,
+        "description": "The target URL where the webhook will send POST requests. It should be a valid and publicly accessible URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "url"
+      },
+      {
+        "name": "events_list",
+        "required": true,
+        "description": "A list of event types that trigger the webhook. Must be an array of strings, each representing an event.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "events"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The identifier for the team on whose behalf the request is performed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug representing the Vercel team to target the request for. It identifies the team on whose behalf the webhook is created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "project_ids",
+        "required": false,
+        "description": "List of project IDs for which the webhook is being created. Each ID should be a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projectIds"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createWebhook'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/webhooks",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "url",
+        "tool_parameter_name": "webhook_url",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "events",
+        "tool_parameter_name": "events_list",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "projectIds",
+        "tool_parameter_name": "project_ids",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"url\",\n          \"events\"\n        ],\n        \"properties\": {\n          \"url\": {\n            \"format\": \"uri\",\n            \"pattern\": \"^https?://\",\n            \"type\": \"string\"\n          },\n          \"events\": {\n            \"minItems\": 1,\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"budget.reached\",\n                \"budget.reset\",\n                \"domain.created\",\n                \"domain.dns.records.changed\",\n                \"domain.transfer-in.started\",\n                \"domain.transfer-in.completed\",\n                \"domain.transfer-in.failed\",\n                \"domain.certificate.add\",\n                \"domain.certificate.add.failed\",\n                \"domain.certificate.renew\",\n                \"domain.certificate.renew.failed\",\n                \"domain.certificate.deleted\",\n                \"domain.renewal\",\n                \"domain.renewal.failed\",\n                \"domain.auto-renew.changed\",\n                \"deployment.created\",\n                \"deployment.cleanup\",\n                \"deployment.error\",\n                \"deployment.canceled\",\n                \"deployment.succeeded\",\n                \"deployment.ready\",\n                \"deployment.check-rerequested\",\n                \"deployment.promoted\",\n                \"deployment.integration.action.start\",\n                \"deployment.integration.action.cancel\",\n                \"deployment.integration.action.cleanup\",\n                \"deployment.checkrun.start\",\n                \"deployment.checkrun.cancel\",\n                \"edge-config.created\",\n                \"edge-config.deleted\",\n                \"edge-config.items.updated\",\n                \"firewall.attack\",\n                \"integration-configuration.permission-upgraded\",\n                \"integration-configuration.removed\",\n                \"integration-configuration.scope-change-confirmed\",\n                \"integration-resource.project-connected\",\n                \"integration-resource.project-disconnected\",\n                \"project.created\",\n                \"project.removed\",\n                \"project.domain.created\",\n                \"project.domain.updated\",\n                \"project.domain.deleted\",\n                \"project.domain.verified\",\n                \"project.domain.unverified\",\n                \"project.domain.moved\",\n                \"project.rolling-release.started\",\n                \"project.rolling-release.aborted\",\n                \"project.rolling-release.completed\",\n                \"project.rolling-release.approved\",\n                \"deployment.checks.failed\",\n                \"deployment.checks.succeeded\",\n                \"deployment-checks-completed\",\n                \"deployment-ready\",\n                \"deployment-prepared\",\n                \"deployment-error\",\n                \"deployment-check-rerequested\",\n                \"deployment-canceled\",\n                \"project-created\",\n                \"project-removed\",\n                \"domain-created\",\n                \"deployment\",\n                \"integration-configuration-permission-updated\",\n                \"integration-configuration-removed\",\n                \"integration-configuration-scope-change-confirmed\",\n                \"marketplace.member.changed\",\n                \"marketplace.invoice.created\",\n                \"marketplace.invoice.paid\",\n                \"marketplace.invoice.notpaid\",\n                \"marketplace.invoice.refunded\",\n                \"observability.anomaly\",\n                \"observability.anomaly-error\",\n                \"observability.anomaly-botId\",\n                \"test-webhook\"\n              ],\n              \"x-speakeasy-enums\": {\n                \"budget.reached\": \"BudgetReached\",\n                \"budget.reset\": \"BudgetReset\",\n                \"domain.created\": \"DomainCreated\",\n                \"domain.dns.records.changed\": \"DomainDnsRecordsChanged\",\n                \"domain.transfer-in.started\": \"DomainTransferInStarted\",\n                \"domain.transfer-in.completed\": \"DomainTransferInCompleted\",\n                \"domain.transfer-in.failed\": \"DomainTransferInFailed\",\n                \"domain.certificate.add\": \"DomainCertificateAdd\",\n                \"domain.certificate.add.failed\": \"DomainCertificateAddFailed\",\n                \"domain.certificate.renew\": \"DomainCertificateRenew\",\n                \"domain.certificate.renew.failed\": \"DomainCertificateRenewFailed\",\n                \"domain.certificate.deleted\": \"DomainCertificateDeleted\",\n                \"domain.renewal\": \"DomainRenewal\",\n                \"domain.renewal.failed\": \"DomainRenewalFailed\",\n                \"domain.auto-renew.changed\": \"DomainAutoRenewChanged\",\n                \"deployment.created\": \"DeploymentCreated\",\n                \"deployment.cleanup\": \"DeploymentCleanup\",\n                \"deployment.error\": \"DeploymentError\",\n                \"deployment.canceled\": \"DeploymentCanceled\",\n                \"deployment.succeeded\": \"DeploymentSucceeded\",\n                \"deployment.ready\": \"DeploymentReady\",\n                \"deployment.check-rerequested\": \"DeploymentCheckRerequested\",\n                \"deployment.promoted\": \"DeploymentPromoted\",\n                \"deployment.integration.action.start\": \"DeploymentIntegrationActionStart\",\n                \"deployment.integration.action.cancel\": \"DeploymentIntegrationActionCancel\",\n                \"deployment.integration.action.cleanup\": \"DeploymentIntegrationActionCleanup\",\n                \"deployment.checkrun.start\": \"DeploymentCheckrunStart\",\n                \"deployment.checkrun.cancel\": \"DeploymentCheckrunCancel\",\n                \"edge-config.created\": \"EdgeConfigCreated\",\n                \"edge-config.deleted\": \"EdgeConfigDeleted\",\n                \"edge-config.items.updated\": \"EdgeConfigItemsUpdated\",\n                \"firewall.attack\": \"FirewallAttack\",\n                \"integration-configuration.permission-upgraded\": \"IntegrationConfigurationPermissionUpgraded\",\n                \"integration-configuration.removed\": \"IntegrationConfigurationRemoved\",\n                \"integration-configuration.scope-change-confirmed\": \"IntegrationConfigurationScopeChangeConfirmed\",\n                \"integration-resource.project-connected\": \"IntegrationResourceProjectConnected\",\n                \"integration-resource.project-disconnected\": \"IntegrationResourceProjectDisconnected\",\n                \"project.created\": \"ProjectCreated\",\n                \"project.removed\": \"ProjectRemoved\",\n                \"project.domain.created\": \"ProjectDomainCreated\",\n                \"project.domain.updated\": \"ProjectDomainUpdated\",\n                \"project.domain.deleted\": \"ProjectDomainDeleted\",\n                \"project.domain.verified\": \"ProjectDomainVerified\",\n                \"project.domain.unverified\": \"ProjectDomainUnverified\",\n                \"project.domain.moved\": \"ProjectDomainMoved\",\n                \"project.rolling-release.started\": \"ProjectRollingReleaseStarted\",\n                \"project.rolling-release.aborted\": \"ProjectRollingReleaseAborted\",\n                \"project.rolling-release.completed\": \"ProjectRollingReleaseCompleted\",\n                \"project.rolling-release.approved\": \"ProjectRollingReleaseApproved\",\n                \"deployment.checks.failed\": \"DeploymentChecksFailed\",\n                \"deployment.checks.succeeded\": \"DeploymentChecksSucceeded\",\n                \"deployment-checks-completed\": \"DeploymentChecksCompleted\",\n                \"deployment-ready\": \"DeploymentReadyHyphen\",\n                \"deployment-prepared\": \"DeploymentPreparedHyphen\",\n                \"deployment-error\": \"DeploymentErrorHyphen\",\n                \"deployment-check-rerequested\": \"DeploymentCheckRerequestedHyphen\",\n                \"deployment-canceled\": \"DeploymentCanceledHyphen\",\n                \"project-created\": \"ProjectCreatedHyphen\",\n                \"project-removed\": \"ProjectRemovedHyphen\",\n                \"domain-created\": \"DomainCreatedHyphen\",\n                \"deployment\": \"Deployment\",\n                \"integration-configuration-permission-updated\": \"IntegrationConfigurationPermissionUpdatedHyphen\",\n                \"integration-configuration-removed\": \"IntegrationConfigurationRemovedHyphen\",\n                \"integration-configuration-scope-change-confirmed\": \"IntegrationConfigurationScopeChangeConfirmedHyphen\",\n                \"marketplace.invoice.created\": \"MarketplaceInvoiceCreated\",\n                \"marketplace.invoice.paid\": \"MarketplaceInvoicePaid\",\n                \"marketplace.invoice.notpaid\": \"MarketplaceInvoiceNotpaid\",\n                \"marketplace.invoice.refunded\": \"MarketplaceInvoiceRefunded\",\n                \"observability.anomaly\": \"ObservabilityAnomaly\",\n                \"observability.anomaly-error\": \"ObservabilityAnomalyError\",\n                \"test-webhook\": \"TestWebhook\"\n              }\n            }\n          },\n          \"projectIds\": {\n            \"minItems\": 1,\n            \"maxItems\": 50,\n            \"type\": \"array\",\n            \"items\": {\n              \"pattern\": \"^[a-zA-z0-9_]+$\",\n              \"type\": \"string\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

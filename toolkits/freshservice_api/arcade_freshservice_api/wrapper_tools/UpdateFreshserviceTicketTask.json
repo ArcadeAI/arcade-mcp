@@ -1,0 +1,433 @@
+{
+  "name": "UpdateFreshserviceTicketTask",
+  "fully_qualified_name": "FreshserviceApi.UpdateFreshserviceTicketTask@1.0.0",
+  "description": "Update a task on a Freshservice ticket.\n\nUse this tool to update an existing task on a ticket in Freshservice. This is helpful for modifying task details such as status, description, or other properties associated with a ticket's task.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "ticket_id",
+        "required": true,
+        "description": "The ID of the ticket request to identify the specific ticket in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of ticket request"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ticket_id"
+      },
+      {
+        "name": "task_id",
+        "required": true,
+        "description": "The unique ID of the task to be updated in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the task"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_id"
+      },
+      {
+        "name": "task_update_details",
+        "required": true,
+        "description": "JSON object with details like status, title, agent_id, etc., to update the task.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "created_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the user who created the task"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Id of the agent to whom the task is assigned"
+            },
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the task"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "1",
+                "2",
+                "3",
+                "4"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the task, 1-Open, 2-In Progress, 3-Completed"
+            },
+            "parent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the parent entity to which the task belongs"
+            },
+            "parent_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the parent entity - [Ticket, Problem, Change, Release, Project]"
+            },
+            "due_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Due date of the task"
+            },
+            "notify_before": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time in seconds before which notification is sent prior to due date"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Title of the task"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the task"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the task was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the task was updated"
+            },
+            "closed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the task was closed"
+            },
+            "group_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the group to which the task is assigned"
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the task is started"
+            }
+          },
+          "inner_properties": null,
+          "description": "tassk details that needs to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-ticket-task'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/tasks/{task_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "ticket_id",
+        "tool_parameter_name": "ticket_id",
+        "description": "ID of ticket request",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of ticket request"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_id",
+        "tool_parameter_name": "task_id",
+        "description": "ID of the task",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the task"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "task_update_details",
+        "description": "tassk details that needs to be updated",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "created_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the user who created the task"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Id of the agent to whom the task is assigned"
+            },
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the task"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "1",
+                "2",
+                "3",
+                "4"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the task, 1-Open, 2-In Progress, 3-Completed"
+            },
+            "parent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the parent entity to which the task belongs"
+            },
+            "parent_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the parent entity - [Ticket, Problem, Change, Release, Project]"
+            },
+            "due_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Due date of the task"
+            },
+            "notify_before": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time in seconds before which notification is sent prior to due date"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Title of the task"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the task"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the task was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the task was updated"
+            },
+            "closed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the task was closed"
+            },
+            "group_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the group to which the task is assigned"
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the task is started"
+            }
+          },
+          "inner_properties": null,
+          "description": "tassk details that needs to be updated"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"tassk details that needs to be updated\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"created_by\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the user who created the task\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000048691\n          },\n          \"agent_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Id of the agent to whom the task is assigned\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000043616\n          },\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the task\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 48\n          },\n          \"status\": {\n            \"type\": \"integer\",\n            \"description\": \"Status of the task, 1-Open, 2-In Progress, 3-Completed\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 1,\n            \"enum\": [\n              1,\n              2,\n              3,\n              4\n            ]\n          },\n          \"parent_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the parent entity to which the task belongs\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 589\n          },\n          \"parent_type\": {\n            \"type\": \"string\",\n            \"description\": \"Type of the parent entity - [Ticket, Problem, Change, Release, Project]\",\n            \"example\": \"Ticket\"\n          },\n          \"due_date\": {\n            \"type\": \"string\",\n            \"description\": \"Due date of the task\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-11-24T11:30:00Z\"\n          },\n          \"notify_before\": {\n            \"type\": \"integer\",\n            \"description\": \"Time in seconds before which notification is sent prior to due date\",\n            \"format\": \"int64\",\n            \"example\": 3600\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"description\": \"Title of the task\",\n            \"example\": \"Renew license\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description of the task\",\n            \"example\": \"Renew Software license\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the task was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the task was updated\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"closed_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the task was closed\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"group_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the group to which the task is assigned\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000184589\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the task is started\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-11-22T16:58:45Z\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,584 @@
+{
+  "name": "CreateChildTicket",
+  "fully_qualified_name": "FreshserviceApi.CreateChildTicket@1.0.0",
+  "description": "Create a new child ticket on a Freshservice ticket.\n\nUse this tool to add a child ticket to an existing ticket in Freshservice. It is useful for managing ticket hierarchies and organizing support tasks.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "parent_ticket_id",
+        "required": true,
+        "description": "ID of the main ticket for which a child ticket will be created.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of ticket request for which child ticket needs to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ticket_id"
+      },
+      {
+        "name": "child_ticket_details",
+        "required": true,
+        "description": "Details of the child ticket to be created, including email addresses, priority, status, subject, and attachments.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "cc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email addresses added in the 'cc' field of the incoming ticket email"
+            },
+            "fwd_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email addresses added while forwarding a ticket"
+            },
+            "reply_cc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email addresses added while replying to a ticket"
+            },
+            "fr_escalated": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to 'true' if the ticket has been escalated as a result of the first response time being breached"
+            },
+            "spam": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to 'true' if the ticket has been marked as spam"
+            },
+            "priority": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Priority of the Freshservice Ticket. Low -> 1. Medium -> 2. High -> 3. Urgent -> 4."
+            },
+            "requester_id": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "User ID of the requester."
+            },
+            "source": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The channel through which the ticket was created. Email -> 1 Portal -> 2 Phone -> 3 Chat -> 4 Feedback widget -> 5 Yammer -> 6 AWS Cloudwatch -> 7 Pagerduty -> 8 Walkup -> 9 Slack -> 10"
+            },
+            "status": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the Ticket. Open -> 2 Pending -> 3 Resolved -> 4 Closed -> 5"
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the Ticket"
+            },
+            "id": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the ticket"
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Helps categorize the ticket according to the different kinds of issues your support team deals with. [Support for only type \u2018incident\u2019 as of now]"
+            },
+            "due_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp that denotes when the ticket is due to be resolved"
+            },
+            "fr_due_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp that denotes when the first response is due"
+            },
+            "is_escalated": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Content of the ticket in plain text"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs containing the names and values of custom fields"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the ticket was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the ticket was last updated"
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tags that have been associated with the ticket"
+            },
+            "attachments": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Auto increment value"
+                },
+                "content_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "size": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Size of the attached file"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attachment"
+                },
+                "attachment_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "URL of the attachment"
+                }
+              },
+              "description": "Ticket attachments. The total size of these attachments cannot exceed 15MB"
+            }
+          },
+          "inner_properties": null,
+          "description": "details of child ticket to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-child-ticket'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/create_child_ticket",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "ticket_id",
+        "tool_parameter_name": "parent_ticket_id",
+        "description": "ID of ticket request for which child ticket needs to be created",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of ticket request for which child ticket needs to be created"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "child_ticket_details",
+        "description": "details of child ticket to be created",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "cc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email addresses added in the 'cc' field of the incoming ticket email"
+            },
+            "fwd_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email addresses added while forwarding a ticket"
+            },
+            "reply_cc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email addresses added while replying to a ticket"
+            },
+            "fr_escalated": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to 'true' if the ticket has been escalated as a result of the first response time being breached"
+            },
+            "spam": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to 'true' if the ticket has been marked as spam"
+            },
+            "priority": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Priority of the Freshservice Ticket. Low -> 1. Medium -> 2. High -> 3. Urgent -> 4."
+            },
+            "requester_id": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "User ID of the requester."
+            },
+            "source": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The channel through which the ticket was created. Email -> 1 Portal -> 2 Phone -> 3 Chat -> 4 Feedback widget -> 5 Yammer -> 6 AWS Cloudwatch -> 7 Pagerduty -> 8 Walkup -> 9 Slack -> 10"
+            },
+            "status": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the Ticket. Open -> 2 Pending -> 3 Resolved -> 4 Closed -> 5"
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the Ticket"
+            },
+            "id": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the ticket"
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Helps categorize the ticket according to the different kinds of issues your support team deals with. [Support for only type \u2018incident\u2019 as of now]"
+            },
+            "due_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp that denotes when the ticket is due to be resolved"
+            },
+            "fr_due_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp that denotes when the first response is due"
+            },
+            "is_escalated": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Content of the ticket in plain text"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs containing the names and values of custom fields"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the ticket was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the ticket was last updated"
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tags that have been associated with the ticket"
+            },
+            "attachments": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Auto increment value"
+                },
+                "content_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "size": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Size of the attached file"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attachment"
+                },
+                "attachment_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "URL of the attachment"
+                }
+              },
+              "description": "Ticket attachments. The total size of these attachments cannot exceed 15MB"
+            }
+          },
+          "inner_properties": null,
+          "description": "details of child ticket to be created"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"details of child ticket to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"cc_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Email addresses added in the 'cc' field of the incoming ticket email\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"john.doe@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"fwd_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Email addresses added while forwarding a ticket\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"john.doe@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"reply_cc_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Email addresses added while replying to a ticket\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"john.doe@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"fr_escalated\": {\n            \"type\": \"boolean\",\n            \"description\": \"Set to 'true' if the ticket has been escalated as a result of the first response time being breached\",\n            \"readOnly\": true,\n            \"example\": true\n          },\n          \"spam\": {\n            \"type\": \"boolean\",\n            \"description\": \"Set to 'true' if the ticket has been marked as spam\",\n            \"readOnly\": true,\n            \"example\": true\n          },\n          \"priority\": {\n            \"type\": \"number\",\n            \"description\": \"Priority of the Freshservice Ticket. Low -> 1. Medium -> 2. High -> 3. Urgent -> 4.\",\n            \"example\": 2.0\n          },\n          \"requester_id\": {\n            \"type\": \"number\",\n            \"description\": \"User ID of the requester.\",\n            \"example\": 1400023894234\n          },\n          \"source\": {\n            \"type\": \"number\",\n            \"description\": \"The channel through which the ticket was created. Email -> 1 Portal -> 2 Phone -> 3 Chat -> 4 Feedback widget -> 5 Yammer -> 6 AWS Cloudwatch -> 7 Pagerduty -> 8 Walkup -> 9 Slack -> 10\",\n            \"example\": 1.0\n          },\n          \"status\": {\n            \"type\": \"number\",\n            \"description\": \"Status of the Ticket. Open -> 2 Pending -> 3 Resolved -> 4 Closed -> 5\",\n            \"example\": 2.0\n          },\n          \"subject\": {\n            \"type\": \"string\",\n            \"description\": \"Subject of the Ticket\",\n            \"example\": \"Printer not connected\\\"\"\n          },\n          \"id\": {\n            \"type\": \"number\",\n            \"description\": \"Unique ID of the ticket\",\n            \"readOnly\": true,\n            \"example\": 14000239432\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"description\": \"Helps categorize the ticket according to the different kinds of issues your support team deals with. [Support for only type \\u2018incident\\u2019 as of now]\",\n            \"example\": \"Incident\"\n          },\n          \"due_by\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp that denotes when the ticket is due to be resolved\",\n            \"format\": \"date_time\",\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"fr_due_by\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp that denotes when the first response is due\",\n            \"format\": \"date_time\",\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"is_escalated\": {\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"example\": \"<div>How do I connect printer?</div>\"\n          },\n          \"description_text\": {\n            \"type\": \"string\",\n            \"description\": \"Content of the ticket in plain text\",\n            \"example\": \"How do I connect printer?\"\n          },\n          \"custom_fields\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Key value pairs containing the names and values of custom fields\",\n            \"example\": {\n              \"choice\": \"First Choice\",\n              \"employee_id\": \"E1234\"\n            }\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the ticket was created\",\n            \"format\": \"date_time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the ticket was last updated\",\n            \"format\": \"date_time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"description\": \"Tags that have been associated with the ticket\",\n            \"example\": [\n              \"Hardware\",\n              \"Network\",\n              \"VPN\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"attachments\": {\n            \"type\": \"array\",\n            \"description\": \"Ticket attachments. The total size of these attachments cannot exceed 15MB\",\n            \"example\": [\n              {\n                \"id\": 14000884384,\n                \"content_type\": \"application/pdf\",\n                \"size\": 1024,\n                \"name\": \"doc1.pdf\",\n                \"attachment_url\": \"https://s3.amazonaws.com/fs/doc1.pdf\"\n              }\n            ],\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"integer\",\n                  \"description\": \"Auto increment value\",\n                  \"format\": \"int64\",\n                  \"readOnly\": true,\n                  \"example\": 14000884384\n                },\n                \"content_type\": {\n                  \"type\": \"string\",\n                  \"example\": \"application/pdf\"\n                },\n                \"size\": {\n                  \"type\": \"number\",\n                  \"description\": \"Size of the attached file\",\n                  \"readOnly\": true,\n                  \"example\": 1024.0\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"Name of the attachment\",\n                  \"example\": \"doc1.pdf\"\n                },\n                \"attachment_url\": {\n                  \"type\": \"string\",\n                  \"description\": \"URL of the attachment\",\n                  \"example\": \"https://s3.amazonaws.com/fs/doc1.pdf\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

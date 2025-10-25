@@ -1,0 +1,473 @@
+{
+  "name": "UpdateDnsRecord",
+  "fully_qualified_name": "VercelApi.UpdateDnsRecord@0.1.0",
+  "description": "Update an existing DNS record for a domain.\n\nThis tool updates an existing DNS record for a specified domain name. It should be called when changes to a DNS record are needed, such as modifying the value or type. The tool returns details of the updated record after the operation is successful.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "dns_record_id",
+        "required": true,
+        "description": "The unique identifier of the DNS record to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the DNS record"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "recordId"
+      },
+      {
+        "name": "dns_record_update_payload",
+        "required": true,
+        "description": "A JSON object containing details of the DNS record to update, including name, value, type, TTL, and optional parameters like MX priority or SRV details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the DNS record"
+            },
+            "value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The value of the DNS record"
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "A",
+                "AAAA",
+                "ALIAS",
+                "CAA",
+                "CNAME",
+                "HTTPS",
+                "MX",
+                "SRV",
+                "TXT",
+                "NS"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of the DNS record"
+            },
+            "ttl": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Time to live (TTL) value of the DNS record"
+            },
+            "mxPriority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The MX priority value of the DNS record"
+            },
+            "srv": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "target": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "weight": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "port": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "priority": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "https": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "priority": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "target": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "params": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "comment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A comment to add context on what this DNS record is for"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier of the team performing the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug representing the Team to perform the DNS update on behalf of. It is used to specify the team context for the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateRecord'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/domains/records/{recordId}",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "recordId",
+        "tool_parameter_name": "dns_record_id",
+        "description": "The id of the DNS record",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the DNS record"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "dns_record_update_payload",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the DNS record"
+            },
+            "value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The value of the DNS record"
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "A",
+                "AAAA",
+                "ALIAS",
+                "CAA",
+                "CNAME",
+                "HTTPS",
+                "MX",
+                "SRV",
+                "TXT",
+                "NS"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of the DNS record"
+            },
+            "ttl": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Time to live (TTL) value of the DNS record"
+            },
+            "mxPriority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The MX priority value of the DNS record"
+            },
+            "srv": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "target": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "weight": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "port": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "priority": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "https": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "priority": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "target": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "params": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "comment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A comment to add context on what this DNS record is for"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the DNS record\",\n            \"example\": \"example-1\",\n            \"nullable\": true\n          },\n          \"value\": {\n            \"type\": \"string\",\n            \"description\": \"The value of the DNS record\",\n            \"example\": \"google.com\",\n            \"nullable\": true\n          },\n          \"type\": {\n            \"enum\": [\n              \"A\",\n              \"AAAA\",\n              \"ALIAS\",\n              \"CAA\",\n              \"CNAME\",\n              \"HTTPS\",\n              \"MX\",\n              \"SRV\",\n              \"TXT\",\n              \"NS\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"The type of the DNS record\",\n            \"example\": \"A\",\n            \"maxLength\": 255,\n            \"nullable\": true\n          },\n          \"ttl\": {\n            \"type\": \"integer\",\n            \"description\": \"The Time to live (TTL) value of the DNS record\",\n            \"example\": \"60\",\n            \"minimum\": 60,\n            \"maximum\": 2147483647,\n            \"nullable\": true\n          },\n          \"mxPriority\": {\n            \"type\": \"integer\",\n            \"description\": \"The MX priority value of the DNS record\",\n            \"nullable\": true\n          },\n          \"srv\": {\n            \"additionalProperties\": false,\n            \"required\": [\n              \"target\",\n              \"weight\",\n              \"port\",\n              \"priority\"\n            ],\n            \"properties\": {\n              \"target\": {\n                \"type\": \"string\",\n                \"description\": \"\",\n                \"example\": \"example2.com.\",\n                \"maxLength\": 255,\n                \"nullable\": true\n              },\n              \"weight\": {\n                \"description\": \"\",\n                \"type\": \"integer\",\n                \"nullable\": true\n              },\n              \"port\": {\n                \"description\": \"\",\n                \"type\": \"integer\",\n                \"nullable\": true\n              },\n              \"priority\": {\n                \"description\": \"\",\n                \"type\": \"integer\",\n                \"nullable\": true\n              }\n            },\n            \"type\": \"object\",\n            \"nullable\": true\n          },\n          \"https\": {\n            \"additionalProperties\": false,\n            \"required\": [\n              \"priority\",\n              \"target\"\n            ],\n            \"properties\": {\n              \"priority\": {\n                \"description\": \"\",\n                \"type\": \"integer\",\n                \"nullable\": true\n              },\n              \"target\": {\n                \"type\": \"string\",\n                \"description\": \"\",\n                \"example\": \"example2.com.\",\n                \"maxLength\": 255,\n                \"nullable\": true\n              },\n              \"params\": {\n                \"description\": \"\",\n                \"type\": \"string\",\n                \"nullable\": true\n              }\n            },\n            \"type\": \"object\",\n            \"nullable\": true\n          },\n          \"comment\": {\n            \"type\": \"string\",\n            \"description\": \"A comment to add context on what this DNS record is for\",\n            \"example\": \"used to verify ownership of domain\",\n            \"maxLength\": 500\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

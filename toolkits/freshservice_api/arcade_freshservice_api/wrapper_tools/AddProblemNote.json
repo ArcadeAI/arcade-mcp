@@ -1,0 +1,322 @@
+{
+  "name": "AddProblemNote",
+  "fully_qualified_name": "FreshserviceApi.AddProblemNote@1.0.0",
+  "description": "Create a new note on a problem in Freshservice.\n\nUse this tool to add a detailed note to an existing problem in Freshservice, providing additional context or updates.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "problem_id",
+        "required": true,
+        "description": "The ID of the problem to which the note will be added. This identifies the specific problem in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of problem for which notes are to be retrieved"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "problem_id"
+      },
+      {
+        "name": "note_unique_id",
+        "required": false,
+        "description": "Unique identifier for the note to be created or referenced.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the note"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "creator_user_id",
+        "required": false,
+        "description": "The unique ID of the user who created the note.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the user who created the note"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_id"
+      },
+      {
+        "name": "notification_emails",
+        "required": false,
+        "description": "List of email addresses to notify about the note creation. Each email should be a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Addresses to which the note must be notified to"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notify_emails"
+      },
+      {
+        "name": "note_html_body",
+        "required": false,
+        "description": "The content of the note formatted in HTML.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The body of the note in HTML format"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body"
+      },
+      {
+        "name": "note_body_text",
+        "required": false,
+        "description": "The body of the note in plain text format, providing details or updates about the problem.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The body of the note in plain text format"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body_text"
+      },
+      {
+        "name": "note_creation_datetime",
+        "required": false,
+        "description": "The date and time when the note was initially created. Use the format 'YYYY-MM-DDTHH:MM:SSZ'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date time at which the note was created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at"
+      },
+      {
+        "name": "note_updated_datetime",
+        "required": false,
+        "description": "The date and time when the note was last updated, in ISO 8601 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date time at which the note was updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-problem-note'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/problems/{problem_id}/notes",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "problem_id",
+        "tool_parameter_name": "problem_id",
+        "description": "ID of problem for which notes are to be retrieved",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of problem for which notes are to be retrieved"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "note_unique_id",
+        "description": "Unique ID of the note",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the note"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_id",
+        "tool_parameter_name": "creator_user_id",
+        "description": "Unique ID of the user who created the note",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the user who created the note"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "notify_emails",
+        "tool_parameter_name": "notification_emails",
+        "description": "Addresses to which the note must be notified to",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Addresses to which the note must be notified to"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body",
+        "tool_parameter_name": "note_html_body",
+        "description": "The body of the note in HTML format",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The body of the note in HTML format"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body_text",
+        "tool_parameter_name": "note_body_text",
+        "description": "The body of the note in plain text format",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The body of the note in plain text format"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at",
+        "tool_parameter_name": "note_creation_datetime",
+        "description": "Date time at which the note was created",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date time at which the note was created"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_at",
+        "tool_parameter_name": "note_updated_datetime",
+        "description": "Date time at which the note was updated",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date time at which the note was updated"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": "{\n  \"description\": \"Note content of problem\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the note\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000345353\n          },\n          \"user_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the user who created the note\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 140004534\n          },\n          \"notify_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Addresses to which the note must be notified to\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"john.doe@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"body\": {\n            \"type\": \"string\",\n            \"description\": \"The body of the note in HTML format\",\n            \"example\": \"<p>Assigned to IT team</p>\"\n          },\n          \"body_text\": {\n            \"type\": \"string\",\n            \"description\": \"The body of the note in plain text format\",\n            \"example\": \"Assigned to IT team\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Date time at which the note was created\",\n            \"format\": \"date_time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Date time at which the note was updated\",\n            \"format\": \"date_time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

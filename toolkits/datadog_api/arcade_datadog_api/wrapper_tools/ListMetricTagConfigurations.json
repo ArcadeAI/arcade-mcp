@@ -1,0 +1,429 @@
+{
+  "name": "ListMetricTagConfigurations",
+  "fully_qualified_name": "DatadogApi.ListMetricTagConfigurations@0.1.0",
+  "description": "Retrieve all metrics configurable in Datadog's Metrics Summary.\n\nUse this tool to get a list of all metrics that can be configured on the Metrics Summary page or with Metrics without Limits\u2122. It supports pagination through cursor-based navigation.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_tag_configurations",
+        "required": false,
+        "description": "Filter tag configurations by specified configured tags. Use string values representing specific criteria for filtering.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter tag configurations by configured tags."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[tags_configured]"
+      },
+      {
+        "name": "metric_type_filter",
+        "required": false,
+        "description": "Filter metrics by type. Options are 'non_distribution' or 'distribution'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "non_distribution",
+            "distribution"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter metrics by metric type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[metric_type]"
+      },
+      {
+        "name": "filter_metrics_by_tags",
+        "required": false,
+        "description": "Filter metrics by tags using boolean/wildcard expressions; combine with queried filter only.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter metrics that have been submitted with the given tags. Supports boolean and wildcard expressions.\nCan only be combined with the filter[queried] filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[tags]"
+      },
+      {
+        "name": "look_back_seconds",
+        "required": false,
+        "description": "The number of seconds to look back for applying a filter on tags or queried metrics. Defaults to 3600 seconds (1 hour) with a max of 2,592,000 seconds (30 days).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of seconds of look back (from now) to apply to a filter[tag] or filter[queried] query.\nDefault value is 3600 (1 hour), maximum value is 2,592,000 (30 days)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "window[seconds]"
+      },
+      {
+        "name": "max_results_per_page",
+        "required": false,
+        "description": "Maximum number of metric configurations to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[size]"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "String to query the next page of metric results. Use 'next_cursor' from the previous response. Null when all pages are retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "String to query the next page of results.\nThis key is provided with each valid response from the API in `meta.pagination.next_cursor`.\nOnce the `meta.pagination.next_cursor` key is null, all pages have been retrieved."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[cursor]"
+      },
+      {
+        "name": "include_metrics_with_configured_tags",
+        "required": false,
+        "description": "Set to true to filter and include only custom metrics with configured tags.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter custom metrics that have configured tags."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[configured]"
+      },
+      {
+        "name": "include_percentile_aggregations",
+        "required": false,
+        "description": "Set to true to include distributions with additional percentile aggregations enabled. Set to false to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter distributions with additional percentile\naggregations enabled or disabled."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[include_percentiles]"
+      },
+      {
+        "name": "filter_by_query_status",
+        "required": false,
+        "description": "Filter custom metrics that have or have not been queried within the specified time window.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "(Preview) Filter custom metrics that have or have not been queried in the specified window[seconds].\nIf no window is provided or the window is less than 2 hours, a default of 2 hours will be applied."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[queried]"
+      },
+      {
+        "name": "filter_metrics_used_in_assets",
+        "required": false,
+        "description": "Boolean to filter metrics used in dashboards, monitors, notebooks, and SLOs.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "(Preview) Filter metrics that are used in dashboards, monitors, notebooks, SLOs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[related_assets]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListTagConfigurations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/metrics",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter[configured]",
+        "tool_parameter_name": "include_metrics_with_configured_tags",
+        "description": "Filter custom metrics that have configured tags.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter custom metrics that have configured tags."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[tags_configured]",
+        "tool_parameter_name": "filter_tag_configurations",
+        "description": "Filter tag configurations by configured tags.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter tag configurations by configured tags."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[metric_type]",
+        "tool_parameter_name": "metric_type_filter",
+        "description": "Filter metrics by metric type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "non_distribution",
+            "distribution"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter metrics by metric type."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "distribution",
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[include_percentiles]",
+        "tool_parameter_name": "include_percentile_aggregations",
+        "description": "Filter distributions with additional percentile\naggregations enabled or disabled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter distributions with additional percentile\naggregations enabled or disabled."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[queried]",
+        "tool_parameter_name": "filter_by_query_status",
+        "description": "(Preview) Filter custom metrics that have or have not been queried in the specified window[seconds].\nIf no window is provided or the window is less than 2 hours, a default of 2 hours will be applied.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "(Preview) Filter custom metrics that have or have not been queried in the specified window[seconds].\nIf no window is provided or the window is less than 2 hours, a default of 2 hours will be applied."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[tags]",
+        "tool_parameter_name": "filter_metrics_by_tags",
+        "description": "Filter metrics that have been submitted with the given tags. Supports boolean and wildcard expressions.\nCan only be combined with the filter[queried] filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter metrics that have been submitted with the given tags. Supports boolean and wildcard expressions.\nCan only be combined with the filter[queried] filter."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[related_assets]",
+        "tool_parameter_name": "filter_metrics_used_in_assets",
+        "description": "(Preview) Filter metrics that are used in dashboards, monitors, notebooks, SLOs.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "(Preview) Filter metrics that are used in dashboards, monitors, notebooks, SLOs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "window[seconds]",
+        "tool_parameter_name": "look_back_seconds",
+        "description": "The number of seconds of look back (from now) to apply to a filter[tag] or filter[queried] query.\nDefault value is 3600 (1 hour), maximum value is 2,592,000 (30 days).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of seconds of look back (from now) to apply to a filter[tag] or filter[queried] query.\nDefault value is 3600 (1 hour), maximum value is 2,592,000 (30 days)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[size]",
+        "tool_parameter_name": "max_results_per_page",
+        "description": "Maximum number of results returned.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10000,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[cursor]",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "String to query the next page of results.\nThis key is provided with each valid response from the API in `meta.pagination.next_cursor`.\nOnce the `meta.pagination.next_cursor` key is null, all pages have been retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "String to query the next page of results.\nThis key is provided with each valid response from the API in `meta.pagination.next_cursor`.\nOnce the `meta.pagination.next_cursor` key is null, all pages have been retrieved."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

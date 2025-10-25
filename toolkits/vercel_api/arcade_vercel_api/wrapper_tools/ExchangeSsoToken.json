@@ -1,0 +1,275 @@
+{
+  "name": "ExchangeSsoToken",
+  "fully_qualified_name": "VercelApi.ExchangeSsoToken@0.1.0",
+  "description": "Exchange OAuth code for an OIDC token to authenticate users.\n\nCall this tool to exchange an OAuth authorization code for an OIDC token during the SSO process. This helps authenticate users in Vercel without persisting the token. Refer to the Vercel SSO documentation for more details.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "authorization_code",
+        "required": true,
+        "description": "The sensitive OAuth authorization code received from Vercel for the SSO token exchange process.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The sensitive code received from Vercel"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "code"
+      },
+      {
+        "name": "integration_client_id",
+        "required": true,
+        "description": "The unique client ID for the integration, required for authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The integration client id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "client_id"
+      },
+      {
+        "name": "integration_client_secret",
+        "required": true,
+        "description": "The secret key for the integration client, used for authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The integration client secret"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "client_secret"
+      },
+      {
+        "name": "authorization_state",
+        "required": false,
+        "description": "The state received from the initialization request for security validation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state received from the initialization request"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "integration_redirect_uri",
+        "required": false,
+        "description": "The URL where the user will be redirected after authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The integration redirect URI"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "redirect_uri"
+      },
+      {
+        "name": "sso_grant_type",
+        "required": false,
+        "description": "Specifies the grant type as 'authorization_code' for OAuth process.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "authorization_code"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The grant type, when using x-www-form-urlencoded content type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "grant_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'exchange-sso-token'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/integrations/sso/token",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "code",
+        "tool_parameter_name": "authorization_code",
+        "description": "The sensitive code received from Vercel",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The sensitive code received from Vercel"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "authorization_state",
+        "description": "The state received from the initialization request",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state received from the initialization request"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "client_id",
+        "tool_parameter_name": "integration_client_id",
+        "description": "The integration client id",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The integration client id"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "client_secret",
+        "tool_parameter_name": "integration_client_secret",
+        "description": "The integration client secret",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The integration client secret"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "redirect_uri",
+        "tool_parameter_name": "integration_redirect_uri",
+        "description": "The integration redirect URI",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The integration redirect URI"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "grant_type",
+        "tool_parameter_name": "sso_grant_type",
+        "description": "The grant type, when using x-www-form-urlencoded content type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "authorization_code"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The grant type, when using x-www-form-urlencoded content type"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"code\",\n          \"client_id\",\n          \"client_secret\"\n        ],\n        \"properties\": {\n          \"code\": {\n            \"type\": \"string\",\n            \"description\": \"The sensitive code received from Vercel\"\n          },\n          \"state\": {\n            \"type\": \"string\",\n            \"description\": \"The state received from the initialization request\"\n          },\n          \"client_id\": {\n            \"type\": \"string\",\n            \"description\": \"The integration client id\"\n          },\n          \"client_secret\": {\n            \"type\": \"string\",\n            \"description\": \"The integration client secret\"\n          },\n          \"redirect_uri\": {\n            \"type\": \"string\",\n            \"description\": \"The integration redirect URI\"\n          },\n          \"grant_type\": {\n            \"type\": \"string\",\n            \"description\": \"The grant type, when using x-www-form-urlencoded content type\",\n            \"enum\": [\n              \"authorization_code\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

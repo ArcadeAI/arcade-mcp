@@ -1,0 +1,603 @@
+{
+  "name": "SubmitInvoiceToVercel",
+  "fully_qualified_name": "VercelApi.SubmitInvoiceToVercel@0.1.0",
+  "description": "Submit an invoice to Vercel's billing system.\n\nUse this tool to submit an invoice to Vercel, creating it in their billing system and sending it to the customer. Suitable for different billing plans at various stages of the billing period. Ensure compliance with billing limitations.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "integration_configuration_id",
+        "required": true,
+        "description": "The unique ID for the Vercel integration configuration. This links the invoice submission to the correct integration setup in Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "integrationConfigurationId"
+      },
+      {
+        "name": "invoice_request_body",
+        "required": true,
+        "description": "A JSON object containing detailed invoice information, such as invoice date, period, items, discounts, and test mode options.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "invoiceDate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Invoice date. Must be within the period's start and end."
+            },
+            "memo": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional memo for the invoice."
+            },
+            "period": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Subscription period for this billing cycle."
+            },
+            "items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "resourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's resource ID."
+                },
+                "billingPlanId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's billing plan ID."
+                },
+                "start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start and end are only needed if different from the period's start/end."
+                },
+                "end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start and end are only needed if different from the period's start/end."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "details": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "price": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Currency amount as a decimal string."
+                },
+                "quantity": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "units": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "total": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Currency amount as a decimal string."
+                }
+              },
+              "description": null
+            },
+            "discounts": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "resourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's resource ID."
+                },
+                "billingPlanId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's billing plan ID."
+                },
+                "start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start and end are only needed if different from the period's start/end."
+                },
+                "end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start and end are only needed if different from the period's start/end."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "details": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "amount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Currency amount as a decimal string."
+                }
+              },
+              "description": null
+            },
+            "test": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "validate": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "result": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "paid",
+                    "notpaid"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Test mode"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'submit-invoice'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/installations/{integrationConfigurationId}/billing/invoices",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "integrationConfigurationId",
+        "tool_parameter_name": "integration_configuration_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "invoice_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "invoiceDate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Invoice date. Must be within the period's start and end."
+            },
+            "memo": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional memo for the invoice."
+            },
+            "period": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Subscription period for this billing cycle."
+            },
+            "items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "resourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's resource ID."
+                },
+                "billingPlanId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's billing plan ID."
+                },
+                "start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start and end are only needed if different from the period's start/end."
+                },
+                "end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start and end are only needed if different from the period's start/end."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "details": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "price": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Currency amount as a decimal string."
+                },
+                "quantity": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "units": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "total": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Currency amount as a decimal string."
+                }
+              },
+              "description": null
+            },
+            "discounts": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "resourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's resource ID."
+                },
+                "billingPlanId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's billing plan ID."
+                },
+                "start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start and end are only needed if different from the period's start/end."
+                },
+                "end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start and end are only needed if different from the period's start/end."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "details": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "amount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Currency amount as a decimal string."
+                }
+              },
+              "description": null
+            },
+            "test": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "validate": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "result": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "paid",
+                    "notpaid"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Test mode"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"externalId\": {\n            \"type\": \"string\"\n          },\n          \"invoiceDate\": {\n            \"description\": \"Invoice date. Must be within the period's start and end.\",\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"memo\": {\n            \"type\": \"string\",\n            \"description\": \"Additional memo for the invoice.\"\n          },\n          \"period\": {\n            \"type\": \"object\",\n            \"description\": \"Subscription period for this billing cycle.\",\n            \"properties\": {\n              \"start\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\"\n              },\n              \"end\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\"\n              }\n            },\n            \"required\": [\n              \"start\",\n              \"end\"\n            ],\n            \"additionalProperties\": false\n          },\n          \"items\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"resourceId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's resource ID.\"\n                },\n                \"billingPlanId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's billing plan ID.\"\n                },\n                \"start\": {\n                  \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"end\": {\n                  \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"name\": {\n                  \"type\": \"string\"\n                },\n                \"details\": {\n                  \"type\": \"string\"\n                },\n                \"price\": {\n                  \"type\": \"string\",\n                  \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\",\n                  \"description\": \"Currency amount as a decimal string.\"\n                },\n                \"quantity\": {\n                  \"type\": \"number\"\n                },\n                \"units\": {\n                  \"type\": \"string\"\n                },\n                \"total\": {\n                  \"type\": \"string\",\n                  \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\",\n                  \"description\": \"Currency amount as a decimal string.\"\n                }\n              },\n              \"required\": [\n                \"billingPlanId\",\n                \"name\",\n                \"price\",\n                \"quantity\",\n                \"units\",\n                \"total\"\n              ],\n              \"additionalProperties\": false\n            }\n          },\n          \"discounts\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"resourceId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's resource ID.\"\n                },\n                \"billingPlanId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's billing plan ID.\"\n                },\n                \"start\": {\n                  \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"end\": {\n                  \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"name\": {\n                  \"type\": \"string\"\n                },\n                \"details\": {\n                  \"type\": \"string\"\n                },\n                \"amount\": {\n                  \"type\": \"string\",\n                  \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\",\n                  \"description\": \"Currency amount as a decimal string.\"\n                }\n              },\n              \"required\": [\n                \"billingPlanId\",\n                \"name\",\n                \"amount\"\n              ],\n              \"additionalProperties\": false\n            }\n          },\n          \"test\": {\n            \"type\": \"object\",\n            \"description\": \"Test mode\",\n            \"properties\": {\n              \"validate\": {\n                \"type\": \"boolean\"\n              },\n              \"result\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"paid\",\n                  \"notpaid\"\n                ]\n              }\n            },\n            \"additionalProperties\": false\n          }\n        },\n        \"required\": [\n          \"invoiceDate\",\n          \"period\",\n          \"items\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

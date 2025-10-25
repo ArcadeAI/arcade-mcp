@@ -1,0 +1,175 @@
+{
+  "name": "CancelBooking",
+  "fully_qualified_name": "SquareupApi.CancelBooking@2.0.0",
+  "description": "Cancel an existing booking.\n\nCall this tool to cancel a booking using its unique ID. Requires specific OAuth permissions depending on user level. For seller-level cancellations, an Appointments Plus or Premium subscription is necessary.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "booking_id",
+        "required": true,
+        "description": "The unique ID of the booking to be canceled. This ID is required to identify which booking to cancel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [Booking](entity:Booking) object representing the to-be-cancelled booking."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "booking_id"
+      },
+      {
+        "name": "idempotency_key",
+        "required": false,
+        "description": "Unique key to ensure the request is idempotent and prevents duplicate operations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique key to make this request an idempotent operation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "booking_revision_number",
+        "required": false,
+        "description": "The current revision number of the booking for optimistic concurrency control.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The revision number for the booking used for optimistic concurrency."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "booking_version"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CancelBooking'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "APPOINTMENTS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/bookings/{booking_id}/cancel",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "booking_id",
+        "tool_parameter_name": "booking_id",
+        "description": "The ID of the [Booking](entity:Booking) object representing the to-be-cancelled booking.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [Booking](entity:Booking) object representing the to-be-cancelled booking."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "idempotency_key",
+        "description": "A unique key to make this request an idempotent operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique key to make this request an idempotent operation."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "booking_version",
+        "tool_parameter_name": "booking_revision_number",
+        "description": "The revision number for the booking used for optimistic concurrency.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The revision number for the booking used for optimistic concurrency."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique key to make this request an idempotent operation.\",\n            \"maxLength\": 255,\n            \"nullable\": true\n          },\n          \"booking_version\": {\n            \"type\": \"integer\",\n            \"description\": \"The revision number for the booking used for optimistic concurrency.\",\n            \"nullable\": true\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

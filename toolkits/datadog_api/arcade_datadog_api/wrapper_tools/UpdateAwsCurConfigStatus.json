@@ -1,0 +1,295 @@
+{
+  "name": "UpdateAwsCurConfigStatus",
+  "fully_qualified_name": "DatadogApi.UpdateAwsCurConfigStatus@0.1.0",
+  "description": "Updates status or configuration of an AWS CUR config.\n\nUse this tool to update the active/archived status or account filtering settings of an AWS Cost and Usage Report (CUR) configuration in Datadog for a specified cloud account.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "cloud_account_id",
+        "required": true,
+        "description": "The ID of the AWS cloud account to configure in Datadog.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Cloud Account id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cloud_account_id"
+      },
+      {
+        "name": "aws_cur_config_request_type",
+        "required": true,
+        "description": "Specify the type of AWS CUR config Patch Request, usually 'aws_cur_config_patch_request'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "aws_cur_config_patch_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of AWS CUR config Patch Request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "excluded_aws_account_ids",
+        "required": false,
+        "description": "List of AWS account IDs to exclude from the billing dataset when \"include_new_accounts\" is true.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.account_filters.excluded_accounts"
+      },
+      {
+        "name": "included_aws_accounts",
+        "required": false,
+        "description": "List of AWS account IDs to be included in the billing dataset when `include_new_accounts` is `false`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.account_filters.included_accounts"
+      },
+      {
+        "name": "automatic_inclusion_of_new_accounts",
+        "required": false,
+        "description": "Set to true to automatically include new member accounts by default in your billing dataset.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not to automatically include new member accounts by default in your billing dataset."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.account_filters.include_new_accounts"
+      },
+      {
+        "name": "is_cost_management_enabled",
+        "required": false,
+        "description": "Indicates whether the Cloud Cost Management account is enabled. Accepts a boolean value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not the Cloud Cost Management account is enabled."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.is_enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateCostAWSCURConfig'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/aws_cur_config/{cloud_account_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cloud_account_id",
+        "tool_parameter_name": "cloud_account_id",
+        "description": "Cloud Account id.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Cloud Account id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.account_filters.excluded_accounts",
+        "tool_parameter_name": "excluded_aws_account_ids",
+        "description": "The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.account_filters.include_new_accounts",
+        "tool_parameter_name": "automatic_inclusion_of_new_accounts",
+        "description": "Whether or not to automatically include new member accounts by default in your billing dataset.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not to automatically include new member accounts by default in your billing dataset."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.account_filters.included_accounts",
+        "tool_parameter_name": "included_aws_accounts",
+        "description": "The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.is_enabled",
+        "tool_parameter_name": "is_cost_management_enabled",
+        "description": "Whether or not the Cloud Cost Management account is enabled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not the Cloud Cost Management account is enabled."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "aws_cur_config_request_type",
+        "description": "Type of AWS CUR config Patch Request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "aws_cur_config_patch_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of AWS CUR config Patch Request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "aws_cur_config_patch_request",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"AWS CUR config Patch Request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"AWS CUR config Patch data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for AWS CUR config Patch Request.\",\n                \"properties\": {\n                  \"account_filters\": {\n                    \"description\": \"The account filtering configuration.\",\n                    \"properties\": {\n                      \"excluded_accounts\": {\n                        \"description\": \"The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`.\",\n                        \"example\": [\n                          \"123456789123\",\n                          \"123456789143\"\n                        ],\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"include_new_accounts\": {\n                        \"description\": \"Whether or not to automatically include new member accounts by default in your billing dataset.\",\n                        \"example\": true,\n                        \"nullable\": true,\n                        \"type\": \"boolean\"\n                      },\n                      \"included_accounts\": {\n                        \"description\": \"The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`.\",\n                        \"example\": [\n                          \"123456789123\",\n                          \"123456789143\"\n                        ],\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"is_enabled\": {\n                    \"description\": \"Whether or not the Cloud Cost Management account is enabled.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"aws_cur_config_patch_request\",\n                \"description\": \"Type of AWS CUR config Patch Request.\",\n                \"enum\": [\n                  \"aws_cur_config_patch_request\"\n                ],\n                \"example\": \"aws_cur_config_patch_request\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"AWS_CUR_CONFIG_PATCH_REQUEST\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

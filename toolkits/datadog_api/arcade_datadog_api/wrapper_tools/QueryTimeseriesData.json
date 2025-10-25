@@ -1,0 +1,338 @@
+{
+  "name": "QueryTimeseriesData",
+  "fully_qualified_name": "DatadogApi.QueryTimeseriesData@0.1.0",
+  "description": "Query and process timeseries data from multiple sources.\n\nThis tool queries timeseries data across various data sources and processes it by applying specified formulas and functions.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "timeseries_query_payload",
+        "required": true,
+        "description": "A JSON object detailing the timeseries query including formulas, query range, and resource type.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "formulas": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "formula": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Formula string, referencing one or more queries with their name property."
+                        },
+                        "limit": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "count": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The number of results to which to limit."
+                            },
+                            "order": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "asc",
+                                "desc"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Direction of sort."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Message for specifying limits to the number of values returned by a query.\nThis limit is only for scalar queries and has no effect on timeseries queries."
+                        }
+                      },
+                      "description": "List of formulas to be calculated and returned as responses."
+                    },
+                    "from": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Start date (inclusive) of the query in milliseconds since the Unix epoch."
+                    },
+                    "interval": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A time interval in milliseconds.\nMay be overridden by a larger interval if the query would result in\ntoo many points for the specified timeframe.\nDefaults to a reasonable interval for the given timeframe."
+                    },
+                    "queries": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "List of queries to be run and used as inputs to the formulas."
+                    },
+                    "to": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "End date (exclusive) of the query in milliseconds since the Unix epoch."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The object describing a timeseries formula request."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "timeseries_request"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be timeseries_request."
+                }
+              },
+              "inner_properties": null,
+              "description": "A single timeseries query to be executed."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'QueryTimeseriesData'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/query/timeseries",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "timeseries_query_payload",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "formulas": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "formula": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Formula string, referencing one or more queries with their name property."
+                        },
+                        "limit": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "count": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The number of results to which to limit."
+                            },
+                            "order": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "asc",
+                                "desc"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Direction of sort."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Message for specifying limits to the number of values returned by a query.\nThis limit is only for scalar queries and has no effect on timeseries queries."
+                        }
+                      },
+                      "description": "List of formulas to be calculated and returned as responses."
+                    },
+                    "from": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Start date (inclusive) of the query in milliseconds since the Unix epoch."
+                    },
+                    "interval": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A time interval in milliseconds.\nMay be overridden by a larger interval if the query would result in\ntoo many points for the specified timeframe.\nDefaults to a reasonable interval for the given timeframe."
+                    },
+                    "queries": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "List of queries to be run and used as inputs to the formulas."
+                    },
+                    "to": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "End date (exclusive) of the query in milliseconds since the Unix epoch."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The object describing a timeseries formula request."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "timeseries_request"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be timeseries_request."
+                }
+              },
+              "inner_properties": null,
+              "description": "A single timeseries query to be executed."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"A request wrapper around a single timeseries query to be executed.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"A single timeseries query to be executed.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The object describing a timeseries formula request.\",\n                \"properties\": {\n                  \"formulas\": {\n                    \"description\": \"List of formulas to be calculated and returned as responses.\",\n                    \"items\": {\n                      \"description\": \"A formula for calculation based on one or more queries.\",\n                      \"properties\": {\n                        \"formula\": {\n                          \"description\": \"Formula string, referencing one or more queries with their name property.\",\n                          \"example\": \"a+b\",\n                          \"type\": \"string\"\n                        },\n                        \"limit\": {\n                          \"description\": \"Message for specifying limits to the number of values returned by a query.\\nThis limit is only for scalar queries and has no effect on timeseries queries.\",\n                          \"properties\": {\n                            \"count\": {\n                              \"description\": \"The number of results to which to limit.\",\n                              \"example\": 10,\n                              \"format\": \"int32\",\n                              \"maximum\": 2147483647,\n                              \"type\": \"integer\"\n                            },\n                            \"order\": {\n                              \"default\": \"desc\",\n                              \"description\": \"Direction of sort.\",\n                              \"enum\": [\n                                \"asc\",\n                                \"desc\"\n                              ],\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"ASC\",\n                                \"DESC\"\n                              ]\n                            }\n                          },\n                          \"type\": \"object\"\n                        }\n                      },\n                      \"required\": [\n                        \"formula\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"from\": {\n                    \"description\": \"Start date (inclusive) of the query in milliseconds since the Unix epoch.\",\n                    \"example\": 1568899800000,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"interval\": {\n                    \"description\": \"A time interval in milliseconds.\\nMay be overridden by a larger interval if the query would result in\\ntoo many points for the specified timeframe.\\nDefaults to a reasonable interval for the given timeframe.\",\n                    \"example\": 5000,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"queries\": {\n                    \"description\": \"List of queries to be run and used as inputs to the formulas.\",\n                    \"example\": [\n                      {\n                        \"data_source\": \"metrics\",\n                        \"query\": \"avg:system.cpu.user{*} by {env}\"\n                      }\n                    ],\n                    \"items\": {\n                      \"description\": \"An individual timeseries query to one of the basic Datadog data sources.\",\n                      \"example\": {\n                        \"data_source\": \"metrics\",\n                        \"query\": \"avg:system.cpu.user{*} by {env}\"\n                      },\n                      \"oneOf\": [\n                        {\n                          \"description\": \"An individual timeseries metrics query.\",\n                          \"properties\": {\n                            \"data_source\": {\n                              \"default\": \"metrics\",\n                              \"description\": \"A data source that is powered by the Metrics platform.\",\n                              \"enum\": [\n                                \"metrics\",\n                                \"cloud_cost\"\n                              ],\n                              \"example\": \"metrics\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"METRICS\",\n                                \"CLOUD_COST\"\n                              ]\n                            },\n                            \"name\": {\n                              \"description\": \"The variable name for use in formulas.\",\n                              \"type\": \"string\"\n                            },\n                            \"query\": {\n                              \"description\": \"A classic metrics query string.\",\n                              \"example\": \"avg:system.cpu.user{*} by {env}\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"data_source\",\n                            \"query\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        {\n                          \"description\": \"An individual timeseries events query.\",\n                          \"properties\": {\n                            \"compute\": {\n                              \"description\": \"The instructions for what to compute for this query.\",\n                              \"properties\": {\n                                \"aggregation\": {\n                                  \"default\": \"count\",\n                                  \"description\": \"The type of aggregation that can be performed on events-based queries.\",\n                                  \"enum\": [\n                                    \"count\",\n                                    \"cardinality\",\n                                    \"pc75\",\n                                    \"pc90\",\n                                    \"pc95\",\n                                    \"pc98\",\n                                    \"pc99\",\n                                    \"sum\",\n                                    \"min\",\n                                    \"max\",\n                                    \"avg\"\n                                  ],\n                                  \"example\": \"count\",\n                                  \"type\": \"string\",\n                                  \"x-enum-varnames\": [\n                                    \"COUNT\",\n                                    \"CARDINALITY\",\n                                    \"PC75\",\n                                    \"PC90\",\n                                    \"PC95\",\n                                    \"PC98\",\n                                    \"PC99\",\n                                    \"SUM\",\n                                    \"MIN\",\n                                    \"MAX\",\n                                    \"AVG\"\n                                  ]\n                                },\n                                \"interval\": {\n                                  \"description\": \"Interval for compute in milliseconds.\",\n                                  \"example\": 60000,\n                                  \"format\": \"int64\",\n                                  \"type\": \"integer\"\n                                },\n                                \"metric\": {\n                                  \"description\": \"The \\\"measure\\\" attribute on which to perform the computation.\",\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"required\": [\n                                \"aggregation\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"data_source\": {\n                              \"default\": \"logs\",\n                              \"description\": \"A data source that is powered by the Events Platform.\",\n                              \"enum\": [\n                                \"logs\",\n                                \"rum\",\n                                \"dora\"\n                              ],\n                              \"example\": \"logs\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"LOGS\",\n                                \"RUM\",\n                                \"DORA\"\n                              ]\n                            },\n                            \"group_by\": {\n                              \"description\": \"The list of facets on which to split results.\",\n                              \"items\": {\n                                \"description\": \"A dimension on which to split a query's results.\",\n                                \"properties\": {\n                                  \"facet\": {\n                                    \"description\": \"The facet by which to split groups.\",\n                                    \"example\": \"@error.type\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"limit\": {\n                                    \"default\": 10,\n                                    \"description\": \"The maximum buckets to return for this group by. Note: at most 10000 buckets are allowed.\\nIf grouping by multiple facets, the product of limits must not exceed 10000.\",\n                                    \"example\": 10,\n                                    \"format\": \"int32\",\n                                    \"maximum\": 10000,\n                                    \"type\": \"integer\"\n                                  },\n                                  \"sort\": {\n                                    \"description\": \"The dimension by which to sort a query's results.\",\n                                    \"properties\": {\n                                      \"aggregation\": {\n                                        \"default\": \"count\",\n                                        \"description\": \"The type of aggregation that can be performed on events-based queries.\",\n                                        \"enum\": [\n                                          \"count\",\n                                          \"cardinality\",\n                                          \"pc75\",\n                                          \"pc90\",\n                                          \"pc95\",\n                                          \"pc98\",\n                                          \"pc99\",\n                                          \"sum\",\n                                          \"min\",\n                                          \"max\",\n                                          \"avg\"\n                                        ],\n                                        \"example\": \"count\",\n                                        \"type\": \"string\",\n                                        \"x-enum-varnames\": [\n                                          \"COUNT\",\n                                          \"CARDINALITY\",\n                                          \"PC75\",\n                                          \"PC90\",\n                                          \"PC95\",\n                                          \"PC98\",\n                                          \"PC99\",\n                                          \"SUM\",\n                                          \"MIN\",\n                                          \"MAX\",\n                                          \"AVG\"\n                                        ]\n                                      },\n                                      \"metric\": {\n                                        \"description\": \"The metric's calculated value which should be used to define the sort order of a query's results.\",\n                                        \"example\": \"@duration\",\n                                        \"type\": \"string\"\n                                      },\n                                      \"order\": {\n                                        \"default\": \"desc\",\n                                        \"description\": \"Direction of sort.\",\n                                        \"enum\": [\n                                          \"asc\",\n                                          \"desc\"\n                                        ],\n                                        \"type\": \"string\",\n                                        \"x-enum-varnames\": [\n                                          \"ASC\",\n                                          \"DESC\"\n                                        ]\n                                      },\n                                      \"type\": {\n                                        \"description\": \"The type of sort to use on the calculated value.\",\n                                        \"enum\": [\n                                          \"alphabetical\",\n                                          \"measure\"\n                                        ],\n                                        \"type\": \"string\",\n                                        \"x-enum-varnames\": [\n                                          \"ALPHABETICAL\",\n                                          \"MEASURE\"\n                                        ]\n                                      }\n                                    },\n                                    \"required\": [\n                                      \"aggregation\"\n                                    ],\n                                    \"type\": \"object\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"facet\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"indexes\": {\n                              \"description\": \"The indexes in which to search.\",\n                              \"example\": [\n                                \"main\"\n                              ],\n                              \"items\": {\n                                \"description\": \"The unique index name.\",\n                                \"example\": \"main\",\n                                \"type\": \"string\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"name\": {\n                              \"description\": \"The variable name for use in formulas.\",\n                              \"type\": \"string\"\n                            },\n                            \"search\": {\n                              \"description\": \"Configuration of the search/filter for an events query.\",\n                              \"properties\": {\n                                \"query\": {\n                                  \"description\": \"The search/filter string for an events query.\",\n                                  \"example\": \"status:warn service:foo\",\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"type\": \"object\"\n                            }\n                          },\n                          \"required\": [\n                            \"data_source\",\n                            \"compute\"\n                          ],\n                          \"type\": \"object\"\n                        }\n                      ]\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"to\": {\n                    \"description\": \"End date (exclusive) of the query in milliseconds since the Unix epoch.\",\n                    \"example\": 1568923200000,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"to\",\n                  \"from\",\n                  \"queries\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"timeseries_request\",\n                \"description\": \"The type of the resource. The value should always be timeseries_request.\",\n                \"enum\": [\n                  \"timeseries_request\"\n                ],\n                \"example\": \"timeseries_request\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"TIMESERIES_REQUEST\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,322 @@
+{
+  "name": "GetTeamMembers",
+  "fully_qualified_name": "VercelApi.GetTeamMembers@0.1.0",
+  "description": "Retrieve a list of team members for a specified team.\n\nUse this tool to get a paginated list of members belonging to a specific team by providing the team ID.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "member_limit",
+        "required": false,
+        "description": "Specify the maximum number of team members to return in a single request.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit how many teams should be returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "added_since_timestamp",
+        "required": false,
+        "description": "Include team members added since this timestamp in milliseconds.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp in milliseconds to only include members added since then."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "include_members_until",
+        "required": false,
+        "description": "Timestamp in milliseconds to include members added until this time.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp in milliseconds to only include members added until then."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "search_team_members",
+        "required": false,
+        "description": "Search for team members by their name, username, or email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search team members by their name, username, and email."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search"
+      },
+      {
+        "name": "filter_by_team_role",
+        "required": false,
+        "description": "Return members with the specified team role. Valid roles include OWNER, MEMBER, DEVELOPER, SECURITY, BILLING, VIEWER, VIEWER_FOR_PLUS, and CONTRIBUTOR.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "OWNER",
+            "MEMBER",
+            "DEVELOPER",
+            "SECURITY",
+            "BILLING",
+            "VIEWER",
+            "VIEWER_FOR_PLUS",
+            "CONTRIBUTOR"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return members with the specified team role."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "role"
+      },
+      {
+        "name": "exclude_project_id",
+        "required": false,
+        "description": "Exclude members belonging to the specified project using the project ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Exclude members who belong to the specified project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "excludeProject"
+      },
+      {
+        "name": "project_id_for_eligible_members",
+        "required": false,
+        "description": "Include team members eligible for the specified project by providing the project ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include team members who are eligible to be members of the specified project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "eligibleMembersForProjectId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getTeamMembers'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v3/teams/{teamId}/members",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "member_limit",
+        "description": "Limit how many teams should be returned",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit how many teams should be returned"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since",
+        "tool_parameter_name": "added_since_timestamp",
+        "description": "Timestamp in milliseconds to only include members added since then.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp in milliseconds to only include members added since then."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "include_members_until",
+        "description": "Timestamp in milliseconds to only include members added until then.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp in milliseconds to only include members added until then."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search",
+        "tool_parameter_name": "search_team_members",
+        "description": "Search team members by their name, username, and email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search team members by their name, username, and email."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "role",
+        "tool_parameter_name": "filter_by_team_role",
+        "description": "Only return members with the specified team role.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "OWNER",
+            "MEMBER",
+            "DEVELOPER",
+            "SECURITY",
+            "BILLING",
+            "VIEWER",
+            "VIEWER_FOR_PLUS",
+            "CONTRIBUTOR"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return members with the specified team role."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "excludeProject",
+        "tool_parameter_name": "exclude_project_id",
+        "description": "Exclude members who belong to the specified project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Exclude members who belong to the specified project."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "eligibleMembersForProjectId",
+        "tool_parameter_name": "project_id_for_eligible_members",
+        "description": "Include team members who are eligible to be members of the specified project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include team members who are eligible to be members of the specified project."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

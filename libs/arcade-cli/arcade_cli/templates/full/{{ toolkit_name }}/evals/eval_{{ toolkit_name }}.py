@@ -48,4 +48,3 @@ def {{ toolkit_name }}_eval_suite() -> EvalSuite:
     )
 
     return suite
-

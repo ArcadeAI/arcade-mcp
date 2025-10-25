@@ -1,0 +1,271 @@
+{
+  "name": "RequestTeamAccess",
+  "fully_qualified_name": "VercelApi.RequestTeamAccess@0.1.0",
+  "description": "Request to join a team on Vercel.\n\nThis tool allows users to request access to a specific team on Vercel as a member. The request needs to be approved by a team owner, and only 10 users can have pending requests for a team at the same time.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_id",
+        "required": true,
+        "description": "The unique identifier of the Vercel team you want to join.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "join_request_details",
+        "required": true,
+        "description": "JSON containing details of the join request, such as origin, repository info, and user ID. Required fields include 'origin'. Optional fields include 'commitId', 'repoId', 'repoPath', 'gitUserId', and 'gitUserLogin'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "joinedFrom": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "origin": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "import",
+                    "teams",
+                    "github",
+                    "gitlab",
+                    "bitbucket",
+                    "feedback",
+                    "organization-teams"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The origin of the request."
+                },
+                "commitId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The commit sha if the origin is a git provider."
+                },
+                "repoId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the repository for the given Git provider."
+                },
+                "repoPath": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The path to the repository for the given Git provider."
+                },
+                "gitUserId": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the Git account of the user who requests access."
+                },
+                "gitUserLogin": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The login name for the Git account of the user who requests access."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'requestAccessToTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/teams/{teamId}/request",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "join_request_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "joinedFrom": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "origin": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "import",
+                    "teams",
+                    "github",
+                    "gitlab",
+                    "bitbucket",
+                    "feedback",
+                    "organization-teams"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The origin of the request."
+                },
+                "commitId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The commit sha if the origin is a git provider."
+                },
+                "repoId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the repository for the given Git provider."
+                },
+                "repoPath": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The path to the repository for the given Git provider."
+                },
+                "gitUserId": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the Git account of the user who requests access."
+                },
+                "gitUserLogin": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The login name for the Git account of the user who requests access."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"joinedFrom\"\n        ],\n        \"properties\": {\n          \"joinedFrom\": {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"origin\"\n            ],\n            \"properties\": {\n              \"origin\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"import\",\n                  \"teams\",\n                  \"github\",\n                  \"gitlab\",\n                  \"bitbucket\",\n                  \"feedback\",\n                  \"organization-teams\"\n                ],\n                \"description\": \"The origin of the request.\",\n                \"example\": \"github\"\n              },\n              \"commitId\": {\n                \"type\": \"string\",\n                \"description\": \"The commit sha if the origin is a git provider.\",\n                \"example\": \"f498d25d8bd654b578716203be73084b31130cd7\"\n              },\n              \"repoId\": {\n                \"type\": \"string\",\n                \"description\": \"The ID of the repository for the given Git provider.\",\n                \"example\": \"67753070\"\n              },\n              \"repoPath\": {\n                \"type\": \"string\",\n                \"description\": \"The path to the repository for the given Git provider.\",\n                \"example\": \"jane-doe/example\"\n              },\n              \"gitUserId\": {\n                \"description\": \"The ID of the Git account of the user who requests access.\",\n                \"example\": 103053343,\n                \"oneOf\": [\n                  {\n                    \"type\": \"string\"\n                  },\n                  {\n                    \"type\": \"number\"\n                  }\n                ]\n              },\n              \"gitUserLogin\": {\n                \"type\": \"string\",\n                \"description\": \"The login name for the Git account of the user who requests access.\",\n                \"example\": \"jane-doe\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

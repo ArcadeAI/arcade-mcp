@@ -1,0 +1,266 @@
+{
+  "name": "CreateOrgConnection",
+  "fully_qualified_name": "DatadogApi.CreateOrgConnection@0.1.0",
+  "description": "Creates a new organization connection in Datadog.\n\nUse this tool to create a connection between the current organization and a target organization within Datadog. Ideal for linking organizational resources and sharing data across teams.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "connection_types",
+        "required": true,
+        "description": "List of connection types to establish between the organizations.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of connection types to establish."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.connection_types"
+      },
+      {
+        "name": "organization_connection_type",
+        "required": true,
+        "description": "Specify the type of the organization connection. Must be 'org_connection'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "org_connection"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Org connection type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "target_org_uuid",
+        "required": false,
+        "description": "The UUID of the target organization to connect to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Org UUID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.sink_org.data.id"
+      },
+      {
+        "name": "target_org_name",
+        "required": false,
+        "description": "The name of the target organization to connect with.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Org name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.sink_org.data.name"
+      },
+      {
+        "name": "organization_relationship_type",
+        "required": false,
+        "description": "Specifies the type of the organization relationship. Must be 'orgs'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "orgs"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the organization relationship."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.sink_org.data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateOrgConnections'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/org_connections",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.connection_types",
+        "tool_parameter_name": "connection_types",
+        "description": "List of connection types to establish.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of connection types to establish."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.sink_org.data.id",
+        "tool_parameter_name": "target_org_uuid",
+        "description": "Org UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Org UUID."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.sink_org.data.name",
+        "tool_parameter_name": "target_org_name",
+        "description": "Org name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Org name."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.sink_org.data.type",
+        "tool_parameter_name": "organization_relationship_type",
+        "description": "The type of the organization relationship.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "orgs"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the organization relationship."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "organization_connection_type",
+        "description": "Org connection type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "org_connection"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Org connection type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to create an org connection.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Org connection creation data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for creating an org connection.\",\n                \"properties\": {\n                  \"connection_types\": {\n                    \"description\": \"List of connection types to establish.\",\n                    \"example\": [\n                      \"logs\"\n                    ],\n                    \"items\": {\n                      \"description\": \"Available connection types between organizations.\",\n                      \"enum\": [\n                        \"logs\",\n                        \"metrics\"\n                      ],\n                      \"example\": \"logs\",\n                      \"type\": \"string\",\n                      \"x-enum-varnames\": [\n                        \"LOGS\",\n                        \"METRICS\"\n                      ]\n                    },\n                    \"minItems\": 1,\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"connection_types\"\n                ],\n                \"type\": \"object\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationships for org connection creation.\",\n                \"properties\": {\n                  \"sink_org\": {\n                    \"description\": \"Org relationship.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"The definition of `OrgConnectionOrgRelationshipData` object.\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"Org UUID.\",\n                            \"example\": \"f9ec96b0-8c8a-4b0a-9b0a-1b2c3d4e5f6a\",\n                            \"type\": \"string\"\n                          },\n                          \"name\": {\n                            \"description\": \"Org name.\",\n                            \"example\": \"Example Org\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"description\": \"The type of the organization relationship.\",\n                            \"enum\": [\n                              \"orgs\"\n                            ],\n                            \"example\": \"orgs\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"ORGS\"\n                            ]\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"required\": [\n                  \"sink_org\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"description\": \"Org connection type.\",\n                \"enum\": [\n                  \"org_connection\"\n                ],\n                \"example\": \"org_connection\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ORG_CONNECTION\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\",\n              \"relationships\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

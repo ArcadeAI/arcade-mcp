@@ -1,0 +1,243 @@
+{
+  "name": "SearchLoyaltyAccounts",
+  "fully_qualified_name": "SquareupApi.SearchLoyaltyAccounts@2.0.0",
+  "description": "Search for loyalty accounts by phone number or customer ID.\n\nThis tool searches for loyalty accounts within a loyalty program. Use it when you need to find accounts based on a phone number or customer ID. To retrieve all accounts, you can leave the query empty. The results are sorted by the account creation date.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "search_criteria",
+        "required": true,
+        "description": "The criteria for searching loyalty accounts. Include phone mappings or customer IDs, limit of results, and pagination cursor.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "mappings": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Square-assigned ID of the mapping."
+                    },
+                    "created_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the mapping was created, in RFC 3339 format."
+                    },
+                    "phone_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The phone number of the buyer, in E.164 format. For example, \"+14155551111\"."
+                    }
+                  },
+                  "description": "The set of mappings to use in the loyalty account search.  \n\nThis cannot be combined with `customer_ids`.  \n\nMax: 30 mappings"
+                },
+                "customer_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The set of customer IDs to use in the loyalty account search.  \n\nThis cannot be combined with `mappings`.  \n\nMax: 30 customer IDs"
+                }
+              },
+              "inner_properties": null,
+              "description": "The search criteria for the loyalty accounts."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The maximum number of results to include in the response. The default value is 30."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A pagination cursor returned by a previous call to \nthis endpoint. Provide this to retrieve the next set of \nresults for the original query.\n\nFor more information, \nsee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchLoyaltyAccounts'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/accounts/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "search_criteria",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "mappings": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Square-assigned ID of the mapping."
+                    },
+                    "created_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the mapping was created, in RFC 3339 format."
+                    },
+                    "phone_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The phone number of the buyer, in E.164 format. For example, \"+14155551111\"."
+                    }
+                  },
+                  "description": "The set of mappings to use in the loyalty account search.  \n\nThis cannot be combined with `customer_ids`.  \n\nMax: 30 mappings"
+                },
+                "customer_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The set of customer IDs to use in the loyalty account search.  \n\nThis cannot be combined with `mappings`.  \n\nMax: 30 customer IDs"
+                }
+              },
+              "inner_properties": null,
+              "description": "The search criteria for the loyalty accounts."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The maximum number of results to include in the response. The default value is 30."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A pagination cursor returned by a previous call to \nthis endpoint. Provide this to retrieve the next set of \nresults for the original query.\n\nFor more information, \nsee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to search for loyalty accounts.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"The search criteria for the loyalty accounts.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"mappings\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"description\": \"Represents the mapping that associates a loyalty account with a buyer. \\n\\nCurrently, a loyalty account can only be mapped to a buyer by phone number. For more information, see \\n[Loyalty Overview](https://developer.squareup.com/docs/loyalty/overview).\",\n                  \"x-release-status\": \"PUBLIC\",\n                  \"properties\": {\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"The Square-assigned ID of the mapping.\",\n                      \"maxLength\": 36,\n                      \"readOnly\": true\n                    },\n                    \"created_at\": {\n                      \"type\": \"string\",\n                      \"description\": \"The timestamp when the mapping was created, in RFC 3339 format.\",\n                      \"readOnly\": true\n                    },\n                    \"phone_number\": {\n                      \"type\": \"string\",\n                      \"description\": \"The phone number of the buyer, in E.164 format. For example, \\\"+14155551111\\\".\",\n                      \"nullable\": true\n                    }\n                  }\n                },\n                \"description\": \"The set of mappings to use in the loyalty account search.  \\n\\nThis cannot be combined with `customer_ids`.  \\n\\nMax: 30 mappings\",\n                \"nullable\": true\n              },\n              \"customer_ids\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"The set of customer IDs to use in the loyalty account search.  \\n\\nThis cannot be combined with `mappings`.  \\n\\nMax: 30 customer IDs\",\n                \"nullable\": true\n              }\n            }\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The maximum number of results to include in the response. The default value is 30.\",\n            \"minimum\": 1,\n            \"maximum\": 200\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"A pagination cursor returned by a previous call to \\nthis endpoint. Provide this to retrieve the next set of \\nresults for the original query.\\n\\nFor more information, \\nsee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\"\n          }\n        },\n        \"example\": {\n          \"limit\": 10,\n          \"query\": {\n            \"mappings\": [\n              {\n                \"phone_number\": \"+14155551234\"\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

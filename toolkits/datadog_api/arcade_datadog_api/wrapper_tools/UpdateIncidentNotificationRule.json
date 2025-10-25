@@ -1,0 +1,566 @@
+{
+  "name": "UpdateIncidentNotificationRule",
+  "fully_qualified_name": "DatadogApi.UpdateIncidentNotificationRule@0.1.0",
+  "description": "Update an incident notification rule in Datadog.\n\nThis tool updates an existing incident notification rule in Datadog with a complete replacement. Use it when you need to modify the settings or parameters of an incident alert rule.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "notification_rule_id",
+        "required": true,
+        "description": "The unique identifier for the notification rule to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the notification rule."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "notification_rule_data",
+        "required": true,
+        "description": "JSON object containing the complete notification rule data to update. It includes attributes, relationships, and the type for the notification rule.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conditions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "field": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The incident field to evaluate"
+                        },
+                        "values": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The value(s) to compare against. Multiple values are `ORed` together."
+                        }
+                      },
+                      "description": "The conditions that trigger this notification rule."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the notification rule is enabled."
+                    },
+                    "handles": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The notification handles (targets) for this rule."
+                    },
+                    "renotify_on": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of incident fields that trigger re-notification when changed."
+                    },
+                    "trigger": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The trigger event for this notification rule."
+                    },
+                    "visibility": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all",
+                        "organization",
+                        "private"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The visibility of the notification rule."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The attributes for creating a notification rule."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique identifier of the notification rule."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "incident_type": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The incident type's ID."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "incident_types"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Incident type resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Relationship to incident type object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to an incident type."
+                    },
+                    "notification_template": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of the notification template."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "notification_templates"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Notification templates resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The notification template relationship data."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A relationship reference to a notification template."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `NotificationRuleCreateDataRelationships` object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_notification_rules"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Notification rules resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Notification rule data for an update request."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_resources",
+        "required": false,
+        "description": "Comma-separated list of resources to include: `created_by_user`, `last_modified_by_user`, `incident_type`, `notification_template`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of resources to include. Supported values: `created_by_user`, `last_modified_by_user`, `incident_type`, `notification_template`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateIncidentNotificationRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/incidents/config/notification-rules/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include",
+        "tool_parameter_name": "include_resources",
+        "description": "Comma-separated list of resources to include. Supported values: `created_by_user`, `last_modified_by_user`, `incident_type`, `notification_template`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of resources to include. Supported values: `created_by_user`, `last_modified_by_user`, `incident_type`, `notification_template`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "notification_rule_id",
+        "description": "The ID of the notification rule.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the notification rule."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "notification_rule_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conditions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "field": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The incident field to evaluate"
+                        },
+                        "values": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The value(s) to compare against. Multiple values are `ORed` together."
+                        }
+                      },
+                      "description": "The conditions that trigger this notification rule."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the notification rule is enabled."
+                    },
+                    "handles": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The notification handles (targets) for this rule."
+                    },
+                    "renotify_on": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of incident fields that trigger re-notification when changed."
+                    },
+                    "trigger": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The trigger event for this notification rule."
+                    },
+                    "visibility": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all",
+                        "organization",
+                        "private"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The visibility of the notification rule."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The attributes for creating a notification rule."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique identifier of the notification rule."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "incident_type": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The incident type's ID."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "incident_types"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Incident type resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Relationship to incident type object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to an incident type."
+                    },
+                    "notification_template": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of the notification template."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "notification_templates"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Notification templates resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The notification template relationship data."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A relationship reference to a notification template."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `NotificationRuleCreateDataRelationships` object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_notification_rules"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Notification rules resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Notification rule data for an update request."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Put request for a notification rule.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Notification rule data for an update request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The attributes for creating a notification rule.\",\n                \"properties\": {\n                  \"conditions\": {\n                    \"description\": \"The conditions that trigger this notification rule.\",\n                    \"example\": [\n                      {\n                        \"field\": \"severity\",\n                        \"values\": [\n                          \"SEV-1\",\n                          \"SEV-2\"\n                        ]\n                      }\n                    ],\n                    \"items\": {\n                      \"description\": \"A condition that must be met to trigger the notification rule.\",\n                      \"properties\": {\n                        \"field\": {\n                          \"description\": \"The incident field to evaluate\",\n                          \"example\": \"severity\",\n                          \"type\": \"string\"\n                        },\n                        \"values\": {\n                          \"description\": \"The value(s) to compare against. Multiple values are `ORed` together.\",\n                          \"example\": [\n                            \"SEV-1\",\n                            \"SEV-2\"\n                          ],\n                          \"items\": {\n                            \"type\": \"string\"\n                          },\n                          \"type\": \"array\"\n                        }\n                      },\n                      \"required\": [\n                        \"field\",\n                        \"values\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"enabled\": {\n                    \"default\": false,\n                    \"description\": \"Whether the notification rule is enabled.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"handles\": {\n                    \"description\": \"The notification handles (targets) for this rule.\",\n                    \"example\": [\n                      \"@team-email@company.com\",\n                      \"@slack-channel\"\n                    ],\n                    \"items\": {\n                      \"description\": \"A notification handle (email, Slack channel, etc.).\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"renotify_on\": {\n                    \"description\": \"List of incident fields that trigger re-notification when changed.\",\n                    \"example\": [\n                      \"status\",\n                      \"severity\"\n                    ],\n                    \"items\": {\n                      \"description\": \"An incident field name.\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"trigger\": {\n                    \"description\": \"The trigger event for this notification rule.\",\n                    \"example\": \"incident_created_trigger\",\n                    \"type\": \"string\"\n                  },\n                  \"visibility\": {\n                    \"description\": \"The visibility of the notification rule.\",\n                    \"enum\": [\n                      \"all\",\n                      \"organization\",\n                      \"private\"\n                    ],\n                    \"example\": \"organization\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"ALL\",\n                      \"ORGANIZATION\",\n                      \"PRIVATE\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"conditions\",\n                  \"handles\",\n                  \"trigger\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The unique identifier of the notification rule.\",\n                \"example\": \"00000000-0000-0000-0000-000000000001\",\n                \"format\": \"uuid\",\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"The definition of `NotificationRuleCreateDataRelationships` object.\",\n                \"properties\": {\n                  \"incident_type\": {\n                    \"description\": \"Relationship to an incident type.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Relationship to incident type object.\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"The incident type's ID.\",\n                            \"example\": \"00000000-0000-0000-0000-000000000000\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"incident_types\",\n                            \"description\": \"Incident type resource type.\",\n                            \"enum\": [\n                              \"incident_types\"\n                            ],\n                            \"example\": \"incident_types\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"INCIDENT_TYPES\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"id\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"notification_template\": {\n                    \"description\": \"A relationship reference to a notification template.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"The notification template relationship data.\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"The unique identifier of the notification template.\",\n                            \"example\": \"00000000-0000-0000-0000-000000000001\",\n                            \"format\": \"uuid\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"description\": \"Notification templates resource type.\",\n                            \"enum\": [\n                              \"notification_templates\"\n                            ],\n                            \"example\": \"notification_templates\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"NOTIFICATION_TEMPLATES\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"id\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"description\": \"Notification rules resource type.\",\n                \"enum\": [\n                  \"incident_notification_rules\"\n                ],\n                \"example\": \"incident_notification_rules\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"INCIDENT_NOTIFICATION_RULES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

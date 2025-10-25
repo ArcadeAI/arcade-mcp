@@ -1,0 +1,274 @@
+{
+  "name": "UpdateScorecardOutcomes",
+  "fully_qualified_name": "DatadogApi.UpdateScorecardOutcomes@0.1.0",
+  "description": "Update multiple scorecard rule outcomes in Datadog.\n\nUse this tool to update several scorecard rule outcomes in Datadog with a single request. Ideal for synchronizing or modifying multiple outcomes efficiently.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "scorecard_outcomes",
+        "required": true,
+        "description": "A JSON object representing a set of scorecard outcomes to be updated. Includes the type and attributes such as results with details like entity_reference, remarks, rule_id, and state.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "results": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "entity_reference": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The unique reference for an IDP entity."
+                        },
+                        "remarks": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Any remarks regarding the scorecard rule's evaluation. Supports HTML hyperlinks."
+                        },
+                        "rule_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The unique ID for a scorecard rule."
+                        },
+                        "state": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "pass",
+                            "fail",
+                            "skip"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The state of the rule evaluation."
+                        }
+                      },
+                      "description": "Set of scorecard outcomes to update asynchronously."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The JSON:API attributes for a batched set of scorecard outcomes."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "batched-outcome"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The JSON:API type for scorecard outcomes."
+                }
+              },
+              "inner_properties": null,
+              "description": "Scorecard outcomes batch request data."
+            }
+          },
+          "inner_properties": null,
+          "description": "Set of scorecard outcomes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateScorecardOutcomesAsync'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/scorecard/outcomes",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "scorecard_outcomes",
+        "description": "Set of scorecard outcomes.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "results": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "entity_reference": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The unique reference for an IDP entity."
+                        },
+                        "remarks": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Any remarks regarding the scorecard rule's evaluation. Supports HTML hyperlinks."
+                        },
+                        "rule_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The unique ID for a scorecard rule."
+                        },
+                        "state": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "pass",
+                            "fail",
+                            "skip"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The state of the rule evaluation."
+                        }
+                      },
+                      "description": "Set of scorecard outcomes to update asynchronously."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The JSON:API attributes for a batched set of scorecard outcomes."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "batched-outcome"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The JSON:API type for scorecard outcomes."
+                }
+              },
+              "inner_properties": null,
+              "description": "Scorecard outcomes batch request data."
+            }
+          },
+          "inner_properties": null,
+          "description": "Set of scorecard outcomes."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Scorecard outcomes batch request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Scorecard outcomes batch request data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The JSON:API attributes for a batched set of scorecard outcomes.\",\n                \"properties\": {\n                  \"results\": {\n                    \"description\": \"Set of scorecard outcomes to update asynchronously.\",\n                    \"items\": {\n                      \"description\": \"Scorecard outcome for a single entity and rule.\",\n                      \"properties\": {\n                        \"entity_reference\": {\n                          \"description\": \"The unique reference for an IDP entity.\",\n                          \"example\": \"service:my-service\",\n                          \"type\": \"string\"\n                        },\n                        \"remarks\": {\n                          \"description\": \"Any remarks regarding the scorecard rule's evaluation. Supports HTML hyperlinks.\",\n                          \"example\": \"See: <a href=\\\"https://app.datadoghq.com/services\\\">Services</a>\",\n                          \"type\": \"string\"\n                        },\n                        \"rule_id\": {\n                          \"description\": \"The unique ID for a scorecard rule.\",\n                          \"example\": \"q8MQxk8TCqrHnWkx\",\n                          \"type\": \"string\"\n                        },\n                        \"state\": {\n                          \"description\": \"The state of the rule evaluation.\",\n                          \"enum\": [\n                            \"pass\",\n                            \"fail\",\n                            \"skip\"\n                          ],\n                          \"example\": \"pass\",\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"PASS\",\n                            \"FAIL\",\n                            \"SKIP\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"rule_id\",\n                        \"entity_reference\",\n                        \"state\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"batched-outcome\",\n                \"description\": \"The JSON:API type for scorecard outcomes.\",\n                \"enum\": [\n                  \"batched-outcome\"\n                ],\n                \"example\": \"batched-outcome\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"BATCHED_OUTCOME\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Set of scorecard outcomes.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

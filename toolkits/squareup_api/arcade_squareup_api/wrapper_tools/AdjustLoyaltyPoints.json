@@ -1,0 +1,274 @@
+{
+  "name": "AdjustLoyaltyPoints",
+  "fully_qualified_name": "SquareupApi.AdjustLoyaltyPoints@2.0.0",
+  "description": "Manually adjust loyalty points for a buyer's account.\n\nUse this tool to manually add or subtract loyalty points from a buyer's account when automatic accumulation is not applied. Ideal for scenarios requiring manual point corrections.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "loyalty_account_id",
+        "required": true,
+        "description": "The unique ID of the buyer's loyalty account to adjust.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the target [loyalty account](entity:LoyaltyAccount)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "unique_request_identifier",
+        "required": true,
+        "description": "A unique string to identify this loyalty points adjustment request. Must be unique for each request to prevent duplicates.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this `AdjustLoyaltyPoints` request. \nKeys can be any valid string, but must be unique for every request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "points_adjustment_amount",
+        "required": true,
+        "description": "The number of points to add or remove from the buyer's account.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of points added or removed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "adjust_points.points"
+      },
+      {
+        "name": "loyalty_program_id",
+        "required": false,
+        "description": "The Square-assigned ID of the loyalty program to adjust points for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the [loyalty program](entity:LoyaltyProgram)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "adjust_points.loyalty_program_id"
+      },
+      {
+        "name": "adjustment_reason",
+        "required": false,
+        "description": "The reason for adjusting the loyalty points, such as 'customer courtesy' or 'error correction'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The reason for the adjustment of points."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "adjust_points.reason"
+      },
+      {
+        "name": "allow_negative_balance",
+        "required": false,
+        "description": "Set to true to allow a negative balance after point subtraction. Defaults to false if not specified.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether to allow a negative adjustment to result in a negative balance. If `true`, a negative\nbalance is allowed when subtracting points. If `false`, Square returns a `BAD_REQUEST` error when subtracting\nthe specified number of points would result in a negative balance. The default value is `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "allow_negative_balance"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'AdjustLoyaltyPoints'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/accounts/{account_id}/adjust",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "account_id",
+        "tool_parameter_name": "loyalty_account_id",
+        "description": "The ID of the target [loyalty account](entity:LoyaltyAccount).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the target [loyalty account](entity:LoyaltyAccount)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_request_identifier",
+        "description": "A unique string that identifies this `AdjustLoyaltyPoints` request. \nKeys can be any valid string, but must be unique for every request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this `AdjustLoyaltyPoints` request. \nKeys can be any valid string, but must be unique for every request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "adjust_points.loyalty_program_id",
+        "tool_parameter_name": "loyalty_program_id",
+        "description": "The Square-assigned ID of the [loyalty program](entity:LoyaltyProgram).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the [loyalty program](entity:LoyaltyProgram)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "adjust_points.points",
+        "tool_parameter_name": "points_adjustment_amount",
+        "description": "The number of points added or removed.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of points added or removed."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "adjust_points.reason",
+        "tool_parameter_name": "adjustment_reason",
+        "description": "The reason for the adjustment of points.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The reason for the adjustment of points."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "allow_negative_balance",
+        "tool_parameter_name": "allow_negative_balance",
+        "description": "Indicates whether to allow a negative adjustment to result in a negative balance. If `true`, a negative\nbalance is allowed when subtracting points. If `false`, Square returns a `BAD_REQUEST` error when subtracting\nthe specified number of points would result in a negative balance. The default value is `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether to allow a negative adjustment to result in a negative balance. If `true`, a negative\nbalance is allowed when subtracting points. If `false`, Square returns a `BAD_REQUEST` error when subtracting\nthe specified number of points would result in a negative balance. The default value is `false`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents an [AdjustLoyaltyPoints](api-endpoint:Loyalty-AdjustLoyaltyPoints) request.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"x-params-example\": \"?account_id=5adcb100-07f1-4ee7-b8c6-6bb9ebc474bd\",\n        \"required\": [\n          \"idempotency_key\",\n          \"adjust_points\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this `AdjustLoyaltyPoints` request. \\nKeys can be any valid string, but must be unique for every request.\",\n            \"minLength\": 1,\n            \"maxLength\": 128\n          },\n          \"adjust_points\": {\n            \"type\": \"object\",\n            \"description\": \"Provides metadata when the event `type` is `ADJUST_POINTS`.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"points\"\n            ],\n            \"properties\": {\n              \"loyalty_program_id\": {\n                \"type\": \"string\",\n                \"description\": \"The Square-assigned ID of the [loyalty program](entity:LoyaltyProgram).\",\n                \"maxLength\": 36,\n                \"readOnly\": true\n              },\n              \"points\": {\n                \"type\": \"integer\",\n                \"description\": \"The number of points added or removed.\"\n              },\n              \"reason\": {\n                \"type\": \"string\",\n                \"description\": \"The reason for the adjustment of points.\",\n                \"maxLength\": 3500,\n                \"nullable\": true\n              }\n            }\n          },\n          \"allow_negative_balance\": {\n            \"type\": \"boolean\",\n            \"description\": \"Indicates whether to allow a negative adjustment to result in a negative balance. If `true`, a negative\\nbalance is allowed when subtracting points. If `false`, Square returns a `BAD_REQUEST` error when subtracting\\nthe specified number of points would result in a negative balance. The default value is `false`.\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"adjust_points\": {\n            \"points\": 10,\n            \"reason\": \"Complimentary points\"\n          },\n          \"idempotency_key\": \"bc29a517-3dc9-450e-aa76-fae39ee849d1\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

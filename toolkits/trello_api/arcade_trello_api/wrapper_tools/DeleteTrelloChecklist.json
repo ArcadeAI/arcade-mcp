@@ -1,18 +1,18 @@
 {
   "name": "DeleteTrelloChecklist",
-  "fully_qualified_name": "TrelloApi.DeleteTrelloChecklist@0.1.0",
-  "description": "Delete a checklist from Trello by its ID.\n\nUse this tool to remove a checklist from a Trello board by specifying the checklist's ID. Call this tool when you need to delete a checklist from a Trello card or board.",
+  "fully_qualified_name": "TrelloApi.DeleteTrelloChecklist@2.0.0",
+  "description": "Deletes a checklist from Trello using its ID.\n\nUse this tool to delete a specific checklist from a Trello board by providing the checklist's ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "checklist_id",
         "required": true,
-        "description": "The unique ID of the checklist to be deleted from Trello.",
+        "description": "The unique identifier of the checklist to be deleted from Trello.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/checklists/{id}",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

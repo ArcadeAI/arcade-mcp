@@ -1,0 +1,329 @@
+{
+  "name": "SearchBookingAvailability",
+  "fully_qualified_name": "SquareupApi.SearchBookingAvailability@2.0.0",
+  "description": "Find available booking slots for appointments.\n\nUse this tool to search for available booking slots. It requires appropriate permissions depending on user level (buyer or seller).",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "booking_availability_request",
+        "required": true,
+        "description": "JSON object specifying the fields to search for booking availability. Includes filters for time range, location, segment, and booking ID.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "start_at_range": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "location_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The query expression to search for buyer-accessible availabilities with their location IDs matching the specified location ID.\nThis query expression cannot be set if `booking_id` is set."
+                    },
+                    "segment_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "service_variation_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The ID of the [CatalogItemVariation](entity:CatalogItemVariation) object representing the service booked in this segment."
+                        },
+                        "team_member_id_filter": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "all": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A list of terms that must be present on the field of the resource."
+                            },
+                            "any": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A list of terms where at least one of them must be present on the\nfield of the resource."
+                            },
+                            "none": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A list of terms that must not be present on the field the resource"
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A filter to select resources based on an exact field value. For any given\nvalue, the value can only be in one property. Depending on the field, either\nall properties can be set or only a subset will be available.\n\nRefer to the documentation of the field."
+                        }
+                      },
+                      "description": "The query expression to search for buyer-accessible availabilities matching the specified list of segment filters.\nIf the size of the `segment_filters` list is `n`, the search returns availabilities with `n` segments per availability.\n\nThis query expression cannot be set if `booking_id` is set."
+                    },
+                    "booking_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The query expression to search for buyer-accessible availabilities for an existing booking by matching the specified `booking_id` value.\nThis is commonly used to reschedule an appointment.\nIf this expression is set, the `location_id` and `segment_filters` expressions cannot be set."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "A query filter to search for buyer-accessible availabilities by."
+                }
+              },
+              "inner_properties": null,
+              "description": "The query used to search for buyer-accessible availabilities of bookings."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchAvailability'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "APPOINTMENTS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/bookings/availability/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "booking_availability_request",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "start_at_range": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "location_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The query expression to search for buyer-accessible availabilities with their location IDs matching the specified location ID.\nThis query expression cannot be set if `booking_id` is set."
+                    },
+                    "segment_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "service_variation_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The ID of the [CatalogItemVariation](entity:CatalogItemVariation) object representing the service booked in this segment."
+                        },
+                        "team_member_id_filter": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "all": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A list of terms that must be present on the field of the resource."
+                            },
+                            "any": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A list of terms where at least one of them must be present on the\nfield of the resource."
+                            },
+                            "none": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A list of terms that must not be present on the field the resource"
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A filter to select resources based on an exact field value. For any given\nvalue, the value can only be in one property. Depending on the field, either\nall properties can be set or only a subset will be available.\n\nRefer to the documentation of the field."
+                        }
+                      },
+                      "description": "The query expression to search for buyer-accessible availabilities matching the specified list of segment filters.\nIf the size of the `segment_filters` list is `n`, the search returns availabilities with `n` segments per availability.\n\nThis query expression cannot be set if `booking_id` is set."
+                    },
+                    "booking_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The query expression to search for buyer-accessible availabilities for an existing booking by matching the specified `booking_id` value.\nThis is commonly used to reschedule an appointment.\nIf this expression is set, the `location_id` and `segment_filters` expressions cannot be set."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "A query filter to search for buyer-accessible availabilities by."
+                }
+              },
+              "inner_properties": null,
+              "description": "The query used to search for buyer-accessible availabilities of bookings."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"query\"\n        ],\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"The query used to search for buyer-accessible availabilities of bookings.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"filter\"\n            ],\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"A query filter to search for buyer-accessible availabilities by.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"start_at_range\"\n                ],\n                \"properties\": {\n                  \"start_at_range\": {\n                    \"type\": \"object\",\n                    \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"start_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                        \"nullable\": true\n                      },\n                      \"end_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"location_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The query expression to search for buyer-accessible availabilities with their location IDs matching the specified location ID.\\nThis query expression cannot be set if `booking_id` is set.\",\n                    \"maxLength\": 32,\n                    \"nullable\": true\n                  },\n                  \"segment_filters\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"description\": \"A query filter to search for buyer-accessible appointment segments by.\",\n                      \"x-release-status\": \"PUBLIC\",\n                      \"required\": [\n                        \"service_variation_id\"\n                      ],\n                      \"properties\": {\n                        \"service_variation_id\": {\n                          \"type\": \"string\",\n                          \"description\": \"The ID of the [CatalogItemVariation](entity:CatalogItemVariation) object representing the service booked in this segment.\",\n                          \"minLength\": 1,\n                          \"maxLength\": 36\n                        },\n                        \"team_member_id_filter\": {\n                          \"type\": \"object\",\n                          \"description\": \"A filter to select resources based on an exact field value. For any given\\nvalue, the value can only be in one property. Depending on the field, either\\nall properties can be set or only a subset will be available.\\n\\nRefer to the documentation of the field.\",\n                          \"x-release-status\": \"BETA\",\n                          \"properties\": {\n                            \"all\": {\n                              \"type\": \"array\",\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"description\": \"A list of terms that must be present on the field of the resource.\",\n                              \"nullable\": true\n                            },\n                            \"any\": {\n                              \"type\": \"array\",\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"description\": \"A list of terms where at least one of them must be present on the\\nfield of the resource.\",\n                              \"nullable\": true\n                            },\n                            \"none\": {\n                              \"type\": \"array\",\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"description\": \"A list of terms that must not be present on the field the resource\",\n                              \"nullable\": true\n                            }\n                          }\n                        }\n                      }\n                    },\n                    \"description\": \"The query expression to search for buyer-accessible availabilities matching the specified list of segment filters.\\nIf the size of the `segment_filters` list is `n`, the search returns availabilities with `n` segments per availability.\\n\\nThis query expression cannot be set if `booking_id` is set.\",\n                    \"nullable\": true\n                  },\n                  \"booking_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The query expression to search for buyer-accessible availabilities for an existing booking by matching the specified `booking_id` value.\\nThis is commonly used to reschedule an appointment.\\nIf this expression is set, the `location_id` and `segment_filters` expressions cannot be set.\",\n                    \"maxLength\": 36,\n                    \"nullable\": true\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

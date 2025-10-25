@@ -1,18 +1,18 @@
 {
   "name": "UpdateBoardEmailPosition",
-  "fully_qualified_name": "TrelloApi.UpdateBoardEmailPosition@0.1.0",
-  "description": "Update the email position preference on a Trello board.\n\nThis tool updates the email position preference setting for a specified Trello board. Use this tool when you need to change how emails are displayed or organized on a board.",
+  "fully_qualified_name": "TrelloApi.UpdateBoardEmailPosition@2.0.0",
+  "description": "Update the email position preference on a Trello board.\n\nThis tool updates the email position preference for a specified Trello board. It should be called when you need to change the email notification position settings on a board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "email_position_preference",
+        "name": "email_position",
         "required": true,
-        "description": "Specify the email address position on the board. Valid values are 'bottom' or 'top'.",
+        "description": "Position of the email address on a board. Valid values: bottom, top.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -30,7 +30,7 @@
       {
         "name": "board_id",
         "required": true,
-        "description": "The ID of the Trello board whose email position preference you want to update.",
+        "description": "The unique identifier of the Trello board to update the email position preference for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -75,13 +75,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{id}/myPrefs/emailPosition",
@@ -90,7 +90,7 @@
     "parameters": [
       {
         "name": "value",
-        "tool_parameter_name": "email_position_preference",
+        "tool_parameter_name": "email_position",
         "description": "Valid values: bottom, top. Determines the position of the email address.",
         "value_schema": {
           "val_type": "string",
@@ -106,6 +106,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -123,6 +124,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -144,6 +146,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

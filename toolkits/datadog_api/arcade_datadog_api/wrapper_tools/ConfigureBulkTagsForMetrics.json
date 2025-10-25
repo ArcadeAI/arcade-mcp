@@ -1,0 +1,328 @@
+{
+  "name": "ConfigureBulkTagsForMetrics",
+  "fully_qualified_name": "DatadogApi.ConfigureBulkTagsForMetrics@0.1.0",
+  "description": "Configure bulk tags for specified metrics in Datadog.\n\nUse this tool to create and define queryable tag keys for existing count, gauge, rate, and distribution metrics in Datadog by specifying a metric name prefix. It manages tags configurations and sends results to account email addresses. Suitable for users with 'Manage Tags for Metrics' permission.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "metric_name_prefix",
+        "required": true,
+        "description": "A text prefix used to match against metric names for bulk tags configuration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A text prefix to match against metric names."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "metric_bulk_configure_tags_resource",
+        "required": true,
+        "description": "The resource identifier for configuring bulk tags for metrics. Must be set to 'metric_bulk_configure_tags'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "metric_bulk_configure_tags"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The metric bulk configure tags resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "notification_emails",
+        "required": false,
+        "description": "A list of account emails to notify when the configuration is applied.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of account emails to notify when the configuration is applied."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.emails"
+      },
+      {
+        "name": "actively_queried_tags_window_seconds",
+        "required": false,
+        "description": "Time window in seconds for configuring actively queried tags for matching metrics. Minimum is 1 second, maximum is 7,776,000 seconds (90 days).",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When provided, all tags that have been actively queried are\nconfigured (and, therefore, remain queryable) for each metric that\nmatches the given prefix.  Minimum value is 1 second, and maximum\nvalue is 7,776,000 seconds (90 days)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.include_actively_queried_tags_window"
+      },
+      {
+        "name": "tags_to_apply",
+        "required": false,
+        "description": "A list of tag names to apply to the metric configuration in Datadog.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of tag names to apply to the configuration."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.tags"
+      },
+      {
+        "name": "exclude_configured_tags",
+        "required": false,
+        "description": "Set to true to exclude configured tags and include all other tags. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When set to true, the configuration will exclude the configured tags and include any other submitted tags.\nWhen set to false, the configuration will include the configured tags and exclude any other submitted tags.\nDefaults to false."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.exclude_tags_mode"
+      },
+      {
+        "name": "override_existing_configurations",
+        "required": false,
+        "description": "Set to true to override any existing configurations for the metric with the new tags. Defaults to true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When set to true, the configuration overrides any existing\nconfigurations for the given metric with the new set of tags in this\nconfiguration request. If false, old configurations are kept and\nare merged with the set of tags in this configuration request.\nDefaults to true."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.override_existing_configurations"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateBulkTagsMetricsConfiguration'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/metrics/config/bulk-tags",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.emails",
+        "tool_parameter_name": "notification_emails",
+        "description": "A list of account emails to notify when the configuration is applied.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of account emails to notify when the configuration is applied."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.exclude_tags_mode",
+        "tool_parameter_name": "exclude_configured_tags",
+        "description": "When set to true, the configuration will exclude the configured tags and include any other submitted tags.\nWhen set to false, the configuration will include the configured tags and exclude any other submitted tags.\nDefaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When set to true, the configuration will exclude the configured tags and include any other submitted tags.\nWhen set to false, the configuration will include the configured tags and exclude any other submitted tags.\nDefaults to false."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.include_actively_queried_tags_window",
+        "tool_parameter_name": "actively_queried_tags_window_seconds",
+        "description": "When provided, all tags that have been actively queried are\nconfigured (and, therefore, remain queryable) for each metric that\nmatches the given prefix.  Minimum value is 1 second, and maximum\nvalue is 7,776,000 seconds (90 days).",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When provided, all tags that have been actively queried are\nconfigured (and, therefore, remain queryable) for each metric that\nmatches the given prefix.  Minimum value is 1 second, and maximum\nvalue is 7,776,000 seconds (90 days)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.override_existing_configurations",
+        "tool_parameter_name": "override_existing_configurations",
+        "description": "When set to true, the configuration overrides any existing\nconfigurations for the given metric with the new set of tags in this\nconfiguration request. If false, old configurations are kept and\nare merged with the set of tags in this configuration request.\nDefaults to true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When set to true, the configuration overrides any existing\nconfigurations for the given metric with the new set of tags in this\nconfiguration request. If false, old configurations are kept and\nare merged with the set of tags in this configuration request.\nDefaults to true."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.tags",
+        "tool_parameter_name": "tags_to_apply",
+        "description": "A list of tag names to apply to the configuration.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of tag names to apply to the configuration."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "metric_name_prefix",
+        "description": "A text prefix to match against metric names.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A text prefix to match against metric names."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "metric_bulk_configure_tags_resource",
+        "description": "The metric bulk configure tags resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "metric_bulk_configure_tags"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The metric bulk configure tags resource."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "metric_bulk_configure_tags",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Wrapper object for a single bulk tag configuration request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Request object to bulk configure tags for metrics matching the given prefix.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Optional parameters for bulk creating metric tag configurations.\",\n                \"properties\": {\n                  \"emails\": {\n                    \"description\": \"A list of account emails to notify when the configuration is applied.\",\n                    \"example\": [\n                      \"sue@example.com\",\n                      \"bob@example.com\"\n                    ],\n                    \"items\": {\n                      \"description\": \"An email address.\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"exclude_tags_mode\": {\n                    \"description\": \"When set to true, the configuration will exclude the configured tags and include any other submitted tags.\\nWhen set to false, the configuration will include the configured tags and exclude any other submitted tags.\\nDefaults to false.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"include_actively_queried_tags_window\": {\n                    \"description\": \"When provided, all tags that have been actively queried are\\nconfigured (and, therefore, remain queryable) for each metric that\\nmatches the given prefix.  Minimum value is 1 second, and maximum\\nvalue is 7,776,000 seconds (90 days).\",\n                    \"format\": \"double\",\n                    \"maximum\": 7776000,\n                    \"minimum\": 1,\n                    \"type\": \"number\"\n                  },\n                  \"override_existing_configurations\": {\n                    \"description\": \"When set to true, the configuration overrides any existing\\nconfigurations for the given metric with the new set of tags in this\\nconfiguration request. If false, old configurations are kept and\\nare merged with the set of tags in this configuration request.\\nDefaults to true.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"tags\": {\n                    \"description\": \"A list of tag names to apply to the configuration.\",\n                    \"example\": [\n                      \"host\",\n                      \"pod_name\",\n                      \"is_shadow\"\n                    ],\n                    \"items\": {\n                      \"description\": \"A metric tag name.\",\n                      \"maxLength\": 200,\n                      \"pattern\": \"^[A-Za-z][A-Za-z0-9\\\\.\\\\-\\\\_:\\\\/]*$\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"A text prefix to match against metric names.\",\n                \"example\": \"kafka.lag\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"metric_bulk_configure_tags\",\n                \"description\": \"The metric bulk configure tags resource.\",\n                \"enum\": [\n                  \"metric_bulk_configure_tags\"\n                ],\n                \"example\": \"metric_bulk_configure_tags\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"BULK_MANAGE_TAGS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

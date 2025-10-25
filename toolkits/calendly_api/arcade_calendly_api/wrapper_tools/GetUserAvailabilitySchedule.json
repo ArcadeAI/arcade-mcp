@@ -1,18 +1,18 @@
 {
   "name": "GetUserAvailabilitySchedule",
-  "fully_qualified_name": "CalendlyApi.GetUserAvailabilitySchedule@0.1.0",
-  "description": "Fetches the availability schedule for a specific user.\n\nUse this tool to obtain the availability schedule associated with a specific user's UUID in Calendly. It helps in identifying the available time slots for the user.",
+  "fully_qualified_name": "CalendlyApi.GetUserAvailabilitySchedule@2.0.0",
+  "description": "Retrieve a user's availability schedule using their UUID.\n\nUse this tool to obtain the availability schedule for a specific user identified by their UUID. It provides the details of available time slots.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "user_availability_uuid",
+        "name": "user_uuid",
         "required": true,
-        "description": "The UUID of the user's availability schedule to fetch.",
+        "description": "The UUID of the availability schedule you want to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/user_availability_schedules/{uuid}",
@@ -70,7 +70,7 @@
     "parameters": [
       {
         "name": "uuid",
-        "tool_parameter_name": "user_availability_uuid",
+        "tool_parameter_name": "user_uuid",
         "description": "The UUID of the availability schedule.",
         "value_schema": {
           "val_type": "string",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

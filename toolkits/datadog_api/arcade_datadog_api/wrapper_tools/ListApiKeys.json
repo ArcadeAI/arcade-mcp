@@ -1,0 +1,474 @@
+{
+  "name": "ListApiKeys",
+  "fully_qualified_name": "DatadogApi.ListApiKeys@0.1.0",
+  "description": "Retrieve all API keys for your Datadog account.\n\nUse this tool to fetch a list of all API keys associated with your Datadog account. It is useful for managing or auditing your API key usage.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "page_size",
+        "required": false,
+        "description": "Specifies the number of API keys returned in a single page; maximum value is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[size]"
+      },
+      {
+        "name": "specific_page_number_to_return",
+        "required": false,
+        "description": "The specific page number to return from the paginated list of API keys.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific page number to return."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[number]"
+      },
+      {
+        "name": "sort_by_attribute",
+        "required": false,
+        "description": "Attribute to sort API keys by. Use a minus sign for descending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created_at",
+            "-created_at",
+            "last4",
+            "-last4",
+            "modified_at",
+            "-modified_at",
+            "name",
+            "-name"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "API key attribute used to sort results. Sort order is ascending\nby default. In order to specify a descending sort, prefix the\nattribute with a minus sign."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "api_key_filter",
+        "required": false,
+        "description": "String to filter API keys by specified criteria. Use it to narrow down the list based on specific string matches.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter API keys by the specified string."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "created_after_date_filter",
+        "required": false,
+        "description": "Include API keys created on or after this date. Expected format: YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include API keys created on or after the specified date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[created_at][start]"
+      },
+      {
+        "name": "filter_created_before_date",
+        "required": false,
+        "description": "Include only API keys created on or before this date in the format YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include API keys created on or before the specified date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[created_at][end]"
+      },
+      {
+        "name": "modified_after_date_filter",
+        "required": false,
+        "description": "Specify a date to include API keys modified on or after this date. Use YYYY-MM-DD format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include API keys modified on or after the specified date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[modified_at][start]"
+      },
+      {
+        "name": "modified_before_date",
+        "required": false,
+        "description": "Include API keys modified on or before this specified date. Format should be YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include API keys modified on or before the specified date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[modified_at][end]"
+      },
+      {
+        "name": "include_related_resources",
+        "required": false,
+        "description": "Comma-separated list of resource paths (`created_by`, `modified_by`) to include related data in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma separated list of resource paths for related resources to include in the response. Supported resource paths are `created_by` and `modified_by`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      },
+      {
+        "name": "filter_api_keys_by_category",
+        "required": false,
+        "description": "Filter API keys by the specified category.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter API keys by category."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[category]"
+      },
+      {
+        "name": "filter_by_remote_config_read_enabled",
+        "required": false,
+        "description": "Set to true to filter API keys with remote config read enabled; false otherwise.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter API keys by remote config read enabled status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[remote_config_read_enabled]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListAPIKeys'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/api_keys",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page[size]",
+        "tool_parameter_name": "page_size",
+        "description": "Size for a given page. The maximum allowed value is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[number]",
+        "tool_parameter_name": "specific_page_number_to_return",
+        "description": "Specific page number to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific page number to return."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_by_attribute",
+        "description": "API key attribute used to sort results. Sort order is ascending\nby default. In order to specify a descending sort, prefix the\nattribute with a minus sign.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created_at",
+            "-created_at",
+            "last4",
+            "-last4",
+            "modified_at",
+            "-modified_at",
+            "name",
+            "-name"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "API key attribute used to sort results. Sort order is ascending\nby default. In order to specify a descending sort, prefix the\nattribute with a minus sign."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "name",
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "api_key_filter",
+        "description": "Filter API keys by the specified string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter API keys by the specified string."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[created_at][start]",
+        "tool_parameter_name": "created_after_date_filter",
+        "description": "Only include API keys created on or after the specified date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include API keys created on or after the specified date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[created_at][end]",
+        "tool_parameter_name": "filter_created_before_date",
+        "description": "Only include API keys created on or before the specified date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include API keys created on or before the specified date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[modified_at][start]",
+        "tool_parameter_name": "modified_after_date_filter",
+        "description": "Only include API keys modified on or after the specified date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include API keys modified on or after the specified date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[modified_at][end]",
+        "tool_parameter_name": "modified_before_date",
+        "description": "Only include API keys modified on or before the specified date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include API keys modified on or before the specified date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include",
+        "tool_parameter_name": "include_related_resources",
+        "description": "Comma separated list of resource paths for related resources to include in the response. Supported resource paths are `created_by` and `modified_by`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma separated list of resource paths for related resources to include in the response. Supported resource paths are `created_by` and `modified_by`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[remote_config_read_enabled]",
+        "tool_parameter_name": "filter_by_remote_config_read_enabled",
+        "description": "Filter API keys by remote config read enabled status.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter API keys by remote config read enabled status."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[category]",
+        "tool_parameter_name": "filter_api_keys_by_category",
+        "description": "Filter API keys by category.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter API keys by category."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

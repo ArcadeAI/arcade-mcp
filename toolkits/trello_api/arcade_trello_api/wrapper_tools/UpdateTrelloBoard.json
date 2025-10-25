@@ -1,18 +1,18 @@
 {
   "name": "UpdateTrelloBoard",
-  "fully_qualified_name": "TrelloApi.UpdateTrelloBoard@0.1.0",
-  "description": "Update an existing Trello board by ID.\n\nUse this tool to update the properties of an existing Trello board using its ID.",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloBoard@2.0.0",
+  "description": "Update details of an existing Trello board.\n\nThis tool updates an existing Trello board using its unique ID. It should be called when board details need to be modified.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_id",
         "required": true,
-        "description": "The unique identifier of the Trello board to update.",
+        "description": "The unique identifier for the Trello board to be updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,7 +25,7 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "board_new_name",
+        "name": "new_board_name",
         "required": false,
         "description": "The new name for the board. Must be 1 to 16384 characters long.",
         "value_schema": {
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "name"
       },
       {
-        "name": "new_board_description",
+        "name": "board_description",
         "required": false,
-        "description": "A new description for the board, from 0 to 16384 characters long.",
+        "description": "A new description for the board, 0 to 16384 characters long.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "desc"
       },
       {
-        "name": "user_subscribed_status",
+        "name": "user_subscribed_to_board",
         "required": false,
-        "description": "Indicate if the acting user is subscribed to the board. Expected values are 'true' or 'false'.",
+        "description": "Indicate if the acting user is subscribed to the board. Use 'true' or 'false'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "workspace_id_for_board",
         "required": false,
-        "description": "The ID of the Workspace to which the board should be moved.",
+        "description": "The unique ID of the Workspace to which the board should be moved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "idOrganization"
       },
       {
-        "name": "board_permission_level",
+        "name": "permission_level",
         "required": false,
-        "description": "Set the board's permission level to 'org', 'private', or 'public'.",
+        "description": "Set the board's permission level: org, private, or public.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,9 +100,9 @@
         "http_endpoint_parameter_name": "prefs/permissionLevel"
       },
       {
-        "name": "board_invitation_permission",
+        "name": "who_can_invite",
         "required": false,
-        "description": "Specify who can invite people to this board. Choose between 'admins' or 'members'.",
+        "description": "Specifies who can invite people to the board. Accepts 'admins' or 'members'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -115,7 +115,7 @@
         "http_endpoint_parameter_name": "prefs/invitations"
       },
       {
-        "name": "voting_permission",
+        "name": "voting_permissions",
         "required": false,
         "description": "Specify who can vote on this board. Options: disabled, members, observers, org, public.",
         "value_schema": {
@@ -132,7 +132,7 @@
       {
         "name": "comment_permission",
         "required": false,
-        "description": "Specifies who can comment on cards: disabled, members, observers, org, or public.",
+        "description": "Specify who can comment on cards. Options: disabled, members, observers, org, public.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -145,9 +145,9 @@
         "http_endpoint_parameter_name": "prefs/comments"
       },
       {
-        "name": "board_background_id",
+        "name": "background_preference",
         "required": false,
-        "description": "Specify the ID of a custom background or choose from predefined colors: blue, orange, green, red, purple, pink, lime, sky, grey.",
+        "description": "Specify the background for the board. Use a custom background ID or choose from: blue, orange, green, red, purple, pink, lime, sky, grey.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -162,7 +162,7 @@
       {
         "name": "card_aging_preference",
         "required": false,
-        "description": "Specifies the card aging style on the board. Options: 'pirate', 'regular'.",
+        "description": "Set card aging style on the board. Options: pirate, regular.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -175,99 +175,9 @@
         "http_endpoint_parameter_name": "prefs/cardAging"
       },
       {
-        "name": "green_label_name",
+        "name": "close_board",
         "required": false,
-        "description": "Set the name for the green label. Must be 1 to 16384 characters long.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the green label. 1 to 16384 characters long"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "labelNames/green"
-      },
-      {
-        "name": "yellow_label_name",
-        "required": false,
-        "description": "Specify the name for the yellow label on the board. Must be between 1 and 16384 characters.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the yellow label. 1 to 16384 characters long"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "labelNames/yellow"
-      },
-      {
-        "name": "orange_label_name",
-        "required": false,
-        "description": "The name for the orange label. Must be 1 to 16384 characters long.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the orange label. 1 to 16384 characters long"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "labelNames/orange"
-      },
-      {
-        "name": "red_label_name",
-        "required": false,
-        "description": "Name for the red label on the board. It should be 1 to 16384 characters long.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the red label. 1 to 16384 characters long"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "labelNames/red"
-      },
-      {
-        "name": "purple_label_name",
-        "required": false,
-        "description": "Name for the purple label, 1 to 16384 characters long.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the purple label. 1 to 16384 characters long"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "labelNames/purple"
-      },
-      {
-        "name": "blue_label_name",
-        "required": false,
-        "description": "Specify the name for the blue label, must be 1 to 16384 characters long.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the blue label. 1 to 16384 characters long"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "labelNames/blue"
-      },
-      {
-        "name": "is_board_closed",
-        "required": false,
-        "description": "Indicates if the board is closed. Use `true` to close (archive) the board, `false` to keep it open.",
+        "description": "Sets whether the board should be closed. Use true to close the board and false to keep it open.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -280,9 +190,9 @@
         "http_endpoint_parameter_name": "closed"
       },
       {
-        "name": "allow_workspace_self_join",
+        "name": "allow_workspace_members_to_join",
         "required": false,
-        "description": "Set to true to allow Workspace members to join the board themselves; false to disallow.",
+        "description": "Allows Workspace members to join the board themselves. True to allow, false to disallow.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -310,9 +220,9 @@
         "http_endpoint_parameter_name": "prefs/cardCovers"
       },
       {
-        "name": "hide_votes",
+        "name": "hide_voter_identities",
         "required": false,
-        "description": "Set to true to hide voters on cards; false to show them.",
+        "description": "If true, the Voting Power-Up hides who voted on cards.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -325,7 +235,7 @@
         "http_endpoint_parameter_name": "prefs/hideVotes"
       },
       {
-        "name": "enable_calendar_feed",
+        "name": "calendar_feed_enabled",
         "required": false,
         "description": "Set to true to enable the calendar feed; false to disable it.",
         "value_schema": {
@@ -372,13 +282,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{id}",
@@ -387,7 +297,7 @@
     "parameters": [
       {
         "name": "name",
-        "tool_parameter_name": "board_new_name",
+        "tool_parameter_name": "new_board_name",
         "description": "The new name for the board. 1 to 16384 characters long.",
         "value_schema": {
           "val_type": "string",
@@ -400,11 +310,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "desc",
-        "tool_parameter_name": "new_board_description",
+        "tool_parameter_name": "board_description",
         "description": "A new description for the board, 0 to 16384 characters long",
         "value_schema": {
           "val_type": "string",
@@ -417,11 +328,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "closed",
-        "tool_parameter_name": "is_board_closed",
+        "tool_parameter_name": "close_board",
         "description": "Whether the board is closed",
         "value_schema": {
           "val_type": "boolean",
@@ -434,11 +346,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "subscribed",
-        "tool_parameter_name": "user_subscribed_status",
+        "tool_parameter_name": "user_subscribed_to_board",
         "description": "Whether the acting user is subscribed to the board",
         "value_schema": {
           "val_type": "string",
@@ -451,6 +364,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -468,11 +382,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "prefs/permissionLevel",
-        "tool_parameter_name": "board_permission_level",
+        "tool_parameter_name": "permission_level",
         "description": "One of: org, private, public",
         "value_schema": {
           "val_type": "string",
@@ -485,11 +400,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "prefs/selfJoin",
-        "tool_parameter_name": "allow_workspace_self_join",
+        "tool_parameter_name": "allow_workspace_members_to_join",
         "description": "Whether Workspace members can join the board themselves",
         "value_schema": {
           "val_type": "boolean",
@@ -502,6 +418,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -519,11 +436,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "prefs/hideVotes",
-        "tool_parameter_name": "hide_votes",
+        "tool_parameter_name": "hide_voter_identities",
         "description": "Determines whether the Voting Power-Up should hide who voted on cards or not.",
         "value_schema": {
           "val_type": "boolean",
@@ -536,11 +454,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "prefs/invitations",
-        "tool_parameter_name": "board_invitation_permission",
+        "tool_parameter_name": "who_can_invite",
         "description": "Who can invite people to this board. One of: admins, members",
         "value_schema": {
           "val_type": "string",
@@ -553,11 +472,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "prefs/voting",
-        "tool_parameter_name": "voting_permission",
+        "tool_parameter_name": "voting_permissions",
         "description": "Who can vote on this board. One of disabled, members, observers, org, public",
         "value_schema": {
           "val_type": "string",
@@ -570,6 +490,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -587,11 +508,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "prefs/background",
-        "tool_parameter_name": "board_background_id",
+        "tool_parameter_name": "background_preference",
         "description": "The id of a custom background or one of: blue, orange, green, red, purple, pink, lime, sky, grey",
         "value_schema": {
           "val_type": "string",
@@ -604,6 +526,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -621,11 +544,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "prefs/calendarFeedEnabled",
-        "tool_parameter_name": "enable_calendar_feed",
+        "tool_parameter_name": "calendar_feed_enabled",
         "description": "Determines whether the calendar feed is enabled or not.",
         "value_schema": {
           "val_type": "boolean",
@@ -638,108 +562,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "labelNames/green",
-        "tool_parameter_name": "green_label_name",
-        "description": "Name for the green label. 1 to 16384 characters long",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the green label. 1 to 16384 characters long"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "labelNames/yellow",
-        "tool_parameter_name": "yellow_label_name",
-        "description": "Name for the yellow label. 1 to 16384 characters long",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the yellow label. 1 to 16384 characters long"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "labelNames/orange",
-        "tool_parameter_name": "orange_label_name",
-        "description": "Name for the orange label. 1 to 16384 characters long",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the orange label. 1 to 16384 characters long"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "labelNames/red",
-        "tool_parameter_name": "red_label_name",
-        "description": "Name for the red label. 1 to 16384 characters long",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the red label. 1 to 16384 characters long"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "labelNames/purple",
-        "tool_parameter_name": "purple_label_name",
-        "description": "Name for the purple label. 1 to 16384 characters long",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the purple label. 1 to 16384 characters long"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "labelNames/blue",
-        "tool_parameter_name": "blue_label_name",
-        "description": "Name for the blue label. 1 to 16384 characters long",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "Name for the blue label. 1 to 16384 characters long"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -757,6 +580,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -778,6 +602,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

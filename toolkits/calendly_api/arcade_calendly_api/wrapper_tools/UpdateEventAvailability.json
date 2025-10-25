@@ -1,0 +1,344 @@
+{
+  "name": "UpdateEventAvailability",
+  "fully_qualified_name": "CalendlyApi.UpdateEventAvailability@2.0.0",
+  "description": "Update an event type availability schedule.\n\nUse this tool to modify the availability schedule of an existing calendar event type, such as updating times or days available.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_type_uri",
+        "required": true,
+        "description": "URI of the event type to update the availability schedule for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Event Type uri in which to update the availability schedule"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "event_type"
+      },
+      {
+        "name": "event_availability_details",
+        "required": true,
+        "description": "JSON object with new availability rules. Includes timezone, rules (with intervals, wdays, or dates), and user if updating for a specific person.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "availability_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "timezone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timezone for which this Event Type Availability Schedule is originated in."
+                },
+                "rules": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "wday",
+                        "date"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of this Availability Rule; can be \"wday\" or a specific \"date\"."
+                    },
+                    "intervals": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "from": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Format: `\"hh:mm\"`"
+                        },
+                        "to": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Format: `\"hh:mm\"`"
+                        }
+                      },
+                      "description": "The intervals to be applied to this Rule. Each interval represents when booking a meeting is allowed. If the interval array is empty, then there is no booking availability for that day. Time is in 24h format (i.e. \"17:30\") and local to the timezone in the Availability Schedule."
+                    },
+                    "wday": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "sunday",
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The day of the week for which this Rule should be applied to."
+                    },
+                    "date": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A specific date in the future that this should be applied to (i.e. \"2030-12-31\")."
+                    }
+                  },
+                  "description": "The rules for an availability schedule.<br>  <span style=\"color:red\">Warning: </span>Updating rules will overwrite all existing rules for the event type. Use the GET endpoint to first retrieve the existing rules and then pass the modified rules to the rules object."
+                },
+                "user": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Required when an admin or org owner is making the call to update a specific users availability schedule"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "availability_setting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "By default every host on the Event Type shares an identical schedule.\n"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-event-type-availability'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/event_type_availability_schedules",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "event_type",
+        "tool_parameter_name": "event_type_uri",
+        "description": "Event Type uri in which to update the availability schedule",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Event Type uri in which to update the availability schedule"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "event_availability_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "availability_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "timezone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timezone for which this Event Type Availability Schedule is originated in."
+                },
+                "rules": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "wday",
+                        "date"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of this Availability Rule; can be \"wday\" or a specific \"date\"."
+                    },
+                    "intervals": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "from": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Format: `\"hh:mm\"`"
+                        },
+                        "to": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Format: `\"hh:mm\"`"
+                        }
+                      },
+                      "description": "The intervals to be applied to this Rule. Each interval represents when booking a meeting is allowed. If the interval array is empty, then there is no booking availability for that day. Time is in 24h format (i.e. \"17:30\") and local to the timezone in the Availability Schedule."
+                    },
+                    "wday": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "sunday",
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The day of the week for which this Rule should be applied to."
+                    },
+                    "date": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A specific date in the future that this should be applied to (i.e. \"2030-12-31\")."
+                    }
+                  },
+                  "description": "The rules for an availability schedule.<br>  <span style=\"color:red\">Warning: </span>Updating rules will overwrite all existing rules for the event type. Use the GET endpoint to first retrieve the existing rules and then pass the modified rules to the rules object."
+                },
+                "user": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Required when an admin or org owner is making the call to update a specific users availability schedule"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "availability_setting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "By default every host on the Event Type shares an identical schedule.\n"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"availability_rule\"\n        ],\n        \"properties\": {\n          \"availability_rule\": {\n            \"type\": \"object\",\n            \"x-stoplight\": {\n              \"id\": \"1k57u40qbjcoe\"\n            },\n            \"required\": [\n              \"timezone\"\n            ],\n            \"properties\": {\n              \"timezone\": {\n                \"type\": \"string\",\n                \"x-stoplight\": {\n                  \"id\": \"t7ppm5kfbx3t3\"\n                },\n                \"description\": \"The timezone for which this Event Type Availability Schedule is originated in.\"\n              },\n              \"rules\": {\n                \"type\": \"array\",\n                \"description\": \"The rules for an availability schedule.<br>  <span style=\\\"color:red\\\">Warning: </span>Updating rules will overwrite all existing rules for the event type. Use the GET endpoint to first retrieve the existing rules and then pass the modified rules to the rules object.\",\n                \"x-stoplight\": {\n                  \"id\": \"08tupds2jfoeg\"\n                },\n                \"items\": {\n                  \"title\": \"Availability Rule\",\n                  \"x-stoplight\": {\n                    \"id\": \"a1hurebl7s3c6\"\n                  },\n                  \"type\": \"object\",\n                  \"x-examples\": {\n                    \"wday\": {\n                      \"type\": \"wday\",\n                      \"intervals\": [\n                        {\n                          \"from\": \"08:30\",\n                          \"to\": \"09:30\"\n                        }\n                      ],\n                      \"wday\": \"sunday\"\n                    },\n                    \"date\": {\n                      \"type\": \"date\",\n                      \"intervals\": [\n                        {\n                          \"from\": \"08:30\",\n                          \"to\": \"09:30\"\n                        }\n                      ],\n                      \"date\": \"2028-12-31\"\n                    }\n                  },\n                  \"x-internal\": false,\n                  \"description\": \"The rules for an availability schedule.\",\n                  \"x-tags\": [\n                    \"Availability\"\n                  ],\n                  \"required\": [\n                    \"type\",\n                    \"intervals\"\n                  ],\n                  \"properties\": {\n                    \"type\": {\n                      \"type\": \"string\",\n                      \"enum\": [\n                        \"wday\",\n                        \"date\"\n                      ],\n                      \"example\": \"wday\",\n                      \"description\": \"The type of this Availability Rule; can be \\\"wday\\\" or a specific \\\"date\\\".\"\n                    },\n                    \"intervals\": {\n                      \"type\": \"array\",\n                      \"description\": \"The intervals to be applied to this Rule. Each interval represents when booking a meeting is allowed. If the interval array is empty, then there is no booking availability for that day. Time is in 24h format (i.e. \\\"17:30\\\") and local to the timezone in the Availability Schedule.\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"from\": {\n                            \"type\": \"string\",\n                            \"description\": \"Format: `\\\"hh:mm\\\"`\",\n                            \"pattern\": \"(\\\\d\\\\d):(\\\\d\\\\d)\",\n                            \"example\": \"08:30\"\n                          },\n                          \"to\": {\n                            \"type\": \"string\",\n                            \"description\": \"Format: `\\\"hh:mm\\\"`\",\n                            \"pattern\": \"(\\\\d\\\\d):(\\\\d\\\\d)\",\n                            \"example\": \"09:30\"\n                          }\n                        }\n                      }\n                    },\n                    \"wday\": {\n                      \"type\": \"string\",\n                      \"enum\": [\n                        \"sunday\",\n                        \"monday\",\n                        \"tuesday\",\n                        \"wednesday\",\n                        \"thursday\",\n                        \"friday\",\n                        \"saturday\"\n                      ],\n                      \"description\": \"The day of the week for which this Rule should be applied to.\"\n                    },\n                    \"date\": {\n                      \"type\": \"string\",\n                      \"example\": \"2022-12-31\",\n                      \"pattern\": \"^\\\\d{4}\\\\-(0?[1-9]|1[012])\\\\-(0?[1-9]|[12][0-9]|3[01])$\",\n                      \"description\": \"A specific date in the future that this should be applied to (i.e. \\\"2030-12-31\\\").\"\n                    }\n                  }\n                }\n              },\n              \"user\": {\n                \"type\": \"string\",\n                \"x-stoplight\": {\n                  \"id\": \"mpkhqhn87jrdb\"\n                },\n                \"format\": \"uri\",\n                \"example\": \"https://api.calendly.com/users/abc123\",\n                \"description\": \"Required when an admin or org owner is making the call to update a specific users availability schedule\"\n              }\n            }\n          },\n          \"availability_setting\": {\n            \"x-stoplight\": {\n              \"id\": \"7v3rsooj36r04\"\n            },\n            \"enum\": [\n              \"host\"\n            ],\n            \"default\": \"host\",\n            \"description\": \"By default every host on the Event Type shares an identical schedule.\\n\"\n          }\n        }\n      },\n      \"examples\": {\n        \"Updating Timezone\": {\n          \"value\": {\n            \"availability_rule\": {\n              \"timezone\": \"America/Chicago\"\n            }\n          }\n        },\n        \"Updating Rules to ONLY have availability on Sunday\": {\n          \"value\": {\n            \"availability_rule\": {\n              \"timezone\": \"America/New_York\",\n              \"rules\": [\n                {\n                  \"type\": \"wday\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"08:30\",\n                      \"to\": \"09:30\"\n                    }\n                  ],\n                  \"wday\": \"sunday\"\n                }\n              ]\n            }\n          }\n        },\n        \"Updating Rules to have availability every day\": {\n          \"value\": {\n            \"availability_setting\": \"host\",\n            \"availability_rule\": {\n              \"timezone\": \"string\",\n              \"rules\": [\n                {\n                  \"type\": \"wday\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"08:30\",\n                      \"to\": \"09:30\"\n                    }\n                  ],\n                  \"wday\": \"sunday\"\n                },\n                {\n                  \"type\": \"wday\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"08:30\",\n                      \"to\": \"09:30\"\n                    }\n                  ],\n                  \"wday\": \"monday\"\n                },\n                {\n                  \"type\": \"wday\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"08:30\",\n                      \"to\": \"09:30\"\n                    }\n                  ],\n                  \"wday\": \"tuesday\"\n                },\n                {\n                  \"type\": \"wday\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"08:30\",\n                      \"to\": \"09:30\"\n                    }\n                  ],\n                  \"wday\": \"wednesday\"\n                },\n                {\n                  \"type\": \"wday\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"08:30\",\n                      \"to\": \"09:30\"\n                    }\n                  ],\n                  \"wday\": \"thursday\"\n                },\n                {\n                  \"type\": \"wday\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"08:30\",\n                      \"to\": \"09:30\"\n                    }\n                  ],\n                  \"wday\": \"friday\"\n                },\n                {\n                  \"type\": \"wday\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"08:30\",\n                      \"to\": \"09:30\"\n                    }\n                  ],\n                  \"wday\": \"saturday\"\n                }\n              ]\n            }\n          }\n        },\n        \"An admin or org owner updating a user\": {\n          \"value\": {\n            \"availability_rule\": {\n              \"timezone\": \"string\",\n              \"rules\": [\n                {\n                  \"type\": \"wday\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"08:30\",\n                      \"to\": \"09:30\"\n                    }\n                  ],\n                  \"wday\": \"sunday\",\n                  \"date\": \"2022-12-31\"\n                }\n              ],\n              \"user\": \"https://api.calendly.com/users/abc123\"\n            },\n            \"availability_setting\": \"host\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

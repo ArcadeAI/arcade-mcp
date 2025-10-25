@@ -1,0 +1,240 @@
+{
+  "name": "UploadDisputeEvidenceText",
+  "fully_qualified_name": "SquareupApi.UploadDisputeEvidenceText@2.0.0",
+  "description": "Upload text evidence for a dispute challenge.\n\nUse this tool to upload textual evidence to support a dispute challenge. Call this tool when you need to provide written information or arguments for a dispute with a unique dispute ID.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "dispute_id",
+        "required": true,
+        "description": "The unique ID of the dispute to upload text evidence for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the dispute for which you want to upload evidence."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dispute_id"
+      },
+      {
+        "name": "unique_request_key",
+        "required": true,
+        "description": "A unique key for identifying and ensuring the idempotency of the request. For additional details, see Square's idempotency documentation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique key identifying the request. For more information, see [Idempotency](https://developer.squareup.com/docs/working-with-apis/idempotency)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "evidence_text_string",
+        "required": true,
+        "description": "Provide the textual evidence string to be used in the dispute challenge.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The evidence string."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "evidence_text"
+      },
+      {
+        "name": "dispute_evidence_type",
+        "required": false,
+        "description": "Specify the type of evidence for the dispute. Options include: GENERIC_EVIDENCE, ONLINE_OR_APP_ACCESS_LOG, AUTHORIZATION_DOCUMENTATION, etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "GENERIC_EVIDENCE",
+            "ONLINE_OR_APP_ACCESS_LOG",
+            "AUTHORIZATION_DOCUMENTATION",
+            "CANCELLATION_OR_REFUND_DOCUMENTATION",
+            "CARDHOLDER_COMMUNICATION",
+            "CARDHOLDER_INFORMATION",
+            "PURCHASE_ACKNOWLEDGEMENT",
+            "DUPLICATE_CHARGE_DOCUMENTATION",
+            "PRODUCT_OR_SERVICE_DESCRIPTION",
+            "RECEIPT",
+            "SERVICE_RECEIVED_DOCUMENTATION",
+            "PROOF_OF_DELIVERY_DOCUMENTATION",
+            "RELATED_TRANSACTION_DOCUMENTATION",
+            "REBUTTAL_EXPLANATION",
+            "TRACKING_NUMBER"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the dispute evidence."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "evidence_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateDisputeEvidenceText'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "DISPUTES_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/disputes/{dispute_id}/evidence-text",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "dispute_id",
+        "tool_parameter_name": "dispute_id",
+        "description": "The ID of the dispute for which you want to upload evidence.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the dispute for which you want to upload evidence."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_request_key",
+        "description": "A unique key identifying the request. For more information, see [Idempotency](https://developer.squareup.com/docs/working-with-apis/idempotency).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique key identifying the request. For more information, see [Idempotency](https://developer.squareup.com/docs/working-with-apis/idempotency)."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "evidence_type",
+        "tool_parameter_name": "dispute_evidence_type",
+        "description": "The type of the dispute evidence.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "GENERIC_EVIDENCE",
+            "ONLINE_OR_APP_ACCESS_LOG",
+            "AUTHORIZATION_DOCUMENTATION",
+            "CANCELLATION_OR_REFUND_DOCUMENTATION",
+            "CARDHOLDER_COMMUNICATION",
+            "CARDHOLDER_INFORMATION",
+            "PURCHASE_ACKNOWLEDGEMENT",
+            "DUPLICATE_CHARGE_DOCUMENTATION",
+            "PRODUCT_OR_SERVICE_DESCRIPTION",
+            "RECEIPT",
+            "SERVICE_RECEIVED_DOCUMENTATION",
+            "PROOF_OF_DELIVERY_DOCUMENTATION",
+            "RELATED_TRANSACTION_DOCUMENTATION",
+            "REBUTTAL_EXPLANATION",
+            "TRACKING_NUMBER"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the dispute evidence."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "evidence_text",
+        "tool_parameter_name": "evidence_text_string",
+        "description": "The evidence string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The evidence string."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines the parameters for a `CreateDisputeEvidenceText` request.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"idempotency_key\",\n          \"evidence_text\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique key identifying the request. For more information, see [Idempotency](https://developer.squareup.com/docs/working-with-apis/idempotency).\",\n            \"minLength\": 1,\n            \"maxLength\": 45\n          },\n          \"evidence_type\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"GENERIC_EVIDENCE\",\n              \"ONLINE_OR_APP_ACCESS_LOG\",\n              \"AUTHORIZATION_DOCUMENTATION\",\n              \"CANCELLATION_OR_REFUND_DOCUMENTATION\",\n              \"CARDHOLDER_COMMUNICATION\",\n              \"CARDHOLDER_INFORMATION\",\n              \"PURCHASE_ACKNOWLEDGEMENT\",\n              \"DUPLICATE_CHARGE_DOCUMENTATION\",\n              \"PRODUCT_OR_SERVICE_DESCRIPTION\",\n              \"RECEIPT\",\n              \"SERVICE_RECEIVED_DOCUMENTATION\",\n              \"PROOF_OF_DELIVERY_DOCUMENTATION\",\n              \"RELATED_TRANSACTION_DOCUMENTATION\",\n              \"REBUTTAL_EXPLANATION\",\n              \"TRACKING_NUMBER\"\n            ],\n            \"x-enum-elements\": [\n              {\n                \"name\": \"GENERIC_EVIDENCE\",\n                \"description\": \"Square assumes this evidence type if you do not provide a type when uploading evidence.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"ONLINE_OR_APP_ACCESS_LOG\",\n                \"description\": \"Server or activity logs that show proof of the cardholder\\u2019s identity and that the\\ncardholder successfully ordered and received the goods (digitally or otherwise).\\nExample evidence includes IP addresses, corresponding timestamps/dates, cardholder\\u2019s name and email\\naddress linked to a cardholder profile held by the seller, proof the same device and card (used\\nin dispute) were previously used in prior undisputed transaction, and any related detailed activity.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"AUTHORIZATION_DOCUMENTATION\",\n                \"description\": \"Evidence that the cardholder did provide authorization for the charge.\\nExample evidence includes a signed credit card authorization.\\n\\nUse when uploading evidence as a file.\"\n              },\n              {\n                \"name\": \"CANCELLATION_OR_REFUND_DOCUMENTATION\",\n                \"description\": \"Evidence that the cardholder acknowledged your refund or cancellation policy.\\nExample evidence includes a signature or checkbox showing the cardholder\\u2019s acknowledgement of your\\nrefund or cancellation policy.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"CARDHOLDER_COMMUNICATION\",\n                \"description\": \"Evidence that shows relevant communication with the cardholder.\\nExample evidence includes emails or texts that show the cardholder received goods/services or\\ndemonstrate cardholder satisfaction.\\n\\nUse when uploading evidence as a file.\"\n              },\n              {\n                \"name\": \"CARDHOLDER_INFORMATION\",\n                \"description\": \"Evidence that validates the customer's identity.\\nExample evidence includes personally identifiable details such as name, email address, purchaser IP\\naddress, and a copy of the cardholder ID.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"PURCHASE_ACKNOWLEDGEMENT\",\n                \"description\": \"Evidence that shows proof of the sale/transaction.\\nExample evidence includes an invoice, contract, or other item showing the customer\\u2019s acknowledgement\\nof the purchase and your terms.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"DUPLICATE_CHARGE_DOCUMENTATION\",\n                \"description\": \"Evidence that shows the charges in question are valid and distinct from one another.\\nExample evidence includes receipts, shipping labels, and invoices along with their distinct payment IDs.\\n\\nUse when uploading evidence as a file.\"\n              },\n              {\n                \"name\": \"PRODUCT_OR_SERVICE_DESCRIPTION\",\n                \"description\": \"A description of the product or service sold.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"RECEIPT\",\n                \"description\": \"A receipt or message sent to the cardholder detailing the charge.\\nNote: You do not need to upload the Square receipt; Square submits the receipt on your behalf.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"SERVICE_RECEIVED_DOCUMENTATION\",\n                \"description\": \"Evidence that the service was provided to the cardholder or the expected date that services will be rendered.\\nExample evidence includes a signed delivery form, work order, expected delivery date, or other written agreements.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"PROOF_OF_DELIVERY_DOCUMENTATION\",\n                \"description\": \"Evidence that shows the product was provided to the cardholder or the expected date of delivery.\\nExample evidence includes a signed delivery form or written agreement acknowledging receipt of the goods or services.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"RELATED_TRANSACTION_DOCUMENTATION\",\n                \"description\": \"Evidence that shows the cardholder previously processed transactions on the same card and did not dispute them.\\nNote: Square automatically provides up to five distinct Square receipts for related transactions, when available.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"REBUTTAL_EXPLANATION\",\n                \"description\": \"An explanation of why the cardholder\\u2019s claim is invalid.\\nExample evidence includes an explanation of why each distinct charge is a legitimate purchase, why the cardholder\\u2019s claim\\nfor credit owed due to their attempt to cancel, return, or refund is invalid per your stated policy and cardholder\\nagreement, or an explanation of how the cardholder did not attempt to remedy the issue with you first to receive credit.\\n\\nUse when uploading evidence as a file or string.\"\n              },\n              {\n                \"name\": \"TRACKING_NUMBER\",\n                \"description\": \"The tracking number for the order provided by the shipping carrier. If you have multiple numbers, they need to be\\nsubmitted individually as separate pieces of evidence.\\n\\nUse when uploading evidence as a string.\"\n              }\n            ],\n            \"description\": \"The type of the dispute evidence.\",\n            \"x-release-status\": \"PUBLIC\"\n          },\n          \"evidence_text\": {\n            \"type\": \"string\",\n            \"description\": \"The evidence string.\",\n            \"minLength\": 1,\n            \"maxLength\": 500\n          }\n        },\n        \"example\": {\n          \"evidence_text\": \"1Z8888888888888888\",\n          \"evidence_type\": \"TRACKING_NUMBER\",\n          \"idempotency_key\": \"ed3ee3933d946f1514d505d173c82648\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

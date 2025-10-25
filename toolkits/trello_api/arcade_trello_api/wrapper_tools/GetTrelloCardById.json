@@ -1,18 +1,18 @@
 {
   "name": "GetTrelloCardById",
-  "fully_qualified_name": "TrelloApi.GetTrelloCardById@0.1.0",
-  "description": "Retrieve Trello card details using card ID.\n\nUse this tool to get detailed information about a Trello card by providing its unique ID. Ideal for accessing specific card details such as description, labels, and more.",
+  "fully_qualified_name": "TrelloApi.GetTrelloCardById@2.0.0",
+  "description": "Retrieve details of a Trello card using its ID.\n\nUse this tool to get comprehensive information about a specific Trello card by providing its unique ID. Ideal for accessing card details directly.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier for the Trello card to retrieve details for.",
+        "description": "The unique identifier for the Trello card to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "card_fields_to_retrieve",
+        "name": "card_fields",
         "required": false,
-        "description": "`all` or a comma-separated list of fields to retrieve for the Trello card. Defaults: badges, checkItemStates, closed, dateLastActivity, desc, descData, due, start, idBoard, idChecklists, idLabels, idList, idMembers, idShort, idAttachmentCover, manualCoverAttachment, labels, name, pos, shortUrl, url",
+        "description": "Specify 'all' or a comma-separated list of fields to retrieve for the card. Defaults to all main fields such as badges, desc, due, etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "fields"
       },
       {
-        "name": "include_action_details",
+        "name": "include_actions_details",
         "required": false,
-        "description": "Specifies whether to include action details related to the card. Refer to Trello's Actions Nested Resource for options.",
+        "description": "Specify if actions details should be included. Refer to [Actions Nested Resource](https://cloud/trello/guides/rest-api/nested-resources/#actions-nested-resource) for more information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "include_attachments",
         "required": false,
-        "description": "Specify 'true', 'false', or 'cover' to determine the type of attachments to return.",
+        "description": "Specify if attachments should be returned. Use 'true' for all attachments, 'false' for none, or 'cover' for cover attachments only.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "attachments"
       },
       {
-        "name": "attachment_fields",
+        "name": "attachment_fields_list",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of attachment fields to retrieve for the card.",
+        "description": "Specify 'all' or a comma-separated list of attachment fields to retrieve for the card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "attachment_fields"
       },
       {
-        "name": "member_fields_selection",
+        "name": "member_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of member fields like avatarHash, fullName, initials, username. Defaults to these fields if not specified.",
+        "description": "Specify `all` or a comma-separated list of member fields like avatarHash, fullName, initials, username.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,7 +102,7 @@
       {
         "name": "member_voted_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of member fields like 'avatarHash, fullName, initials, username'. Defaults to specific fields if not provided.",
+        "description": "Specify `all` or a comma-separated list of fields for members who voted on the card. Defaults to `avatarHash, fullName, initials, username`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,7 +117,7 @@
       {
         "name": "include_checklists",
         "required": false,
-        "description": "Specify whether to include checklists in the card data. Use 'all' or 'none'.",
+        "description": "Specifies whether to return checklists on the card. Use 'all' or 'none'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -130,9 +130,9 @@
         "http_endpoint_parameter_name": "checklists"
       },
       {
-        "name": "checklist_fields",
+        "name": "checklist_fields_detail",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of fields (idBoard, idCard, name, pos) to return for checklists.",
+        "description": "Specify `all` or a comma-separated list of fields (`idBoard`, `idCard`, `name`, `pos`) to include for checklists.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -145,9 +145,9 @@
         "http_endpoint_parameter_name": "checklist_fields"
       },
       {
-        "name": "board_fields_to_return",
+        "name": "board_fields_selection",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of board fields like name, desc, idOrganization. Defaults are name, desc, descData, closed, idOrganization, pinned, url, prefs.",
+        "description": "Specify 'all' or select specific board fields to include. Defaults to 'name, desc, descData, closed, idOrganization, pinned, url, prefs'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -160,9 +160,9 @@
         "http_endpoint_parameter_name": "board_fields"
       },
       {
-        "name": "sticker_fields",
+        "name": "sticker_fields_selection",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of sticker fields to retrieve.",
+        "description": "Specify `all` or a comma-separated list of sticker fields to retrieve for a Trello card. This determines which sticker-related data is included in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -175,9 +175,9 @@
         "http_endpoint_parameter_name": "sticker_fields"
       },
       {
-        "name": "include_card_members",
+        "name": "include_members",
         "required": false,
-        "description": "Set to true to include member objects on the card, false to exclude them.",
+        "description": "Whether to return member objects for members on the card. Set to true to include them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -190,9 +190,9 @@
         "http_endpoint_parameter_name": "members"
       },
       {
-        "name": "include_members_who_voted",
+        "name": "include_members_voted",
         "required": false,
-        "description": "Set to `true` to return member objects for members who voted on the card; set to `false` to exclude them.",
+        "description": "Set to true to return member objects for members who voted on the card.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -207,7 +207,7 @@
       {
         "name": "include_check_item_states",
         "required": false,
-        "description": "Set to true to include check item states in the Trello card details response.",
+        "description": "Set to `true` to include check item states of the card; `false` to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -220,9 +220,9 @@
         "http_endpoint_parameter_name": "checkItemStates"
       },
       {
-        "name": "include_board_object",
+        "name": "return_board_object",
         "required": false,
-        "description": "Set to true to return the board object the card is on.",
+        "description": "Set to true to return the board object the card is on. Use false to exclude it.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -235,9 +235,9 @@
         "http_endpoint_parameter_name": "board"
       },
       {
-        "name": "include_lists_nested_resource",
+        "name": "include_list_resource",
         "required": false,
-        "description": "Specify whether to include information about the Lists Nested Resource for the card. Use a boolean value.",
+        "description": "A boolean to include list resource information related to the card. Set to true to include this information.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -252,7 +252,7 @@
       {
         "name": "include_plugin_data",
         "required": false,
-        "description": "Set to true to include pluginData on the card with the response.",
+        "description": "Specify whether to include plugin data in the card details response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -267,7 +267,7 @@
       {
         "name": "include_stickers",
         "required": false,
-        "description": "Set to true to include sticker models in the response.",
+        "description": "Set to true to include sticker models in the response; false to exclude.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -282,7 +282,7 @@
       {
         "name": "include_custom_field_items",
         "required": false,
-        "description": "Set to true to include custom field items in the card details, or false to exclude them.",
+        "description": "Set to `true` to include custom field items in the response; `false` to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -327,13 +327,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}",
@@ -342,7 +342,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "card_fields_to_retrieve",
+        "tool_parameter_name": "card_fields",
         "description": "`all` or a comma-separated list of [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `badges, checkItemStates, closed, dateLastActivity, desc, descData, due, start, idBoard, idChecklists, idLabels, idList, idMembers, idShort, idAttachmentCover, manualCoverAttachment, labels, name, pos, shortUrl, url`",
         "value_schema": {
           "val_type": "string",
@@ -355,11 +355,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "actions",
-        "tool_parameter_name": "include_action_details",
+        "tool_parameter_name": "include_actions_details",
         "description": "See the [Actions Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#actions-nested-resource)",
         "value_schema": {
           "val_type": "string",
@@ -372,6 +373,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -389,11 +391,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "attachment_fields",
-        "tool_parameter_name": "attachment_fields",
+        "tool_parameter_name": "attachment_fields_list",
         "description": "`all` or a comma-separated list of attachment [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -406,11 +409,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
         "name": "members",
-        "tool_parameter_name": "include_card_members",
+        "tool_parameter_name": "include_members",
         "description": "Whether to return member objects for members on the card",
         "value_schema": {
           "val_type": "boolean",
@@ -423,11 +427,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "member_fields",
-        "tool_parameter_name": "member_fields_selection",
+        "tool_parameter_name": "member_fields",
         "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `avatarHash, fullName, initials, username`",
         "value_schema": {
           "val_type": "string",
@@ -440,11 +445,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "membersVoted",
-        "tool_parameter_name": "include_members_who_voted",
+        "tool_parameter_name": "include_members_voted",
         "description": "Whether to return member objects for members who voted on the card",
         "value_schema": {
           "val_type": "boolean",
@@ -457,6 +463,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -474,6 +481,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -491,6 +499,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -508,11 +517,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
         "name": "checklist_fields",
-        "tool_parameter_name": "checklist_fields",
+        "tool_parameter_name": "checklist_fields_detail",
         "description": "`all` or a comma-separated list of `idBoard,idCard,name,pos`",
         "value_schema": {
           "val_type": "string",
@@ -525,11 +535,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
         "name": "board",
-        "tool_parameter_name": "include_board_object",
+        "tool_parameter_name": "return_board_object",
         "description": "Whether to return the board object the card is on",
         "value_schema": {
           "val_type": "boolean",
@@ -542,11 +553,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "board_fields",
-        "tool_parameter_name": "board_fields_to_return",
+        "tool_parameter_name": "board_fields_selection",
         "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/#board-object). **Defaults**: `name, desc, descData, closed, idOrganization, pinned, url, prefs`",
         "value_schema": {
           "val_type": "string",
@@ -559,11 +571,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "list",
-        "tool_parameter_name": "include_lists_nested_resource",
+        "tool_parameter_name": "include_list_resource",
         "description": "See the [Lists Nested Resource](/cloud/trello/guides/rest-api/nested-resources/)",
         "value_schema": {
           "val_type": "boolean",
@@ -576,6 +589,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -593,6 +607,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -610,11 +625,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "sticker_fields",
-        "tool_parameter_name": "sticker_fields",
+        "tool_parameter_name": "sticker_fields_selection",
         "description": "`all` or a comma-separated list of sticker [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -627,6 +643,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -644,6 +661,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -661,6 +679,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -682,6 +701,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

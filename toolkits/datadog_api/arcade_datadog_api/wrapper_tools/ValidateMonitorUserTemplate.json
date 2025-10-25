@@ -1,0 +1,330 @@
+{
+  "name": "ValidateMonitorUserTemplate",
+  "fully_qualified_name": "DatadogApi.ValidateMonitorUserTemplate@0.1.0",
+  "description": "Validate the structure and content of a monitor user template.\n\nUse this tool to ensure that a monitor user template in Datadog meets the required structural and content standards. This is essential for verifying templates before implementation.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "monitor_user_template_data",
+        "required": true,
+        "description": "JSON object containing the structure and content of a monitor user template. Includes attributes like description, monitor definition, tags, template variables, and title.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A brief description of the monitor user template."
+                    },
+                    "monitor_definition": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A valid monitor definition in the same format as the [V1 Monitor API](https://docs.datadoghq.com/api/latest/monitors/#create-a-monitor)."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The definition of `MonitorUserTemplateTags` object."
+                    },
+                    "template_variables": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "available_values": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Available values for the variable."
+                        },
+                        "defaults": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Default values of the template variable."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the template variable."
+                        },
+                        "tag_key": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The tag key associated with the variable. This works the same as dashboard template variables."
+                        }
+                      },
+                      "description": "The definition of `MonitorUserTemplateTemplateVariables` object."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title of the monitor user template."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes for a monitor user template."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "monitor-user-template"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Monitor user template resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Monitor user template data."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ValidateMonitorUserTemplate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/monitor/template/validate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "monitor_user_template_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A brief description of the monitor user template."
+                    },
+                    "monitor_definition": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A valid monitor definition in the same format as the [V1 Monitor API](https://docs.datadoghq.com/api/latest/monitors/#create-a-monitor)."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The definition of `MonitorUserTemplateTags` object."
+                    },
+                    "template_variables": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "available_values": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Available values for the variable."
+                        },
+                        "defaults": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Default values of the template variable."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the template variable."
+                        },
+                        "tag_key": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The tag key associated with the variable. This works the same as dashboard template variables."
+                        }
+                      },
+                      "description": "The definition of `MonitorUserTemplateTemplateVariables` object."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title of the monitor user template."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes for a monitor user template."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "monitor-user-template"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Monitor user template resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Monitor user template data."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request for creating a monitor user template.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Monitor user template data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"additionalProperties\": false,\n                \"description\": \"Attributes for a monitor user template.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"A brief description of the monitor user template.\",\n                    \"example\": \"This is a template for monitoring user activity.\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"monitor_definition\": {\n                    \"additionalProperties\": {},\n                    \"description\": \"A valid monitor definition in the same format as the [V1 Monitor API](https://docs.datadoghq.com/api/latest/monitors/#create-a-monitor).\",\n                    \"example\": {\n                      \"message\": \"You may need to add web hosts if this is consistently high.\",\n                      \"name\": \"Bytes received on host0\",\n                      \"query\": \"avg(last_5m):sum:system.net.bytes_rcvd{host:host0} > 100\",\n                      \"type\": \"query alert\"\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"tags\": {\n                    \"description\": \"The definition of `MonitorUserTemplateTags` object.\",\n                    \"example\": [\n                      \"product:Our Custom App\",\n                      \"integration:Azure\"\n                    ],\n                    \"items\": {\n                      \"description\": \"Tags associated with the monitor user template. Must be key value. Only 'product' and 'integration' keys are\\nallowed. The value is the name of the category to display the template under. Integrations can be filtered out in the UI.\\n(Review note: This modeling of 'categories' is subject to change.)\",\n                      \"example\": \"us-east1\",\n                      \"minLength\": 1,\n                      \"type\": \"string\",\n                      \"uniqueItems\": true\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"template_variables\": {\n                    \"description\": \"The definition of `MonitorUserTemplateTemplateVariables` object.\",\n                    \"items\": {\n                      \"additionalProperties\": false,\n                      \"description\": \"List of objects representing template variables on the monitor which can have selectable values.\",\n                      \"properties\": {\n                        \"available_values\": {\n                          \"description\": \"Available values for the variable.\",\n                          \"example\": [\n                            \"value1\",\n                            \"value2\"\n                          ],\n                          \"items\": {\n                            \"minLength\": 1,\n                            \"type\": \"string\",\n                            \"uniqueItems\": true\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"defaults\": {\n                          \"description\": \"Default values of the template variable.\",\n                          \"example\": [\n                            \"defaultValue\"\n                          ],\n                          \"items\": {\n                            \"minLength\": 0,\n                            \"type\": \"string\",\n                            \"uniqueItems\": true\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"name\": {\n                          \"description\": \"The name of the template variable.\",\n                          \"example\": \"regionName\",\n                          \"type\": \"string\"\n                        },\n                        \"tag_key\": {\n                          \"description\": \"The tag key associated with the variable. This works the same as dashboard template variables.\",\n                          \"example\": \"datacenter\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"name\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"title\": {\n                    \"description\": \"The title of the monitor user template.\",\n                    \"example\": \"Postgres CPU Monitor\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"title\",\n                  \"monitor_definition\",\n                  \"tags\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"monitor-user-template\",\n                \"description\": \"Monitor user template resource type.\",\n                \"enum\": [\n                  \"monitor-user-template\"\n                ],\n                \"example\": \"monitor-user-template\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"MONITOR_USER_TEMPLATE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

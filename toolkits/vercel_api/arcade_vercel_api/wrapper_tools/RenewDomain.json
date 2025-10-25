@@ -1,0 +1,416 @@
+{
+  "name": "RenewDomain",
+  "fully_qualified_name": "VercelApi.RenewDomain@0.1.0",
+  "description": "Renews a domain registration through Vercel.\n\n",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "domain_name",
+        "required": true,
+        "description": "The domain name to be renewed, in string format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "domain"
+      },
+      {
+        "name": "domain_renewal_details",
+        "required": true,
+        "description": "JSON object with details for renewing a domain, including years, expected price, and contact info.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "years": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The number of years to renew the domain for."
+            },
+            "expectedPrice": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The expected price for the domain. Use the [Get price data for a domain](https://vercel.com/docs/rest-api/reference/endpoints/domains-registrar/get-price-data-for-a-domain) endpoint to retrieve the price data for a domain."
+            },
+            "contactInformation": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "firstName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "lastName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A valid E.164 phone number"
+                },
+                "address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A valid ISO 3166-1 alpha-2 country code"
+                },
+                "companyName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "fax": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A valid E.164 phone number"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier for the team that owns the domain.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'renewDomain'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/registrar/domains/{domain}/renew",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "domain",
+        "tool_parameter_name": "domain_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "domain_renewal_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "years": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The number of years to renew the domain for."
+            },
+            "expectedPrice": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The expected price for the domain. Use the [Get price data for a domain](https://vercel.com/docs/rest-api/reference/endpoints/domains-registrar/get-price-data-for-a-domain) endpoint to retrieve the price data for a domain."
+            },
+            "contactInformation": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "firstName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "lastName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A valid E.164 phone number"
+                },
+                "address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A valid ISO 3166-1 alpha-2 country code"
+                },
+                "companyName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "a non empty string"
+                },
+                "fax": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A valid E.164 phone number"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"years\",\n          \"expectedPrice\"\n        ],\n        \"properties\": {\n          \"years\": {\n            \"type\": \"number\",\n            \"description\": \"The number of years to renew the domain for.\"\n          },\n          \"expectedPrice\": {\n            \"type\": \"number\",\n            \"description\": \"The expected price for the domain. Use the [Get price data for a domain](https://vercel.com/docs/rest-api/reference/endpoints/domains-registrar/get-price-data-for-a-domain) endpoint to retrieve the price data for a domain.\",\n            \"minimum\": 0.01\n          },\n          \"contactInformation\": {\n            \"type\": \"object\",\n            \"required\": [\n              \"firstName\",\n              \"lastName\",\n              \"email\",\n              \"phone\",\n              \"address1\",\n              \"city\",\n              \"state\",\n              \"zip\",\n              \"country\"\n            ],\n            \"properties\": {\n              \"firstName\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"lastName\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"email\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"minLength\": 1\n              },\n              \"phone\": {\n                \"type\": \"string\",\n                \"description\": \"A valid E.164 phone number\",\n                \"title\": \"nonEmptyString\",\n                \"minLength\": 1,\n                \"pattern\": \"^(?=(?:\\\\D*\\\\d){7,15}$)\\\\+[1-9]\\\\d{0,2}\\\\.?\\\\d+$\"\n              },\n              \"address1\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"address2\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"city\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"state\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"zip\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"country\": {\n                \"type\": \"string\",\n                \"description\": \"A valid ISO 3166-1 alpha-2 country code\",\n                \"title\": \"nonEmptyString\",\n                \"minLength\": 1,\n                \"pattern\": \"^[A-Z]{2}$\"\n              },\n              \"companyName\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"fax\": {\n                \"type\": \"string\",\n                \"description\": \"A valid E.164 phone number\",\n                \"title\": \"nonEmptyString\",\n                \"minLength\": 1,\n                \"pattern\": \"^(?=(?:\\\\D*\\\\d){7,15}$)\\\\+[1-9]\\\\d{0,2}\\\\.?\\\\d+$\"\n              }\n            },\n            \"additionalProperties\": false\n          }\n        },\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,412 @@
+{
+  "name": "CreateNewVendor",
+  "fully_qualified_name": "FreshserviceApi.CreateNewVendor@1.0.0",
+  "description": "Creates a new vendor in the Freshservice system.\n\nUse this tool to create a new vendor in Freshservice. Call this tool when you need to add a vendor to your vendor list, providing necessary details to complete the registration.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "vendor_unique_id",
+        "required": false,
+        "description": "Unique integer ID of the vendor to be created in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the vendor"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "vendor_name",
+        "required": false,
+        "description": "The name of the vendor to be created. It should be a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the vendor"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "vendor_description",
+        "required": false,
+        "description": "Detailed description of the vendor, including any specific information or notes relevant to the vendor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description of the vendor"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "primary_contact_id",
+        "required": false,
+        "description": "Unique ID of the primary contact for the vendor. This contact is a requester whose details (name, email, phone, mobile) are referenced from the requester database.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the primary contact (Primary contact is a requester. The primary contact name, email phone and mobile number will be referenced from the requester details)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "primary_contact_id"
+      },
+      {
+        "name": "address_line_1",
+        "required": false,
+        "description": "The first line of the vendor's address, such as street name and number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Address Line 1"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_line1"
+      },
+      {
+        "name": "address_line_2",
+        "required": false,
+        "description": "The second line of the vendor's address, typically used for apartment or suite numbers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Address Line 2"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_line2"
+      },
+      {
+        "name": "vendor_city",
+        "required": false,
+        "description": "The city where the vendor is located.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "City"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_city"
+      },
+      {
+        "name": "state",
+        "required": false,
+        "description": "The state or province where the vendor is located. Use a string value to specify the state.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "State"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_state"
+      },
+      {
+        "name": "country",
+        "required": false,
+        "description": "The country where the vendor is located. Provide the full name of the country.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Country"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_country"
+      },
+      {
+        "name": "location_zip_code",
+        "required": false,
+        "description": "Zip Code of the vendor's location.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Zip Code of the location"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_zipcode"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-vendor'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/vendors",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "vendor_unique_id",
+        "description": "Unique ID of the vendor",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the vendor"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "vendor_name",
+        "description": "Name of the vendor",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the vendor"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "vendor_description",
+        "description": "Description of the vendor",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description of the vendor"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "primary_contact_id",
+        "tool_parameter_name": "primary_contact_id",
+        "description": "Unique ID of the primary contact (Primary contact is a requester. The primary contact name, email phone and mobile number will be referenced from the requester details)",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the primary contact (Primary contact is a requester. The primary contact name, email phone and mobile number will be referenced from the requester details)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_line1",
+        "tool_parameter_name": "address_line_1",
+        "description": "Address Line 1",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Address Line 1"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_line2",
+        "tool_parameter_name": "address_line_2",
+        "description": "Address Line 2",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Address Line 2"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_city",
+        "tool_parameter_name": "vendor_city",
+        "description": "City",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "City"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_state",
+        "tool_parameter_name": "state",
+        "description": "State",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "State"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_country",
+        "tool_parameter_name": "country",
+        "description": "Country",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Country"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_zipcode",
+        "tool_parameter_name": "location_zip_code",
+        "description": "Zip Code of the location",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Zip Code of the location"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the vendor\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000234324\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the vendor\",\n            \"example\": \"Apple\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description of the vendor\",\n            \"example\": \"Apple\"\n          },\n          \"primary_contact_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the primary contact (Primary contact is a requester. The primary contact name, email phone and mobile number will be referenced from the requester details)\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"address_line1\": {\n            \"type\": \"string\",\n            \"description\": \"Address Line 1\",\n            \"example\": \"Cupertino\"\n          },\n          \"address_line2\": {\n            \"type\": \"string\",\n            \"description\": \"Address Line 2\",\n            \"example\": \"Cupertino\"\n          },\n          \"address_city\": {\n            \"type\": \"string\",\n            \"description\": \"City\",\n            \"example\": \"Cupertino\"\n          },\n          \"address_state\": {\n            \"type\": \"string\",\n            \"description\": \"State\",\n            \"example\": \"California\"\n          },\n          \"address_country\": {\n            \"type\": \"string\",\n            \"description\": \"Country\",\n            \"example\": \"US\"\n          },\n          \"address_zipcode\": {\n            \"type\": \"string\",\n            \"description\": \"Zip Code of the location\",\n            \"example\": \"95014\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

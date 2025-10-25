@@ -1,0 +1,238 @@
+{
+  "name": "CreateProjectEnvironmentVariables",
+  "fully_qualified_name": "VercelApi.CreateProjectEnvironmentVariables@0.1.0",
+  "description": "Create or update environment variables for a Vercel project.\n\nThis tool creates or updates one or more environment variables for a specified Vercel project. The project can be identified by its `id` or `name`. The tool allows specifying the `key`, `value`, `type`, and `target` of the environment variables. If `upsert=true` is included, existing variables will be updated instead of creating new ones.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_identifier_or_name",
+        "required": true,
+        "description": "The unique identifier or name of the Vercel project to create or update environment variables for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrName"
+      },
+      {
+        "name": "environment_variables",
+        "required": true,
+        "description": "A JSON object detailing the environment variables to create or update, including their `key`, `value`, `type`, and `target`.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "allow_override_existing_variable",
+        "required": false,
+        "description": "Allows updating the value of an existing environment variable if set to true.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allow override of environment variable if it already exists"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "upsert"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The Team identifier to perform the request on behalf of, specified as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The Team slug for the project. Used to perform the request on behalf of a specific team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createProjectEnv'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v10/projects/{idOrName}/env",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "upsert",
+        "tool_parameter_name": "allow_override_existing_variable",
+        "description": "Allow override of environment variable if it already exists",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allow override of environment variable if it already exists"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrName",
+        "tool_parameter_name": "project_identifier_or_name",
+        "description": "The unique project identifier or the project name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "environment_variables",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"oneOf\": [\n          {\n            \"type\": \"object\",\n            \"required\": [\n              \"key\",\n              \"value\",\n              \"type\"\n            ],\n            \"anyOf\": [\n              {\n                \"required\": [\n                  \"target\"\n                ]\n              },\n              {\n                \"required\": [\n                  \"customEnvironmentIds\"\n                ]\n              }\n            ],\n            \"properties\": {\n              \"key\": {\n                \"description\": \"The name of the environment variable\",\n                \"type\": \"string\",\n                \"example\": \"API_URL\"\n              },\n              \"value\": {\n                \"description\": \"The value of the environment variable\",\n                \"type\": \"string\",\n                \"example\": \"https://api.vercel.com\"\n              },\n              \"type\": {\n                \"description\": \"The type of environment variable\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"system\",\n                  \"secret\",\n                  \"encrypted\",\n                  \"plain\",\n                  \"sensitive\"\n                ],\n                \"example\": \"plain\"\n              },\n              \"target\": {\n                \"description\": \"The target environment of the environment variable\",\n                \"type\": \"array\",\n                \"items\": {\n                  \"enum\": [\n                    \"production\",\n                    \"preview\",\n                    \"development\"\n                  ]\n                },\n                \"example\": [\n                  \"preview\"\n                ]\n              },\n              \"gitBranch\": {\n                \"description\": \"If defined, the git branch of the environment variable (must have target=preview)\",\n                \"type\": \"string\",\n                \"maxLength\": 250,\n                \"example\": \"feature-1\",\n                \"nullable\": true\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this environment variable is for\",\n                \"example\": \"database connection string for production\",\n                \"maxLength\": 500\n              },\n              \"customEnvironmentIds\": {\n                \"type\": \"array\",\n                \"description\": \"The custom environment IDs associated with the environment variable\",\n                \"items\": {\n                  \"type\": \"string\",\n                  \"example\": \"env_1234567890\"\n                }\n              }\n            }\n          },\n          {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"key\",\n                \"value\",\n                \"type\"\n              ],\n              \"anyOf\": [\n                {\n                  \"required\": [\n                    \"target\"\n                  ]\n                },\n                {\n                  \"required\": [\n                    \"customEnvironmentIds\"\n                  ]\n                }\n              ],\n              \"properties\": {\n                \"key\": {\n                  \"description\": \"The name of the environment variable\",\n                  \"type\": \"string\",\n                  \"example\": \"API_URL\"\n                },\n                \"value\": {\n                  \"description\": \"The value of the environment variable\",\n                  \"type\": \"string\",\n                  \"example\": \"https://api.vercel.com\"\n                },\n                \"type\": {\n                  \"description\": \"The type of environment variable\",\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"system\",\n                    \"secret\",\n                    \"encrypted\",\n                    \"plain\",\n                    \"sensitive\"\n                  ],\n                  \"example\": \"plain\"\n                },\n                \"target\": {\n                  \"description\": \"The target environment of the environment variable\",\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"enum\": [\n                      \"production\",\n                      \"preview\",\n                      \"development\"\n                    ]\n                  },\n                  \"example\": [\n                    \"preview\"\n                  ]\n                },\n                \"gitBranch\": {\n                  \"description\": \"If defined, the git branch of the environment variable (must have target=preview)\",\n                  \"type\": \"string\",\n                  \"maxLength\": 250,\n                  \"example\": \"feature-1\",\n                  \"nullable\": true\n                },\n                \"comment\": {\n                  \"type\": \"string\",\n                  \"description\": \"A comment to add context on what this environment variable is for\",\n                  \"example\": \"database connection string for production\",\n                  \"maxLength\": 500\n                },\n                \"customEnvironmentIds\": {\n                  \"type\": \"array\",\n                  \"description\": \"The custom environment IDs associated with the environment variable\",\n                  \"items\": {\n                    \"type\": \"string\",\n                    \"example\": \"env_1234567890\"\n                  }\n                }\n              }\n            }\n          }\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

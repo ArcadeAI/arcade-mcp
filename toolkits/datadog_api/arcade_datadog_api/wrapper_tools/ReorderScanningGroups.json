@@ -1,0 +1,306 @@
+{
+  "name": "ReorderScanningGroups",
+  "fully_qualified_name": "DatadogApi.ReorderScanningGroups@0.1.0",
+  "description": "Reorder the list of scanning groups.\n\nThis tool is used to change the order of sensitive data scanning groups in Datadog. Call this tool when you need to reorder the existing groups.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "reorder_data_payload",
+        "required": true,
+        "description": "JSON payload specifying the order of scanning groups. Includes configuration ID, relationship details, and optional API version information.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the configuration."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "groups": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the group."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_group"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner group type."
+                            }
+                          },
+                          "description": "List of groups. The order is important."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "List of groups, ordered."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of the configuration."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "sensitive_data_scanner_configuration"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sensitive Data Scanner configuration type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the reordering of scanning groups."
+            },
+            "meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "version": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Version of the API (optional)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Meta payload containing information about the API."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ReorderScanningGroups'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/sensitive-data-scanner/config",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "reorder_data_payload",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the configuration."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "groups": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the group."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_group"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner group type."
+                            }
+                          },
+                          "description": "List of groups. The order is important."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "List of groups, ordered."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of the configuration."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "sensitive_data_scanner_configuration"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sensitive Data Scanner configuration type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the reordering of scanning groups."
+            },
+            "meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "version": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Version of the API (optional)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Meta payload containing information about the API."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Group reorder request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data related to the reordering of scanning groups.\",\n            \"properties\": {\n              \"id\": {\n                \"description\": \"ID of the configuration.\",\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationships of the configuration.\",\n                \"properties\": {\n                  \"groups\": {\n                    \"description\": \"List of groups, ordered.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"List of groups. The order is important.\",\n                        \"items\": {\n                          \"description\": \"Data related to a Sensitive Data Scanner Group.\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"ID of the group.\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"sensitive_data_scanner_group\",\n                              \"description\": \"Sensitive Data Scanner group type.\",\n                              \"enum\": [\n                                \"sensitive_data_scanner_group\"\n                              ],\n                              \"example\": \"sensitive_data_scanner_group\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"SENSITIVE_DATA_SCANNER_GROUP\"\n                              ]\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"sensitive_data_scanner_configuration\",\n                \"description\": \"Sensitive Data Scanner configuration type.\",\n                \"enum\": [\n                  \"sensitive_data_scanner_configuration\"\n                ],\n                \"example\": \"sensitive_data_scanner_configuration\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"SENSITIVE_DATA_SCANNER_CONFIGURATIONS\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"meta\": {\n            \"description\": \"Meta payload containing information about the API.\",\n            \"properties\": {\n              \"version\": {\n                \"description\": \"Version of the API (optional).\",\n                \"example\": 0,\n                \"format\": \"int64\",\n                \"minimum\": 0,\n                \"type\": \"integer\"\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\",\n          \"meta\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,714 @@
+{
+  "name": "UpdateExistingCheck",
+  "fully_qualified_name": "VercelApi.UpdateExistingCheck@0.1.0",
+  "description": "Updates an existing deployment check.\n\nUse this tool to update an existing check in a deployment on Vercel. Ensure that OAuth2 authentication is used to avoid errors.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "deployment_id",
+        "required": true,
+        "description": "The identifier for the deployment to update the check for. Ensure it is a valid string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The deployment to update the check for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deploymentId"
+      },
+      {
+        "name": "check_identifier",
+        "required": true,
+        "description": "The unique identifier of the check to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The check being updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checkId"
+      },
+      {
+        "name": "check_details_payload",
+        "required": true,
+        "description": "A JSON object containing details for the check update, including name, path, status, conclusion, details URL, metrics, and external ID.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the check being created"
+            },
+            "path": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Path of the page that is being checked"
+            },
+            "status": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The current status of the check"
+            },
+            "conclusion": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The result of the check being run"
+            },
+            "detailsUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A URL a user may visit to see more information about the check"
+            },
+            "output": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "metrics": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "FCP": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "First Contentful Paint value"
+                        },
+                        "previousValue": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Previous First Contentful Paint value to display a delta"
+                        },
+                        "source": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "web-vitals"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "LCP": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Largest Contentful Paint value"
+                        },
+                        "previousValue": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Previous Largest Contentful Paint value to display a delta"
+                        },
+                        "source": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "web-vitals"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "CLS": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Cumulative Layout Shift value"
+                        },
+                        "previousValue": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Previous Cumulative Layout Shift value to display a delta"
+                        },
+                        "source": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "web-vitals"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "TBT": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Total Blocking Time value"
+                        },
+                        "previousValue": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Previous Total Blocking Time value to display a delta"
+                        },
+                        "source": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "virtualExperienceScore": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The calculated Virtual Experience Score value, between 0 and 100"
+                        },
+                        "previousValue": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A previous Virtual Experience Score value to display a delta, between 0 and 100"
+                        },
+                        "source": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Metrics about the page"
+                }
+              },
+              "inner_properties": null,
+              "description": "The results of the check Run"
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An identifier that can be used as an external reference"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The identifier of the Team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug of the team to perform the request on behalf of. This identifies the team within Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateCheck'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/deployments/{deploymentId}/checks/{checkId}",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "deploymentId",
+        "tool_parameter_name": "deployment_id",
+        "description": "The deployment to update the check for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The deployment to update the check for."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "checkId",
+        "tool_parameter_name": "check_identifier",
+        "description": "The check being updated",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The check being updated"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "check_details_payload",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the check being created"
+            },
+            "path": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Path of the page that is being checked"
+            },
+            "status": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The current status of the check"
+            },
+            "conclusion": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The result of the check being run"
+            },
+            "detailsUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A URL a user may visit to see more information about the check"
+            },
+            "output": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "metrics": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "FCP": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "First Contentful Paint value"
+                        },
+                        "previousValue": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Previous First Contentful Paint value to display a delta"
+                        },
+                        "source": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "web-vitals"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "LCP": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Largest Contentful Paint value"
+                        },
+                        "previousValue": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Previous Largest Contentful Paint value to display a delta"
+                        },
+                        "source": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "web-vitals"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "CLS": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Cumulative Layout Shift value"
+                        },
+                        "previousValue": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Previous Cumulative Layout Shift value to display a delta"
+                        },
+                        "source": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "web-vitals"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "TBT": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Total Blocking Time value"
+                        },
+                        "previousValue": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Previous Total Blocking Time value to display a delta"
+                        },
+                        "source": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "virtualExperienceScore": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "value": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The calculated Virtual Experience Score value, between 0 and 100"
+                        },
+                        "previousValue": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A previous Virtual Experience Score value to display a delta, between 0 and 100"
+                        },
+                        "source": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Metrics about the page"
+                }
+              },
+              "inner_properties": null,
+              "description": "The results of the check Run"
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An identifier that can be used as an external reference"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"name\": {\n            \"description\": \"The name of the check being created\",\n            \"maxLength\": 100,\n            \"example\": \"Performance Check\",\n            \"type\": \"string\"\n          },\n          \"path\": {\n            \"description\": \"Path of the page that is being checked\",\n            \"type\": \"string\",\n            \"maxLength\": 255,\n            \"example\": \"/\"\n          },\n          \"status\": {\n            \"description\": \"The current status of the check\",\n            \"enum\": [\n              \"running\",\n              \"completed\"\n            ]\n          },\n          \"conclusion\": {\n            \"description\": \"The result of the check being run\",\n            \"enum\": [\n              \"canceled\",\n              \"failed\",\n              \"neutral\",\n              \"succeeded\",\n              \"skipped\"\n            ]\n          },\n          \"detailsUrl\": {\n            \"description\": \"A URL a user may visit to see more information about the check\",\n            \"type\": \"string\",\n            \"example\": \"https://example.com/check/run/1234abc\"\n          },\n          \"output\": {\n            \"description\": \"The results of the check Run\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"metrics\": {\n                \"type\": \"object\",\n                \"description\": \"Metrics about the page\",\n                \"required\": [\n                  \"FCP\",\n                  \"LCP\",\n                  \"CLS\",\n                  \"TBT\"\n                ],\n                \"additionalProperties\": false,\n                \"properties\": {\n                  \"FCP\": {\n                    \"type\": \"object\",\n                    \"required\": [\n                      \"value\",\n                      \"source\"\n                    ],\n                    \"properties\": {\n                      \"value\": {\n                        \"type\": \"number\",\n                        \"example\": 1200,\n                        \"description\": \"First Contentful Paint value\",\n                        \"nullable\": true\n                      },\n                      \"previousValue\": {\n                        \"type\": \"number\",\n                        \"example\": 900,\n                        \"description\": \"Previous First Contentful Paint value to display a delta\"\n                      },\n                      \"source\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"web-vitals\"\n                        ]\n                      }\n                    }\n                  },\n                  \"LCP\": {\n                    \"type\": \"object\",\n                    \"required\": [\n                      \"value\",\n                      \"source\"\n                    ],\n                    \"properties\": {\n                      \"value\": {\n                        \"type\": \"number\",\n                        \"example\": 1200,\n                        \"description\": \"Largest Contentful Paint value\",\n                        \"nullable\": true\n                      },\n                      \"previousValue\": {\n                        \"type\": \"number\",\n                        \"example\": 1000,\n                        \"description\": \"Previous Largest Contentful Paint value to display a delta\"\n                      },\n                      \"source\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"web-vitals\"\n                        ]\n                      }\n                    }\n                  },\n                  \"CLS\": {\n                    \"type\": \"object\",\n                    \"required\": [\n                      \"value\",\n                      \"source\"\n                    ],\n                    \"properties\": {\n                      \"value\": {\n                        \"type\": \"number\",\n                        \"example\": 4,\n                        \"description\": \"Cumulative Layout Shift value\",\n                        \"nullable\": true\n                      },\n                      \"previousValue\": {\n                        \"type\": \"number\",\n                        \"example\": 2,\n                        \"description\": \"Previous Cumulative Layout Shift value to display a delta\"\n                      },\n                      \"source\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"web-vitals\"\n                        ]\n                      }\n                    }\n                  },\n                  \"TBT\": {\n                    \"type\": \"object\",\n                    \"required\": [\n                      \"value\",\n                      \"source\"\n                    ],\n                    \"properties\": {\n                      \"value\": {\n                        \"type\": \"number\",\n                        \"example\": 3000,\n                        \"description\": \"Total Blocking Time value\",\n                        \"nullable\": true\n                      },\n                      \"previousValue\": {\n                        \"type\": \"number\",\n                        \"example\": 3500,\n                        \"description\": \"Previous Total Blocking Time value to display a delta\"\n                      },\n                      \"source\": {\n                        \"enum\": [\n                          \"web-vitals\"\n                        ]\n                      }\n                    }\n                  },\n                  \"virtualExperienceScore\": {\n                    \"type\": \"object\",\n                    \"required\": [\n                      \"value\",\n                      \"source\"\n                    ],\n                    \"properties\": {\n                      \"value\": {\n                        \"type\": \"integer\",\n                        \"maximum\": 100,\n                        \"minimum\": 0,\n                        \"example\": 30,\n                        \"description\": \"The calculated Virtual Experience Score value, between 0 and 100\",\n                        \"nullable\": true\n                      },\n                      \"previousValue\": {\n                        \"type\": \"integer\",\n                        \"maximum\": 100,\n                        \"minimum\": 0,\n                        \"example\": 35,\n                        \"description\": \"A previous Virtual Experience Score value to display a delta, between 0 and 100\"\n                      },\n                      \"source\": {\n                        \"enum\": [\n                          \"web-vitals\"\n                        ]\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"externalId\": {\n            \"description\": \"An identifier that can be used as an external reference\",\n            \"type\": \"string\",\n            \"example\": \"1234abc\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

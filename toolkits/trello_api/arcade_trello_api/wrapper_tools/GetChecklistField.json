@@ -1,18 +1,18 @@
 {
   "name": "GetChecklistField",
-  "fully_qualified_name": "TrelloApi.GetChecklistField@0.1.0",
-  "description": "Retrieve a specific field from a Trello checklist.\n\nCall this tool to get detailed information about a specific field of a Trello checklist using its ID. Useful for retrieving particular attributes of a checklist, such as name, position, or IDCard.",
+  "fully_qualified_name": "TrelloApi.GetChecklistField@2.0.0",
+  "description": "Retrieve a specific field from a Trello checklist.\n\nUse this tool to get a specific field from a checklist in Trello using its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "checklist_id",
         "required": true,
-        "description": "The unique identifier of the checklist to retrieve the field from.",
+        "description": "The unique identifier of the checklist to retrieve a specific field from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "checklist_field_to_retrieve",
         "required": true,
-        "description": "Specify the field of the checklist to retrieve, such as 'name' or 'pos'.",
+        "description": "Specify the field of the checklist to retrieve: 'name' or 'pos'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -75,13 +75,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/checklists/{id}/{field}",
@@ -103,6 +103,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -123,6 +124,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -144,6 +146,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

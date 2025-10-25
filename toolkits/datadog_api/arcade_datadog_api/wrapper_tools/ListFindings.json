@@ -1,0 +1,606 @@
+{
+  "name": "ListFindings",
+  "fully_qualified_name": "DatadogApi.ListFindings@0.1.0",
+  "description": "Retrieve a list of security findings from Datadog.\n\nUse this tool to obtain a list of security findings, including misconfigurations and identity risks from Datadog. You can apply filters to customize the search results and include additional details by specifying parameters. The response includes summary details of each finding along with pagination metadata.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "max_findings_limit",
+        "required": false,
+        "description": "Set the maximum number of findings to return, up to a limit of 1000.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit the number of findings returned. Must be <= 1000."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[limit]"
+      },
+      {
+        "name": "snapshot_timestamp",
+        "required": false,
+        "description": "Specify the Unix timestamp (in milliseconds) to get findings for a specific snapshot of time.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings for a given snapshot of time (Unix ms)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "snapshot_timestamp"
+      },
+      {
+        "name": "next_page_cursor",
+        "required": false,
+        "description": "Use this to return the next page of findings starting from this cursor's position.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return the next page of findings pointed to by the cursor."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[cursor]"
+      },
+      {
+        "name": "filter_by_tags",
+        "required": false,
+        "description": "Specify tags to filter findings. Use the format `tag_key:tag_value`. Supports multiple tags separated by commas.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings that have these associated tags (repeatable)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[tags]"
+      },
+      {
+        "name": "filter_by_evaluation_change_date",
+        "required": false,
+        "description": "Specify a date (Unix ms) or date range (using comparison operators) to find results altered from pass to fail or vice versa.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings that have changed from pass to fail or vice versa on a specified date (Unix ms) or date range (using comparison operators)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[evaluation_changed_at]"
+      },
+      {
+        "name": "filter_by_rule_id",
+        "required": false,
+        "description": "Provide a specific rule ID to filter findings related to that rule.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings for the specified rule ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[rule_id]"
+      },
+      {
+        "name": "filter_by_rule_name",
+        "required": false,
+        "description": "Specify the rule name to return findings associated with it. This filters findings based on the provided rule name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings for the specified rule."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[rule_name]"
+      },
+      {
+        "name": "filter_by_resource_type",
+        "required": false,
+        "description": "Return findings only for the specified resource type. Use to narrow down results to specific resource types, such as 'aws', 'gcp', etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only findings for the specified resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[resource_type]"
+      },
+      {
+        "name": "filter_by_resource_id",
+        "required": false,
+        "description": "Return only findings for the specified resource ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only findings for the specified resource id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[@resource_id]"
+      },
+      {
+        "name": "filter_discovery_timestamp",
+        "required": false,
+        "description": "Return findings discovered at a specific time (Unix ms) or within a date range using comparison operators (e.g., `>`, `<=`).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings that were found on a specified date (Unix ms) or date range (using comparison operators)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[discovery_timestamp]"
+      },
+      {
+        "name": "filter_evaluation_status",
+        "required": false,
+        "description": "Specify to return only findings that are either 'pass' or 'fail'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pass",
+            "fail"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only `pass` or `fail` findings."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[evaluation]"
+      },
+      {
+        "name": "status_filter",
+        "required": false,
+        "description": "Specify the status of findings to return: critical, high, medium, low, or info.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only findings with the specified status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[status]"
+      },
+      {
+        "name": "vulnerability_type_filters",
+        "required": false,
+        "description": "A list of strings to filter findings by matching vulnerability types. Repeatable for multiple types.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings that match the selected vulnerability types (repeatable)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[vulnerability_type]"
+      },
+      {
+        "name": "return_muted_findings",
+        "required": false,
+        "description": "Set to `true` to return muted findings. Set to `false` to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Set to `true` to return findings that are muted. Set to `false` to return unmuted findings."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[muted]"
+      },
+      {
+        "name": "include_detailed_findings",
+        "required": false,
+        "description": "Set to true to retrieve additional fields like external ID, description, and IP addresses for some findings.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return additional fields for some findings."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "detailed_findings"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListFindings'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/posture_management/findings",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page[limit]",
+        "tool_parameter_name": "max_findings_limit",
+        "description": "Limit the number of findings returned. Must be <= 1000.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit the number of findings returned. Must be <= 1000."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 100,
+        "documentation_urls": []
+      },
+      {
+        "name": "snapshot_timestamp",
+        "tool_parameter_name": "snapshot_timestamp",
+        "description": "Return findings for a given snapshot of time (Unix ms).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings for a given snapshot of time (Unix ms)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[cursor]",
+        "tool_parameter_name": "next_page_cursor",
+        "description": "Return the next page of findings pointed to by the cursor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return the next page of findings pointed to by the cursor."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[tags]",
+        "tool_parameter_name": "filter_by_tags",
+        "description": "Return findings that have these associated tags (repeatable).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings that have these associated tags (repeatable)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[evaluation_changed_at]",
+        "tool_parameter_name": "filter_by_evaluation_change_date",
+        "description": "Return findings that have changed from pass to fail or vice versa on a specified date (Unix ms) or date range (using comparison operators).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings that have changed from pass to fail or vice versa on a specified date (Unix ms) or date range (using comparison operators)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[muted]",
+        "tool_parameter_name": "return_muted_findings",
+        "description": "Set to `true` to return findings that are muted. Set to `false` to return unmuted findings.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Set to `true` to return findings that are muted. Set to `false` to return unmuted findings."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[rule_id]",
+        "tool_parameter_name": "filter_by_rule_id",
+        "description": "Return findings for the specified rule ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings for the specified rule ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[rule_name]",
+        "tool_parameter_name": "filter_by_rule_name",
+        "description": "Return findings for the specified rule.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings for the specified rule."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[resource_type]",
+        "tool_parameter_name": "filter_by_resource_type",
+        "description": "Return only findings for the specified resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only findings for the specified resource type."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[@resource_id]",
+        "tool_parameter_name": "filter_by_resource_id",
+        "description": "Return only findings for the specified resource id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only findings for the specified resource id."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[discovery_timestamp]",
+        "tool_parameter_name": "filter_discovery_timestamp",
+        "description": "Return findings that were found on a specified date (Unix ms) or date range (using comparison operators).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings that were found on a specified date (Unix ms) or date range (using comparison operators)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[evaluation]",
+        "tool_parameter_name": "filter_evaluation_status",
+        "description": "Return only `pass` or `fail` findings.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pass",
+            "fail"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only `pass` or `fail` findings."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[status]",
+        "tool_parameter_name": "status_filter",
+        "description": "Return only findings with the specified status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only findings with the specified status."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[vulnerability_type]",
+        "tool_parameter_name": "vulnerability_type_filters",
+        "description": "Return findings that match the selected vulnerability types (repeatable).",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return findings that match the selected vulnerability types (repeatable)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "detailed_findings",
+        "tool_parameter_name": "include_detailed_findings",
+        "description": "Return additional fields for some findings.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return additional fields for some findings."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

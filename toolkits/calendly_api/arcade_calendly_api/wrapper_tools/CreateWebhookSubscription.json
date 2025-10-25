@@ -1,0 +1,311 @@
+{
+  "name": "CreateWebhookSubscription",
+  "fully_qualified_name": "CalendlyApi.CreateWebhookSubscription@2.0.0",
+  "description": "Create a webhook subscription for events in Calendly.\n\nUse this tool to set up a webhook subscription for either an organization, user, or group. It triggers on specified events like invitee creation or cancellation. Useful for integrating Calendly events with other applications or systems.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "callback_url",
+        "required": true,
+        "description": "The endpoint URL to receive POST requests for subscribed events in Calendly.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL where you want to receive POST requests for events you are subscribed to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "url"
+      },
+      {
+        "name": "event_subscriptions",
+        "required": true,
+        "description": "List of user events to subscribe to. Examples include 'invitee.created', 'invitee.canceled', etc.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of user events to subscribe to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "events"
+      },
+      {
+        "name": "organization_reference",
+        "required": true,
+        "description": "The unique reference identifier for the organization associated with the webhook.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique reference to the organization that the webhook will be tied to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization"
+      },
+      {
+        "name": "webhook_subscription_scope",
+        "required": true,
+        "description": "Specifies the scope of the webhook subscription: \"organization\", \"user\", or \"group\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "organization",
+            "user",
+            "group"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the webhook subscription scope will be \"organization\" or \"user\""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scope"
+      },
+      {
+        "name": "user_reference",
+        "required": false,
+        "description": "The unique reference or ID of the user for whom the webhook will be tied.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique reference to the user that the webhook will be tied to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user"
+      },
+      {
+        "name": "group_reference",
+        "required": false,
+        "description": "The unique reference to the group that the webhook will be tied to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique reference to the group that the webhook will be tied to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group"
+      },
+      {
+        "name": "webhook_signing_key",
+        "required": false,
+        "description": "Optional secret key shared between your application and Calendly for verifying webhook signatures. Useful for ensuring webhook messages' authenticity.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional secret key shared between your application and Calendly. See https://developer.calendly.com/api-docs/ZG9jOjM2MzE2MDM4-webhook-signatures for additional information."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "signing_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createwebhooks'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/webhook_subscriptions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "url",
+        "tool_parameter_name": "callback_url",
+        "description": "The URL where you want to receive POST requests for events you are subscribed to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL where you want to receive POST requests for events you are subscribed to."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "events",
+        "tool_parameter_name": "event_subscriptions",
+        "description": "List of user events to subscribe to.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of user events to subscribe to."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization",
+        "tool_parameter_name": "organization_reference",
+        "description": "The unique reference to the organization that the webhook will be tied to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique reference to the organization that the webhook will be tied to."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user",
+        "tool_parameter_name": "user_reference",
+        "description": "The unique reference to the user that the webhook will be tied to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique reference to the user that the webhook will be tied to."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group",
+        "tool_parameter_name": "group_reference",
+        "description": "The unique reference to the group that the webhook will be tied to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique reference to the group that the webhook will be tied to."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "scope",
+        "tool_parameter_name": "webhook_subscription_scope",
+        "description": "Indicates if the webhook subscription scope will be \"organization\" or \"user\"",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "organization",
+            "user",
+            "group"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the webhook subscription scope will be \"organization\" or \"user\""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "signing_key",
+        "tool_parameter_name": "webhook_signing_key",
+        "description": "Optional secret key shared between your application and Calendly. See https://developer.calendly.com/api-docs/ZG9jOjM2MzE2MDM4-webhook-signatures for additional information.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional secret key shared between your application and Calendly. See https://developer.calendly.com/api-docs/ZG9jOjM2MzE2MDM4-webhook-signatures for additional information."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"url\",\n          \"events\",\n          \"organization\",\n          \"scope\"\n        ],\n        \"properties\": {\n          \"url\": {\n            \"type\": \"string\",\n            \"description\": \"The URL where you want to receive POST requests for events you are subscribed to.\",\n            \"format\": \"uri\"\n          },\n          \"events\": {\n            \"type\": \"array\",\n            \"description\": \"List of user events to subscribe to.\",\n            \"uniqueItems\": true,\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"invitee.canceled\",\n                \"invitee.created\",\n                \"invitee_no_show.created\",\n                \"invitee_no_show.deleted\",\n                \"routing_form_submission.created\"\n              ]\n            }\n          },\n          \"organization\": {\n            \"type\": \"string\",\n            \"description\": \"The unique reference to the organization that the webhook will be tied to.\",\n            \"format\": \"uri\"\n          },\n          \"user\": {\n            \"type\": \"string\",\n            \"description\": \"The unique reference to the user that the webhook will be tied to.\",\n            \"format\": \"uri\"\n          },\n          \"group\": {\n            \"type\": \"string\",\n            \"x-stoplight\": {\n              \"id\": \"8057a9uhym5v9\"\n            },\n            \"format\": \"uri\",\n            \"description\": \"The unique reference to the group that the webhook will be tied to.\"\n          },\n          \"scope\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"organization\",\n              \"user\",\n              \"group\"\n            ],\n            \"description\": \"Indicates if the webhook subscription scope will be \\\"organization\\\" or \\\"user\\\"\"\n          },\n          \"signing_key\": {\n            \"type\": \"string\",\n            \"description\": \"Optional secret key shared between your application and Calendly. See https://developer.calendly.com/api-docs/ZG9jOjM2MzE2MDM4-webhook-signatures for additional information.\"\n          }\n        }\n      },\n      \"examples\": {\n        \"User Scope Webhook\": {\n          \"value\": {\n            \"url\": \"https://blah.foo/bar\",\n            \"events\": [\n              \"invitee.created\",\n              \"invitee.canceled\",\n              \"invitee_no_show.created\",\n              \"invitee_no_show.deleted\"\n            ],\n            \"organization\": \"https://api.calendly.com/organizations/AAAAAAAAAAAAAAAA\",\n            \"user\": \"https://api.calendly.com/users/BBBBBBBBBBBBBBBB\",\n            \"scope\": \"user\",\n            \"signing_key\": \"5mEzn9C-I28UtwOjZJtFoob0sAAFZ95GbZkqj4y3i0I\"\n          }\n        },\n        \"Organization Scope Webhook\": {\n          \"value\": {\n            \"url\": \"https://blah.foo/bar\",\n            \"events\": [\n              \"invitee.created\",\n              \"invitee.canceled\",\n              \"invitee_no_show.created\",\n              \"invitee_no_show.deleted\",\n              \"routing_form_submission.created\"\n            ],\n            \"organization\": \"https://api.calendly.com/organizations/AAAAAAAAAAAAAAAA\",\n            \"scope\": \"organization\",\n            \"signing_key\": \"5mEzn9C-I28UtwOjZJtFoob0sAAFZ95GbZkqj4y3i0I\"\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"\"\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

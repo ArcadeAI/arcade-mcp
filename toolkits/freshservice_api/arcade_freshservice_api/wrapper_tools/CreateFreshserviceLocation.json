@@ -1,0 +1,388 @@
+{
+  "name": "CreateFreshserviceLocation",
+  "fully_qualified_name": "FreshserviceApi.CreateFreshserviceLocation@1.0.0",
+  "description": "Create a new location in Freshservice.\n\nThis tool is used to create a new location within the Freshservice platform. It should be called when there's a need to add a new location to the system, such as a new office or branch.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "location_unique_id",
+        "required": false,
+        "description": "Unique identifier for the new location. Must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the location"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "location_name",
+        "required": false,
+        "description": "The name of the location to be created in Freshservice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the location"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "parent_location_unique_id",
+        "required": false,
+        "description": "Unique ID of the parent location to create a hierarchical structure with a parent location in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the parent location"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parent_location_id"
+      },
+      {
+        "name": "primary_contact_unique_id",
+        "required": false,
+        "description": "Unique ID of the primary contact requester, referencing their name, email, and phone from requester details.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the primary contact (Primary contact is a requester. The primary contact name, email and phone number will be referenced from the requester details)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "primary_contact_id"
+      },
+      {
+        "name": "address_line_1",
+        "required": false,
+        "description": "The first line of the street address for the location.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Address Line 1"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_line1"
+      },
+      {
+        "name": "address_line_2",
+        "required": false,
+        "description": "The second line of the address, used for additional address details like suite or apartment number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Address Line 2"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_line2"
+      },
+      {
+        "name": "location_city",
+        "required": false,
+        "description": "The city where the new location will be based.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "City"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_city"
+      },
+      {
+        "name": "location_address_state",
+        "required": false,
+        "description": "The name of the state where the location is situated. It should be a string representing the state name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "State"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_state"
+      },
+      {
+        "name": "country_name",
+        "required": false,
+        "description": "Country name where the location is situated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Country"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_country"
+      },
+      {
+        "name": "location_zip_code",
+        "required": false,
+        "description": "The zip code of the new location in Freshservice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Zip Code of the Location"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address_zipcode"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-location'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/locations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "location_unique_id",
+        "description": "Unique ID of the location",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the location"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "location_name",
+        "description": "Name of the location",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the location"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "parent_location_id",
+        "tool_parameter_name": "parent_location_unique_id",
+        "description": "Unique ID of the parent location",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the parent location"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "primary_contact_id",
+        "tool_parameter_name": "primary_contact_unique_id",
+        "description": "Unique ID of the primary contact (Primary contact is a requester. The primary contact name, email and phone number will be referenced from the requester details)",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the primary contact (Primary contact is a requester. The primary contact name, email and phone number will be referenced from the requester details)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_line1",
+        "tool_parameter_name": "address_line_1",
+        "description": "Address Line 1",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Address Line 1"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_line2",
+        "tool_parameter_name": "address_line_2",
+        "description": "Address Line 2",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Address Line 2"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_city",
+        "tool_parameter_name": "location_city",
+        "description": "City",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "City"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_state",
+        "tool_parameter_name": "location_address_state",
+        "description": "State",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "State"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_country",
+        "tool_parameter_name": "country_name",
+        "description": "Country",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Country"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address_zipcode",
+        "tool_parameter_name": "location_zip_code",
+        "description": "Zip Code of the Location",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Zip Code of the Location"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the location\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000234324\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the location\",\n            \"example\": \"Apple Campus\"\n          },\n          \"parent_location_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the parent location\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"primary_contact_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the primary contact (Primary contact is a requester. The primary contact name, email and phone number will be referenced from the requester details)\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"address_line1\": {\n            \"type\": \"string\",\n            \"description\": \"Address Line 1\",\n            \"example\": \"1 Infinite Loop\"\n          },\n          \"address_line2\": {\n            \"type\": \"string\",\n            \"description\": \"Address Line 2\",\n            \"example\": \"1 Infinite Loop\"\n          },\n          \"address_city\": {\n            \"type\": \"string\",\n            \"description\": \"City\",\n            \"example\": \"Cupertino\"\n          },\n          \"address_state\": {\n            \"type\": \"string\",\n            \"description\": \"State\",\n            \"example\": \"California\"\n          },\n          \"address_country\": {\n            \"type\": \"string\",\n            \"description\": \"Country\",\n            \"example\": \"US\"\n          },\n          \"address_zipcode\": {\n            \"type\": \"string\",\n            \"description\": \"Zip Code of the Location\",\n            \"example\": \"95014\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

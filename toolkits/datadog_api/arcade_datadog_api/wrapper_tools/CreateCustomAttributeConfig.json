@@ -1,0 +1,336 @@
+{
+  "name": "CreateCustomAttributeConfig",
+  "fully_qualified_name": "DatadogApi.CreateCustomAttributeConfig@0.1.0",
+  "description": "Create a custom attribute configuration for a specific case type.\n\nUse this tool to create a custom attribute configuration in Datadog for a specified case type, enhancing data categorization and organization.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "case_type_uuid",
+        "required": true,
+        "description": "UUID of the case type for which the custom attribute config is to be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type's UUID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "case_type_id"
+      },
+      {
+        "name": "custom_attribute_display_name",
+        "required": true,
+        "description": "The display name for the custom attribute.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attribute name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.display_name"
+      },
+      {
+        "name": "custom_attribute_key",
+        "required": true,
+        "description": "A string key used to search for the custom attribute. This is the identifier for the attribute.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attribute key. This will be the value use to search on this custom attribute"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.key"
+      },
+      {
+        "name": "custom_attribute_type",
+        "required": true,
+        "description": "Type of the custom attribute. Options: 'URL', 'TEXT', or 'NUMBER'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "URL",
+            "TEXT",
+            "NUMBER"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attributes type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.type"
+      },
+      {
+        "name": "custom_attributes_config_type",
+        "required": true,
+        "description": "Specifies the JSON:API resource type for the custom attributes configuration. Must be 'custom_attribute'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "custom_attribute"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attributes config JSON:API resource type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "allow_multiple_values",
+        "required": true,
+        "description": "Indicates if multiple values can be set for the custom attribute.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether multiple values can be set"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.is_multi"
+      },
+      {
+        "name": "custom_attribute_description",
+        "required": false,
+        "description": "Detailed description for the custom attribute. This helps define the attribute's purpose and use.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attribute description."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.description"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateCustomAttributeConfig'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cases/types/{case_type_id}/custom_attributes",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "case_type_id",
+        "tool_parameter_name": "case_type_uuid",
+        "description": "Case type's UUID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type's UUID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.description",
+        "tool_parameter_name": "custom_attribute_description",
+        "description": "Custom attribute description.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attribute description."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.display_name",
+        "tool_parameter_name": "custom_attribute_display_name",
+        "description": "Custom attribute name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attribute name."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.is_multi",
+        "tool_parameter_name": "allow_multiple_values",
+        "description": "Whether multiple values can be set",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether multiple values can be set"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.key",
+        "tool_parameter_name": "custom_attribute_key",
+        "description": "Custom attribute key. This will be the value use to search on this custom attribute",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attribute key. This will be the value use to search on this custom attribute"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.type",
+        "tool_parameter_name": "custom_attribute_type",
+        "description": "Custom attributes type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "URL",
+            "TEXT",
+            "NUMBER"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attributes type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "custom_attributes_config_type",
+        "description": "Custom attributes config JSON:API resource type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "custom_attribute"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom attributes config JSON:API resource type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "custom_attribute",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Custom attribute config create request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Custom attribute config\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Custom attribute config resource attributes\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"Custom attribute description.\",\n                    \"example\": \"AWS Region, must be a valid region supported by AWS\",\n                    \"type\": \"string\"\n                  },\n                  \"display_name\": {\n                    \"description\": \"Custom attribute name.\",\n                    \"example\": \"AWS Region\",\n                    \"type\": \"string\"\n                  },\n                  \"is_multi\": {\n                    \"description\": \"Whether multiple values can be set\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"key\": {\n                    \"description\": \"Custom attribute key. This will be the value use to search on this custom attribute\",\n                    \"example\": \"aws_region\",\n                    \"type\": \"string\"\n                  },\n                  \"type\": {\n                    \"description\": \"Custom attributes type\",\n                    \"enum\": [\n                      \"URL\",\n                      \"TEXT\",\n                      \"NUMBER\"\n                    ],\n                    \"example\": \"NUMBER\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"URL\",\n                      \"TEXT\",\n                      \"NUMBER\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"display_name\",\n                  \"key\",\n                  \"type\",\n                  \"is_multi\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"custom_attribute\",\n                \"description\": \"Custom attributes config JSON:API resource type\",\n                \"enum\": [\n                  \"custom_attribute\"\n                ],\n                \"example\": \"custom_attribute\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CUSTOM_ATTRIBUTE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Custom attribute config payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,295 @@
+{
+  "name": "AddTeamLink",
+  "fully_qualified_name": "DatadogApi.AddTeamLink@0.1.0",
+  "description": "Add a new link to a Datadog team.\n\nUse this tool to add a new link to a specific team's page in Datadog. Suitable for enhancing team resources or documentation by linking additional references.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_team_id",
+        "required": true,
+        "description": "The unique identifier for the team to which the link will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "link_label",
+        "required": true,
+        "description": "The label for the link to be added to the team. This should be a descriptive text for the link.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The link's label"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.label"
+      },
+      {
+        "name": "link_url",
+        "required": true,
+        "description": "The URL to be added as a link for the team. This should be a valid web address.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL for the link"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.url"
+      },
+      {
+        "name": "team_link_type",
+        "required": true,
+        "description": "Specify the type of team link. Must be 'team_links'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team_links"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team link type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "link_position",
+        "required": false,
+        "description": "The position of the link in the team's list, used for sorting links.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The link's position, used to sort links for the team"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.position"
+      },
+      {
+        "name": "team_id_for_link",
+        "required": false,
+        "description": "ID of the team the link is associated with. This should be a unique identifier for the specific team to which you want to add the link.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the team the link is associated with"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.team_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateTeamLink'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/team/{team_id}/links",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "target_team_id",
+        "description": "None",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.label",
+        "tool_parameter_name": "link_label",
+        "description": "The link's label",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The link's label"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.position",
+        "tool_parameter_name": "link_position",
+        "description": "The link's position, used to sort links for the team",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The link's position, used to sort links for the team"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.team_id",
+        "tool_parameter_name": "team_id_for_link",
+        "description": "ID of the team the link is associated with",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the team the link is associated with"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.url",
+        "tool_parameter_name": "link_url",
+        "description": "The URL for the link",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL for the link"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "team_link_type",
+        "description": "Team link type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team_links"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team link type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "team_links",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Team link create request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Team link create\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Team link attributes\",\n                \"properties\": {\n                  \"label\": {\n                    \"description\": \"The link's label\",\n                    \"example\": \"Link label\",\n                    \"maxLength\": 256,\n                    \"type\": \"string\"\n                  },\n                  \"position\": {\n                    \"description\": \"The link's position, used to sort links for the team\",\n                    \"format\": \"int32\",\n                    \"maximum\": 2147483647,\n                    \"type\": \"integer\"\n                  },\n                  \"team_id\": {\n                    \"description\": \"ID of the team the link is associated with\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"url\": {\n                    \"description\": \"The URL for the link\",\n                    \"example\": \"https://example.com\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"label\",\n                  \"url\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"team_links\",\n                \"description\": \"Team link type\",\n                \"enum\": [\n                  \"team_links\"\n                ],\n                \"example\": \"team_links\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"TEAM_LINKS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

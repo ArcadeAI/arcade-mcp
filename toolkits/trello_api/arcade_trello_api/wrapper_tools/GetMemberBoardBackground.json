@@ -1,18 +1,18 @@
 {
   "name": "GetMemberBoardBackground",
-  "fully_qualified_name": "TrelloApi.GetMemberBoardBackground@0.1.0",
-  "description": "Retrieve a member's board background in Trello.\n\nUse this tool to retrieve the background details of a specific board associated with a member in Trello.",
+  "fully_qualified_name": "TrelloApi.GetMemberBoardBackground@2.0.0",
+  "description": "Retrieve a board background for a specific member.\n\nUse this tool to get the details of a specific board background associated with a member on Trello. Useful for accessing customized background settings for user boards.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member for whom to retrieve the board background.",
+        "description": "The ID or username of the member whose board background is being retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "board_background_id",
         "required": true,
-        "description": "The ID of the board background to retrieve details for.",
+        "description": "The ID of the board background to retrieve. This is required to specify which background details to fetch for a member.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "idBackground"
       },
       {
-        "name": "background_fields",
+        "name": "fields_to_retrieve",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of background details like `brightness`, `fullSizeUrl`, `scaled`, `tile`.",
+        "description": "Specify 'all' or a comma-separated list of fields to retrieve: 'brightness', 'fullSizeUrl', 'scaled', 'tile'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -93,13 +93,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}",
@@ -108,7 +108,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "background_fields",
+        "tool_parameter_name": "fields_to_retrieve",
         "description": "`all` or a comma-separated list of: `brightness`, `fullSizeUrl`, `scaled`, `tile`",
         "value_schema": {
           "val_type": "string",
@@ -127,6 +127,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -144,6 +145,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -161,6 +163,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -182,6 +185,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

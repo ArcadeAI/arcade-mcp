@@ -1,0 +1,176 @@
+{
+  "name": "BatchMoveUserGroupsBetweenAccounts",
+  "fully_qualified_name": "AirtableApi.BatchMoveUserGroupsBetweenAccounts@2.0.0",
+  "description": "Batch move user groups between enterprise accounts.\n\nUse this tool to transfer user groups between two enterprise accounts within the same organization, provided the accounts have the Enterprise Hub feature enabled. The tool ensures compliance with organizational invite settings, potentially removing non-org unit members during the move.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_enterprise_account_id",
+        "required": true,
+        "description": "The ID of the target enterprise account to which user groups are being moved. Must belong to the same organization and have the Enterprise Hub feature enabled.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterpriseAccountId"
+      },
+      {
+        "name": "user_groups_transfer_details",
+        "required": false,
+        "description": "Provide the JSON object with group IDs to move and the target enterprise account ID. Ensure the target account is Hub-enabled and you have admin rights.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "groupIds": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the groups to be moved. Up to 100 groupIds can be provided."
+            },
+            "targetEnterpriseAccountId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the target enterprise account of the move. The target enterprise account must be in the same Hub-enabled\norganization as the source enterprise account, and you must have admin rights over the target enterprise account."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'move-user-groups'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.groups:manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/moveGroups",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterpriseAccountId",
+        "tool_parameter_name": "target_enterprise_account_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "user_groups_transfer_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "groupIds": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the groups to be moved. Up to 100 groupIds can be provided."
+            },
+            "targetEnterpriseAccountId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the target enterprise account of the move. The target enterprise account must be in the same Hub-enabled\norganization as the source enterprise account, and you must have admin rights over the target enterprise account."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success response\": {\n          \"description\": \"Success Response\",\n          \"summary\": \"Success response\",\n          \"value\": {\n            \"groupIds\": [\n              \"ugp1mKGb3KXUyQfOZ\",\n              \"ugp1mKGb3KXUyQfOZ\",\n              \"ugpR8ZT9KtIgp8Bh3\",\n              \"ugp1UdbspZKMrIOjk\"\n            ],\n            \"targetEnterpriseAccountId\": \"entUBq2RGdihxl3vU\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"groupIds\": {\n            \"description\": \"ID of the groups to be moved. Up to 100 groupIds can be provided.\",\n            \"items\": {\n              \"description\": \"A user group ID\",\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"targetEnterpriseAccountId\": {\n            \"description\": \"ID of the target enterprise account of the move. The target enterprise account must be in the same Hub-enabled\\norganization as the source enterprise account, and you must have admin rights over the target enterprise account.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"groupIds\",\n          \"targetEnterpriseAccountId\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

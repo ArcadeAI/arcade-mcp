@@ -1,18 +1,18 @@
 {
   "name": "GetPayoutDetails",
-  "fully_qualified_name": "SquareupApi.GetPayoutDetails@0.1.0",
-  "description": "Retrieve details of a specific payout by payout ID.\n\nUse this tool to get detailed information about a specific payout by providing the payout ID. Useful for tracking or reviewing specific payout transactions.",
+  "fully_qualified_name": "SquareupApi.GetPayoutDetails@2.0.0",
+  "description": "Retrieve details of a specific payout using payout ID.\n\nUse this tool to obtain detailed information about a specific payout by providing its payout ID. Ensure that the required OAuth scope `PAYOUTS_READ` is set before calling this tool.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "payout_id",
         "required": true,
-        "description": "The unique identifier of the payout to retrieve details for.",
+        "description": "The unique identifier of the payout to retrieve details for. This ID is required to fetch the specific payout information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/payouts/{payout_id}",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

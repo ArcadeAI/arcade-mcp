@@ -1,0 +1,270 @@
+{
+  "name": "SearchDatadogIncidents",
+  "fully_qualified_name": "DatadogApi.SearchDatadogIncidents@0.1.0",
+  "description": "Search for incidents in Datadog by query.\n\nUse this tool to find incidents in Datadog that match a specific query. It helps in quickly retrieving relevant incident information based on search criteria.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_query",
+        "required": true,
+        "description": "Query to determine which incidents to return. Use facets joined by `AND` and multiple values by `OR`, e.g., `state:active AND severity:(SEV-2 OR SEV-1)`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which incidents should be returned. The query can contain any number of incident facets\njoined by `ANDs`, along with multiple values for each of those facets joined by `OR`s. For\nexample: `state:active AND severity:(SEV-2 OR SEV-1)`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query"
+      },
+      {
+        "name": "include_related_objects",
+        "required": false,
+        "description": "Specifies which types of related objects ('users', 'attachments') should be included in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "users",
+            "attachments"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which types of related objects should be included in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Defines the order of returned incidents. Use 'created' for ascending and '-created' for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created",
+            "-created"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the order of returned incidents."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "page_size",
+        "required": false,
+        "description": "Specify the number of incidents to return per page. The maximum allowed value is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[size]"
+      },
+      {
+        "name": "page_offset",
+        "required": false,
+        "description": "The starting position offset for returning incidents. Use an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific offset to use as the beginning of the returned page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[offset]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchIncidents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/incidents/search",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include",
+        "tool_parameter_name": "include_related_objects",
+        "description": "Specifies which types of related objects should be included in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "users",
+            "attachments"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which types of related objects should be included in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query",
+        "tool_parameter_name": "incident_query",
+        "description": "Specifies which incidents should be returned. The query can contain any number of incident facets\njoined by `ANDs`, along with multiple values for each of those facets joined by `OR`s. For\nexample: `state:active AND severity:(SEV-2 OR SEV-1)`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which incidents should be returned. The query can contain any number of incident facets\njoined by `ANDs`, along with multiple values for each of those facets joined by `OR`s. For\nexample: `state:active AND severity:(SEV-2 OR SEV-1)`."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_order",
+        "description": "Specifies the order of returned incidents.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created",
+            "-created"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the order of returned incidents."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[size]",
+        "tool_parameter_name": "page_size",
+        "description": "Size for a given page. The maximum allowed value is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[offset]",
+        "tool_parameter_name": "page_offset",
+        "description": "Specific offset to use as the beginning of the returned page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific offset to use as the beginning of the returned page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

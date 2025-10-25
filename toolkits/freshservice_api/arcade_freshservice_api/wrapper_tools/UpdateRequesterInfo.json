@@ -1,0 +1,486 @@
+{
+  "name": "UpdateRequesterInfo",
+  "fully_qualified_name": "FreshserviceApi.UpdateRequesterInfo@1.0.0",
+  "description": "Updates an existing requester's information in Freshservice.\n\nUse this tool to update details of an existing requester in Freshservice. It should be called when modifications to a requester's profile or details are required.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "requester_id",
+        "required": true,
+        "description": "The unique integer ID of the requester whose information needs to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of requester to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requester_id"
+      },
+      {
+        "name": "requester_update_data",
+        "required": true,
+        "description": "JSON object containing the requester's updated information such as name, email, phone number, department IDs, and more. It includes fields like `id`, `first_name`, `last_name`, and other relevant details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the requester"
+            },
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "First Name of the requester"
+            },
+            "last_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Last Name of the requester"
+            },
+            "job_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Job Title of the requester"
+            },
+            "primary_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Primary email address of the requester"
+            },
+            "secondary_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Secondary email addresses of the requester"
+            },
+            "work_phone_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Work phone number of the requester"
+            },
+            "mobile_phone_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mobile phone number of the requester"
+            },
+            "department_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the departments associated with the requester"
+            },
+            "can_see_all_tickets_from_associated_departments": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to true if the requester must be allowed to view tickets filed by other members of the department, and false otherwise"
+            },
+            "reporting_manager_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the requester's reporting manager"
+            },
+            "address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Address of the requester"
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone of the requester"
+            },
+            "language": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Language used by the requester"
+            },
+            "location_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the location associated with the requester"
+            },
+            "background_information": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Address of the requester"
+            },
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the user is active, and false if the user account has been deactivated."
+            },
+            "has_logged_in": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the user has logged in to Freshservice at least once, and false otherwise."
+            },
+            "created_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the requester was created"
+            },
+            "updated_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the requester was last modified"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom fields that are associated with a Freshservice entity"
+            }
+          },
+          "inner_properties": null,
+          "description": "Requester who needs to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-requester'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/requesters/{requester_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requester_id",
+        "tool_parameter_name": "requester_id",
+        "description": "ID of requester to update",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of requester to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "requester_update_data",
+        "description": "Requester who needs to be updated",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the requester"
+            },
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "First Name of the requester"
+            },
+            "last_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Last Name of the requester"
+            },
+            "job_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Job Title of the requester"
+            },
+            "primary_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Primary email address of the requester"
+            },
+            "secondary_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Secondary email addresses of the requester"
+            },
+            "work_phone_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Work phone number of the requester"
+            },
+            "mobile_phone_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mobile phone number of the requester"
+            },
+            "department_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the departments associated with the requester"
+            },
+            "can_see_all_tickets_from_associated_departments": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to true if the requester must be allowed to view tickets filed by other members of the department, and false otherwise"
+            },
+            "reporting_manager_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the requester's reporting manager"
+            },
+            "address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Address of the requester"
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone of the requester"
+            },
+            "language": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Language used by the requester"
+            },
+            "location_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the location associated with the requester"
+            },
+            "background_information": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Address of the requester"
+            },
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the user is active, and false if the user account has been deactivated."
+            },
+            "has_logged_in": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the user has logged in to Freshservice at least once, and false otherwise."
+            },
+            "created_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the requester was created"
+            },
+            "updated_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the requester was last modified"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom fields that are associated with a Freshservice entity"
+            }
+          },
+          "inner_properties": null,
+          "description": "Requester who needs to be updated"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Requester who needs to be updated\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the requester\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000234324\n          },\n          \"first_name\": {\n            \"type\": \"string\",\n            \"description\": \"First Name of the requester\",\n            \"example\": \"Andrea\"\n          },\n          \"last_name\": {\n            \"type\": \"string\",\n            \"description\": \"Last Name of the requester\",\n            \"example\": \"Smith\"\n          },\n          \"job_title\": {\n            \"type\": \"string\",\n            \"description\": \"Job Title of the requester\",\n            \"example\": \"Product Manager\"\n          },\n          \"primary_email\": {\n            \"type\": \"string\",\n            \"description\": \"Primary email address of the requester\",\n            \"example\": \"andrea@freshservice.com\"\n          },\n          \"secondary_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Secondary email addresses of the requester\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"john.doe@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"work_phone_number\": {\n            \"type\": \"string\",\n            \"description\": \"Work phone number of the requester\",\n            \"example\": \"+1-567-3492\"\n          },\n          \"mobile_phone_number\": {\n            \"type\": \"string\",\n            \"description\": \"Mobile phone number of the requester\",\n            \"example\": \"+1-567-3492\"\n          },\n          \"department_ids\": {\n            \"type\": \"array\",\n            \"description\": \"Unique IDs of the departments associated with the requester\",\n            \"example\": [\n              1400043345,\n              1400046983\n            ],\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\"\n            }\n          },\n          \"can_see_all_tickets_from_associated_departments\": {\n            \"type\": \"boolean\",\n            \"description\": \"Set to true if the requester must be allowed to view tickets filed by other members of the department, and false otherwise\",\n            \"example\": true\n          },\n          \"reporting_manager_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the requester's reporting manager\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"address\": {\n            \"type\": \"string\",\n            \"description\": \"Address of the requester\",\n            \"example\": \"2968 D Street, Bloomfield, Michigan\"\n          },\n          \"time_zone\": {\n            \"type\": \"string\",\n            \"description\": \"Time zone of the requester\",\n            \"example\": \"Eastern Time (US & Canada)\"\n          },\n          \"language\": {\n            \"type\": \"string\",\n            \"description\": \"Language used by the requester\",\n            \"example\": \"en\"\n          },\n          \"location_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the location associated with the requester\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"background_information\": {\n            \"type\": \"string\",\n            \"description\": \"Address of the requester\",\n            \"example\": \"Done\"\n          },\n          \"active\": {\n            \"type\": \"boolean\",\n            \"description\": \"true if the user is active, and false if the user account has been deactivated.\",\n            \"example\": true\n          },\n          \"has_logged_in\": {\n            \"type\": \"boolean\",\n            \"description\": \"true if the user has logged in to Freshservice at least once, and false otherwise.\",\n            \"example\": true\n          },\n          \"created_time\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the requester was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-24T11:30:00Z\"\n          },\n          \"updated_time\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the requester was last modified\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-24T11:30:00Z\"\n          },\n          \"custom_fields\": {\n            \"type\": \"object\",\n            \"description\": \"Custom fields that are associated with a Freshservice entity\",\n            \"example\": {\n              \"field1\": \"Value 1\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

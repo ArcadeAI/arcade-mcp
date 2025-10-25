@@ -1,0 +1,240 @@
+{
+  "name": "UploadCustomCostsFile",
+  "fully_qualified_name": "DatadogApi.UploadCustomCostsFile@0.1.0",
+  "description": "Upload a custom costs file to Datadog.\n\nThis tool uploads a custom costs file to Datadog. Use it when you need to update or input new cost data into the system.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_costs_data",
+        "required": true,
+        "description": "An array of JSON objects specifying each line item's billing details. Each item should contain BilledCost, BillingCurrency, ChargeDescription, ChargePeriodStart, ChargePeriodEnd, ProviderName, and optional Tags.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "BilledCost": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Total cost in the cost file."
+            },
+            "BillingCurrency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Currency used in the Custom Costs file."
+            },
+            "ChargeDescription": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description for the line item cost."
+            },
+            "ChargePeriodEnd": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End date of the usage charge."
+            },
+            "ChargePeriodStart": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date of the usage charge."
+            },
+            "ProviderName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the provider for the line item."
+            },
+            "Tags": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional tags for the line item."
+            }
+          },
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UploadCustomCostsFile'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/custom_costs",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_costs_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "BilledCost": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Total cost in the cost file."
+            },
+            "BillingCurrency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Currency used in the Custom Costs file."
+            },
+            "ChargeDescription": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description for the line item cost."
+            },
+            "ChargePeriodEnd": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End date of the usage charge."
+            },
+            "ChargePeriodStart": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date of the usage charge."
+            },
+            "ProviderName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the provider for the line item."
+            },
+            "Tags": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional tags for the line item."
+            }
+          },
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request for uploading a Custom Costs file.\",\n        \"items\": {\n          \"description\": \"Line item details from a Custom Costs file.\",\n          \"properties\": {\n            \"BilledCost\": {\n              \"description\": \"Total cost in the cost file.\",\n              \"example\": 100.5,\n              \"format\": \"double\",\n              \"type\": \"number\"\n            },\n            \"BillingCurrency\": {\n              \"description\": \"Currency used in the Custom Costs file.\",\n              \"example\": \"USD\",\n              \"type\": \"string\"\n            },\n            \"ChargeDescription\": {\n              \"description\": \"Description for the line item cost.\",\n              \"example\": \"Monthly usage charge for my service\",\n              \"type\": \"string\"\n            },\n            \"ChargePeriodEnd\": {\n              \"description\": \"End date of the usage charge.\",\n              \"example\": \"2023-02-28\",\n              \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\",\n              \"type\": \"string\"\n            },\n            \"ChargePeriodStart\": {\n              \"description\": \"Start date of the usage charge.\",\n              \"example\": \"2023-02-01\",\n              \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\",\n              \"type\": \"string\"\n            },\n            \"ProviderName\": {\n              \"description\": \"Name of the provider for the line item.\",\n              \"type\": \"string\"\n            },\n            \"Tags\": {\n              \"additionalProperties\": {\n                \"type\": \"string\"\n              },\n              \"description\": \"Additional tags for the line item.\",\n              \"type\": \"object\"\n            }\n          },\n          \"type\": \"object\"\n        },\n        \"type\": \"array\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

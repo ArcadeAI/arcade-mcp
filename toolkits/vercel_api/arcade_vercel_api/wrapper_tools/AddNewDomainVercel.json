@@ -1,0 +1,190 @@
+{
+  "name": "AddNewDomainVercel",
+  "fully_qualified_name": "VercelApi.AddNewDomainVercel@0.1.0",
+  "description": "Add a new apex domain with Vercel for the user.\n\nUse this tool to add a new apex domain name with Vercel for the authenticating user. This tool is not meant for transferring domains from external registrars to Vercel.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The identifier of the Team on whose behalf the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The identifier for the team to execute the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "domain_operation",
+        "required": false,
+        "description": "JSON object specifying the domain operation, including 'method' with values 'add' or 'move-in'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "method": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The domain operation to perform. It can be either `add` or `move-in`."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createOrTransferDomain'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v7/domains",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "domain_operation",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "method": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The domain operation to perform. It can be either `add` or `move-in`."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"method\": {\n            \"description\": \"The domain operation to perform. It can be either `add` or `move-in`.\",\n            \"type\": \"string\",\n            \"example\": \"add\"\n          }\n        },\n        \"oneOf\": [\n          {\n            \"additionalProperties\": false,\n            \"type\": \"object\",\n            \"description\": \"add\",\n            \"required\": [\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The domain name you want to add.\",\n                \"type\": \"string\",\n                \"example\": \"example.com\"\n              },\n              \"cdnEnabled\": {\n                \"description\": \"Whether the domain has the Vercel Edge Network enabled or not.\",\n                \"type\": \"boolean\",\n                \"example\": true\n              },\n              \"zone\": {\n                \"type\": \"boolean\"\n              },\n              \"method\": {\n                \"description\": \"The domain operation to perform.\",\n                \"type\": \"string\",\n                \"example\": \"add\"\n              }\n            }\n          },\n          {\n            \"additionalProperties\": false,\n            \"type\": \"object\",\n            \"description\": \"move-in\",\n            \"required\": [\n              \"method\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The domain name you want to add.\",\n                \"type\": \"string\",\n                \"example\": \"example.com\"\n              },\n              \"method\": {\n                \"description\": \"The domain operation to perform.\",\n                \"type\": \"string\",\n                \"example\": \"move-in\"\n              },\n              \"token\": {\n                \"description\": \"The move-in token from Move Requested email.\",\n                \"type\": \"string\",\n                \"example\": \"fdhfr820ad#@FAdlj$$\"\n              }\n            }\n          },\n          {\n            \"deprecated\": true,\n            \"additionalProperties\": false,\n            \"type\": \"object\",\n            \"description\": \"transfer-in\",\n            \"required\": [\n              \"method\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The domain name you want to add.\",\n                \"type\": \"string\",\n                \"example\": \"example.com\"\n              },\n              \"method\": {\n                \"description\": \"The domain operation to perform.\",\n                \"type\": \"string\",\n                \"example\": \"transfer-in\"\n              },\n              \"authCode\": {\n                \"description\": \"The authorization code assigned to the domain.\",\n                \"type\": \"string\",\n                \"example\": \"fdhfr820ad#@FAdlj$$\"\n              },\n              \"expectedPrice\": {\n                \"description\": \"The price you expect to be charged for the required 1 year renewal.\",\n                \"type\": \"number\",\n                \"example\": 8\n              }\n            }\n          }\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

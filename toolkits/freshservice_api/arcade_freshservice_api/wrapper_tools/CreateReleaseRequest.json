@@ -1,0 +1,975 @@
+{
+  "name": "CreateReleaseRequest",
+  "fully_qualified_name": "FreshserviceApi.CreateReleaseRequest@1.0.0",
+  "description": "Initiate a new release request in Freshservice.\n\nThis tool is used to create a new release request in Freshservice. It should be called when a user wants to start tracking or managing a release process within the Freshservice platform.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "release_details",
+        "required": true,
+        "description": "JSON object containing details of the Release, including identifiers, status, type, dates, assets, and custom fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the Release"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent to whom the Release is assigned"
+            },
+            "group_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent group to which the Release is assigned"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Priority of the Release 1-Low, 2-Medium, 3-High, 4-Urgent"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status identifier of the Release. Open -> 1, On hold -> 2, In Progress -> 3, Incomplete -> 4, Completed -> 5"
+            },
+            "release_type": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the Release 1-minor, 2-standard, 3-major, 4-emergency"
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the Release"
+            },
+            "planned_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which release is starting"
+            },
+            "planned_end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which release is ending"
+            },
+            "work_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which release work started"
+            },
+            "work_end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which release work ended"
+            },
+            "department_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the department initiating the Release"
+            },
+            "category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Category of the Release"
+            },
+            "sub_category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sub-category of the Release"
+            },
+            "item_category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Item of the Release"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Release was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Release was last updated"
+            },
+            "associated_assets": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the assets associated with the Release request"
+            },
+            "assets": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "id of the asset"
+                },
+                "display_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "display id of the asset that is used for all operations"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Display Name of the Asset"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the asset"
+                },
+                "asset_type_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the asset type."
+                },
+                "impact": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Impact of the asset (accepted values 'high' 'medium' 'low')"
+                },
+                "author_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asset created by source"
+                },
+                "usage_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "permanent",
+                    "loaner"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Usage type of the asset  (accepted values are 'permanent' & 'loaner')"
+                },
+                "asset_tag": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asset tag of the asset"
+                },
+                "user_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Used by of the asset"
+                },
+                "department_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Department of the asset"
+                },
+                "location_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location of the asset"
+                },
+                "agent_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Managed by of the asset"
+                },
+                "group_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Managed by group of the asset"
+                },
+                "assigned_on": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Date and time when the asset was assigned"
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp at which the asset was created"
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp at which the asset was last modified"
+                },
+                "type_fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fields specific to every asset type (Every asset will have default base fields and type specific fields)"
+                }
+              },
+              "description": "Assets associated with the Ticket"
+            },
+            "associated_changes": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the Changes associated with the Release"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs containing the names and values of custom fields"
+            },
+            "planning_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "reason_for_change": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Reason for change"
+                    },
+                    "description_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Reason for change in plain text format"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "impact": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Impact"
+                    },
+                    "description_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Impact in plain text format"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "rollout_plan": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Rollout Plan"
+                    },
+                    "description_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Rollout plan in plain text format"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "backout_plan": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Backout Plan"
+                    },
+                    "description_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Backout plan in plain text format"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Details of the Release"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-release'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/releases",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "release_details",
+        "description": "Details of the Release",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the Release"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent to whom the Release is assigned"
+            },
+            "group_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent group to which the Release is assigned"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Priority of the Release 1-Low, 2-Medium, 3-High, 4-Urgent"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status identifier of the Release. Open -> 1, On hold -> 2, In Progress -> 3, Incomplete -> 4, Completed -> 5"
+            },
+            "release_type": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the Release 1-minor, 2-standard, 3-major, 4-emergency"
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the Release"
+            },
+            "planned_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which release is starting"
+            },
+            "planned_end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which release is ending"
+            },
+            "work_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which release work started"
+            },
+            "work_end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which release work ended"
+            },
+            "department_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the department initiating the Release"
+            },
+            "category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Category of the Release"
+            },
+            "sub_category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sub-category of the Release"
+            },
+            "item_category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Item of the Release"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Release was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Release was last updated"
+            },
+            "associated_assets": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the assets associated with the Release request"
+            },
+            "assets": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "id of the asset"
+                },
+                "display_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "display id of the asset that is used for all operations"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Display Name of the Asset"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the asset"
+                },
+                "asset_type_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the asset type."
+                },
+                "impact": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Impact of the asset (accepted values 'high' 'medium' 'low')"
+                },
+                "author_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asset created by source"
+                },
+                "usage_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "permanent",
+                    "loaner"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Usage type of the asset  (accepted values are 'permanent' & 'loaner')"
+                },
+                "asset_tag": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asset tag of the asset"
+                },
+                "user_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Used by of the asset"
+                },
+                "department_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Department of the asset"
+                },
+                "location_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location of the asset"
+                },
+                "agent_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Managed by of the asset"
+                },
+                "group_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Managed by group of the asset"
+                },
+                "assigned_on": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Date and time when the asset was assigned"
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp at which the asset was created"
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp at which the asset was last modified"
+                },
+                "type_fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fields specific to every asset type (Every asset will have default base fields and type specific fields)"
+                }
+              },
+              "description": "Assets associated with the Ticket"
+            },
+            "associated_changes": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the Changes associated with the Release"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs containing the names and values of custom fields"
+            },
+            "planning_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "reason_for_change": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Reason for change"
+                    },
+                    "description_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Reason for change in plain text format"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "impact": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Impact"
+                    },
+                    "description_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Impact in plain text format"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "rollout_plan": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Rollout Plan"
+                    },
+                    "description_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Rollout plan in plain text format"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "backout_plan": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Backout Plan"
+                    },
+                    "description_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Backout plan in plain text format"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Details of the Release"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Details of the Release\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the Release\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 10\n          },\n          \"agent_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the agent to whom the Release is assigned\",\n            \"format\": \"int64\",\n            \"example\": 14043616\n          },\n          \"group_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the agent group to which the Release is assigned\",\n            \"format\": \"int64\",\n            \"example\": 10184589\n          },\n          \"priority\": {\n            \"type\": \"integer\",\n            \"description\": \"Priority of the Release 1-Low, 2-Medium, 3-High, 4-Urgent\",\n            \"format\": \"string\",\n            \"example\": 1\n          },\n          \"status\": {\n            \"type\": \"integer\",\n            \"description\": \"Status identifier of the Release. Open -> 1, On hold -> 2, In Progress -> 3, Incomplete -> 4, Completed -> 5\",\n            \"format\": \"int32\",\n            \"example\": 1\n          },\n          \"release_type\": {\n            \"type\": \"integer\",\n            \"description\": \"Type of the Release 1-minor, 2-standard, 3-major, 4-emergency\",\n            \"format\": \"string\",\n            \"example\": 1\n          },\n          \"subject\": {\n            \"type\": \"string\",\n            \"description\": \"Subject of the Release\",\n            \"example\": \"Security Patch Deployment\"\n          },\n          \"planned_start_date\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which release is starting\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-08-01T18:30:00Z\"\n          },\n          \"planned_end_date\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which release is ending\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-08-08T18:45:00Z\"\n          },\n          \"work_start_date\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which release work started\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-08-01T18:30:00Z\"\n          },\n          \"work_end_date\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which release work ended\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-08-08T18:45:00Z\"\n          },\n          \"department_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the department initiating the Release\",\n            \"format\": \"int64\",\n            \"example\": 10143312\n          },\n          \"category\": {\n            \"type\": \"string\",\n            \"description\": \"Category of the Release\",\n            \"example\": \"Security\"\n          },\n          \"sub_category\": {\n            \"type\": \"string\",\n            \"description\": \"Sub-category of the Release\",\n            \"example\": \"Deployment\"\n          },\n          \"item_category\": {\n            \"type\": \"string\",\n            \"description\": \"Item of the Release\",\n            \"example\": \"Security\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which Release was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-08-12T10:10:20Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which Release was last updated\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-08-12T10:10:20Z\"\n          },\n          \"associated_assets\": {\n            \"type\": \"array\",\n            \"description\": \"Unique IDs of the assets associated with the Release request\",\n            \"readOnly\": true,\n            \"example\": [\n              1001,\n              1002\n            ],\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\"\n            }\n          },\n          \"assets\": {\n            \"type\": \"array\",\n            \"description\": \"Assets associated with the Ticket\",\n            \"example\": [],\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"minimum\": 1,\n                  \"type\": \"integer\",\n                  \"description\": \"id of the asset\",\n                  \"format\": \"int64\",\n                  \"readOnly\": true,\n                  \"example\": 14000234324\n                },\n                \"display_id\": {\n                  \"minimum\": 1,\n                  \"type\": \"integer\",\n                  \"description\": \"display id of the asset that is used for all operations\",\n                  \"format\": \"int64\",\n                  \"readOnly\": true,\n                  \"example\": 1453\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"Display Name of the Asset\",\n                  \"example\": \"Hardware-Monitor\"\n                },\n                \"description\": {\n                  \"type\": \"string\",\n                  \"description\": \"Description of the asset\",\n                  \"example\": \"28-inch Hardware-Monitor\"\n                },\n                \"asset_type_id\": {\n                  \"minimum\": 1,\n                  \"type\": \"integer\",\n                  \"description\": \"Id of the asset type.\",\n                  \"format\": \"int64\",\n                  \"example\": 14000284324\n                },\n                \"impact\": {\n                  \"type\": \"string\",\n                  \"description\": \"Impact of the asset (accepted values 'high' 'medium' 'low')\",\n                  \"example\": \"low\",\n                  \"enum\": [\n                    \"low\",\n                    \"medium\",\n                    \"high\"\n                  ]\n                },\n                \"author_type\": {\n                  \"type\": \"string\",\n                  \"description\": \"Asset created by source\",\n                  \"readOnly\": true,\n                  \"example\": \"User\"\n                },\n                \"usage_type\": {\n                  \"type\": \"string\",\n                  \"description\": \"Usage type of the asset  (accepted values are 'permanent' & 'loaner')\",\n                  \"example\": \"loaner\",\n                  \"enum\": [\n                    \"permanent\",\n                    \"loaner\"\n                  ]\n                },\n                \"asset_tag\": {\n                  \"type\": \"string\",\n                  \"description\": \"Asset tag of the asset\",\n                  \"example\": \"wxyzabcdefghij\"\n                },\n                \"user_id\": {\n                  \"minimum\": 1,\n                  \"type\": \"integer\",\n                  \"description\": \"Used by of the asset\",\n                  \"format\": \"int64\",\n                  \"example\": 14000234324\n                },\n                \"department_id\": {\n                  \"minimum\": 1,\n                  \"type\": \"integer\",\n                  \"description\": \"Department of the asset\",\n                  \"format\": \"int64\",\n                  \"example\": 14000232343\n                },\n                \"location_id\": {\n                  \"minimum\": 1,\n                  \"type\": \"integer\",\n                  \"description\": \"Location of the asset\",\n                  \"format\": \"int64\",\n                  \"example\": 140006394857\n                },\n                \"agent_id\": {\n                  \"minimum\": 1,\n                  \"type\": \"integer\",\n                  \"description\": \"Managed by of the asset\",\n                  \"format\": \"int64\",\n                  \"example\": 14000234324\n                },\n                \"group_id\": {\n                  \"minimum\": 1,\n                  \"type\": \"integer\",\n                  \"description\": \"Managed by group of the asset\",\n                  \"format\": \"int64\",\n                  \"example\": 14000234939\n                },\n                \"assigned_on\": {\n                  \"type\": \"string\",\n                  \"description\": \"Date and time when the asset was assigned\",\n                  \"format\": \"date-time\",\n                  \"example\": \"2021-11-24T11:30:00Z\"\n                },\n                \"created_at\": {\n                  \"type\": \"string\",\n                  \"description\": \"Timestamp at which the asset was created\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true,\n                  \"example\": \"2021-11-24T11:30:00Z\"\n                },\n                \"updated_at\": {\n                  \"type\": \"string\",\n                  \"description\": \"Timestamp at which the asset was last modified\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true,\n                  \"example\": \"2021-11-24T11:30:00Z\"\n                },\n                \"type_fields\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": true,\n                  \"description\": \"Fields specific to every asset type (Every asset will have default base fields and type specific fields)\",\n                  \"example\": {\n                    \"field1\": \"Value 1\",\n                    \"field2\": \"Value 2\"\n                  }\n                }\n              }\n            }\n          },\n          \"associated_changes\": {\n            \"type\": \"array\",\n            \"description\": \"Unique IDs of the Changes associated with the Release\",\n            \"readOnly\": true,\n            \"example\": [\n              1001,\n              1002\n            ],\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\"\n            }\n          },\n          \"custom_fields\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Key value pairs containing the names and values of custom fields\",\n            \"example\": {\n              \"field1\": \"Some Value\"\n            }\n          },\n          \"planning_fields\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"reason_for_change\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"description\": \"Reason for change\",\n                    \"example\": \"<p>Reason for change</p>\"\n                  },\n                  \"description_text\": {\n                    \"type\": \"string\",\n                    \"description\": \"Reason for change in plain text format\",\n                    \"readOnly\": true,\n                    \"example\": \"Reason for Change\"\n                  }\n                },\n                \"example\": {\n                  \"description\": \"<div>Reason for change</div>\",\n                  \"description_text\": \"Reason for change\"\n                }\n              },\n              \"impact\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"description\": \"Impact\",\n                    \"example\": \"<p>Impact</p>\"\n                  },\n                  \"description_text\": {\n                    \"type\": \"string\",\n                    \"description\": \"Impact in plain text format\",\n                    \"readOnly\": true,\n                    \"example\": \"Impact\"\n                  }\n                },\n                \"example\": {\n                  \"description\": \"<div>Impact</div>\",\n                  \"description_text\": \"Impact\"\n                }\n              },\n              \"rollout_plan\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"description\": \"Rollout Plan\",\n                    \"example\": \"<div>Rollout plan</div>\"\n                  },\n                  \"description_text\": {\n                    \"type\": \"string\",\n                    \"description\": \"Rollout plan in plain text format\",\n                    \"readOnly\": true,\n                    \"example\": \"Rollout Plan\"\n                  }\n                },\n                \"example\": {\n                  \"description\": \"<div>Rollout plan</div>\",\n                  \"description_text\": \"Rollout Plan\"\n                }\n              },\n              \"backout_plan\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"description\": \"Backout Plan\",\n                    \"example\": \"<div>Backout plan</div>\"\n                  },\n                  \"description_text\": {\n                    \"type\": \"string\",\n                    \"description\": \"Backout plan in plain text format\",\n                    \"readOnly\": true,\n                    \"example\": \"Backout Plan\"\n                  }\n                },\n                \"example\": {\n                  \"description\": \"<div>Backout plan</div>\",\n                  \"description_text\": \"Backout Plan\"\n                }\n              }\n            },\n            \"example\": {\n              \"reason_for_change\": {\n                \"description\": \"<div>Reason for change</div>\",\n                \"description_text\": \"Reason for change\"\n              },\n              \"impact\": {\n                \"description\": \"<div>Impact</div>\",\n                \"description_text\": \"Impact\"\n              },\n              \"rollout_plan\": {\n                \"description\": \"<div>Rollout plan</div>\",\n                \"description_text\": \"Rollout Plan\"\n              },\n              \"backout_plan\": {\n                \"description\": \"<div>Backout plan</div>\",\n                \"description_text\": \"Backout Plan\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

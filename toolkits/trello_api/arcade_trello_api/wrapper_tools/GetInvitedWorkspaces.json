@@ -1,18 +1,18 @@
 {
   "name": "GetInvitedWorkspaces",
-  "fully_qualified_name": "TrelloApi.GetInvitedWorkspaces@0.1.0",
-  "description": "Fetches workspaces a member has been invited to.\n\nCall this tool to obtain a list of workspaces or organizations a Trello member has been invited to. Useful for checking pending workspace invitations.",
+  "fully_qualified_name": "TrelloApi.GetInvitedWorkspaces@2.0.0",
+  "description": "Retrieve a member's invited Workspaces.\n\nUse this tool to get a list of Workspaces that a Trello member has been invited to join. It provides insights into pending invitations and collaboration opportunities.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_identifier",
         "required": true,
-        "description": "The ID or username of the Trello member to fetch invited workspaces for.",
+        "description": "The ID or username of the Trello member to retrieve their invited Workspaces.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "organization_fields_selection",
+        "name": "organization_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of organization fields (e.g., 'id,name').",
+        "description": "Specifies the fields to retrieve for each organization. Use 'all' or a comma-separated list like 'id,name'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -75,13 +75,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/organizationsInvited",
@@ -90,7 +90,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "organization_fields_selection",
+        "tool_parameter_name": "organization_fields",
         "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -106,6 +106,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -123,6 +124,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -144,6 +146,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

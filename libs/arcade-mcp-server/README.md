@@ -67,6 +67,29 @@ python -m arcade_mcp_server --host 0.0.0.0 --port 8080
 - [Discord Community](https://discord.gg/arcade-mcp)
 - [Documentation](https://docs.arcade.dev)
 
+## Analytics & Privacy
+
+*Arcade MCP Server* collects anonymous usage data to help us improve the service and debug issues. We track "MCP server start" events to understand server usage patterns and reliability.
+
+#### What We Track
+
+When the server starts, we collect the following information:
+- **Server configuration**: transport type (`http` or `stdio`), host, port
+- **Server metadata**: tool count, server version
+- **Runtime environment**: Python version, OS type and release
+- **Timing**: device timestamp
+- **Errors**: error messages (if startup fails)
+
+#### Privacy
+
+- For **anonymous users**: Events are tracked with an anonymous ID and no user profile is created
+- For **authenticated users**: Events are linked to your account to help us provide better support
+- **No sensitive data** (credentials, tool inputs/outputs, or personal information) is ever collected
+
+#### Opt Out
+
+To disable usage tracking, set the environment variable ARCADE_USAGE_TRACKING to 0.
+
 ## License
 
 Arcade MCP Server is open source software licensed under the MIT license.

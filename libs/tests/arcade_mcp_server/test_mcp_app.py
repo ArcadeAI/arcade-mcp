@@ -1,6 +1,9 @@
 """Tests for MCPApp initialization and basic functionality."""
 
+import subprocess
+import sys
 from typing import Annotated
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from arcade_core.catalog import MaterializedTool
@@ -15,7 +18,55 @@ class TestMCPApp:
     @pytest.fixture
     def mcp_app(self) -> MCPApp:
         """Create an MCP app."""
-        return MCPApp(name="TestMCPApp", version="1.0.0")
+        app = MCPApp(name="TestMCPApp", version="1.0.0")
+
+        # Add a sample tool so the app doesn't exit when run() is called
+        @app.tool
+        def sample_tool(message: Annotated[str, "A message"]) -> str:
+            """A sample tool for testing."""
+            return f"Response: {message}"
+
+        return app
+
+    def test_mcp_app_initialization(self):
+        """Test MCPApp initialization creates proper settings."""
+        app = MCPApp(
+            name="TestApp",
+            version="1.5.0",
+            title="Test Title",
+            instructions="Test instructions",
+        )
+
+        assert app.name == "TestApp"
+        assert app.version == "1.5.0"
+        assert app.title == "Test Title"
+        assert app.instructions == "Test instructions"
+
+        assert app._mcp_settings is not None
+        assert app._mcp_settings.server.name == "TestApp"
+        assert app._mcp_settings.server.version == "1.5.0"
+        assert app._mcp_settings.server.title == "Test Title"
+        assert app._mcp_settings.server.instructions == "Test instructions"
+
+    def test_mcp_app_initialization_defaults(self):
+        """Test MCPApp initialization with default values."""
+        app = MCPApp()
+
+        assert app.name == "ArcadeMCP"
+        assert app.version == "0.1.0"
+
+        assert app._mcp_settings.server.name == "ArcadeMCP"
+        assert app._mcp_settings.server.version == "0.1.0"
+
+    def test_mcp_app_initialization_partial_values(self):
+        """Test MCPApp initialization with partial values."""
+        app = MCPApp(name="PartialApp")
+
+        assert app.name == "PartialApp"
+        assert app.version == "0.1.0"  # Default value
+
+        assert app._mcp_settings.server.name == "PartialApp"
+        assert app._mcp_settings.server.version == "0.1.0"
 
     def test_add_tool(self, mcp_app: MCPApp):
         """Test adding a tool to the MCP app."""
@@ -49,6 +100,8 @@ class TestMCPApp:
     def test_tool(self, mcp_app: MCPApp):
         """Test the MCPApp tool decorator."""
 
+        initial_tool_count = len(mcp_app._catalog)
+
         # Test decorator without parameters
         @mcp_app.tool
         def simple_tool(message: Annotated[str, "A message"]) -> str:
@@ -62,7 +115,7 @@ class TestMCPApp:
             return f"Response: {message}"
 
         # Verify both tools were added
-        assert len(mcp_app._catalog) == 2
+        assert len(mcp_app._catalog) == initial_tool_count + 2
 
         # Verify decorator attributes
         assert hasattr(simple_tool, "__tool_name__")
@@ -186,23 +239,31 @@ class TestMCPApp:
         monkeypatch.delenv("ARCADE_SERVER_TRANSPORT", raising=False)
         monkeypatch.delenv("ARCADE_SERVER_HOST", raising=False)
         monkeypatch.delenv("ARCADE_SERVER_PORT", raising=False)
+        monkeypatch.delenv("ARCADE_SERVER_RELOAD", raising=False)
 
         # Test default values (no environment variables)
-        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        host, port, transport, reload = MCPApp._get_configuration_overrides(
+            "127.0.0.1", 8000, "http", False
+        )
         assert host == "127.0.0.1"
         assert port == 8000
         assert transport == "http"
+        assert not reload
 
         # Test transport override
         monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "stdio")
-        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        host, port, transport, reload = MCPApp._get_configuration_overrides(
+            "127.0.0.1", 8000, "http", False
+        )
         assert transport == "stdio"
         monkeypatch.delenv("ARCADE_SERVER_TRANSPORT")
 
         # Test host override (only works with HTTP transport)
         monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "http")
         monkeypatch.setenv("ARCADE_SERVER_HOST", "192.168.1.1")
-        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        host, port, transport, reload = MCPApp._get_configuration_overrides(
+            "127.0.0.1", 8000, "http", False
+        )
         assert host == "192.168.1.1"
         assert transport == "http"
         monkeypatch.delenv("ARCADE_SERVER_HOST")
@@ -210,27 +271,249 @@ class TestMCPApp:
 
         # Test port override (only works with HTTP transport)
         monkeypatch.setenv("ARCADE_SERVER_PORT", "9000")
-        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        host, port, transport, reload = MCPApp._get_configuration_overrides(
+            "127.0.0.1", 8000, "http", False
+        )
         assert port == 9000
         monkeypatch.delenv("ARCADE_SERVER_PORT")
 
         # Test invalid port value
         monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "http")
         monkeypatch.setenv("ARCADE_SERVER_PORT", "invalid_port")
-        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        host, port, transport, reload = MCPApp._get_configuration_overrides(
+            "127.0.0.1", 8000, "http", False
+        )
         assert port == 8000  # Should keep the default value
         monkeypatch.delenv("ARCADE_SERVER_PORT")
         monkeypatch.delenv("ARCADE_SERVER_TRANSPORT")
 
-        # Test host/port with stdio transport
+        # Test valid reload value
+        monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "http")
+        monkeypatch.setenv("ARCADE_SERVER_RELOAD", "1")
+        host, port, transport, reload = MCPApp._get_configuration_overrides(
+            "127.0.0.1", 8000, "http", False
+        )
+        assert reload
+        monkeypatch.delenv("ARCADE_SERVER_RELOAD")
+        monkeypatch.delenv("ARCADE_SERVER_TRANSPORT")
+
+        # Test invalid reload value
+        monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "http")
+        monkeypatch.setenv("ARCADE_SERVER_RELOAD", "invalid_reload")
+        host, port, transport, reload = MCPApp._get_configuration_overrides(
+            "127.0.0.1", 8000, "http", False
+        )
+        assert not reload  # Should keep the default value
+        monkeypatch.delenv("ARCADE_SERVER_RELOAD")
+        monkeypatch.delenv("ARCADE_SERVER_TRANSPORT")
+
+        # Test host/port/reload with stdio transport
         monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "stdio")
         monkeypatch.setenv("ARCADE_SERVER_HOST", "192.168.1.1")
         monkeypatch.setenv("ARCADE_SERVER_PORT", "9000")
-        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
-        # For stdio, host and port are still returned but not used by the server
+        monkeypatch.setenv("ARCADE_SERVER_RELOAD", "true")
+        host, port, transport, reload = MCPApp._get_configuration_overrides(
+            "127.0.0.1", 8000, "http", False
+        )
+        # For stdio, host, port, and reload are still returned but not used by the server
         assert host == "127.0.0.1"  # Host should remain unchanged for stdio transport
         assert port == 8000  # Port should remain unchanged for stdio transport
         assert transport == "stdio"
+        assert not reload
+        monkeypatch.delenv("ARCADE_SERVER_RELOAD")
         monkeypatch.delenv("ARCADE_SERVER_HOST")
         monkeypatch.delenv("ARCADE_SERVER_PORT")
         monkeypatch.delenv("ARCADE_SERVER_TRANSPORT")
+
+    def test_create_and_run_server(self, mcp_app: MCPApp):
+        """Test _create_and_run_server method with mocked dependencies."""
+        with patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create, patch(
+            "arcade_mcp_server.mcp_app.uvicorn"
+        ) as mock_uvicorn:
+            mock_fastapi_app = Mock()
+            mock_create.return_value = mock_fastapi_app
+
+            # Test with INFO log level
+            mcp_app.log_level = "INFO"
+            mcp_app._create_and_run_server("127.0.0.1", 8000)
+
+            mock_create.assert_called_once_with(
+                catalog=mcp_app._catalog,
+                mcp_settings=mcp_app._mcp_settings,
+                debug=False,
+            )
+            mock_uvicorn.run.assert_called_once_with(
+                mock_fastapi_app,
+                host="127.0.0.1",
+                port=8000,
+                log_level="info",
+                reload=False,
+                lifespan="on",
+            )
+
+        # Test with DEBUG log level
+        with patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create, patch(
+            "arcade_mcp_server.mcp_app.uvicorn"
+        ) as mock_uvicorn:
+            mock_fastapi_app = Mock()
+            mock_create.return_value = mock_fastapi_app
+
+            mcp_app.log_level = "DEBUG"
+            mcp_app._create_and_run_server("192.168.1.1", 9000)
+
+            mock_create.assert_called_once_with(
+                catalog=mcp_app._catalog,
+                mcp_settings=mcp_app._mcp_settings,
+                debug=True,
+            )
+            mock_uvicorn.run.assert_called_once_with(
+                mock_fastapi_app,
+                host="192.168.1.1",
+                port=9000,
+                log_level="debug",
+                reload=False,
+                lifespan="on",
+            )
+
+    def test_run_with_reload_spawns_child_process(self, mcp_app: MCPApp):
+        """Test _run_with_reload spawns child process with correct environment."""
+        mock_process = Mock()
+        mock_process.terminate = Mock()
+        mock_process.wait = Mock()
+
+        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
+            "arcade_mcp_server.mcp_app.watch"
+        ) as mock_watch:
+            mock_popen.return_value = mock_process
+            # Return empty iterator to exit immediately
+            mock_watch.return_value = iter([])
+
+            mcp_app._run_with_reload("127.0.0.1", 8000)
+
+            # Verify Popen was called with correct args
+            mock_popen.assert_called_once()
+            call_args = mock_popen.call_args
+            assert call_args[0][0] == [sys.executable, *sys.argv]
+            assert call_args[1]["env"]["ARCADE_MCP_CHILD_PROCESS"] == "1"
+
+    def test_run_with_reload_restarts_on_changes(self, mcp_app: MCPApp):
+        """Test _run_with_reload restarts server when file changes detected."""
+        mock_process1 = Mock()
+        mock_process2 = Mock()
+
+        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
+            "arcade_mcp_server.mcp_app.watch"
+        ) as mock_watch:
+            mock_popen.side_effect = [mock_process1, mock_process2]
+            # Yield one set of changes then stop
+            mock_watch.return_value = iter([{("change", "test.py")}])
+
+            mcp_app._run_with_reload("127.0.0.1", 8000)
+
+            # Verify both processes were created
+            assert mock_popen.call_count == 2
+
+            # Verify first process was terminated
+            mock_process1.terminate.assert_called_once()
+            mock_process1.wait.assert_called()
+
+    def test_run_with_reload_graceful_shutdown(self, mcp_app: MCPApp):
+        """Test _run_with_reload gracefully shuts down process."""
+        mock_process = Mock()
+        mock_process.wait = Mock()  # Succeeds without timeout
+
+        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
+            "arcade_mcp_server.mcp_app.watch"
+        ) as mock_watch:
+            mock_popen.return_value = mock_process
+            mock_watch.return_value = iter([{("change", "test.py")}])
+
+            mcp_app._run_with_reload("127.0.0.1", 8000)
+
+            # Verify graceful shutdown
+            mock_process.terminate.assert_called()
+            mock_process.wait.assert_called()
+            mock_process.kill.assert_not_called()
+
+    def test_run_with_reload_force_kill_on_timeout(self, mcp_app: MCPApp):
+        """Test _run_with_reload force kills process on timeout."""
+        mock_process = Mock()
+        # First wait times out, second succeeds
+        mock_process.wait = Mock(
+            side_effect=[subprocess.TimeoutExpired("cmd", 5), None]
+        )
+
+        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
+            "arcade_mcp_server.mcp_app.watch"
+        ) as mock_watch:
+            mock_popen.return_value = mock_process
+            mock_watch.return_value = iter([{("change", "test.py")}])
+
+            mcp_app._run_with_reload("127.0.0.1", 8000)
+
+            # Verify terminate -> wait -> kill -> wait sequence
+            mock_process.terminate.assert_called()
+            assert mock_process.wait.call_count == 2
+            mock_process.kill.assert_called_once()
+
+    def test_run_with_reload_keyboard_interrupt(self, mcp_app: MCPApp):
+        """Test _run_with_reload handles KeyboardInterrupt gracefully."""
+        mock_process = Mock()
+
+        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
+            "arcade_mcp_server.mcp_app.watch"
+        ) as mock_watch:
+            mock_popen.return_value = mock_process
+            mock_watch.side_effect = KeyboardInterrupt()
+
+            # Should not raise exception
+            mcp_app._run_with_reload("127.0.0.1", 8000)
+
+            # Verify process was shut down
+            mock_process.terminate.assert_called_once()
+
+    def test_run_routes_to_reload_method(self, mcp_app: MCPApp):
+        """Test run() routes to _run_with_reload when reload=True."""
+        with patch.object(mcp_app, "_run_with_reload") as mock_reload, patch.object(
+            mcp_app, "_create_and_run_server"
+        ) as mock_direct:
+            mcp_app.run(reload=True, transport="http", host="127.0.0.1", port=8000)
+
+            mock_reload.assert_called_once_with("127.0.0.1", 8000)
+            mock_direct.assert_not_called()
+
+    def test_run_routes_to_direct_method(self, mcp_app: MCPApp):
+        """Test run() routes to _create_and_run_server when reload=False."""
+        with patch.object(mcp_app, "_run_with_reload") as mock_reload, patch.object(
+            mcp_app, "_create_and_run_server"
+        ) as mock_direct:
+            mcp_app.run(reload=False, transport="http", host="127.0.0.1", port=8000)
+
+            mock_direct.assert_called_once_with("127.0.0.1", 8000)
+            mock_reload.assert_not_called()
+
+    def test_run_child_process_disables_reload(self, mcp_app: MCPApp, monkeypatch):
+        """Test run() disables reload when ARCADE_MCP_CHILD_PROCESS is set."""
+        monkeypatch.setenv("ARCADE_MCP_CHILD_PROCESS", "1")
+
+        with patch.object(mcp_app, "_run_with_reload") as mock_reload, patch.object(
+            mcp_app, "_create_and_run_server"
+        ) as mock_direct:
+            mcp_app.run(reload=True, transport="http", host="127.0.0.1", port=8000)
+
+            # Should route to direct method even though reload=True
+            mock_direct.assert_called_once_with("127.0.0.1", 8000)
+            mock_reload.assert_not_called()
+
+    def test_run_stdio_unaffected_by_reload(self, mcp_app: MCPApp):
+        """Test run() with stdio transport is unaffected by reload flag."""
+        with patch("arcade_mcp_server.__main__.run_stdio_server") as mock_stdio:
+            # Test with reload=True
+            mcp_app.run(reload=True, transport="stdio")
+            mock_stdio.assert_called_once()
+
+            mock_stdio.reset_mock()
+
+            # Test with reload=False
+            mcp_app.run(reload=False, transport="stdio")
+            mock_stdio.assert_called_once()

@@ -1,18 +1,18 @@
 {
   "name": "GetTrelloNotificationList",
-  "fully_qualified_name": "TrelloApi.GetTrelloNotificationList@0.1.0",
-  "description": "Retrieve the list linked to a specific Trello notification.\n\nUse this tool to get the list information associated with a given Trello notification ID. This is useful for identifying which list is involved in a notification or for further actions related to that list.",
+  "fully_qualified_name": "TrelloApi.GetTrelloNotificationList@2.0.0",
+  "description": "Retrieve the list a Trello notification is associated with.\n\nUse this tool to find out which list a specific Trello notification belongs to. It is useful when you need to track or organize tasks based on notification details.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "notification_id",
         "required": true,
-        "description": "The unique ID of the Trello notification to retrieve the associated list.",
+        "description": "The ID of the Trello notification to retrieve the associated list for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "list_fields",
+        "name": "notification_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of list fields to retrieve for the notification.",
+        "description": "Specify `all` or a comma-separated list of fields for the list associated with the notification.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/notifications/{id}/list",
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "list_fields",
+        "tool_parameter_name": "notification_fields",
         "description": "`all` or a comma-separated list of list [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -104,6 +104,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -121,6 +122,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -142,6 +144,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

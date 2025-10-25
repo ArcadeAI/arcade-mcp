@@ -1,0 +1,226 @@
+{
+  "name": "CreateUserContactMethod",
+  "fully_qualified_name": "PagerdutyApi.CreateUserContactMethod@2.0.0",
+  "description": "Create a new contact method for a PagerDuty user.\n\nThis tool creates a new contact method for a specified user in PagerDuty. It's useful for updating user profiles with additional ways to be contacted regarding incidents and other important account interactions.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "The unique identifier of the user for whom the contact method is being created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "The `Accept` header for API versioning. Specify the version of the API to use.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "request_content_type",
+        "required": true,
+        "description": "Specify the content type for the request. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "contact_method_details",
+        "required": false,
+        "description": "JSON object specifying the new contact method details, such as type and address, for the user.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "contact_method": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The contact method to be created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createUserContactMethod'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/users/{id}/contact_methods",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "user_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "request_content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "contact_method_details",
+        "description": "The contact method to be created.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "contact_method": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The contact method to be created."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"contact_method\": {\n            \"oneOf\": [\n              {\n                \"description\": \"The Phone Contact Method of the User, used for Voice or SMS.\",\n                \"allOf\": [\n                  {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true\n                          },\n                          \"summary\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                          },\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true,\n                            \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                          },\n                          \"self\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"the API show URL at which the object is accessible\"\n                          },\n                          \"html_url\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                          }\n                        }\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"description\": \"The method to contact a user.\",\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"description\": \"The type of contact method being created.\",\n                            \"enum\": [\n                              \"email_contact_method\",\n                              \"phone_contact_method\",\n                              \"push_notification_contact_method\",\n                              \"sms_contact_method\"\n                            ]\n                          },\n                          \"label\": {\n                            \"type\": \"string\",\n                            \"description\": \"The label (e.g., \\\"Work\\\", \\\"Mobile\\\", etc.).\"\n                          },\n                          \"address\": {\n                            \"type\": \"string\",\n                            \"description\": \"The \\\"address\\\" to deliver to: email, phone number, etc., depending on the type.\"\n                          }\n                        },\n                        \"discriminator\": {\n                          \"propertyName\": \"type\"\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"label\",\n                          \"address\"\n                        ]\n                      }\n                    ]\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"phone_contact_method\",\n                          \"sms_contact_method\"\n                        ]\n                      },\n                      \"country_code\": {\n                        \"type\": \"integer\",\n                        \"description\": \"The 1-to-3 digit country calling code.\",\n                        \"minimum\": 1,\n                        \"maximum\": 1999\n                      },\n                      \"enabled\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, this phone is capable of receiving SMS messages.\",\n                        \"readOnly\": true\n                      },\n                      \"blacklisted\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, this phone has been blacklisted by PagerDuty and no messages will be sent to it.\",\n                        \"readOnly\": true\n                      }\n                    },\n                    \"required\": [\n                      \"country_code\"\n                    ],\n                    \"example\": {\n                      \"type\": \"phone_contact_method\",\n                      \"label\": \"work\",\n                      \"country_code\": 123,\n                      \"address\": \"1234567\"\n                    }\n                  }\n                ]\n              },\n              {\n                \"description\": \"The Push Contact Method of the User.\",\n                \"allOf\": [\n                  {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true\n                          },\n                          \"summary\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                          },\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true,\n                            \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                          },\n                          \"self\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"the API show URL at which the object is accessible\"\n                          },\n                          \"html_url\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                          }\n                        }\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"description\": \"The method to contact a user.\",\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"description\": \"The type of contact method being created.\",\n                            \"enum\": [\n                              \"email_contact_method\",\n                              \"phone_contact_method\",\n                              \"push_notification_contact_method\",\n                              \"sms_contact_method\"\n                            ]\n                          },\n                          \"label\": {\n                            \"type\": \"string\",\n                            \"description\": \"The label (e.g., \\\"Work\\\", \\\"Mobile\\\", etc.).\"\n                          },\n                          \"address\": {\n                            \"type\": \"string\",\n                            \"description\": \"The \\\"address\\\" to deliver to: email, phone number, etc., depending on the type.\"\n                          }\n                        },\n                        \"discriminator\": {\n                          \"propertyName\": \"type\"\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"label\",\n                          \"address\"\n                        ]\n                      }\n                    ]\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"push_notification_contact_method\"\n                        ]\n                      },\n                      \"device_type\": {\n                        \"type\": \"string\",\n                        \"description\": \"The type of device.\",\n                        \"enum\": [\n                          \"android\",\n                          \"ios\"\n                        ],\n                        \"readOnly\": true\n                      },\n                      \"sounds\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"description\": \"The type of sound.\",\n                              \"enum\": [\n                                \"alert_high_urgency\",\n                                \"alert_low_urgency\"\n                              ]\n                            },\n                            \"file\": {\n                              \"type\": \"string\",\n                              \"description\": \"The sound file name.\"\n                            }\n                          }\n                        }\n                      },\n                      \"created_at\": {\n                        \"type\": \"string\",\n                        \"format\": \"date-time\",\n                        \"description\": \"Time at which the contact method was created.\"\n                      },\n                      \"blacklisted\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, this phone has been blacklisted by PagerDuty and no messages will be sent to it.\",\n                        \"readOnly\": true\n                      }\n                    },\n                    \"required\": [\n                      \"device_type\"\n                    ],\n                    \"example\": {\n                      \"type\": \"push_notification_contact_method\",\n                      \"label\": \"work\",\n                      \"device_type\": \"android\",\n                      \"address\": \"12341234\"\n                    }\n                  }\n                ]\n              },\n              {\n                \"description\": \"The Email Contact Method of the User.\",\n                \"allOf\": [\n                  {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true\n                          },\n                          \"summary\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                          },\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true,\n                            \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                          },\n                          \"self\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"the API show URL at which the object is accessible\"\n                          },\n                          \"html_url\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                          }\n                        }\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"description\": \"The method to contact a user.\",\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"description\": \"The type of contact method being created.\",\n                            \"enum\": [\n                              \"email_contact_method\",\n                              \"phone_contact_method\",\n                              \"push_notification_contact_method\",\n                              \"sms_contact_method\"\n                            ]\n                          },\n                          \"label\": {\n                            \"type\": \"string\",\n                            \"description\": \"The label (e.g., \\\"Work\\\", \\\"Mobile\\\", etc.).\"\n                          },\n                          \"address\": {\n                            \"type\": \"string\",\n                            \"description\": \"The \\\"address\\\" to deliver to: email, phone number, etc., depending on the type.\"\n                          }\n                        },\n                        \"discriminator\": {\n                          \"propertyName\": \"type\"\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"label\",\n                          \"address\"\n                        ]\n                      }\n                    ]\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"email_contact_method\"\n                        ]\n                      },\n                      \"send_short_email\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"Send an abbreviated email message instead of the standard email output. Useful for email-to-SMS gateways and email based pagers.\",\n                        \"default\": false\n                      }\n                    },\n                    \"example\": {\n                      \"type\": \"email_contact_method\",\n                      \"label\": \"work\",\n                      \"address\": \"grady.haylie.126@hickle.net\",\n                      \"send_short_email\": false\n                    }\n                  }\n                ]\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"contact_method\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"contact_method\": {\n              \"id\": \"PXPGF42\",\n              \"type\": \"email_contact_method\",\n              \"summary\": \"Work\",\n              \"self\": \"https://api.pagerduty.com/users/PXPGF42/contact_method/PXPGF42\",\n              \"label\": \"Work\",\n              \"address\": \"grady.haylie.126@hickle.net\",\n              \"send_short_email\": false\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The contact method to be created.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

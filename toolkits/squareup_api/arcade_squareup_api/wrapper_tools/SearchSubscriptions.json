@@ -1,0 +1,274 @@
+{
+  "name": "SearchSubscriptions",
+  "fully_qualified_name": "SquareupApi.SearchSubscriptions@2.0.0",
+  "description": "Search for subscriptions by location and customer IDs.\n\nThis tool searches for subscriptions, ordering them by creation date, location, and optionally by customer IDs. If no location or customer IDs are provided, it searches across all available locations and customers.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Cursor for fetching the next set of subscription results if previous results exceeded the limit. If not set, returns the last page of results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the total number of resulting subscriptions exceeds the limit of a paged response, \nspecify the cursor returned from a preceding response here to fetch the next set of results.\nIf the cursor is unset, the response contains the last page of the results.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "max_subscriptions_returned",
+        "required": false,
+        "description": "Defines the maximum number of subscriptions to return in a single response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The upper limit on the number of subscriptions to return\nin a paged response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "customer_ids_to_filter",
+        "required": false,
+        "description": "A list of customer IDs to filter subscriptions by. Leave empty to include all customers.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A filter to select subscriptions based on the subscribing customer IDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.customer_ids"
+      },
+      {
+        "name": "filter_by_location_ids",
+        "required": false,
+        "description": "An array of location IDs to filter subscriptions by location.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A filter to select subscriptions based on the location."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.location_ids"
+      },
+      {
+        "name": "filter_by_source_applications",
+        "required": false,
+        "description": "A list of source application names to filter subscriptions by.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A filter to select subscriptions based on the source application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.source_names"
+      },
+      {
+        "name": "include_related_info",
+        "required": false,
+        "description": "Specify related information to include in the response, such as 'actions' for scheduled actions on subscriptions.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An option to include related information in the response. \n\nThe supported values are: \n\n- `actions`: to include scheduled actions on the targeted subscriptions."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchSubscriptions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "SUBSCRIPTIONS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/subscriptions/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "When the total number of resulting subscriptions exceeds the limit of a paged response, \nspecify the cursor returned from a preceding response here to fetch the next set of results.\nIf the cursor is unset, the response contains the last page of the results.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the total number of resulting subscriptions exceeds the limit of a paged response, \nspecify the cursor returned from a preceding response here to fetch the next set of results.\nIf the cursor is unset, the response contains the last page of the results.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_subscriptions_returned",
+        "description": "The upper limit on the number of subscriptions to return\nin a paged response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The upper limit on the number of subscriptions to return\nin a paged response."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.customer_ids",
+        "tool_parameter_name": "customer_ids_to_filter",
+        "description": "A filter to select subscriptions based on the subscribing customer IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A filter to select subscriptions based on the subscribing customer IDs."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.location_ids",
+        "tool_parameter_name": "filter_by_location_ids",
+        "description": "A filter to select subscriptions based on the location.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A filter to select subscriptions based on the location."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.source_names",
+        "tool_parameter_name": "filter_by_source_applications",
+        "description": "A filter to select subscriptions based on the source application.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A filter to select subscriptions based on the source application."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include",
+        "tool_parameter_name": "include_related_info",
+        "description": "An option to include related information in the response. \n\nThe supported values are: \n\n- `actions`: to include scheduled actions on the targeted subscriptions.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An option to include related information in the response. \n\nThe supported values are: \n\n- `actions`: to include scheduled actions on the targeted subscriptions."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines input parameters in a request to the \\n[SearchSubscriptions](api-endpoint:Subscriptions-SearchSubscriptions) endpoint.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"When the total number of resulting subscriptions exceeds the limit of a paged response, \\nspecify the cursor returned from a preceding response here to fetch the next set of results.\\nIf the cursor is unset, the response contains the last page of the results.\\n\\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\"\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The upper limit on the number of subscriptions to return\\nin a paged response.\",\n            \"minimum\": 1\n          },\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"Represents a query, consisting of specified query expressions, used to search for subscriptions.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"Represents a set of query expressions (filters) to narrow the scope of targeted subscriptions returned by \\nthe [SearchSubscriptions](api-endpoint:Subscriptions-SearchSubscriptions) endpoint.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"customer_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"A filter to select subscriptions based on the subscribing customer IDs.\",\n                    \"nullable\": true\n                  },\n                  \"location_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"A filter to select subscriptions based on the location.\",\n                    \"nullable\": true\n                  },\n                  \"source_names\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"A filter to select subscriptions based on the source application.\",\n                    \"x-release-status\": \"BETA\",\n                    \"nullable\": true\n                  }\n                }\n              }\n            }\n          },\n          \"include\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"An option to include related information in the response. \\n\\nThe supported values are: \\n\\n- `actions`: to include scheduled actions on the targeted subscriptions.\",\n            \"x-release-status\": \"BETA\"\n          }\n        },\n        \"example\": {\n          \"query\": {\n            \"filter\": {\n              \"customer_ids\": [\n                \"CHFGVKYY8RSV93M5KCYTG4PN0G\"\n              ],\n              \"location_ids\": [\n                \"S8GWD5R9QB376\"\n              ],\n              \"source_names\": [\n                \"My App\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

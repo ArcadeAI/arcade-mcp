@@ -1,18 +1,18 @@
 {
   "name": "UpdateTrelloList",
-  "fully_qualified_name": "TrelloApi.UpdateTrelloList@0.1.0",
-  "description": "Updates properties of a Trello list.\n\nThis tool updates the properties of a specified Trello list when changes are needed, such as modifying its name or position.",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloList@2.0.0",
+  "description": "Update the properties of a Trello list.\n\nThis tool updates the properties of a specified list in Trello. It should be called when there is a need to modify attributes of an existing Trello list.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "list_id",
         "required": true,
-        "description": "The ID of the Trello list to update.",
+        "description": "The unique ID of the Trello list to be updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "new_list_name",
         "required": false,
-        "description": "The new name to set for the Trello list.",
+        "description": "The new name to assign to the Trello list.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "name"
       },
       {
-        "name": "destination_board_id",
+        "name": "board_id_destination",
         "required": false,
-        "description": "ID of the board where the list should be moved. This allows you to relocate the list to a different board.",
+        "description": "ID of the board to which the list will be moved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "idBoard"
       },
       {
-        "name": "list_new_position",
+        "name": "new_list_position",
         "required": false,
-        "description": "New position for the list: 'top', 'bottom', or a positive floating point number. Determines where the list should be placed on the board.",
+        "description": "New position for the list: 'top', 'bottom', or a positive floating point number.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "archive_list",
         "required": false,
-        "description": "Set to true to archive (close) the list, false to keep it open.",
+        "description": "Set to true to archive the list, false to keep it open.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "closed"
       },
       {
-        "name": "member_subscribed",
+        "name": "is_subscribed",
         "required": false,
-        "description": "Indicates if the active member is subscribed to the list. Use true for subscribed, false for not subscribed.",
+        "description": "Whether the active member is subscribed to this list. Use `true` to subscribe and `false` to unsubscribe.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -132,13 +132,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/lists/{id}",
@@ -160,6 +160,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -177,11 +178,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "idBoard",
-        "tool_parameter_name": "destination_board_id",
+        "tool_parameter_name": "board_id_destination",
         "description": "ID of a board the list should be moved to",
         "value_schema": {
           "val_type": "string",
@@ -194,11 +196,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "pos",
-        "tool_parameter_name": "list_new_position",
+        "tool_parameter_name": "new_list_position",
         "description": "New position for the list: `top`, `bottom`, or a positive floating point number",
         "value_schema": {
           "val_type": "string",
@@ -211,11 +214,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "subscribed",
-        "tool_parameter_name": "member_subscribed",
+        "tool_parameter_name": "is_subscribed",
         "description": "Whether the active member is subscribed to this list",
         "value_schema": {
           "val_type": "boolean",
@@ -228,6 +232,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -245,6 +250,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -266,6 +272,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

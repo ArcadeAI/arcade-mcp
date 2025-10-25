@@ -1,18 +1,18 @@
 {
   "name": "RetrieveLocationDetails",
-  "fully_qualified_name": "SquareupApi.RetrieveLocationDetails@0.1.0",
-  "description": "Retrieve detailed information about a specific location.\n\nCall this tool to obtain information about a particular location by providing the location ID. Use \"main\" as the ID to get details about the main location.",
+  "fully_qualified_name": "SquareupApi.RetrieveLocationDetails@2.0.0",
+  "description": "Retrieve details of a specific business location.\n\nUse this tool to get information about a specific location by providing its ID. Specify 'main' to get details of the main location.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "location_id",
         "required": true,
-        "description": "The ID of the location to retrieve. Use \"main\" for the main location.",
+        "description": "The ID of the location to retrieve. Use \"main\" to return the main location details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/locations/{location_id}",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

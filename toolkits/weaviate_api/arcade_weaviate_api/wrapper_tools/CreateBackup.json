@@ -1,0 +1,420 @@
+{
+  "name": "CreateBackup",
+  "fully_qualified_name": "WeaviateApi.CreateBackup@0.1.0",
+  "description": "Initiates backup creation for specified collections.\n\nThis tool starts the process of creating a backup for the specified collections on a designated backend storage using Weaviate. The backup is compressed using gzip by default, and the system remains operational during the backup process. Use this tool when you need to ensure data is safely backed up without interrupting service.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "backend_storage_system",
+        "required": true,
+        "description": "Specifies the backend storage system where the backup will be stored, such as `filesystem`, `gcs`, `s3`, or `azure`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the backend storage system where the backup will be stored (e.g., `filesystem`, `gcs`, `s3`, `azure`)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "backend"
+      },
+      {
+        "name": "backup_id",
+        "required": false,
+        "description": "The ID of the backup. Must be URL-safe, using only lowercase, numbers, underscore, and minus characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the backup (required). Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "storage_endpoint_name",
+        "required": false,
+        "description": "Name of the storage endpoint, such as s3.amazonaws.com, where the backup will be stored.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the endpoint, e.g. s3.amazonaws.com."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.Endpoint"
+      },
+      {
+        "name": "bucket_name",
+        "required": false,
+        "description": "Name of the bucket, container, or volume where the backup will be stored.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the bucket, container, volume, etc."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.Bucket"
+      },
+      {
+        "name": "bucket_path",
+        "required": false,
+        "description": "Specifies the path or key within the storage bucket. This helps in locating where the backup will be stored within the bucket.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Path or key within the bucket."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.Path"
+      },
+      {
+        "name": "cpu_utilization_percentage",
+        "required": false,
+        "description": "Sets desired CPU core utilization, ranging from 1% to 80%, during backup creation.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Desired CPU core utilization ranging from 1%-80%"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.CPUPercentage"
+      },
+      {
+        "name": "backup_chunk_size",
+        "required": false,
+        "description": "Set the chunk size for the backup with a minimum of 2MB, default of 128MB, and a maximum of 512MB.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Aimed chunk size, with a minimum of 2MB, default of 128MB, and a maximum of 512MB. The actual chunk size may vary."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.ChunkSize"
+      },
+      {
+        "name": "compression_level",
+        "required": false,
+        "description": "Specifies the compression level for the backup: DefaultCompression, BestSpeed, or BestCompression.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DefaultCompression",
+            "BestSpeed",
+            "BestCompression"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "compression level used by compression algorithm"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.CompressionLevel"
+      },
+      {
+        "name": "collections_to_include_in_backup",
+        "required": false,
+        "description": "List of collections to include in the backup. If not set, all collections are included. Cannot be used with `collections_to_exclude_in_backup`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of collections to include in the backup creation process. If not set, all collections are included. Cannot be used together with `exclude`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      },
+      {
+        "name": "exclude_collections",
+        "required": false,
+        "description": "List of collections to exclude from the backup. Overrides include if both are set.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of collections to exclude from the backup creation process. If not set, all collections are included. Cannot be used together with `include`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'backups.create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/backups/{backend}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "backend",
+        "tool_parameter_name": "backend_storage_system",
+        "description": "Specifies the backend storage system where the backup will be stored (e.g., `filesystem`, `gcs`, `s3`, `azure`).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the backend storage system where the backup will be stored (e.g., `filesystem`, `gcs`, `s3`, `azure`)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "backup_id",
+        "description": "The ID of the backup (required). Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the backup (required). Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.Endpoint",
+        "tool_parameter_name": "storage_endpoint_name",
+        "description": "Name of the endpoint, e.g. s3.amazonaws.com.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the endpoint, e.g. s3.amazonaws.com."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.Bucket",
+        "tool_parameter_name": "bucket_name",
+        "description": "Name of the bucket, container, volume, etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the bucket, container, volume, etc."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.Path",
+        "tool_parameter_name": "bucket_path",
+        "description": "Path or key within the bucket.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Path or key within the bucket."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.CPUPercentage",
+        "tool_parameter_name": "cpu_utilization_percentage",
+        "description": "Desired CPU core utilization ranging from 1%-80%",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Desired CPU core utilization ranging from 1%-80%"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.ChunkSize",
+        "tool_parameter_name": "backup_chunk_size",
+        "description": "Aimed chunk size, with a minimum of 2MB, default of 128MB, and a maximum of 512MB. The actual chunk size may vary.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Aimed chunk size, with a minimum of 2MB, default of 128MB, and a maximum of 512MB. The actual chunk size may vary."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.CompressionLevel",
+        "tool_parameter_name": "compression_level",
+        "description": "compression level used by compression algorithm",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DefaultCompression",
+            "BestSpeed",
+            "BestCompression"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "compression level used by compression algorithm"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "DefaultCompression",
+        "documentation_urls": []
+      },
+      {
+        "name": "include",
+        "tool_parameter_name": "collections_to_include_in_backup",
+        "description": "List of collections to include in the backup creation process. If not set, all collections are included. Cannot be used together with `exclude`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of collections to include in the backup creation process. If not set, all collections are included. Cannot be used together with `exclude`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude",
+        "tool_parameter_name": "exclude_collections",
+        "description": "List of collections to exclude from the backup creation process. If not set, all collections are included. Cannot be used together with `include`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of collections to exclude from the backup creation process. If not set, all collections are included. Cannot be used together with `include`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Details of the backup request, including the backup ID and collections to include or exclude.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the backup (required). Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed.\"\n          },\n          \"config\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"Endpoint\": {\n                \"type\": \"string\",\n                \"description\": \"Name of the endpoint, e.g. s3.amazonaws.com.\"\n              },\n              \"Bucket\": {\n                \"type\": \"string\",\n                \"description\": \"Name of the bucket, container, volume, etc.\"\n              },\n              \"Path\": {\n                \"type\": \"string\",\n                \"description\": \"Path or key within the bucket.\"\n              },\n              \"CPUPercentage\": {\n                \"maximum\": 80,\n                \"minimum\": 1,\n                \"type\": \"integer\",\n                \"description\": \"Desired CPU core utilization ranging from 1%-80%\",\n                \"nullable\": false\n              },\n              \"ChunkSize\": {\n                \"maximum\": 512,\n                \"minimum\": 2,\n                \"type\": \"integer\",\n                \"description\": \"Aimed chunk size, with a minimum of 2MB, default of 128MB, and a maximum of 512MB. The actual chunk size may vary.\",\n                \"nullable\": false\n              },\n              \"CompressionLevel\": {\n                \"type\": \"string\",\n                \"description\": \"compression level used by compression algorithm\",\n                \"nullable\": false,\n                \"default\": \"DefaultCompression\",\n                \"enum\": [\n                  \"DefaultCompression\",\n                  \"BestSpeed\",\n                  \"BestCompression\"\n                ]\n              }\n            },\n            \"description\": \"Backup custom configuration.\"\n          },\n          \"include\": {\n            \"type\": \"array\",\n            \"description\": \"List of collections to include in the backup creation process. If not set, all collections are included. Cannot be used together with `exclude`.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"exclude\": {\n            \"type\": \"array\",\n            \"description\": \"List of collections to exclude from the backup creation process. If not set, all collections are included. Cannot be used together with `include`.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        },\n        \"description\": \"Request body for creating a backup for a set of collections.\"\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the backup (required). Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed.\"\n          },\n          \"config\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"Endpoint\": {\n                \"type\": \"string\",\n                \"description\": \"Name of the endpoint, e.g. s3.amazonaws.com.\"\n              },\n              \"Bucket\": {\n                \"type\": \"string\",\n                \"description\": \"Name of the bucket, container, volume, etc.\"\n              },\n              \"Path\": {\n                \"type\": \"string\",\n                \"description\": \"Path or key within the bucket.\"\n              },\n              \"CPUPercentage\": {\n                \"maximum\": 80,\n                \"minimum\": 1,\n                \"type\": \"integer\",\n                \"description\": \"Desired CPU core utilization ranging from 1%-80%\",\n                \"nullable\": false\n              },\n              \"ChunkSize\": {\n                \"maximum\": 512,\n                \"minimum\": 2,\n                \"type\": \"integer\",\n                \"description\": \"Aimed chunk size, with a minimum of 2MB, default of 128MB, and a maximum of 512MB. The actual chunk size may vary.\",\n                \"nullable\": false\n              },\n              \"CompressionLevel\": {\n                \"type\": \"string\",\n                \"description\": \"compression level used by compression algorithm\",\n                \"nullable\": false,\n                \"default\": \"DefaultCompression\",\n                \"enum\": [\n                  \"DefaultCompression\",\n                  \"BestSpeed\",\n                  \"BestCompression\"\n                ]\n              }\n            },\n            \"description\": \"Backup custom configuration.\"\n          },\n          \"include\": {\n            \"type\": \"array\",\n            \"description\": \"List of collections to include in the backup creation process. If not set, all collections are included. Cannot be used together with `exclude`.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"exclude\": {\n            \"type\": \"array\",\n            \"description\": \"List of collections to exclude from the backup creation process. If not set, all collections are included. Cannot be used together with `include`.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        },\n        \"description\": \"Request body for creating a backup for a set of collections.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

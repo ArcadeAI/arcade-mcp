@@ -1,0 +1,362 @@
+{
+  "name": "CreateProductFreshservice",
+  "fully_qualified_name": "FreshserviceApi.CreateProductFreshservice@1.0.0",
+  "description": "Create a new product in the Freshservice catalog.\n\nThis tool is used to create and add a new product to the Freshservice Product Catalog. It should be called when you need to introduce a new product into the system.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "product_unique_id",
+        "required": false,
+        "description": "Unique identifier for the product to be created in the Freshservice catalog. Must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the Product"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "product_name",
+        "required": false,
+        "description": "The name of the product to be created in the Freshservice catalog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the Product"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "product_asset_type_id",
+        "required": false,
+        "description": "Integer ID representing the asset type of the product, used to categorize the product in the catalog.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Asset Type id of the Product"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "asset_type_id"
+      },
+      {
+        "name": "manufacturer_name",
+        "required": false,
+        "description": "Name of the product manufacturer. This is free text and can contain any valid manufacturer name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Manufacturer Name - Free Text"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "manufacturer"
+      },
+      {
+        "name": "product_status",
+        "required": false,
+        "description": "The product status: `1` for In Production, `2` for In Pipeline, `3` for Retired.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "1",
+            "2",
+            "3"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "status can be\n  `1` - In Production\n  `2` - In Pipeline\n  `3` - Retired\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status_id"
+      },
+      {
+        "name": "procurement_mode",
+        "required": false,
+        "description": "Mode of procurement for the product: `1` for Buy, `2` for Lease, `3` for Both.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "1",
+            "2",
+            "3"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "mode of procurement can be\n  `1` - Buy\n  `2` - Lease\n  `3` - Both\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mode_of_procurement_id"
+      },
+      {
+        "name": "depreciation_type_identifier",
+        "required": false,
+        "description": "Unique integer identifier for the type of depreciation applicable to the product. This should match the internal categorization used by Freshservice for depreciation types.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "depreciation_type_id"
+      },
+      {
+        "name": "depreciation_type_id_code",
+        "required": false,
+        "description": "Unique identifier for the depreciation type used for the product.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the depreciation type used"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-product'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/products",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "product_unique_id",
+        "description": "Unique ID of the Product",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique ID of the Product"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "product_name",
+        "description": "Name of the Product",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the Product"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "asset_type_id",
+        "tool_parameter_name": "product_asset_type_id",
+        "description": "Asset Type id of the Product",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Asset Type id of the Product"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "manufacturer",
+        "tool_parameter_name": "manufacturer_name",
+        "description": "Manufacturer Name - Free Text",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Manufacturer Name - Free Text"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status_id",
+        "tool_parameter_name": "product_status",
+        "description": "status can be\n  `1` - In Production\n  `2` - In Pipeline\n  `3` - Retired\n",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "1",
+            "2",
+            "3"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "status can be\n  `1` - In Production\n  `2` - In Pipeline\n  `3` - Retired\n"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "mode_of_procurement_id",
+        "tool_parameter_name": "procurement_mode",
+        "description": "mode of procurement can be\n  `1` - Buy\n  `2` - Lease\n  `3` - Both\n",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "1",
+            "2",
+            "3"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "mode of procurement can be\n  `1` - Buy\n  `2` - Lease\n  `3` - Both\n"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "depreciation_type_id",
+        "tool_parameter_name": "depreciation_type_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "depreciation_type_id_code",
+        "description": "Unique identifier for the depreciation type used",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the depreciation type used"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the Product\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000234324\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the Product\",\n            \"example\": \"Apple MacBook Air 13\"\n          },\n          \"asset_type_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Asset Type id of the Product\",\n            \"format\": \"int64\",\n            \"example\": 14000234243\n          },\n          \"manufacturer\": {\n            \"type\": \"string\",\n            \"description\": \"Manufacturer Name - Free Text\",\n            \"example\": \"Apple\"\n          },\n          \"status_id\": {\n            \"type\": \"integer\",\n            \"description\": \"status can be\\n  `1` - In Production\\n  `2` - In Pipeline\\n  `3` - Retired\\n\",\n            \"format\": \"int64\",\n            \"example\": 1,\n            \"enum\": [\n              1,\n              2,\n              3\n            ]\n          },\n          \"mode_of_procurement_id\": {\n            \"type\": \"integer\",\n            \"description\": \"mode of procurement can be\\n  `1` - Buy\\n  `2` - Lease\\n  `3` - Both\\n\",\n            \"format\": \"int64\",\n            \"example\": 1,\n            \"enum\": [\n              1,\n              2,\n              3\n            ]\n          },\n          \"depreciation_type_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 140009854\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Unique identifier for the depreciation type used\",\n            \"example\": \"Apple\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

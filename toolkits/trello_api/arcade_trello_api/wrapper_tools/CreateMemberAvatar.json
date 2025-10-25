@@ -1,18 +1,18 @@
 {
   "name": "CreateMemberAvatar",
-  "fully_qualified_name": "TrelloApi.CreateMemberAvatar@0.1.0",
-  "description": "Create a new avatar for a Trello member.\n\nUse this tool to generate a new avatar for a specified Trello member by providing their ID.",
+  "fully_qualified_name": "TrelloApi.CreateMemberAvatar@2.0.0",
+  "description": "Create a new avatar for a Trello member.\n\nThis tool creates a new avatar for a specific Trello member using their ID. It should be called when you need to update or set a member's avatar in Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "avatar_file_path",
+        "name": "avatar_image_file",
         "required": true,
-        "description": "The file path of the image to be used as the new avatar for the member. The path must point to a valid image file.",
+        "description": "A string representing the image file data for the member's new avatar. It should be a file path or base64-encoded image.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member for whom the avatar is being created.",
+        "description": "The ID or username of the Trello member for whom you want to create an avatar. This identifies the member uniquely.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/avatar",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "file",
-        "tool_parameter_name": "avatar_file_path",
+        "tool_parameter_name": "avatar_image_file",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

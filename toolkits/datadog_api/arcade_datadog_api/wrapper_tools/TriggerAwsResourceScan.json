@@ -1,0 +1,163 @@
+{
+  "name": "TriggerAwsResourceScan",
+  "fully_qualified_name": "DatadogApi.TriggerAwsResourceScan@0.1.0",
+  "description": "Trigger a high-priority scan of an AWS resource.\n\nUse this tool to initiate a high-priority scan of a specific AWS resource. Ensure agentless scanning is activated for the AWS account containing the resource you wish to scan.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "aws_resource_arn",
+        "required": true,
+        "description": "The ARN of the AWS resource to scan, such as EC2, Lambda, AMI, ECR, RDS, or S3.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The arn of the resource to scan. Agentless supports the scan of EC2 instances, lambda functions, AMI, ECR, RDS and S3 buckets."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.arn"
+      },
+      {
+        "name": "task_type",
+        "required": true,
+        "description": "The type of the on-demand task. This must always be set to 'aws_resource'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "aws_resource"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the on demand task. The value should always be `aws_resource`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateAwsOnDemandTask'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/agentless_scanning/ondemand/aws",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.arn",
+        "tool_parameter_name": "aws_resource_arn",
+        "description": "The arn of the resource to scan. Agentless supports the scan of EC2 instances, lambda functions, AMI, ECR, RDS and S3 buckets.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The arn of the resource to scan. Agentless supports the scan of EC2 instances, lambda functions, AMI, ECR, RDS and S3 buckets."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "task_type",
+        "description": "The type of the on demand task. The value should always be `aws_resource`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "aws_resource"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the on demand task. The value should always be `aws_resource`."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "aws_resource",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request object that includes the on demand task to submit.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object for a single AWS on demand task.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for the AWS on demand task.\",\n                \"properties\": {\n                  \"arn\": {\n                    \"description\": \"The arn of the resource to scan. Agentless supports the scan of EC2 instances, lambda functions, AMI, ECR, RDS and S3 buckets.\",\n                    \"example\": \"arn:aws:ec2:us-east-1:727000456123:instance/i-0eabb50529b67a1ba\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"arn\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"aws_resource\",\n                \"description\": \"The type of the on demand task. The value should always be `aws_resource`.\",\n                \"enum\": [\n                  \"aws_resource\"\n                ],\n                \"example\": \"aws_resource\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"AWS_RESOURCE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"The definition of the on demand task.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

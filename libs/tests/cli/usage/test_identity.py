@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
-from arcade_cli.usage.identity import UsageIdentity
+from arcade_core.usage import UsageIdentity
 
 
 @pytest.fixture
@@ -15,8 +15,8 @@ def temp_config_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     config_dir.mkdir()
     credentials_file = config_dir / "credentials.yaml"
 
-    monkeypatch.setattr("arcade_cli.usage.identity.ARCADE_CONFIG_PATH", str(config_dir))
-    monkeypatch.setattr("arcade_cli.usage.identity.CREDENTIALS_FILE_PATH", str(credentials_file))
+    monkeypatch.setattr("arcade_core.usage.identity.ARCADE_CONFIG_PATH", str(config_dir))
+    monkeypatch.setattr("arcade_core.usage.identity.CREDENTIALS_FILE_PATH", str(credentials_file))
 
     return config_dir
 
@@ -154,7 +154,7 @@ class TestGetDistinctId:
 
         assert distinct_id == "persisted-user-123"
 
-    @patch("arcade_cli.usage.identity.UsageIdentity.get_principal_id")
+    @patch("arcade_core.usage.identity.UsageIdentity.get_principal_id")
     def test_returns_principal_id_from_api_when_not_persisted(
         self, mock_get_principal: MagicMock, identity: UsageIdentity
     ) -> None:
@@ -166,7 +166,7 @@ class TestGetDistinctId:
         assert distinct_id == "api-user-456"
         mock_get_principal.assert_called_once()
 
-    @patch("arcade_cli.usage.identity.UsageIdentity.get_principal_id")
+    @patch("arcade_core.usage.identity.UsageIdentity.get_principal_id")
     def test_returns_anon_id_when_not_authenticated(
         self, mock_get_principal: MagicMock, identity: UsageIdentity
     ) -> None:
@@ -257,7 +257,7 @@ class TestGetPrincipalId:
 class TestShouldAlias:
     """Tests for should_alias() method."""
 
-    @patch("arcade_cli.usage.identity.UsageIdentity.get_principal_id")
+    @patch("arcade_core.usage.identity.UsageIdentity.get_principal_id")
     def test_returns_true_when_authenticated_but_not_linked(
         self, mock_get_principal: MagicMock, identity: UsageIdentity
     ) -> None:
@@ -268,7 +268,7 @@ class TestShouldAlias:
 
         assert should_alias is True
 
-    @patch("arcade_cli.usage.identity.UsageIdentity.get_principal_id")
+    @patch("arcade_core.usage.identity.UsageIdentity.get_principal_id")
     def test_returns_false_when_already_linked(
         self, mock_get_principal: MagicMock, identity: UsageIdentity, temp_config_path: Path
     ) -> None:
@@ -285,7 +285,7 @@ class TestShouldAlias:
 
         assert should_alias is False
 
-    @patch("arcade_cli.usage.identity.UsageIdentity.get_principal_id")
+    @patch("arcade_core.usage.identity.UsageIdentity.get_principal_id")
     def test_returns_false_when_not_authenticated(
         self, mock_get_principal: MagicMock, identity: UsageIdentity
     ) -> None:

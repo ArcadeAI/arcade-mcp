@@ -1,0 +1,226 @@
+{
+  "name": "UpdateEscalationPolicy",
+  "fully_qualified_name": "PagerdutyApi.UpdateEscalationPolicy@2.0.0",
+  "description": "Update an existing escalation policy and its rules.\n\nUse this tool to update an existing escalation policy and define which user should be alerted at which time. This tool requires appropriate OAuth credentials with `escalation_policies.write` permissions.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "escalation_policy_id",
+        "required": true,
+        "description": "The unique identifier of the escalation policy to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "Specifies the versioning format of the API response using the `Accept` header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type for the request. Use 'application/json' for updating escalation policies.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "escalation_policy_data",
+        "required": false,
+        "description": "JSON object containing the details of the escalation policy to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "escalation_policy": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The escalation policy to be updated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateEscalationPolicy'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/escalation_policies/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "escalation_policy_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "escalation_policy_data",
+        "description": "The escalation policy to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "escalation_policy": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The escalation policy to be updated."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"escalation_policy\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"The type of object being created.\",\n                    \"default\": \"escalation_policy\",\n                    \"enum\": [\n                      \"escalation_policy\"\n                    ]\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the escalation policy.\"\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"description\": \"Escalation policy description.\"\n                  },\n                  \"num_loops\": {\n                    \"type\": \"integer\",\n                    \"description\": \"The number of times the escalation policy will repeat after reaching the end of its escalation.\",\n                    \"default\": 0,\n                    \"minimum\": 0\n                  },\n                  \"on_call_handoff_notifications\": {\n                    \"type\": \"string\",\n                    \"description\": \"Determines how on call handoff notifications will be sent for users on the escalation policy. Defaults to \\\"if_has_services\\\".\",\n                    \"enum\": [\n                      \"if_has_services\",\n                      \"always\"\n                    ]\n                  },\n                  \"escalation_rules\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"id\": {\n                          \"type\": \"string\",\n                          \"readOnly\": true\n                        },\n                        \"escalation_delay_in_minutes\": {\n                          \"type\": \"integer\",\n                          \"description\": \"The number of minutes before an unacknowledged incident escalates away from this rule.\"\n                        },\n                        \"targets\": {\n                          \"type\": \"array\",\n                          \"minItems\": 1,\n                          \"maxItems\": 10,\n                          \"description\": \"The targets an incident should be assigned to upon reaching this rule.\",\n                          \"items\": {\n                            \"allOf\": [\n                              {\n                                \"allOf\": [\n                                  {\n                                    \"type\": \"object\",\n                                    \"properties\": {\n                                      \"id\": {\n                                        \"type\": \"string\",\n                                        \"readOnly\": true\n                                      },\n                                      \"summary\": {\n                                        \"type\": \"string\",\n                                        \"nullable\": true,\n                                        \"readOnly\": true,\n                                        \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                      },\n                                      \"type\": {\n                                        \"type\": \"string\",\n                                        \"readOnly\": true,\n                                        \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                      },\n                                      \"self\": {\n                                        \"type\": \"string\",\n                                        \"nullable\": true,\n                                        \"readOnly\": true,\n                                        \"format\": \"url\",\n                                        \"description\": \"the API show URL at which the object is accessible\"\n                                      },\n                                      \"html_url\": {\n                                        \"type\": \"string\",\n                                        \"nullable\": true,\n                                        \"readOnly\": true,\n                                        \"format\": \"url\",\n                                        \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                      }\n                                    }\n                                  },\n                                  {\n                                    \"type\": \"object\",\n                                    \"required\": [\n                                      \"type\",\n                                      \"id\"\n                                    ]\n                                  }\n                                ]\n                              },\n                              {\n                                \"type\": \"object\",\n                                \"description\": \"The escalation target is the entity that will be assigned an incident upon escalation.\",\n                                \"properties\": {\n                                  \"type\": {\n                                    \"enum\": [\n                                      \"user\",\n                                      \"schedule\",\n                                      \"user_reference\",\n                                      \"schedule_reference\"\n                                    ],\n                                    \"type\": \"string\"\n                                  }\n                                }\n                              }\n                            ]\n                          }\n                        },\n                        \"escalation_rule_assignment_strategy\": {\n                          \"type\": \"string\",\n                          \"description\": \"The strategy used to assign the escalation rule to an incident.\",\n                          \"enum\": [\n                            \"round_robin\",\n                            \"assign_to_everyone\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"escalation_delay_in_minutes\",\n                        \"targets\"\n                      ],\n                      \"example\": {\n                        \"escalation_delay_in_minutes\": 30,\n                        \"targets\": [\n                          {\n                            \"id\": \"PAM4FGS\",\n                            \"type\": \"user_reference\"\n                          },\n                          {\n                            \"id\": \"PI7DH85\",\n                            \"type\": \"schedule_reference\"\n                          }\n                        ]\n                      }\n                    }\n                  },\n                  \"services\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"service_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    },\n                    \"minLength\": 0,\n                    \"readOnly\": true\n                  },\n                  \"teams\": {\n                    \"type\": \"array\",\n                    \"description\": \"Team associated with the policy. Account must have the `teams` ability to use this parameter. Only one team may be associated with the policy.\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"team_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    },\n                    \"minLength\": 0\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"name\",\n                  \"escalation_rules\"\n                ],\n                \"example\": {\n                  \"id\": \"PQIL2IX\",\n                  \"type\": \"escalation_policy\",\n                  \"name\": \"Engineering Escalation Policy\",\n                  \"escalation_rules\": [\n                    {\n                      \"escalation_delay_in_minutes\": 30,\n                      \"targets\": [\n                        {\n                          \"id\": \"PEYSGVF\",\n                          \"type\": \"user_reference\"\n                        }\n                      ],\n                      \"escalation_rule_assignment_strategy\": [\n                        {\n                          \"type\": \"round_robin\"\n                        }\n                      ]\n                    }\n                  ],\n                  \"services\": [\n                    {\n                      \"id\": \"PIJ90N7\",\n                      \"type\": \"service_reference\"\n                    }\n                  ],\n                  \"num_loops\": 2,\n                  \"on_call_handoff_notifications\": \"if_has_services\",\n                  \"teams\": [\n                    {\n                      \"id\": \"PQ9K7I8\",\n                      \"type\": \"team_reference\"\n                    }\n                  ],\n                  \"description\": \"Here is the ep for the engineering team.\"\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"escalation_policy\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"escalation_policy\": {\n              \"type\": \"escalation_policy\",\n              \"name\": \"Engineering Escalation Policy\",\n              \"escalation_rules\": [\n                {\n                  \"escalation_delay_in_minutes\": 30,\n                  \"targets\": [\n                    {\n                      \"id\": \"PEYSGVF\",\n                      \"type\": \"user_reference\"\n                    }\n                  ],\n                  \"escalation_rule_assignment_strategy\": {\n                    \"type\": \"round_robin\"\n                  }\n                }\n              ],\n              \"services\": [\n                {\n                  \"id\": \"PIJ90N7\",\n                  \"type\": \"service_reference\"\n                }\n              ],\n              \"num_loops\": 2,\n              \"on_call_handoff_notifications\": \"if_has_services\",\n              \"teams\": [\n                {\n                  \"id\": \"PQ9K7I8\",\n                  \"type\": \"team_reference\"\n                }\n              ],\n              \"description\": \"Here is the ep for the engineering team.\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The escalation policy to be updated.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

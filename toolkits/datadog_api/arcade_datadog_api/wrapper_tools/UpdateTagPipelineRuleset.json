@@ -1,0 +1,645 @@
+{
+  "name": "UpdateTagPipelineRuleset",
+  "fully_qualified_name": "DatadogApi.UpdateTagPipelineRuleset@0.1.0",
+  "description": "Update an existing tag pipeline ruleset with new rules.\n\nUse this tool to modify the rules and configuration of an existing tag pipeline ruleset in Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "ruleset_identifier",
+        "required": true,
+        "description": "A unique string identifier for the tag pipeline ruleset to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the ruleset"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ruleset_id"
+      },
+      {
+        "name": "ruleset_update_details",
+        "required": true,
+        "description": "JSON object detailing the new rules and configuration for the ruleset. Includes attributes like enabled status, last version, and specific rules configuration.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `enabled`."
+                    },
+                    "last_version": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `last_version`."
+                    },
+                    "rules": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "enabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `enabled`."
+                        },
+                        "mapping": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "destination_key": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `destination_key`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `if_not_exists`."
+                            },
+                            "source_keys": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `source_keys`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `UpdateRulesetRequestDataAttributesRulesItemsMapping` object."
+                        },
+                        "metadata": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `metadata`."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `name`."
+                        },
+                        "query": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "addition": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `addition` `key`."
+                                },
+                                "value": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `addition` `value`."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `UpdateRulesetRequestDataAttributesRulesItemsQueryAddition` object."
+                            },
+                            "case_insensitivity": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `case_insensitivity`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `if_not_exists`."
+                            },
+                            "query": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `query`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `UpdateRulesetRequestDataAttributesRulesItemsQuery` object."
+                        },
+                        "reference_table": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "case_insensitivity": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `case_insensitivity`."
+                            },
+                            "field_pairs": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "input_column": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `input_column`."
+                                },
+                                "output_key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `output_key`."
+                                }
+                              },
+                              "description": "The `reference_table` `field_pairs`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `if_not_exists`."
+                            },
+                            "source_keys": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `source_keys`."
+                            },
+                            "table_name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `table_name`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `UpdateRulesetRequestDataAttributesRulesItemsReferenceTable` object."
+                        }
+                      },
+                      "description": "The `attributes` `rules`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `UpdateRulesetRequestDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `UpdateRulesetRequestData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "update_ruleset"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Update ruleset resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of `UpdateRulesetRequestData` object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateTagPipelinesRuleset'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/tags/enrichment/{ruleset_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "ruleset_id",
+        "tool_parameter_name": "ruleset_identifier",
+        "description": "The unique identifier of the ruleset",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the ruleset"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "ruleset_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `enabled`."
+                    },
+                    "last_version": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `last_version`."
+                    },
+                    "rules": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "enabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `enabled`."
+                        },
+                        "mapping": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "destination_key": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `destination_key`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `if_not_exists`."
+                            },
+                            "source_keys": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `source_keys`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `UpdateRulesetRequestDataAttributesRulesItemsMapping` object."
+                        },
+                        "metadata": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `metadata`."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `name`."
+                        },
+                        "query": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "addition": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `addition` `key`."
+                                },
+                                "value": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `addition` `value`."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `UpdateRulesetRequestDataAttributesRulesItemsQueryAddition` object."
+                            },
+                            "case_insensitivity": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `case_insensitivity`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `if_not_exists`."
+                            },
+                            "query": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `query`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `UpdateRulesetRequestDataAttributesRulesItemsQuery` object."
+                        },
+                        "reference_table": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "case_insensitivity": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `case_insensitivity`."
+                            },
+                            "field_pairs": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "input_column": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `input_column`."
+                                },
+                                "output_key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `output_key`."
+                                }
+                              },
+                              "description": "The `reference_table` `field_pairs`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `if_not_exists`."
+                            },
+                            "source_keys": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `source_keys`."
+                            },
+                            "table_name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `table_name`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `UpdateRulesetRequestDataAttributesRulesItemsReferenceTable` object."
+                        }
+                      },
+                      "description": "The `attributes` `rules`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `UpdateRulesetRequestDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `UpdateRulesetRequestData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "update_ruleset"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Update ruleset resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of `UpdateRulesetRequestData` object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The definition of `UpdateRulesetRequest` object.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"enabled\": true,\n              \"last_version\": 1,\n              \"name\": \"Updated Ruleset\",\n              \"rules\": [\n                {\n                  \"enabled\": true,\n                  \"mapping\": null,\n                  \"metadata\": null,\n                  \"name\": \"Add Cost Center Tag\",\n                  \"query\": {\n                    \"addition\": {\n                      \"key\": \"cost_center\",\n                      \"value\": \"engineering\"\n                    },\n                    \"case_insensitivity\": false,\n                    \"if_not_exists\": true,\n                    \"query\": \"account_id:\\\"123456789\\\" AND service:\\\"web-api\\\"\"\n                  },\n                  \"reference_table\": null\n                },\n                {\n                  \"enabled\": true,\n                  \"mapping\": {\n                    \"destination_key\": \"team_owner\",\n                    \"if_not_exists\": true,\n                    \"source_keys\": [\n                      \"account_name\",\n                      \"account_id\"\n                    ]\n                  },\n                  \"metadata\": null,\n                  \"name\": \"Account Name Mapping\",\n                  \"query\": null,\n                  \"reference_table\": null\n                },\n                {\n                  \"enabled\": true,\n                  \"mapping\": null,\n                  \"metadata\": null,\n                  \"name\": \"New table rule with new UI\",\n                  \"query\": null,\n                  \"reference_table\": {\n                    \"case_insensitivity\": true,\n                    \"field_pairs\": [\n                      {\n                        \"input_column\": \"status_type\",\n                        \"output_key\": \"status\"\n                      },\n                      {\n                        \"input_column\": \"status_description\",\n                        \"output_key\": \"dess\"\n                      }\n                    ],\n                    \"if_not_exists\": false,\n                    \"source_keys\": [\n                      \"http_status\",\n                      \"status_description\"\n                    ],\n                    \"table_name\": \"http_status_codes\"\n                  }\n                }\n              ]\n            },\n            \"type\": \"update_ruleset\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The definition of `UpdateRulesetRequestData` object.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The definition of `UpdateRulesetRequestDataAttributes` object.\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"description\": \"The `attributes` `enabled`.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"last_version\": {\n                    \"description\": \"The `attributes` `last_version`.\",\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"rules\": {\n                    \"description\": \"The `attributes` `rules`.\",\n                    \"items\": {\n                      \"description\": \"The definition of `UpdateRulesetRequestDataAttributesRulesItems` object.\",\n                      \"properties\": {\n                        \"enabled\": {\n                          \"description\": \"The `items` `enabled`.\",\n                          \"example\": false,\n                          \"type\": \"boolean\"\n                        },\n                        \"mapping\": {\n                          \"description\": \"The definition of `UpdateRulesetRequestDataAttributesRulesItemsMapping` object.\",\n                          \"nullable\": true,\n                          \"properties\": {\n                            \"destination_key\": {\n                              \"description\": \"The `mapping` `destination_key`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"if_not_exists\": {\n                              \"description\": \"The `mapping` `if_not_exists`.\",\n                              \"example\": false,\n                              \"type\": \"boolean\"\n                            },\n                            \"source_keys\": {\n                              \"description\": \"The `mapping` `source_keys`.\",\n                              \"example\": [\n                                \"\"\n                              ],\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"type\": \"array\"\n                            }\n                          },\n                          \"required\": [\n                            \"destination_key\",\n                            \"if_not_exists\",\n                            \"source_keys\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"metadata\": {\n                          \"additionalProperties\": {\n                            \"type\": \"string\"\n                          },\n                          \"description\": \"The `items` `metadata`.\",\n                          \"nullable\": true,\n                          \"type\": \"object\"\n                        },\n                        \"name\": {\n                          \"description\": \"The `items` `name`.\",\n                          \"example\": \"\",\n                          \"type\": \"string\"\n                        },\n                        \"query\": {\n                          \"description\": \"The definition of `UpdateRulesetRequestDataAttributesRulesItemsQuery` object.\",\n                          \"nullable\": true,\n                          \"properties\": {\n                            \"addition\": {\n                              \"description\": \"The definition of `UpdateRulesetRequestDataAttributesRulesItemsQueryAddition` object.\",\n                              \"nullable\": true,\n                              \"properties\": {\n                                \"key\": {\n                                  \"description\": \"The `addition` `key`.\",\n                                  \"example\": \"\",\n                                  \"type\": \"string\"\n                                },\n                                \"value\": {\n                                  \"description\": \"The `addition` `value`.\",\n                                  \"example\": \"\",\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"required\": [\n                                \"key\",\n                                \"value\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"case_insensitivity\": {\n                              \"description\": \"The `query` `case_insensitivity`.\",\n                              \"type\": \"boolean\"\n                            },\n                            \"if_not_exists\": {\n                              \"description\": \"The `query` `if_not_exists`.\",\n                              \"example\": false,\n                              \"type\": \"boolean\"\n                            },\n                            \"query\": {\n                              \"description\": \"The `query` `query`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"addition\",\n                            \"if_not_exists\",\n                            \"query\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"reference_table\": {\n                          \"description\": \"The definition of `UpdateRulesetRequestDataAttributesRulesItemsReferenceTable` object.\",\n                          \"nullable\": true,\n                          \"properties\": {\n                            \"case_insensitivity\": {\n                              \"description\": \"The `reference_table` `case_insensitivity`.\",\n                              \"type\": \"boolean\"\n                            },\n                            \"field_pairs\": {\n                              \"description\": \"The `reference_table` `field_pairs`.\",\n                              \"items\": {\n                                \"description\": \"The definition of `UpdateRulesetRequestDataAttributesRulesItemsReferenceTableFieldPairsItems` object.\",\n                                \"properties\": {\n                                  \"input_column\": {\n                                    \"description\": \"The `items` `input_column`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"output_key\": {\n                                    \"description\": \"The `items` `output_key`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"input_column\",\n                                  \"output_key\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"if_not_exists\": {\n                              \"description\": \"The `reference_table` `if_not_exists`.\",\n                              \"type\": \"boolean\"\n                            },\n                            \"source_keys\": {\n                              \"description\": \"The `reference_table` `source_keys`.\",\n                              \"example\": [\n                                \"\"\n                              ],\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"table_name\": {\n                              \"description\": \"The `reference_table` `table_name`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"field_pairs\",\n                            \"source_keys\",\n                            \"table_name\"\n                          ],\n                          \"type\": \"object\"\n                        }\n                      },\n                      \"required\": [\n                        \"enabled\",\n                        \"name\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"enabled\",\n                  \"rules\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The `UpdateRulesetRequestData` `id`.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"update_ruleset\",\n                \"description\": \"Update ruleset resource type.\",\n                \"enum\": [\n                  \"update_ruleset\"\n                ],\n                \"example\": \"update_ruleset\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"UPDATE_RULESET\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

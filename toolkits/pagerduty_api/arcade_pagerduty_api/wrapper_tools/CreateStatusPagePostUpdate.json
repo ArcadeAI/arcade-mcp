@@ -1,0 +1,588 @@
+{
+  "name": "CreateStatusPagePostUpdate",
+  "fully_qualified_name": "PagerdutyApi.CreateStatusPagePostUpdate@2.0.0",
+  "description": "Create a post update for a specific status page post.\n\nThis tool creates an update for a post on a status page by providing the post ID. Use it to communicate changes or progress in ongoing incidents or updates.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier of the resource you are targeting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "status_page_post_id",
+        "required": true,
+        "description": "The ID of the Status Page Post for which the update is created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "post_id"
+      },
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "The versioning header to specify the API version for the request. Use a string format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "post_update_attributes",
+        "required": false,
+        "description": "JSON object containing details for creating or updating a post update, including message, status, severity, impacted services, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "post_update": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "self": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The path to which the Post Update resource is accessible."
+                },
+                "post": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page post unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page Post"
+                },
+                "message": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The message of the Post Update."
+                },
+                "status": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page Status unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page Status"
+                },
+                "severity": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page Severity unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page Severity"
+                },
+                "impacted_services": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "service": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "An unique identifier within Status Page scope that defines a Service entry."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The type of the object returned by the API - in this case, a Status Page Service."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Status Page Service"
+                    },
+                    "impact": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "An unique identifier within Status Page scope that defines a Status Page Impact entry."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The type of the object returned by the API - in this case, a Status Page Impact."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Status Page Impact"
+                    }
+                  },
+                  "description": "Impacted services represent the status page services affected by a post update, and its impact."
+                },
+                "update_frequency_ms": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The frequency of the next Post Update in milliseconds."
+                },
+                "notify_subscribers": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Determines if the subscribers should be notified of the Post Update."
+                },
+                "reported_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the Post Update was reported."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the object returned by the API - in this case, a Status Page Post Update."
+                }
+              },
+              "inner_properties": null,
+              "description": "Attributes for Post Update creation/update"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createStatusPagePostUpdate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/status_pages/{id}/posts/{post_id}/post_updates",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "post_id",
+        "tool_parameter_name": "status_page_post_id",
+        "description": "The ID of the Status Page Post.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "post_update_attributes",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "post_update": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "self": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The path to which the Post Update resource is accessible."
+                },
+                "post": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page post unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page Post"
+                },
+                "message": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The message of the Post Update."
+                },
+                "status": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page Status unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page Status"
+                },
+                "severity": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page Severity unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page Severity"
+                },
+                "impacted_services": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "service": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "An unique identifier within Status Page scope that defines a Service entry."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The type of the object returned by the API - in this case, a Status Page Service."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Status Page Service"
+                    },
+                    "impact": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "An unique identifier within Status Page scope that defines a Status Page Impact entry."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The type of the object returned by the API - in this case, a Status Page Impact."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Status Page Impact"
+                    }
+                  },
+                  "description": "Impacted services represent the status page services affected by a post update, and its impact."
+                },
+                "update_frequency_ms": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The frequency of the next Post Update in milliseconds."
+                },
+                "notify_subscribers": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Determines if the subscribers should be notified of the Post Update."
+                },
+                "reported_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the Post Update was reported."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the object returned by the API - in this case, a Status Page Post Update."
+                }
+              },
+              "inner_properties": null,
+              "description": "Attributes for Post Update creation/update"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"post_update\": {\n            \"type\": \"object\",\n            \"title\": \"StatusPagePostUpdateRequest\",\n            \"description\": \"Attributes for Post Update creation/update\",\n            \"properties\": {\n              \"self\": {\n                \"type\": \"string\",\n                \"description\": \"The path to which the Post Update resource is accessible.\",\n                \"nullable\": false,\n                \"readOnly\": true\n              },\n              \"post\": {\n                \"description\": \"Status Page Post\",\n                \"nullable\": false,\n                \"properties\": {\n                  \"id\": {\n                    \"description\": \"Status page post unique identifier\",\n                    \"type\": \"string\"\n                  },\n                  \"type\": {\n                    \"description\": \"A string that determines the schema of the object.\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"id\"\n                ],\n                \"type\": \"object\"\n              },\n              \"message\": {\n                \"type\": \"string\",\n                \"description\": \"The message of the Post Update.\",\n                \"nullable\": false\n              },\n              \"status\": {\n                \"description\": \"Status Page Status\",\n                \"nullable\": false,\n                \"properties\": {\n                  \"id\": {\n                    \"description\": \"Status page Status unique identifier\",\n                    \"type\": \"string\"\n                  },\n                  \"type\": {\n                    \"description\": \"A string that determines the schema of the object.\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"id\"\n                ],\n                \"type\": \"object\"\n              },\n              \"severity\": {\n                \"description\": \"Status Page Severity\",\n                \"nullable\": false,\n                \"properties\": {\n                  \"id\": {\n                    \"description\": \"Status page Severity unique identifier\",\n                    \"type\": \"string\"\n                  },\n                  \"type\": {\n                    \"description\": \"A string that determines the schema of the object.\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"id\"\n                ],\n                \"type\": \"object\"\n              },\n              \"impacted_services\": {\n                \"type\": \"array\",\n                \"description\": \"Impacted services represent the status page services affected by a post update, and its impact.\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"title\": \"StatusPagePostUpdateImpact\",\n                  \"description\": \"Status Page Post Update Impact\",\n                  \"properties\": {\n                    \"service\": {\n                      \"description\": \"Status Page Service\",\n                      \"nullable\": false,\n                      \"properties\": {\n                        \"id\": {\n                          \"type\": \"string\",\n                          \"description\": \"An unique identifier within Status Page scope that defines a Service entry.\",\n                          \"nullable\": false,\n                          \"readOnly\": true\n                        },\n                        \"type\": {\n                          \"type\": \"string\",\n                          \"description\": \"The type of the object returned by the API - in this case, a Status Page Service.\"\n                        }\n                      }\n                    },\n                    \"impact\": {\n                      \"description\": \"Status Page Impact\",\n                      \"nullable\": false,\n                      \"properties\": {\n                        \"id\": {\n                          \"type\": \"string\",\n                          \"description\": \"An unique identifier within Status Page scope that defines a Status Page Impact entry.\",\n                          \"nullable\": false,\n                          \"readOnly\": true\n                        },\n                        \"type\": {\n                          \"type\": \"string\",\n                          \"description\": \"The type of the object returned by the API - in this case, a Status Page Impact.\"\n                        }\n                      }\n                    }\n                  }\n                },\n                \"minItems\": 0\n              },\n              \"update_frequency_ms\": {\n                \"type\": \"integer\",\n                \"description\": \"The frequency of the next Post Update in milliseconds.\",\n                \"nullable\": true\n              },\n              \"notify_subscribers\": {\n                \"type\": \"boolean\",\n                \"description\": \"Determines if the subscribers should be notified of the Post Update.\",\n                \"nullable\": false\n              },\n              \"reported_at\": {\n                \"type\": \"string\",\n                \"description\": \"The date and time the Post Update was reported.\",\n                \"nullable\": true,\n                \"format\": \"date-time\"\n              },\n              \"type\": {\n                \"type\": \"string\",\n                \"description\": \"The type of the object returned by the API - in this case, a Status Page Post Update.\"\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"message\",\n              \"status\",\n              \"severity\",\n              \"update_frequency_ms\",\n              \"notify_subscribers\",\n              \"impacted_services\",\n              \"post\"\n            ]\n          }\n        },\n        \"required\": [\n          \"post_update\"\n        ]\n      },\n      \"example\": {\n        \"post_update\": {\n          \"impacted_services\": [\n            {\n              \"impact\": {\n                \"id\": \"PY5OM08\",\n                \"type\": \"status_page_impact\"\n              },\n              \"service\": {\n                \"id\": \"PYHMEI3\",\n                \"type\": \"status_page_service\"\n              }\n            }\n          ],\n          \"message\": \"<p>Message</p>\",\n          \"notify_subscribers\": false,\n          \"post\": {\n            \"id\": \"P6F2CJ3\",\n            \"type\": \"status_page_post\"\n          },\n          \"severity\": {\n            \"id\": \"PY5OM08\",\n            \"type\": \"status_page_severity\"\n          },\n          \"status\": {\n            \"id\": \"P0400H4\",\n            \"type\": \"status_page_status\"\n          },\n          \"type\": \"status_page_post_update\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

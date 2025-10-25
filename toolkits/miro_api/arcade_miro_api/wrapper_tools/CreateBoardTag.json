@@ -1,0 +1,197 @@
+{
+  "name": "CreateBoardTag",
+  "fully_qualified_name": "MiroApi.CreateBoardTag@2.0.0",
+  "description": "Create a tag on a Miro board.\n\nThis tool is used to create a tag on a specified Miro board. It should be called when there's a need to organize or categorize elements on a board by adding a new tag.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_unique_id",
+        "required": true,
+        "description": "The unique identifier (ID) of the Miro board where the tag will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to create the tag."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "tag_title",
+        "required": true,
+        "description": "Unique, case-sensitive text for the tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Text of the tag. Case-sensitive. Must be unique."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "title"
+      },
+      {
+        "name": "tag_fill_color",
+        "required": false,
+        "description": "The fill color of the tag. Choose from options: red, light_green, cyan, yellow, magenta, green, blue, gray, violet, dark_green, dark_blue, black.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "red",
+            "light_green",
+            "cyan",
+            "yellow",
+            "magenta",
+            "green",
+            "blue",
+            "gray",
+            "violet",
+            "dark_green",
+            "dark_blue",
+            "black"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fill color for the tag."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fillColor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-tag'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/tags",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_unique_id",
+        "description": "Unique identifier (ID) of the board where you want to create the tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to create the tag."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fillColor",
+        "tool_parameter_name": "tag_fill_color",
+        "description": "Fill color for the tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "red",
+            "light_green",
+            "cyan",
+            "yellow",
+            "magenta",
+            "green",
+            "blue",
+            "gray",
+            "violet",
+            "dark_green",
+            "dark_blue",
+            "black"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fill color for the tag."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "red",
+        "documentation_urls": []
+      },
+      {
+        "name": "title",
+        "tool_parameter_name": "tag_title",
+        "description": "Text of the tag. Case-sensitive. Must be unique.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Text of the tag. Case-sensitive. Must be unique."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"fillColor\": {\n            \"type\": \"string\",\n            \"default\": \"red\",\n            \"description\": \"Fill color for the tag.\",\n            \"enum\": [\n              \"red\",\n              \"light_green\",\n              \"cyan\",\n              \"yellow\",\n              \"magenta\",\n              \"green\",\n              \"blue\",\n              \"gray\",\n              \"violet\",\n              \"dark_green\",\n              \"dark_blue\",\n              \"black\"\n            ]\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"description\": \"Text of the tag. Case-sensitive. Must be unique.\",\n            \"example\": \"to do\",\n            \"maxLength\": 120,\n            \"minLength\": 0\n          }\n        },\n        \"required\": [\n          \"title\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

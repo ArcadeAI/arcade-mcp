@@ -1,18 +1,18 @@
 {
   "name": "AddGroupToCustomer",
-  "fully_qualified_name": "SquareupApi.AddGroupToCustomer@0.1.0",
-  "description": "Add a customer to a specific group.\n\nUse this tool to assign a specified customer to a particular group by providing the customer's ID and the group's ID.",
+  "fully_qualified_name": "SquareupApi.AddGroupToCustomer@2.0.0",
+  "description": "Adds a customer to a specified group.\n\nUse this tool to assign a customer to a specific group using their customer ID and the group ID. This helps in categorizing customers into different groups for better management.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "customer_id",
         "required": true,
-        "description": "The unique identifier for the customer to be added to a group. It must match an existing customer ID.",
+        "description": "The unique identifier of the customer to be added to the specified group.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "customer_group_id",
         "required": true,
-        "description": "The ID of the customer group to which the customer will be added. This should be a valid group ID.",
+        "description": "The unique identifier of the group to which the customer will be added. This is necessary to specify the exact group for categorization purposes.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/customers/{customer_id}/groups/{group_id}",
@@ -102,6 +102,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -119,6 +120,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

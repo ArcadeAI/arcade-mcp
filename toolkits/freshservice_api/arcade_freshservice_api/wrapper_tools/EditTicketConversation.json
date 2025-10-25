@@ -1,0 +1,521 @@
+{
+  "name": "EditTicketConversation",
+  "fully_qualified_name": "FreshserviceApi.EditTicketConversation@1.0.0",
+  "description": "Edit a conversation in a Freshservice ticket.\n\nUse this tool to edit the conversation on an existing Freshservice ticket. It is useful for updating information, correcting errors, or adding new details to a specific conversation within a ticket.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "ticket_identifier",
+        "required": true,
+        "description": "Integer representing the ID of the ticket whose conversation needs editing.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the ticket for which conversation has to be deleted"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ticket_id"
+      },
+      {
+        "name": "conversation_id",
+        "required": true,
+        "description": "ID of the reply or note that needs to be updated in the Freshservice ticket.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the reply or note that needs to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "conversation_id"
+      },
+      {
+        "name": "conversation_details",
+        "required": true,
+        "description": "JSON object containing details like IDs, body, timestamps, and email details for the conversation to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the conversatoin"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the user who created the note"
+            },
+            "source": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Source of the note, 0-email, 1-form, 2-note, 3-status, 4-meta, 5-feedback, 6-forward_email)"
+            },
+            "incoming": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to true if a particular conversation should appear as being created from the outside (i.e., not through the web portal)"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date time at which the conversation is created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date time at which the conversation is updated"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "body_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "attachments": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Auto increment value"
+                },
+                "content_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "size": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Size of the attached file"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attachment"
+                },
+                "attachment_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "URL of the attachment"
+                }
+              },
+              "description": null
+            },
+            "change_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the change to which the note belongs"
+            },
+            "ticket_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the ticket to which the note belongs"
+            },
+            "from_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "to_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses to which the conversation must be sent"
+            },
+            "cc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses which must be copied on while sending the conversation"
+            },
+            "bcc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses to which a blind copy must be sent"
+            }
+          },
+          "inner_properties": null,
+          "description": "details of the conversation to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-ticket-conversation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/conversations/{conversation_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "ticket_id",
+        "tool_parameter_name": "ticket_identifier",
+        "description": "ID of the ticket for which conversation has to be deleted",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the ticket for which conversation has to be deleted"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "conversation_id",
+        "tool_parameter_name": "conversation_id",
+        "description": "ID of the reply or note that needs to be updated",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the reply or note that needs to be updated"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "conversation_details",
+        "description": "details of the conversation to be updated",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the conversatoin"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the user who created the note"
+            },
+            "source": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Source of the note, 0-email, 1-form, 2-note, 3-status, 4-meta, 5-feedback, 6-forward_email)"
+            },
+            "incoming": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to true if a particular conversation should appear as being created from the outside (i.e., not through the web portal)"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date time at which the conversation is created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date time at which the conversation is updated"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "body_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "attachments": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Auto increment value"
+                },
+                "content_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "size": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Size of the attached file"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attachment"
+                },
+                "attachment_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "URL of the attachment"
+                }
+              },
+              "description": null
+            },
+            "change_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the change to which the note belongs"
+            },
+            "ticket_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the ticket to which the note belongs"
+            },
+            "from_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "to_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses to which the conversation must be sent"
+            },
+            "cc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses which must be copied on while sending the conversation"
+            },
+            "bcc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses to which a blind copy must be sent"
+            }
+          },
+          "inner_properties": null,
+          "description": "details of the conversation to be updated"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"details of the conversation to be updated\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the conversatoin\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 140003948573\n          },\n          \"user_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the user who created the note\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000495822\n          },\n          \"source\": {\n            \"type\": \"integer\",\n            \"description\": \"Source of the note, 0-email, 1-form, 2-note, 3-status, 4-meta, 5-feedback, 6-forward_email)\",\n            \"format\": \"int32\",\n            \"readOnly\": true,\n            \"example\": 1,\n            \"enum\": [\n              0,\n              1,\n              2,\n              3,\n              4,\n              5,\n              6\n            ]\n          },\n          \"incoming\": {\n            \"type\": \"boolean\",\n            \"description\": \"Set to true if a particular conversation should appear as being created from the outside (i.e., not through the web portal)\",\n            \"example\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Date time at which the conversation is created\",\n            \"format\": \"date_time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Date time at which the conversation is updated\",\n            \"format\": \"date_time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"body\": {\n            \"type\": \"string\",\n            \"example\": \"<p>Thanks for swift response</p>\"\n          },\n          \"body_text\": {\n            \"type\": \"string\",\n            \"example\": \"Thanks for swift response\"\n          },\n          \"attachments\": {\n            \"type\": \"array\",\n            \"readOnly\": true,\n            \"example\": [\n              {\n                \"id\": 14000884384,\n                \"content_type\": \"application/pdf\",\n                \"size\": 1024,\n                \"name\": \"doc1.pdf\",\n                \"attachment_url\": \"https://s3.amazonaws.com/fs/doc1.pdf\"\n              }\n            ],\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"integer\",\n                  \"description\": \"Auto increment value\",\n                  \"format\": \"int64\",\n                  \"readOnly\": true,\n                  \"example\": 14000884384\n                },\n                \"content_type\": {\n                  \"type\": \"string\",\n                  \"example\": \"application/pdf\"\n                },\n                \"size\": {\n                  \"type\": \"number\",\n                  \"description\": \"Size of the attached file\",\n                  \"readOnly\": true,\n                  \"example\": 1024.0\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"Name of the attachment\",\n                  \"example\": \"doc1.pdf\"\n                },\n                \"attachment_url\": {\n                  \"type\": \"string\",\n                  \"description\": \"URL of the attachment\",\n                  \"example\": \"https://s3.amazonaws.com/fs/doc1.pdf\"\n                }\n              }\n            }\n          },\n          \"change_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the change to which the note belongs\",\n            \"format\": \"int64\",\n            \"example\": 140003498\n          },\n          \"ticket_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the ticket to which the note belongs\",\n            \"format\": \"int64\",\n            \"example\": 140002938232\n          },\n          \"from_email\": {\n            \"type\": \"string\",\n            \"example\": \"andrea@freshservice.com\"\n          },\n          \"to_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Addresses to which the conversation must be sent\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"john.doe@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"cc_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Addresses which must be copied on while sending the conversation\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"john.doe@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"bcc_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Addresses to which a blind copy must be sent\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"john.doe@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

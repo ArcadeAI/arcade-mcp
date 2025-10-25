@@ -1,18 +1,18 @@
 {
   "name": "GetMemberNotifications",
-  "fully_qualified_name": "TrelloApi.GetMemberNotifications@0.1.0",
-  "description": "Retrieve notifications for a specific Trello member.\n\nUse this tool to get notifications for a specific member on Trello by providing their member ID.",
+  "fully_qualified_name": "TrelloApi.GetMemberNotifications@2.0.0",
+  "description": "Retrieve a Trello member's notifications.\n\nUse this tool to fetch notifications for a specific Trello member by their ID. Call this when you need to access recent alerts or updates for a member on Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "member_id_or_username",
+        "name": "member_identifier",
         "required": true,
-        "description": "The ID or username of the Trello member to get notifications for.",
+        "description": "The ID or username of the Trello member to fetch notifications for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "notification_filter",
         "required": false,
-        "description": "Filters notifications by type. Accepts a comma-separated list of types like `addMemberToCard`, `commentCard`, etc.",
+        "description": "Specify the type of notifications to retrieve: all, createCard, commentCard, etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "filter"
       },
       {
-        "name": "notification_read_status",
+        "name": "notification_read_status_filter",
         "required": false,
-        "description": "Filter notifications by read status: `all`, `read`, or `unread`.",
+        "description": "Specify read status to filter notifications: `all`, `read`, or `unread`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "notification_limit",
         "required": false,
-        "description": "Specify the number of notifications to retrieve, up to a maximum of 1000.",
+        "description": "The maximum number of notifications to retrieve, capped at 1000.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "notification_page",
+        "name": "page_number",
         "required": false,
-        "description": "Specify the page number of notifications to retrieve, with a maximum value of 100.",
+        "description": "The page number for pagination. Maximum value is 100.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -102,7 +102,7 @@
       {
         "name": "notification_id_before",
         "required": false,
-        "description": "A notification ID to fetch notifications received before this ID.",
+        "description": "Set to retrieve notifications sent before this specific notification ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,7 +117,7 @@
       {
         "name": "since_notification_id",
         "required": false,
-        "description": "The notification ID to start retrieving notifications from.",
+        "description": "A notification ID to start retrieving notifications from. Useful for fetching notifications after a specific point.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -132,7 +132,7 @@
       {
         "name": "member_creator_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of member field names to include data about the creator of the notification.",
+        "description": "Specify 'all' or provide a comma-separated list of member fields to include in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -147,7 +147,7 @@
       {
         "name": "include_entities",
         "required": false,
-        "description": "Set to 'true' to include entities in notifications; 'false' to exclude them.",
+        "description": "Include entities in the member's notifications when set to true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -160,9 +160,9 @@
         "http_endpoint_parameter_name": "entities"
       },
       {
-        "name": "show_display",
+        "name": "include_display",
         "required": false,
-        "description": "Set to true to display notifications, otherwise notifications are not shown.",
+        "description": "Boolean to include display-related data in the response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -175,9 +175,9 @@
         "http_endpoint_parameter_name": "display"
       },
       {
-        "name": "include_member_creator",
+        "name": "include_member_creator_details",
         "required": false,
-        "description": "Include the member who created the notification in the response when true.",
+        "description": "A boolean to include details of the member who created the notifications. True to include, False to exclude.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -222,13 +222,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/notifications",
@@ -250,11 +250,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "display",
-        "tool_parameter_name": "show_display",
+        "tool_parameter_name": "include_display",
         "description": "",
         "value_schema": {
           "val_type": "boolean",
@@ -267,6 +268,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -284,11 +286,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
         "name": "read_filter",
-        "tool_parameter_name": "notification_read_status",
+        "tool_parameter_name": "notification_read_status_filter",
         "description": "One of: `all`, `read`, `unread`",
         "value_schema": {
           "val_type": "string",
@@ -301,6 +304,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -318,6 +322,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -335,11 +340,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "50",
         "documentation_urls": []
       },
       {
         "name": "page",
-        "tool_parameter_name": "notification_page",
+        "tool_parameter_name": "page_number",
         "description": "Max 100",
         "value_schema": {
           "val_type": "integer",
@@ -352,6 +358,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "0",
         "documentation_urls": []
       },
       {
@@ -369,6 +376,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -386,11 +394,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "memberCreator",
-        "tool_parameter_name": "include_member_creator",
+        "tool_parameter_name": "include_member_creator_details",
         "description": "",
         "value_schema": {
           "val_type": "boolean",
@@ -403,6 +412,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
@@ -420,11 +430,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "avatarHash,fullName,initials,username",
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "member_id_or_username",
+        "tool_parameter_name": "member_identifier",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",
@@ -437,6 +448,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -458,6 +470,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

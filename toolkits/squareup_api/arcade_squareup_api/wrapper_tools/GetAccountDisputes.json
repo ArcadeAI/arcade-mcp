@@ -1,18 +1,18 @@
 {
   "name": "GetAccountDisputes",
-  "fully_qualified_name": "SquareupApi.GetAccountDisputes@0.1.0",
-  "description": "Fetches disputes associated with an account.\n\nUse this tool to retrieve all disputes linked to a specific account. This can help in tracking and managing any disputes that have arisen.",
+  "fully_qualified_name": "SquareupApi.GetAccountDisputes@2.0.0",
+  "description": "Retrieve a list of disputes for an account.\n\nUse this tool to obtain a list of disputes related to a specific account. It is useful for managing and reviewing disputes.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A cursor for retrieving the next set of dispute results from a previous query.",
+        "description": "A string cursor from a previous call to retrieve the next set of dispute results. See [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "dispute_states_filter",
         "required": false,
-        "description": "Filter disputes by their states. Options include 'INQUIRY_EVIDENCE_REQUIRED', 'INQUIRY_PROCESSING', 'INQUIRY_CLOSED', 'EVIDENCE_REQUIRED', 'PROCESSING', 'WON', 'LOST', 'ACCEPTED'.",
+        "description": "Specify dispute states to filter the results. Options: INQUIRY_EVIDENCE_REQUIRED, INQUIRY_PROCESSING, INQUIRY_CLOSED, EVIDENCE_REQUIRED, PROCESSING, WON, LOST, ACCEPTED. Defaults to all states if not provided.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -49,9 +49,9 @@
         "http_endpoint_parameter_name": "states"
       },
       {
-        "name": "location_identifier",
+        "name": "location_id",
         "required": false,
-        "description": "The ID of the location to return a list of disputes for. If not provided, returns disputes for all locations.",
+        "description": "The unique ID of the location to filter disputes for. If omitted, disputes from all locations are returned.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -98,13 +98,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/disputes",
@@ -126,6 +126,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -152,11 +153,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "location_id",
-        "tool_parameter_name": "location_identifier",
+        "tool_parameter_name": "location_id",
         "description": "The ID of the location for which to return a list of disputes.\nIf not specified, the endpoint returns disputes associated with all locations.",
         "value_schema": {
           "val_type": "string",
@@ -169,6 +171,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -182,6 +185,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

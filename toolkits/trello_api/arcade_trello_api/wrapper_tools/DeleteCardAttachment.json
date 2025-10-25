@@ -1,18 +1,18 @@
 {
   "name": "DeleteCardAttachment",
-  "fully_qualified_name": "TrelloApi.DeleteCardAttachment@0.1.0",
-  "description": "Delete an attachment from a Trello card.\n\nUse this tool to remove an attachment from a specified Trello card. It should be called when you need to delete an attachment from a card, identified by its card ID and attachment ID.",
+  "fully_qualified_name": "TrelloApi.DeleteCardAttachment@2.0.0",
+  "description": "Delete an attachment from a Trello card.\n\nUse this tool to remove an attachment from a specified Trello card by providing the card ID and attachment ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier of the Trello card from which the attachment will be deleted.",
+        "description": "The unique identifier for the Trello card from which the attachment will be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "attachment_id_to_delete",
         "required": true,
-        "description": "The ID of the attachment you want to delete from the specified Trello card.",
+        "description": "The ID of the attachment you want to delete from the card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}/attachments/{idAttachment}",
@@ -100,6 +100,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,285 @@
+{
+  "name": "FreshserviceCreateProject",
+  "fully_qualified_name": "FreshserviceApi.FreshserviceCreateProject@1.0.0",
+  "description": "Create a new project in Freshservice.\n\nCall this tool to create a new project in Freshservice. Ideal for setting up project management tasks or when beginning a new initiative within Freshservice.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_details",
+        "required": true,
+        "description": "JSON object containing details of the project to be created, including id, title, description, status, priority, owner_id, user_id, start_date, end_date, archived, and closed_at.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the project"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the project"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the project in HTML format"
+            },
+            "description_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the project in text format"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the project"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Priority of the project"
+            },
+            "owner_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Owner of the project"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "User who created the project"
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date of the project"
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End date of the project"
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Project archived status"
+            },
+            "closed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Closed time of the project"
+            }
+          },
+          "inner_properties": null,
+          "description": "project that needs to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-project'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/projects",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "project_details",
+        "description": "project that needs to be created",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the project"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the project"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the project in HTML format"
+            },
+            "description_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the project in text format"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the project"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Priority of the project"
+            },
+            "owner_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Owner of the project"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "User who created the project"
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date of the project"
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End date of the project"
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Project archived status"
+            },
+            "closed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Closed time of the project"
+            }
+          },
+          "inner_properties": null,
+          "description": "project that needs to be created"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": "{\n  \"description\": \"project that needs to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the project\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 13298\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the project\",\n            \"example\": \"Solution Articles for Ticket\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description about the project in HTML format\",\n            \"example\": \"<div>Publish solution articles for Ticket</div>\"\n          },\n          \"description_text\": {\n            \"type\": \"string\",\n            \"description\": \"Description about the project in text format\",\n            \"readOnly\": true,\n            \"example\": \"Publish solution articles for Ticket\"\n          },\n          \"status\": {\n            \"type\": \"integer\",\n            \"description\": \"Status of the project\",\n            \"format\": \"int32\",\n            \"example\": 2\n          },\n          \"priority\": {\n            \"type\": \"integer\",\n            \"description\": \"Priority of the project\",\n            \"format\": \"int32\",\n            \"example\": 1\n          },\n          \"owner_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Owner of the project\",\n            \"format\": \"int64\",\n            \"example\": 43423\n          },\n          \"user_id\": {\n            \"type\": \"integer\",\n            \"description\": \"User who created the project\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 123123\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"description\": \"Start date of the project\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-04-01T07:16:45Z\"\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"description\": \"End date of the project\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-06-30T07:16:45Z\"\n          },\n          \"archived\": {\n            \"type\": \"boolean\",\n            \"description\": \"Project archived status\",\n            \"readOnly\": true,\n            \"example\": true\n          },\n          \"closed_at\": {\n            \"type\": \"string\",\n            \"description\": \"Closed time of the project\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-06-11T07:16:45Z\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

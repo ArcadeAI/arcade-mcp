@@ -1,0 +1,239 @@
+{
+  "name": "SubmitPrepaymentBalances",
+  "fully_qualified_name": "VercelApi.SubmitPrepaymentBalances@0.1.0",
+  "description": "Submit prepayment balances to Vercel for billing.\n\nThis tool sends prepayment balances to Vercel, which should be done at least daily, but ideally hourly. It requires the access token provided during the installation process for authorization.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "integration_configuration_id",
+        "required": true,
+        "description": "The unique identifier for the integration configuration. Use the ID provided during the integration setup.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "integrationConfigurationId"
+      },
+      {
+        "name": "prepayment_balances_request",
+        "required": false,
+        "description": "JSON object containing 'timestamp' and 'balances', with balances as an array of credit details including 'resourceId', 'credit', 'nameLabel', and 'currencyValueInCents'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "timestamp": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Server time of your integration, used to determine the most recent data for race conditions & updates. Only the latest usage data for a given day, week, and month will be kept."
+            },
+            "balances": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "resourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's resource ID, exclude if credits are tied to the installation and not an individual resource."
+                },
+                "credit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A human-readable description of the credits the user currently has, e.g. \\\"2,000 Tokens\\\""
+                },
+                "nameLabel": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the credits, for display purposes, e.g. \\\"Tokens\\\""
+                },
+                "currencyValueInCents": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The dollar value of the credit balance, in USD and provided in cents, which is used to trigger automatic purchase thresholds."
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'submit-prepayment-balances'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/installations/{integrationConfigurationId}/billing/balance",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "integrationConfigurationId",
+        "tool_parameter_name": "integration_configuration_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "prepayment_balances_request",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "timestamp": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Server time of your integration, used to determine the most recent data for race conditions & updates. Only the latest usage data for a given day, week, and month will be kept."
+            },
+            "balances": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "resourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's resource ID, exclude if credits are tied to the installation and not an individual resource."
+                },
+                "credit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A human-readable description of the credits the user currently has, e.g. \\\"2,000 Tokens\\\""
+                },
+                "nameLabel": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the credits, for display purposes, e.g. \\\"Tokens\\\""
+                },
+                "currencyValueInCents": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The dollar value of the credit balance, in USD and provided in cents, which is used to trigger automatic purchase thresholds."
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"timestamp\": {\n            \"description\": \"Server time of your integration, used to determine the most recent data for race conditions & updates. Only the latest usage data for a given day, week, and month will be kept.\",\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"balances\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"A credit balance for a particular token type\",\n              \"properties\": {\n                \"resourceId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's resource ID, exclude if credits are tied to the installation and not an individual resource.\"\n                },\n                \"credit\": {\n                  \"type\": \"string\",\n                  \"description\": \"A human-readable description of the credits the user currently has, e.g. \\\\\\\"2,000 Tokens\\\\\\\"\"\n                },\n                \"nameLabel\": {\n                  \"type\": \"string\",\n                  \"description\": \"The name of the credits, for display purposes, e.g. \\\\\\\"Tokens\\\\\\\"\"\n                },\n                \"currencyValueInCents\": {\n                  \"type\": \"number\",\n                  \"description\": \"The dollar value of the credit balance, in USD and provided in cents, which is used to trigger automatic purchase thresholds.\"\n                }\n              },\n              \"required\": [\n                \"currencyValueInCents\"\n              ],\n              \"additionalProperties\": false\n            }\n          }\n        },\n        \"required\": [\n          \"timestamp\",\n          \"balances\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "GetTrelloCardProperty",
-  "fully_qualified_name": "TrelloApi.GetTrelloCardProperty@0.1.0",
-  "description": "Retrieve a specific field from a Trello card.\n\nUse this tool to get a specific property or detail of a Trello card by specifying the card ID and the field name you want to retrieve.",
+  "fully_qualified_name": "TrelloApi.GetTrelloCardProperty@2.0.0",
+  "description": "Retrieve a specific property of a Trello card.\n\nUse this tool to get a particular property (field) from a Trello card by specifying the card ID and the desired field.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier of the Trello card to retrieve the property from.",
+        "description": "The unique ID of the Trello card to retrieve a property from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "card_field_name",
+        "name": "desired_card_field",
         "required": true,
-        "description": "Specify which field of the Trello card to retrieve. Must be one of the predefined options such as 'id', 'name', 'url', etc.",
+        "description": "The field or attribute of the Trello card you want to retrieve. Options include 'id', 'desc', 'due', etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -106,13 +106,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}/{field}",
@@ -134,11 +134,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "field",
-        "tool_parameter_name": "card_field_name",
+        "tool_parameter_name": "desired_card_field",
         "description": "The desired field.",
         "value_schema": {
           "val_type": "string",
@@ -185,6 +186,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -206,6 +208,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

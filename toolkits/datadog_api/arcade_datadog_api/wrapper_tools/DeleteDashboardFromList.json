@@ -1,0 +1,223 @@
+{
+  "name": "DeleteDashboardFromList",
+  "fully_qualified_name": "DatadogApi.DeleteDashboardFromList@0.1.0",
+  "description": "Remove dashboards from a specified list in Datadog.\n\nUse this tool to delete one or more dashboards from an existing dashboard list in Datadog by specifying the list ID.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "dashboard_list_identifier",
+        "required": true,
+        "description": "The unique integer ID of the dashboard list from which dashboards will be deleted.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the dashboard list to delete items from."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dashboard_list_id"
+      },
+      {
+        "name": "dashboards_to_delete",
+        "required": true,
+        "description": "A JSON array of dashboards to delete, each with an ID and type. The dashboard type can be 'custom_timeboard', 'custom_screenboard', 'integration_screenboard', 'integration_timeboard', or 'host_timeboard'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dashboards": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the dashboard."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom_timeboard",
+                    "custom_screenboard",
+                    "integration_screenboard",
+                    "integration_timeboard",
+                    "host_timeboard"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the dashboard."
+                }
+              },
+              "description": "List of dashboards to delete from the dashboard list."
+            }
+          },
+          "inner_properties": null,
+          "description": "Dashboards to delete from the dashboard list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteDashboardListItems'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/dashboard/lists/manual/{dashboard_list_id}/dashboards",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "dashboard_list_id",
+        "tool_parameter_name": "dashboard_list_identifier",
+        "description": "ID of the dashboard list to delete items from.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the dashboard list to delete items from."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "dashboards_to_delete",
+        "description": "Dashboards to delete from the dashboard list.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dashboards": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the dashboard."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom_timeboard",
+                    "custom_screenboard",
+                    "integration_screenboard",
+                    "integration_timeboard",
+                    "host_timeboard"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the dashboard."
+                }
+              },
+              "description": "List of dashboards to delete from the dashboard list."
+            }
+          },
+          "inner_properties": null,
+          "description": "Dashboards to delete from the dashboard list."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request containing a list of dashboards to delete.\",\n        \"properties\": {\n          \"dashboards\": {\n            \"description\": \"List of dashboards to delete from the dashboard list.\",\n            \"items\": {\n              \"description\": \"A dashboard within a list.\",\n              \"properties\": {\n                \"id\": {\n                  \"description\": \"ID of the dashboard.\",\n                  \"example\": \"q5j-nti-fv6\",\n                  \"type\": \"string\"\n                },\n                \"type\": {\n                  \"description\": \"The type of the dashboard.\",\n                  \"enum\": [\n                    \"custom_timeboard\",\n                    \"custom_screenboard\",\n                    \"integration_screenboard\",\n                    \"integration_timeboard\",\n                    \"host_timeboard\"\n                  ],\n                  \"example\": \"host_timeboard\",\n                  \"type\": \"string\",\n                  \"x-enum-varnames\": [\n                    \"CUSTOM_TIMEBOARD\",\n                    \"CUSTOM_SCREENBOARD\",\n                    \"INTEGRATION_SCREENBOARD\",\n                    \"INTEGRATION_TIMEBOARD\",\n                    \"HOST_TIMEBOARD\"\n                  ]\n                }\n              },\n              \"required\": [\n                \"type\",\n                \"id\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Dashboards to delete from the dashboard list.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

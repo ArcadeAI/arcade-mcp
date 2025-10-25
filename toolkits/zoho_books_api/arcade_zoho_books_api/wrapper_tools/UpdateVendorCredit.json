@@ -1,0 +1,1031 @@
+{
+  "name": "UpdateVendorCredit",
+  "fully_qualified_name": "ZohoBooksApi.UpdateVendorCredit@0.1.0",
+  "description": "Update an existing vendor credit in Zoho Books.\n\nUse this tool to update the details of a specific vendor credit in Zoho Books. Call this when modifications to vendor credits are needed.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The unique identifier of the organization in Zoho Books. Required to update vendor credit.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "vendor_credit_id",
+        "required": true,
+        "description": "The unique identifier for the vendor credit to be updated. This string is required to locate the specific credit.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the vendor credit."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_credit_id"
+      },
+      {
+        "name": "vendor_credit_details",
+        "required": false,
+        "description": "JSON object containing details for updating the vendor credit, including vendor ID, currency ID, VAT treatment, credit number, and line items.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the vendor contact. Retrieve vendor IDs from the Get Contacts API endpoint in the contacts section. This ID links the vendor credit to the specific vendor record."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the currency used in the vendor credit. Can differ from vendor currency if multi-currency is enabled. Retrieve currency IDs from the List Currencies API endpoint in the currency section."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the vendor credits. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing Goods then his VAT treatment is <code>eu_vat_registered</code>and if he resides outside the EU then his VAT treatment is <code>overseas</code>(For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "vendor_credit_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mandatory if auto number generation is disabled."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the vendor credit. Choose whether the vendor falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.</b></br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the vendor."
+            },
+            "source_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place from where the goods/services are supplied. (If not given, <code>place of contact</code> given for the contact will be taken)"
+            },
+            "destination_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, organisation's home state will be taken)"
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The place of supply is where a transaction is considered to have occurred for VAT purposes. For the supply of goods, the place of supply is the location of the goods when the supply occurs. For the supply of services, the place of supply should be where the supplier is established. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "pricebook_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the pricebook used for pricing items in the vendor credit. Retrieve pricebook IDs from the pricebooks API endpoint."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional reference number for tracking purposes. Can be any custom string or auto-generated. Useful for linking to external systems or internal tracking. Max-Length [100]"
+            },
+            "is_update_customer": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to true to update customer information when creating the vendor credit. This will modify the associated customer record with new details from the vendor credit."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date on which the vendor credit is created. Must be in yyyy-mm-dd format. This date determines the accounting period and affects tax calculations."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for converting the vendor credit currency to base currency. Required when currency differs from base currency. Retrieve rates from currency exchange rate APIs."
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to true if line item rates include tax amounts. When true, tax is already included in the item rates. When false, tax will be calculated and added to the rates."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the business location. Retrieve location IDs from the List Locations API endpoint in the locations section. Determines tax settings and business rules."
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the item in the line item. Retrieve item IDs from the List Items API endpoint in the items section. Links the line item to a specific product or service."
+                },
+                "line_item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the line item within the vendor credit. System-generated ID used for identifying and referencing specific line items in the vendor credit."
+                },
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the chart of accounts entry. Retrieve account IDs from the List Chart of Accounts API endpoint. Determines which account the line item affects for accounting purposes."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name or title of the line item. Describes the product or service being credited. This name is displayed on the vendor credit document."
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "HSN Code"
+                },
+                "reverse_charge_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the reverse charge tax"
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the business location. Retrieve location IDs from the List Locations API endpoint in the locations section. Determines tax settings and business rules."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Detailed description of the line item. Provides additional information about the product or service being credited. Displayed on the vendor credit document."
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sequential order number for the line item. Determines the display order of line items on the vendor credit document. Lower numbers appear first."
+                },
+                "quantity": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of units being credited for this line item. Must be a positive number. Used to calculate the total amount for the line item."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit of measurement for the line item quantity. Examples: kgs, Nos, hours, pieces. Used to specify how the quantity is measured."
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit price or rate for the line item. The amount per unit before taxes and discounts. Used with quantity to calculate the line total."
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the tax applied to the line item. Retrieve tax IDs from the List Taxes API endpoint in the taxes section. Determines tax calculations for this line item."
+                },
+                "tds_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "TDS Tax ID of the Tax associated with the Vendor Credit"
+                },
+                "tax_treatment_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify reason for using out of scope.</br>Supported values for <b>UAE</b> are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for <b>Bahrain</b> are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br> Supported values for <b>KSA</b> are <code>ksa_reimbursed_expense</code>."
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the tag option"
+                    }
+                  },
+                  "description": "Array of tags associated with the line item. Each tag contains tag_id and tag_option_id for categorization and tracking purposes."
+                },
+                "item_custom_fields": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "custom_field_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Custom Field"
+                    },
+                    "label": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Label of the Custom Field"
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Value of the Custom Field"
+                    },
+                    "index": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Index of the Custom Field"
+                    }
+                  },
+                  "description": null
+                },
+                "serial_numbers": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "project_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the project"
+                }
+              },
+              "description": "Line items of a vendor credit."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional notes or comments for the vendor credit. Displayed on the vendor credit document for vendor reference. Max-length [5000]"
+            },
+            "documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "document_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Document"
+                },
+                "file_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the file"
+                }
+              },
+              "description": null
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "custom_field_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Custom Field"
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                },
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_vendor_credit'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.debitnotes.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "vendor_credit_id",
+        "tool_parameter_name": "vendor_credit_id",
+        "description": "Unique identifier of the vendor credit.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the vendor credit."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "vendor_credit_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the vendor contact. Retrieve vendor IDs from the Get Contacts API endpoint in the contacts section. This ID links the vendor credit to the specific vendor record."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the currency used in the vendor credit. Can differ from vendor currency if multi-currency is enabled. Retrieve currency IDs from the List Currencies API endpoint in the currency section."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the vendor credits. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing Goods then his VAT treatment is <code>eu_vat_registered</code>and if he resides outside the EU then his VAT treatment is <code>overseas</code>(For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "vendor_credit_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mandatory if auto number generation is disabled."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the vendor credit. Choose whether the vendor falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.</b></br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the vendor."
+            },
+            "source_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place from where the goods/services are supplied. (If not given, <code>place of contact</code> given for the contact will be taken)"
+            },
+            "destination_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, organisation's home state will be taken)"
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The place of supply is where a transaction is considered to have occurred for VAT purposes. For the supply of goods, the place of supply is the location of the goods when the supply occurs. For the supply of services, the place of supply should be where the supplier is established. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "pricebook_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the pricebook used for pricing items in the vendor credit. Retrieve pricebook IDs from the pricebooks API endpoint."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional reference number for tracking purposes. Can be any custom string or auto-generated. Useful for linking to external systems or internal tracking. Max-Length [100]"
+            },
+            "is_update_customer": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to true to update customer information when creating the vendor credit. This will modify the associated customer record with new details from the vendor credit."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date on which the vendor credit is created. Must be in yyyy-mm-dd format. This date determines the accounting period and affects tax calculations."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for converting the vendor credit currency to base currency. Required when currency differs from base currency. Retrieve rates from currency exchange rate APIs."
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to true if line item rates include tax amounts. When true, tax is already included in the item rates. When false, tax will be calculated and added to the rates."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the business location. Retrieve location IDs from the List Locations API endpoint in the locations section. Determines tax settings and business rules."
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the item in the line item. Retrieve item IDs from the List Items API endpoint in the items section. Links the line item to a specific product or service."
+                },
+                "line_item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the line item within the vendor credit. System-generated ID used for identifying and referencing specific line items in the vendor credit."
+                },
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the chart of accounts entry. Retrieve account IDs from the List Chart of Accounts API endpoint. Determines which account the line item affects for accounting purposes."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name or title of the line item. Describes the product or service being credited. This name is displayed on the vendor credit document."
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "HSN Code"
+                },
+                "reverse_charge_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the reverse charge tax"
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the business location. Retrieve location IDs from the List Locations API endpoint in the locations section. Determines tax settings and business rules."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Detailed description of the line item. Provides additional information about the product or service being credited. Displayed on the vendor credit document."
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sequential order number for the line item. Determines the display order of line items on the vendor credit document. Lower numbers appear first."
+                },
+                "quantity": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of units being credited for this line item. Must be a positive number. Used to calculate the total amount for the line item."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit of measurement for the line item quantity. Examples: kgs, Nos, hours, pieces. Used to specify how the quantity is measured."
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit price or rate for the line item. The amount per unit before taxes and discounts. Used with quantity to calculate the line total."
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the tax applied to the line item. Retrieve tax IDs from the List Taxes API endpoint in the taxes section. Determines tax calculations for this line item."
+                },
+                "tds_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "TDS Tax ID of the Tax associated with the Vendor Credit"
+                },
+                "tax_treatment_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify reason for using out of scope.</br>Supported values for <b>UAE</b> are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for <b>Bahrain</b> are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br> Supported values for <b>KSA</b> are <code>ksa_reimbursed_expense</code>."
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the tag option"
+                    }
+                  },
+                  "description": "Array of tags associated with the line item. Each tag contains tag_id and tag_option_id for categorization and tracking purposes."
+                },
+                "item_custom_fields": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "custom_field_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Custom Field"
+                    },
+                    "label": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Label of the Custom Field"
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Value of the Custom Field"
+                    },
+                    "index": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Index of the Custom Field"
+                    }
+                  },
+                  "description": null
+                },
+                "serial_numbers": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "project_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the project"
+                }
+              },
+              "description": "Line items of a vendor credit."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional notes or comments for the vendor credit. Displayed on the vendor credit document for vendor reference. Max-length [5000]"
+            },
+            "documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "document_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Document"
+                },
+                "file_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the file"
+                }
+              },
+              "description": null
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "custom_field_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Custom Field"
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                },
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"vendor_id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"vendor_id\": {\n            \"description\": \"Unique identifier for the vendor contact. Retrieve vendor IDs from the Get Contacts API endpoint in the contacts section. This ID links the vendor credit to the specific vendor record.\",\n            \"type\": \"string\",\n            \"example\": \"460000000020029\"\n          },\n          \"currency_id\": {\n            \"description\": \"Unique identifier for the currency used in the vendor credit. Can differ from vendor currency if multi-currency is enabled. Retrieve currency IDs from the List Currencies API endpoint in the currency section.\",\n            \"type\": \"string\",\n            \"example\": \"3000000000083\"\n          },\n          \"vat_treatment\": {\n            \"description\": \"VAT treatment for the vendor credits. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing Goods then his VAT treatment is <code>eu_vat_registered</code>and if he resides outside the EU then his VAT treatment is <code>overseas</code>(For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>).\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"vendor_credit_number\": {\n            \"description\": \"Mandatory if auto number generation is disabled.\",\n            \"type\": \"string\",\n            \"example\": \"DN-00002\"\n          },\n          \"gst_treatment\": {\n            \"description\": \"Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>.\",\n            \"type\": \"string\",\n            \"example\": \"business_gst\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_treatment\": {\n            \"description\": \"VAT treatment for the vendor credit. Choose whether the vendor falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.</b></br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica).\",\n            \"type\": \"string\",\n            \"example\": \"vat_registered\",\n            \"x-node_available_in\": [\n              \"gcc\",\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"gst_no\": {\n            \"description\": \"15 digit GST identification number of the vendor.\",\n            \"type\": \"string\",\n            \"example\": \"22AAAAA0000A1Z5\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"source_of_supply\": {\n            \"description\": \"Place from where the goods/services are supplied. (If not given, <code>place of contact</code> given for the contact will be taken)\",\n            \"type\": \"string\",\n            \"example\": \"TN\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"destination_of_supply\": {\n            \"description\": \"Place where the goods/services are supplied to. (If not given, organisation's home state will be taken)\",\n            \"type\": \"string\",\n            \"example\": \"TN\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"place_of_supply\": {\n            \"description\": \"The place of supply is where a transaction is considered to have occurred for VAT purposes. For the supply of goods, the place of supply is the location of the goods when the supply occurs. For the supply of services, the place of supply should be where the supplier is established. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>.\",\n            \"type\": \"string\",\n            \"example\": \"DU\",\n            \"x-node_available_in\": [\n              \"gcc\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"pricebook_id\": {\n            \"description\": \"Unique identifier for the pricebook used for pricing items in the vendor credit. Retrieve pricebook IDs from the pricebooks API endpoint.\",\n            \"type\": \"string\"\n          },\n          \"reference_number\": {\n            \"description\": \"Optional reference number for tracking purposes. Can be any custom string or auto-generated. Useful for linking to external systems or internal tracking. Max-Length [100]\",\n            \"type\": \"string\"\n          },\n          \"is_update_customer\": {\n            \"description\": \"Set to true to update customer information when creating the vendor credit. This will modify the associated customer record with new details from the vendor credit.\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"date\": {\n            \"description\": \"The date on which the vendor credit is created. Must be in yyyy-mm-dd format. This date determines the accounting period and affects tax calculations.\",\n            \"type\": \"string\",\n            \"example\": \"2014-08-28\"\n          },\n          \"exchange_rate\": {\n            \"description\": \"Exchange rate for converting the vendor credit currency to base currency. Required when currency differs from base currency. Retrieve rates from currency exchange rate APIs.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1\n          },\n          \"is_inclusive_tax\": {\n            \"description\": \"Set to true if line item rates include tax amounts. When true, tax is already included in the item rates. When false, tax will be calculated and added to the rates.\",\n            \"type\": \"boolean\",\n            \"example\": false,\n            \"x-node_available_in\": [],\n            \"x-node_unavailable_in\": [\n              \"us\"\n            ]\n          },\n          \"location_id\": {\n            \"description\": \"Unique identifier for the business location. Retrieve location IDs from the List Locations API endpoint in the locations section. Determines tax settings and business rules.\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\"\n          },\n          \"line_items\": {\n            \"description\": \"Line items of a vendor credit.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"item_id\": {\n                  \"description\": \"Unique identifier for the item in the line item. Retrieve item IDs from the List Items API endpoint in the items section. Links the line item to a specific product or service.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000020071\"\n                },\n                \"line_item_id\": {\n                  \"description\": \"Unique identifier for the line item within the vendor credit. System-generated ID used for identifying and referencing specific line items in the vendor credit.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000020077\"\n                },\n                \"account_id\": {\n                  \"description\": \"Unique identifier for the chart of accounts entry. Retrieve account IDs from the List Chart of Accounts API endpoint. Determines which account the line item affects for accounting purposes.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000020097\"\n                },\n                \"name\": {\n                  \"description\": \"Name or title of the line item. Describes the product or service being credited. This name is displayed on the vendor credit document.\",\n                  \"type\": \"string\",\n                  \"example\": \"Premium Plan - Web hosting\"\n                },\n                \"hsn_or_sac\": {\n                  \"description\": \"HSN Code\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"ke\",\n                    \"za\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"reverse_charge_tax_id\": {\n                  \"description\": \"ID of the reverse charge tax\",\n                  \"type\": \"string\",\n                  \"example\": 460000000057089,\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"gcc\",\n                    \"za\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"location_id\": {\n                  \"description\": \"Unique identifier for the business location. Retrieve location IDs from the List Locations API endpoint in the locations section. Determines tax settings and business rules.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000038080\"\n                },\n                \"description\": {\n                  \"description\": \"Detailed description of the line item. Provides additional information about the product or service being credited. Displayed on the vendor credit document.\",\n                  \"type\": \"string\"\n                },\n                \"item_order\": {\n                  \"description\": \"Sequential order number for the line item. Determines the display order of line items on the vendor credit document. Lower numbers appear first.\",\n                  \"type\": \"integer\",\n                  \"example\": 0\n                },\n                \"quantity\": {\n                  \"description\": \"Number of units being credited for this line item. Must be a positive number. Used to calculate the total amount for the line item.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 1\n                },\n                \"unit\": {\n                  \"description\": \"Unit of measurement for the line item quantity. Examples: kgs, Nos, hours, pieces. Used to specify how the quantity is measured.\",\n                  \"type\": \"string\",\n                  \"example\": \"Nos\"\n                },\n                \"rate\": {\n                  \"description\": \"Unit price or rate for the line item. The amount per unit before taxes and discounts. Used with quantity to calculate the line total.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 30\n                },\n                \"tax_id\": {\n                  \"description\": \"Unique identifier for the tax applied to the line item. Retrieve tax IDs from the List Taxes API endpoint in the taxes section. Determines tax calculations for this line item.\",\n                  \"type\": \"string\"\n                },\n                \"tds_tax_id\": {\n                  \"description\": \"TDS Tax ID of the Tax associated with the Vendor Credit\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_treatment_code\": {\n                  \"description\": \"Specify reason for using out of scope.</br>Supported values for <b>UAE</b> are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for <b>Bahrain</b> are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br> Supported values for <b>KSA</b> are <code>ksa_reimbursed_expense</code>.\",\n                  \"type\": \"string\",\n                  \"example\": \"uae_others\",\n                  \"x-node_available_in\": [\n                    \"gcc\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tags\": {\n                  \"description\": \"Array of tags associated with the line item. Each tag contains tag_id and tag_option_id for categorization and tracking purposes.\",\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"tag_id\": {\n                        \"description\": \"ID of the tag\",\n                        \"type\": \"integer\",\n                        \"format\": \"int64\"\n                      },\n                      \"tag_option_id\": {\n                        \"description\": \"ID of the tag option\",\n                        \"type\": \"integer\",\n                        \"format\": \"int64\"\n                      }\n                    }\n                  }\n                },\n                \"item_custom_fields\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"custom_field_id\": {\n                        \"description\": \"ID of the Custom Field\",\n                        \"type\": \"integer\",\n                        \"format\": \"int64\"\n                      },\n                      \"label\": {\n                        \"description\": \"Label of the Custom Field\",\n                        \"type\": \"string\"\n                      },\n                      \"value\": {\n                        \"description\": \"Value of the Custom Field\",\n                        \"type\": \"string\"\n                      },\n                      \"index\": {\n                        \"description\": \"Index of the Custom Field\",\n                        \"type\": \"integer\"\n                      }\n                    }\n                  }\n                },\n                \"serial_numbers\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                },\n                \"project_id\": {\n                  \"description\": \"ID of the project\",\n                  \"type\": \"string\",\n                  \"example\": 90300000087378\n                }\n              }\n            }\n          },\n          \"notes\": {\n            \"description\": \"Additional notes or comments for the vendor credit. Displayed on the vendor credit document for vendor reference. Max-length [5000]\",\n            \"type\": \"string\"\n          },\n          \"documents\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"document_id\": {\n                  \"description\": \"ID of the Document\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"file_name\": {\n                  \"description\": \"Name of the file\",\n                  \"type\": \"string\"\n                }\n              }\n            }\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"custom_field_id\": {\n                  \"description\": \"ID of the Custom Field\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"label\": {\n                  \"description\": \"Label of the Custom Field\",\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the Custom Field\",\n                  \"type\": \"string\"\n                },\n                \"index\": {\n                  \"description\": \"Index of the Custom Field\",\n                  \"type\": \"integer\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

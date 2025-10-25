@@ -1,18 +1,18 @@
 {
   "name": "GetTrelloLabelInfo",
-  "fully_qualified_name": "TrelloApi.GetTrelloLabelInfo@0.1.0",
-  "description": "Retrieve detailed information about a specific Trello label.\n\nUse this tool to get details of a specific label in Trello by providing the label ID.",
+  "fully_qualified_name": "TrelloApi.GetTrelloLabelInfo@2.0.0",
+  "description": "Retrieve information about a specific Trello label.\n\nUse this tool to get detailed information about a single label in Trello by providing the label ID. This is useful for understanding label attributes and data associated with it.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "label_id",
         "required": true,
-        "description": "The unique identifier of the Trello label to retrieve information for.",
+        "description": "The unique identifier for the Trello label to retrieve information about.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "fields_included_in_response",
+        "name": "label_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of field names to include in the response.",
+        "description": "Specify 'all' or a comma-separated list of label fields to retrieve details about. Refer to Trello's field documentation for options.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/labels/{id}",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "fields_included_in_response",
+        "tool_parameter_name": "label_fields",
         "description": "all or a comma-separated list of [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

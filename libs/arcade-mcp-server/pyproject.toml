@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade-mcp-server"
-version = "1.2.1"
+version = "1.4.1"
 description = "Model Context Protocol (MCP) server framework for Arcade.dev"
 readme = "README.md"
 authors = [{ name = "Arcade.dev" }]
@@ -28,6 +28,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "fastapi>=0.100.0",
     "uvicorn>=0.30.0",
+    "watchfiles>=0.18.0", # included with uvicorn, but listed to be explicit
     "sse-starlette>=2.0.0",
     "starlette>=0.37.0",
     "anyio>=4.0.0",
@@ -41,9 +42,6 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "mypy>=1.0.0",
     "ruff>=0.1.0",
-    "mkdocs>=1.6.0",
-    "mkdocs-material>=9.6.0",
-    "mkdocstrings[python]>=0.28.0",
 ]
 
 [tool.hatch.build.targets.wheel]

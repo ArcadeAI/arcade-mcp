@@ -1,0 +1,249 @@
+{
+  "name": "InviteUserToTeam",
+  "fully_qualified_name": "VercelApi.InviteUserToTeam@0.1.0",
+  "description": "Invite a user to join a Vercel team.\n\nThis tool invites a user to join a specified Vercel team. The user issuing the command must be an OWNER of the team. Specify the user with an email or ID; ID takes precedence if both are provided.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_id",
+        "required": true,
+        "description": "The unique identifier for the Vercel team to which the user is being invited.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "user_invitation_details",
+        "required": true,
+        "description": "JSON containing user email, role, and project-specific roles for the invitation. Use email to specify the user and assign roles at both team and project levels.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email address of the user to invite"
+            },
+            "role": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "OWNER",
+                "MEMBER",
+                "DEVELOPER",
+                "SECURITY",
+                "BILLING",
+                "VIEWER",
+                "VIEWER_FOR_PLUS",
+                "CONTRIBUTOR"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The role of the user to invite"
+            },
+            "projects": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "projectId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the project."
+                },
+                "role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ADMIN",
+                    "PROJECT_VIEWER",
+                    "PROJECT_DEVELOPER"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sets the project roles for the invited user"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'inviteUserToTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/teams/{teamId}/members",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "user_invitation_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email address of the user to invite"
+            },
+            "role": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "OWNER",
+                "MEMBER",
+                "DEVELOPER",
+                "SECURITY",
+                "BILLING",
+                "VIEWER",
+                "VIEWER_FOR_PLUS",
+                "CONTRIBUTOR"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The role of the user to invite"
+            },
+            "projects": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "projectId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the project."
+                },
+                "role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ADMIN",
+                    "PROJECT_VIEWER",
+                    "PROJECT_DEVELOPER"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sets the project roles for the invited user"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"email\"\n        ],\n        \"properties\": {\n          \"email\": {\n            \"type\": \"string\",\n            \"format\": \"email\",\n            \"description\": \"The email address of the user to invite\",\n            \"example\": \"john@example.com\"\n          },\n          \"role\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"OWNER\",\n              \"MEMBER\",\n              \"DEVELOPER\",\n              \"SECURITY\",\n              \"BILLING\",\n              \"VIEWER\",\n              \"VIEWER_FOR_PLUS\",\n              \"CONTRIBUTOR\"\n            ],\n            \"description\": \"The role of the user to invite\",\n            \"example\": [\n              \"OWNER\",\n              \"MEMBER\",\n              \"DEVELOPER\",\n              \"SECURITY\",\n              \"BILLING\",\n              \"VIEWER\",\n              \"VIEWER_FOR_PLUS\",\n              \"CONTRIBUTOR\"\n            ],\n            \"default\": \"MEMBER\"\n          },\n          \"projects\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": false,\n              \"required\": [\n                \"role\",\n                \"projectId\"\n              ],\n              \"properties\": {\n                \"projectId\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 64,\n                  \"example\": \"prj_ndlgr43fadlPyCtREAqxxdyFK\",\n                  \"description\": \"The ID of the project.\"\n                },\n                \"role\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"ADMIN\",\n                    \"PROJECT_VIEWER\",\n                    \"PROJECT_DEVELOPER\"\n                  ],\n                  \"example\": \"ADMIN\",\n                  \"description\": \"Sets the project roles for the invited user\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

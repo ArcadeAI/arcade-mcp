@@ -1,18 +1,18 @@
 {
   "name": "ListScheduledEvents",
-  "fully_qualified_name": "CalendlyApi.ListScheduledEvents@0.1.0",
-  "description": "Retrieve a list of scheduled events from Calendly.\n\nThis tool retrieves a list of scheduled events for a specified user, group, or organization in Calendly. Use it to view events you have access to, based on your role and privileges.",
+  "fully_qualified_name": "CalendlyApi.ListScheduledEvents@2.0.0",
+  "description": "Retrieve a list of scheduled events from Calendly.\n\nUse this tool to get scheduled events based on specific criteria. Pass the 'organization' parameter to fetch events for an organization, 'user' for personal or specific user events, and 'group' for group events. Admins or owners have additional privileges for broader queries.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "user_uri",
         "required": false,
-        "description": "The URI identifying the user to retrieve scheduled events for. This can be used alone for personal events or with `organization` for specific user events within an organization. Requires appropriate privileges.",
+        "description": "URI identifying the user for whom to return scheduled events. Use alone for personal events or with 'organization' for specific user events within an organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "organization_uri",
         "required": false,
-        "description": "Returns events scheduled with the specified organization's URI. Requires admin or owner privilege.",
+        "description": "URI of the organization to retrieve scheduled events for. Requires admin/owner privileges.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "invitee_email",
         "required": false,
-        "description": "Email address to filter events scheduled with the invitee. Use to retrieve events specific to an invitee.",
+        "description": "Email address of the invitee to filter and return related scheduled events.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "event_status",
         "required": false,
-        "description": "Specifies whether to retrieve events that are 'active' or 'canceled'.",
+        "description": "Indicate if the event is 'active' or 'canceled'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -73,9 +73,9 @@
         "http_endpoint_parameter_name": "status"
       },
       {
-        "name": "order_results_by",
+        "name": "events_sort_order",
         "required": false,
-        "description": "Specify the field and direction to order results (e.g., 'start_time:asc'). Supported field: start_time; Directions: asc, desc.",
+        "description": "Specify sorting order for events. Use 'start_time:asc' or 'start_time:desc'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -88,9 +88,9 @@
         "http_endpoint_parameter_name": "sort"
       },
       {
-        "name": "start_time_after",
+        "name": "min_start_time",
         "required": false,
-        "description": "Include events with start times after this specified UTC time (e.g., \"2020-01-02T03:04:05.678123Z\").",
+        "description": "Include events starting after this UTC time. Format: \"2020-01-02T03:04:05.678123Z\".",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -103,9 +103,9 @@
         "http_endpoint_parameter_name": "min_start_time"
       },
       {
-        "name": "max_start_time",
+        "name": "max_start_time_utc",
         "required": false,
-        "description": "Include events with start times prior to this UTC time. Format: \"2020-01-02T03:04:05.678123Z\".",
+        "description": "Include events with start times prior to this UTC time. Format: YYYY-MM-DDTHH:MM:SS.ssssssZ",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -120,7 +120,7 @@
       {
         "name": "pagination_token",
         "required": false,
-        "description": "Token used for paginating results, allowing access to the next or previous portion of the event collection.",
+        "description": "Token for navigating to the next or previous set of scheduled events.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -133,9 +133,9 @@
         "http_endpoint_parameter_name": "page_token"
       },
       {
-        "name": "number_of_events_to_return",
+        "name": "number_of_rows_to_return",
         "required": false,
-        "description": "Specifies the number of events to be returned in the query result.",
+        "description": "Specify the number of event entries to retrieve.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -150,7 +150,7 @@
       {
         "name": "group_uri",
         "required": false,
-        "description": "URI of the group to retrieve scheduled events for. Requires appropriate admin privileges.",
+        "description": "URI of the group to fetch scheduled events for. Requires admin/owner or group admin privilege.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -193,13 +193,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/scheduled_events",
@@ -221,6 +221,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -238,6 +239,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -255,6 +257,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -275,11 +278,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "sort",
-        "tool_parameter_name": "order_results_by",
+        "tool_parameter_name": "events_sort_order",
         "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.\nSupported fields are: start_time.\nSort direction is specified as: asc, desc.",
         "value_schema": {
           "val_type": "string",
@@ -292,11 +296,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "min_start_time",
-        "tool_parameter_name": "start_time_after",
+        "tool_parameter_name": "min_start_time",
         "description": "Include events with start times after this time (sample time format: \"2020-01-02T03:04:05.678123Z\"). This time should use the UTC timezone.",
         "value_schema": {
           "val_type": "string",
@@ -309,11 +314,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "max_start_time",
-        "tool_parameter_name": "max_start_time",
+        "tool_parameter_name": "max_start_time_utc",
         "description": "Include events with start times prior to this time (sample time format: \"2020-01-02T03:04:05.678123Z\"). This time should use the UTC timezone.",
         "value_schema": {
           "val_type": "string",
@@ -326,6 +332,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -343,11 +350,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "count",
-        "tool_parameter_name": "number_of_events_to_return",
+        "tool_parameter_name": "number_of_rows_to_return",
         "description": "The number of rows to return",
         "value_schema": {
           "val_type": "number",
@@ -360,6 +368,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": 20,
         "documentation_urls": []
       },
       {
@@ -377,6 +386,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -390,6 +400,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

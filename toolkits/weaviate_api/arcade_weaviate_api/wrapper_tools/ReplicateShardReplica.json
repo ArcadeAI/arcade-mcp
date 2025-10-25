@@ -1,0 +1,253 @@
+{
+  "name": "ReplicateShardReplica",
+  "fully_qualified_name": "WeaviateApi.ReplicateShardReplica@0.1.0",
+  "description": "Initiates replication of a shard replica to a target node.\n\nThis tool starts an asynchronous process to move or copy a specific shard replica from its current node to a specified target node. It handles data copying, synchronization, and may decommission the source replica.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "source_node",
+        "required": true,
+        "description": "The name of the Weaviate node currently hosting the shard replica to be moved or copied.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Weaviate node currently hosting the shard replica that needs to be moved or copied."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sourceNode"
+      },
+      {
+        "name": "target_weaviate_node",
+        "required": true,
+        "description": "Name of the Weaviate node for creating the new shard replica during the operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Weaviate node where the new shard replica will be created as part of the movement or copy operation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "targetNode"
+      },
+      {
+        "name": "target_collection_name",
+        "required": true,
+        "description": "The name of the collection to which the target shard belongs in the Weaviate database.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection to which the target shard belongs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "collection"
+      },
+      {
+        "name": "shard_name",
+        "required": true,
+        "description": "The name of the shard whose replica is to be moved or copied. Specify the shard to initiate the operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the shard whose replica is to be moved or copied."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "shard"
+      },
+      {
+        "name": "replication_operation_type",
+        "required": false,
+        "description": "Specifies whether to 'COPY' or 'MOVE' the shard replica. Defaults to 'COPY' if not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "COPY",
+            "MOVE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the type of replication operation to perform. `COPY` creates a new replica on the target node while keeping the source replica. `MOVE` creates a new replica on the target node and then removes the source replica upon successful completion. Defaults to `COPY` if omitted."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'replicate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/replication/replicate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "sourceNode",
+        "tool_parameter_name": "source_node",
+        "description": "The name of the Weaviate node currently hosting the shard replica that needs to be moved or copied.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Weaviate node currently hosting the shard replica that needs to be moved or copied."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "targetNode",
+        "tool_parameter_name": "target_weaviate_node",
+        "description": "The name of the Weaviate node where the new shard replica will be created as part of the movement or copy operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Weaviate node where the new shard replica will be created as part of the movement or copy operation."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "collection",
+        "tool_parameter_name": "target_collection_name",
+        "description": "The name of the collection to which the target shard belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection to which the target shard belongs."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "shard",
+        "tool_parameter_name": "shard_name",
+        "description": "The name of the shard whose replica is to be moved or copied.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the shard whose replica is to be moved or copied."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "replication_operation_type",
+        "description": "Specifies the type of replication operation to perform. `COPY` creates a new replica on the target node while keeping the source replica. `MOVE` creates a new replica on the target node and then removes the source replica upon successful completion. Defaults to `COPY` if omitted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "COPY",
+            "MOVE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the type of replication operation to perform. `COPY` creates a new replica on the target node while keeping the source replica. `MOVE` creates a new replica on the target node and then removes the source replica upon successful completion. Defaults to `COPY` if omitted."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "COPY",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"required\": [\n          \"collection\",\n          \"shard\",\n          \"sourceNode\",\n          \"targetNode\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"sourceNode\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the Weaviate node currently hosting the shard replica that needs to be moved or copied.\"\n          },\n          \"targetNode\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the Weaviate node where the new shard replica will be created as part of the movement or copy operation.\"\n          },\n          \"collection\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the collection to which the target shard belongs.\"\n          },\n          \"shard\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the shard whose replica is to be moved or copied.\"\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"description\": \"Specifies the type of replication operation to perform. `COPY` creates a new replica on the target node while keeping the source replica. `MOVE` creates a new replica on the target node and then removes the source replica upon successful completion. Defaults to `COPY` if omitted.\",\n            \"default\": \"COPY\",\n            \"enum\": [\n              \"COPY\",\n              \"MOVE\"\n            ]\n          }\n        },\n        \"description\": \"Specifies the parameters required to initiate a shard replica movement operation between two nodes for a given collection and shard. This request defines the source and target node, the collection and type of transfer.\"\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"collection\",\n          \"shard\",\n          \"sourceNode\",\n          \"targetNode\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"sourceNode\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the Weaviate node currently hosting the shard replica that needs to be moved or copied.\"\n          },\n          \"targetNode\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the Weaviate node where the new shard replica will be created as part of the movement or copy operation.\"\n          },\n          \"collection\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the collection to which the target shard belongs.\"\n          },\n          \"shard\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the shard whose replica is to be moved or copied.\"\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"description\": \"Specifies the type of replication operation to perform. `COPY` creates a new replica on the target node while keeping the source replica. `MOVE` creates a new replica on the target node and then removes the source replica upon successful completion. Defaults to `COPY` if omitted.\",\n            \"default\": \"COPY\",\n            \"enum\": [\n              \"COPY\",\n              \"MOVE\"\n            ]\n          }\n        },\n        \"description\": \"Specifies the parameters required to initiate a shard replica movement operation between two nodes for a given collection and shard. This request defines the source and target node, the collection and type of transfer.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

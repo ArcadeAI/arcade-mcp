@@ -1,0 +1,105 @@
+{
+  "name": "ResetUserSessions",
+  "fully_qualified_name": "MiroApi.ResetUserSessions@2.0.0",
+  "description": "Reset all active Miro sessions for a specific user.\n\nThis tool is used to immediately end all active Miro sessions for a specified user across all devices, requiring them to sign in again. It's useful for security reasons, such as when credentials are compromised or there's suspicious activity. This API is enterprise-only and requires admin privileges.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_email_for_session_reset",
+        "required": true,
+        "description": "Email ID of the user whose sessions need resetting. This will sign the user out from all devices.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email ID of the user whose sessions you want to reset. Note that this user will be signed out from all devices."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-post-user-sessions-reset'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/sessions/reset_all",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "email",
+        "tool_parameter_name": "user_email_for_session_reset",
+        "description": "Email ID of the user whose sessions you want to reset. Note that this user will be signed out from all devices.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email ID of the user whose sessions you want to reset. Note that this user will be signed out from all devices."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

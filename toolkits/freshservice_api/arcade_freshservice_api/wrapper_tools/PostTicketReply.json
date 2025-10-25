@@ -1,0 +1,424 @@
+{
+  "name": "PostTicketReply",
+  "fully_qualified_name": "FreshserviceApi.PostTicketReply@1.0.0",
+  "description": "Add a reply to a Freshservice ticket.\n\nThis tool allows you to post a new reply to a specified ticket in Freshservice. Use it when you need to update a ticket with additional information or respond to queries.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "ticket_id",
+        "required": true,
+        "description": "ID of the ticket to which the reply will be added. This must be an integer representing the unique identifier of the ticket.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of ticket for which reply has to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ticket_id"
+      },
+      {
+        "name": "reply_details",
+        "required": true,
+        "description": "JSON object containing details of the reply, including user ID, timestamps, body, and optional email information and attachments.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the reply"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the user who created the reply"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the note is created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the note is updated"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The body of the note in HTML format."
+            },
+            "body_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The body of the note in plain text format"
+            },
+            "attachments": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Auto increment value"
+                },
+                "content_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "size": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Size of the attached file"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attachment"
+                },
+                "attachment_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "URL of the attachment"
+                }
+              },
+              "description": null
+            },
+            "ticket_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the ticket to which the reply belongs"
+            },
+            "from_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "to_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses to which the conversation must be sent"
+            },
+            "cc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses which must be copied on while sending the conversation"
+            },
+            "bcc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses to which a blind copy must be sent"
+            }
+          },
+          "inner_properties": null,
+          "description": "details of the Reply to be posted"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-ticket-reply'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/reply",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "ticket_id",
+        "tool_parameter_name": "ticket_id",
+        "description": "ID of ticket for which reply has to be created",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of ticket for which reply has to be created"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "reply_details",
+        "description": "details of the Reply to be posted",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the reply"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the user who created the reply"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the note is created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the note is updated"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The body of the note in HTML format."
+            },
+            "body_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The body of the note in plain text format"
+            },
+            "attachments": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Auto increment value"
+                },
+                "content_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "size": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Size of the attached file"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attachment"
+                },
+                "attachment_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "URL of the attachment"
+                }
+              },
+              "description": null
+            },
+            "ticket_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the ticket to which the reply belongs"
+            },
+            "from_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "to_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses to which the conversation must be sent"
+            },
+            "cc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses which must be copied on while sending the conversation"
+            },
+            "bcc_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Addresses to which a blind copy must be sent"
+            }
+          },
+          "inner_properties": null,
+          "description": "details of the Reply to be posted"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"details of the Reply to be posted\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the reply\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000982343\n          },\n          \"user_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the user who created the reply\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 1400023423\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the note is created\",\n            \"format\": \"date_time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the note is updated\",\n            \"format\": \"date_time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"body\": {\n            \"type\": \"string\",\n            \"description\": \"The body of the note in HTML format.\",\n            \"example\": \"<p>Thanks for resolving the issue</p>\"\n          },\n          \"body_text\": {\n            \"type\": \"string\",\n            \"description\": \"The body of the note in plain text format\",\n            \"example\": \"Thanks for resolving the issue\"\n          },\n          \"attachments\": {\n            \"type\": \"array\",\n            \"example\": [\n              {\n                \"id\": 14000884384,\n                \"content_type\": \"application/pdf\",\n                \"size\": 1024,\n                \"name\": \"doc1.pdf\",\n                \"attachment_url\": \"https://s3.amazonaws.com/fs/doc1.pdf\"\n              }\n            ],\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"integer\",\n                  \"description\": \"Auto increment value\",\n                  \"format\": \"int64\",\n                  \"readOnly\": true,\n                  \"example\": 14000884384\n                },\n                \"content_type\": {\n                  \"type\": \"string\",\n                  \"example\": \"application/pdf\"\n                },\n                \"size\": {\n                  \"type\": \"number\",\n                  \"description\": \"Size of the attached file\",\n                  \"readOnly\": true,\n                  \"example\": 1024.0\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"Name of the attachment\",\n                  \"example\": \"doc1.pdf\"\n                },\n                \"attachment_url\": {\n                  \"type\": \"string\",\n                  \"description\": \"URL of the attachment\",\n                  \"example\": \"https://s3.amazonaws.com/fs/doc1.pdf\"\n                }\n              }\n            }\n          },\n          \"ticket_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the ticket to which the reply belongs\",\n            \"format\": \"int64\",\n            \"example\": 1012\n          },\n          \"from_email\": {\n            \"type\": \"string\",\n            \"example\": \"andrea@freshservice.com\"\n          },\n          \"to_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Addresses to which the conversation must be sent\",\n            \"example\": [\n              \"john.doe@freshservice.com\",\n              \"david@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"cc_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Addresses which must be copied on while sending the conversation\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"john.doe@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"bcc_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Addresses to which a blind copy must be sent\",\n            \"example\": [\n              \"andrea@freshservice.com\",\n              \"david@freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

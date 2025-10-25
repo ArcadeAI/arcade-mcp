@@ -1,0 +1,742 @@
+{
+  "name": "UpdateTeamInfo",
+  "fully_qualified_name": "VercelApi.UpdateTeamInfo@0.1.0",
+  "description": "Update information of a specified team.\n\nUse this tool to modify details of an existing team by providing the team ID and the updated information.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique identifier for the team whose information you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_update_details",
+        "required": true,
+        "description": "JSON object containing the team's updated details, including name, avatar, slug, description, and policies.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "avatar": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The hash value of an uploaded image."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A short text that describes the team."
+            },
+            "emailDomain": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the team."
+            },
+            "previewDeploymentSuffix": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Suffix that will be used for all preview deployments."
+            },
+            "regenerateInviteCode": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Create a new invite code and replace the current one."
+            },
+            "saml": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enforced": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Require that members of the team use SAML Single Sign-On."
+                },
+                "roles": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Directory groups to role or access group mappings."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A new slug for the team."
+            },
+            "enablePreviewFeedback": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enable preview toolbar: one of on, off or default."
+            },
+            "enableProductionFeedback": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enable production toolbar: one of on, off or default."
+            },
+            "sensitiveEnvironmentVariablePolicy": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sensitive environment variable policy: one of on, off or default."
+            },
+            "remoteCaching": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enable or disable remote caching for the team."
+                }
+              },
+              "inner_properties": null,
+              "description": "Whether or not remote caching is enabled for the team"
+            },
+            "hideIpAddresses": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Display or hide IP addresses in Monitoring queries."
+            },
+            "hideIpAddressesInLogDrains": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Display or hide IP addresses in Log Drains."
+            },
+            "defaultDeploymentProtection": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "passwordProtection": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "deploymentType": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all",
+                        "preview",
+                        "prod_deployment_urls_and_all_previews",
+                        "all_except_custom_domains"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specify if the password will apply to every Deployment Target or just Preview"
+                    },
+                    "password": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The password that will be used to protect Project Deployments"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Allows to protect project deployments with a password"
+                },
+                "ssoProtection": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "deploymentType": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all",
+                        "preview",
+                        "prod_deployment_urls_and_all_previews",
+                        "all_except_custom_domains"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specify if the Vercel Authentication (SSO Protection) will apply to every Deployment Target or just Preview"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Ensures visitors to your Preview Deployments are logged into Vercel and have a minimum of Viewer access on your team"
+                }
+              },
+              "inner_properties": null,
+              "description": "Default deployment protection settings for new projects."
+            },
+            "defaultExpirationSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "expiration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "3y",
+                    "2y",
+                    "1y",
+                    "6m",
+                    "3m",
+                    "2m",
+                    "1m",
+                    "2w",
+                    "1w",
+                    "1d",
+                    "unlimited"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time period to keep non-production deployments for"
+                },
+                "expirationProduction": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "3y",
+                    "2y",
+                    "1y",
+                    "6m",
+                    "3m",
+                    "2m",
+                    "1m",
+                    "2w",
+                    "1w",
+                    "1d",
+                    "unlimited"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time period to keep production deployments for"
+                },
+                "expirationCanceled": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "1y",
+                    "6m",
+                    "3m",
+                    "2m",
+                    "1m",
+                    "2w",
+                    "1w",
+                    "1d",
+                    "unlimited"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time period to keep canceled deployments for"
+                },
+                "expirationErrored": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "1y",
+                    "6m",
+                    "3m",
+                    "2m",
+                    "1m",
+                    "2w",
+                    "1w",
+                    "1d",
+                    "unlimited"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time period to keep errored deployments for"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The unique slug for the team used to perform the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patchTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v2/teams/{teamId}",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "team_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "avatar": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The hash value of an uploaded image."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A short text that describes the team."
+            },
+            "emailDomain": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the team."
+            },
+            "previewDeploymentSuffix": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Suffix that will be used for all preview deployments."
+            },
+            "regenerateInviteCode": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Create a new invite code and replace the current one."
+            },
+            "saml": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enforced": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Require that members of the team use SAML Single Sign-On."
+                },
+                "roles": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Directory groups to role or access group mappings."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A new slug for the team."
+            },
+            "enablePreviewFeedback": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enable preview toolbar: one of on, off or default."
+            },
+            "enableProductionFeedback": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enable production toolbar: one of on, off or default."
+            },
+            "sensitiveEnvironmentVariablePolicy": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sensitive environment variable policy: one of on, off or default."
+            },
+            "remoteCaching": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enable or disable remote caching for the team."
+                }
+              },
+              "inner_properties": null,
+              "description": "Whether or not remote caching is enabled for the team"
+            },
+            "hideIpAddresses": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Display or hide IP addresses in Monitoring queries."
+            },
+            "hideIpAddressesInLogDrains": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Display or hide IP addresses in Log Drains."
+            },
+            "defaultDeploymentProtection": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "passwordProtection": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "deploymentType": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all",
+                        "preview",
+                        "prod_deployment_urls_and_all_previews",
+                        "all_except_custom_domains"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specify if the password will apply to every Deployment Target or just Preview"
+                    },
+                    "password": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The password that will be used to protect Project Deployments"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Allows to protect project deployments with a password"
+                },
+                "ssoProtection": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "deploymentType": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all",
+                        "preview",
+                        "prod_deployment_urls_and_all_previews",
+                        "all_except_custom_domains"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specify if the Vercel Authentication (SSO Protection) will apply to every Deployment Target or just Preview"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Ensures visitors to your Preview Deployments are logged into Vercel and have a minimum of Viewer access on your team"
+                }
+              },
+              "inner_properties": null,
+              "description": "Default deployment protection settings for new projects."
+            },
+            "defaultExpirationSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "expiration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "3y",
+                    "2y",
+                    "1y",
+                    "6m",
+                    "3m",
+                    "2m",
+                    "1m",
+                    "2w",
+                    "1w",
+                    "1d",
+                    "unlimited"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time period to keep non-production deployments for"
+                },
+                "expirationProduction": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "3y",
+                    "2y",
+                    "1y",
+                    "6m",
+                    "3m",
+                    "2m",
+                    "1m",
+                    "2w",
+                    "1w",
+                    "1d",
+                    "unlimited"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time period to keep production deployments for"
+                },
+                "expirationCanceled": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "1y",
+                    "6m",
+                    "3m",
+                    "2m",
+                    "1m",
+                    "2w",
+                    "1w",
+                    "1d",
+                    "unlimited"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time period to keep canceled deployments for"
+                },
+                "expirationErrored": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "1y",
+                    "6m",
+                    "3m",
+                    "2m",
+                    "1m",
+                    "2w",
+                    "1w",
+                    "1d",
+                    "unlimited"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time period to keep errored deployments for"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"avatar\": {\n            \"type\": \"string\",\n            \"format\": \"regex\",\n            \"description\": \"The hash value of an uploaded image.\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"maxLength\": 140,\n            \"example\": \"Our mission is to make cloud computing accessible to everyone\",\n            \"description\": \"A short text that describes the team.\"\n          },\n          \"emailDomain\": {\n            \"type\": \"string\",\n            \"format\": \"regex\",\n            \"example\": \"example.com\",\n            \"nullable\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 256,\n            \"example\": \"My Team\",\n            \"description\": \"The name of the team.\"\n          },\n          \"previewDeploymentSuffix\": {\n            \"type\": \"string\",\n            \"format\": \"hostname\",\n            \"example\": \"example.dev\",\n            \"description\": \"Suffix that will be used for all preview deployments.\",\n            \"nullable\": true\n          },\n          \"regenerateInviteCode\": {\n            \"type\": \"boolean\",\n            \"example\": true,\n            \"description\": \"Create a new invite code and replace the current one.\"\n          },\n          \"saml\": {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"enforced\": {\n                \"type\": \"boolean\",\n                \"example\": true,\n                \"description\": \"Require that members of the team use SAML Single Sign-On.\"\n              },\n              \"roles\": {\n                \"type\": \"object\",\n                \"description\": \"Directory groups to role or access group mappings.\",\n                \"additionalProperties\": {\n                  \"anyOf\": [\n                    {\n                      \"type\": \"string\",\n                      \"enum\": [\n                        \"OWNER\",\n                        \"MEMBER\",\n                        \"DEVELOPER\",\n                        \"SECURITY\",\n                        \"BILLING\",\n                        \"VIEWER\",\n                        \"VIEWER_FOR_PLUS\",\n                        \"CONTRIBUTOR\"\n                      ]\n                    },\n                    {\n                      \"type\": \"object\",\n                      \"additionalProperties\": false,\n                      \"required\": [\n                        \"accessGroupId\"\n                      ],\n                      \"properties\": {\n                        \"accessGroupId\": {\n                          \"type\": \"string\",\n                          \"pattern\": \"^ag_[A-z0-9_ -]+$\"\n                        }\n                      }\n                    }\n                  ]\n                }\n              }\n            }\n          },\n          \"slug\": {\n            \"type\": \"string\",\n            \"example\": \"my-team\",\n            \"description\": \"A new slug for the team.\"\n          },\n          \"enablePreviewFeedback\": {\n            \"type\": \"string\",\n            \"example\": \"on\",\n            \"description\": \"Enable preview toolbar: one of on, off or default.\"\n          },\n          \"enableProductionFeedback\": {\n            \"type\": \"string\",\n            \"example\": \"on\",\n            \"description\": \"Enable production toolbar: one of on, off or default.\"\n          },\n          \"sensitiveEnvironmentVariablePolicy\": {\n            \"type\": \"string\",\n            \"example\": \"on\",\n            \"description\": \"Sensitive environment variable policy: one of on, off or default.\"\n          },\n          \"remoteCaching\": {\n            \"type\": \"object\",\n            \"description\": \"Whether or not remote caching is enabled for the team\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"enabled\": {\n                \"type\": \"boolean\",\n                \"example\": true,\n                \"description\": \"Enable or disable remote caching for the team.\"\n              }\n            }\n          },\n          \"hideIpAddresses\": {\n            \"type\": \"boolean\",\n            \"example\": false,\n            \"description\": \"Display or hide IP addresses in Monitoring queries.\"\n          },\n          \"hideIpAddressesInLogDrains\": {\n            \"type\": \"boolean\",\n            \"example\": false,\n            \"description\": \"Display or hide IP addresses in Log Drains.\"\n          },\n          \"defaultDeploymentProtection\": {\n            \"type\": \"object\",\n            \"description\": \"Default deployment protection settings for new projects.\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"passwordProtection\": {\n                \"additionalProperties\": false,\n                \"description\": \"Allows to protect project deployments with a password\",\n                \"properties\": {\n                  \"deploymentType\": {\n                    \"description\": \"Specify if the password will apply to every Deployment Target or just Preview\",\n                    \"enum\": [\n                      \"all\",\n                      \"preview\",\n                      \"prod_deployment_urls_and_all_previews\",\n                      \"all_except_custom_domains\"\n                    ],\n                    \"type\": \"string\"\n                  },\n                  \"password\": {\n                    \"description\": \"The password that will be used to protect Project Deployments\",\n                    \"maxLength\": 72,\n                    \"type\": \"string\",\n                    \"nullable\": true\n                  }\n                },\n                \"required\": [\n                  \"deploymentType\"\n                ],\n                \"type\": \"object\",\n                \"nullable\": true\n              },\n              \"ssoProtection\": {\n                \"additionalProperties\": false,\n                \"description\": \"Ensures visitors to your Preview Deployments are logged into Vercel and have a minimum of Viewer access on your team\",\n                \"properties\": {\n                  \"deploymentType\": {\n                    \"default\": \"preview\",\n                    \"description\": \"Specify if the Vercel Authentication (SSO Protection) will apply to every Deployment Target or just Preview\",\n                    \"enum\": [\n                      \"all\",\n                      \"preview\",\n                      \"prod_deployment_urls_and_all_previews\",\n                      \"all_except_custom_domains\"\n                    ],\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"deploymentType\"\n                ],\n                \"type\": \"object\",\n                \"nullable\": true\n              }\n            }\n          },\n          \"defaultExpirationSettings\": {\n            \"properties\": {\n              \"expiration\": {\n                \"description\": \"The time period to keep non-production deployments for\",\n                \"example\": \"1y\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"3y\",\n                  \"2y\",\n                  \"1y\",\n                  \"6m\",\n                  \"3m\",\n                  \"2m\",\n                  \"1m\",\n                  \"2w\",\n                  \"1w\",\n                  \"1d\",\n                  \"unlimited\"\n                ]\n              },\n              \"expirationProduction\": {\n                \"description\": \"The time period to keep production deployments for\",\n                \"example\": \"1y\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"3y\",\n                  \"2y\",\n                  \"1y\",\n                  \"6m\",\n                  \"3m\",\n                  \"2m\",\n                  \"1m\",\n                  \"2w\",\n                  \"1w\",\n                  \"1d\",\n                  \"unlimited\"\n                ]\n              },\n              \"expirationCanceled\": {\n                \"description\": \"The time period to keep canceled deployments for\",\n                \"example\": \"1y\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"1y\",\n                  \"6m\",\n                  \"3m\",\n                  \"2m\",\n                  \"1m\",\n                  \"2w\",\n                  \"1w\",\n                  \"1d\",\n                  \"unlimited\"\n                ]\n              },\n              \"expirationErrored\": {\n                \"description\": \"The time period to keep errored deployments for\",\n                \"example\": \"1y\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"1y\",\n                  \"6m\",\n                  \"3m\",\n                  \"2m\",\n                  \"1m\",\n                  \"2w\",\n                  \"1w\",\n                  \"1d\",\n                  \"unlimited\"\n                ]\n              }\n            },\n            \"type\": \"object\",\n            \"additionalProperties\": false\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

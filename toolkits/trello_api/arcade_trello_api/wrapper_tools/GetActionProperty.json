@@ -1,18 +1,18 @@
 {
   "name": "GetActionProperty",
-  "fully_qualified_name": "TrelloApi.GetActionProperty@0.1.0",
-  "description": "Retrieve a specific property of a Trello action.\n\nUse this tool to get a particular property value of a specified action in Trello. It should be called when you need details about a specific aspect of an action.",
+  "fully_qualified_name": "TrelloApi.GetActionProperty@2.0.0",
+  "description": "Retrieve a specific property of a Trello action.\n\nUse this tool to get a particular field value from a Trello action using its ID and the desired field name.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "action_id",
         "required": true,
-        "description": "The unique identifier for the Trello action whose property you want to retrieve.",
+        "description": "The unique identifier of the action to retrieve its specific property.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "action_field",
         "required": true,
-        "description": "Select a specific property of a Trello action to retrieve. Options include: id, idMemberCreator, data, type, date, limits, display, memberCreator.",
+        "description": "The specific field to retrieve from a Trello action, such as 'id', 'type', or 'date'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -81,13 +81,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/actions/{id}/{field}",
@@ -109,6 +109,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -135,6 +136,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -156,6 +158,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,317 @@
+{
+  "name": "GetIncidentResponseAnalytics",
+  "fully_qualified_name": "PagerdutyApi.GetIncidentResponseAnalytics@2.0.0",
+  "description": "Provides enriched responder data for a single incident.\n\nUse this tool to obtain detailed analytics on a specific incident's responder data, such as Time to Respond, Responder Type, and Response Status. Note that analytics data is updated daily and may take up to 24 hours to appear.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_id",
+        "required": true,
+        "description": "The ID of the incident to retrieve analytics for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "Specify the versioning header for the API request. This defines the response format version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the resource. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "results_limit",
+        "required": false,
+        "description": "The number of results to include in each batch. Acceptable values range from 1 to 1000.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to include in each batch.\nLimits between 1 to 1000 are accepted."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "display_order",
+        "required": false,
+        "description": "Specifies the order to display results: 'asc' for ascending, 'desc' for descending. Defaults to 'desc'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which to display the results; asc for ascending, desc for descending. Defaults to `desc`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order"
+      },
+      {
+        "name": "order_results_by_column",
+        "required": false,
+        "description": "Specify the column to use for ordering the results, such as 'requested_at'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "requested_at"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The column to use for ordering the results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_by"
+      },
+      {
+        "name": "time_zone_for_results",
+        "required": false,
+        "description": "The time zone to use for displaying the results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The time zone to use for the results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "time_zone"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getAnalyticsIncidentResponsesById'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/analytics/raw/incidents/{id}/responses",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "incident_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_limit",
+        "description": "Number of results to include in each batch.\nLimits between 1 to 1000 are accepted.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to include in each batch.\nLimits between 1 to 1000 are accepted."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order",
+        "tool_parameter_name": "display_order",
+        "description": "The order in which to display the results; asc for ascending, desc for descending. Defaults to `desc`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which to display the results; asc for ascending, desc for descending. Defaults to `desc`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order_by",
+        "tool_parameter_name": "order_results_by_column",
+        "description": "The column to use for ordering the results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "requested_at"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The column to use for ordering the results."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "time_zone",
+        "tool_parameter_name": "time_zone_for_results",
+        "description": "The time zone to use for the results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The time zone to use for the results."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"Number of results to include in each batch.\\nLimits between 1 to 1000 are accepted.\",\n            \"example\": 20,\n            \"minimum\": 0,\n            \"exclusiveMinimum\": true,\n            \"maximum\": 1000,\n            \"exclusiveMaximum\": false\n          },\n          \"order\": {\n            \"type\": \"string\",\n            \"description\": \"The order in which to display the results; asc for ascending, desc for descending. Defaults to `desc`.\",\n            \"enum\": [\n              \"asc\",\n              \"desc\"\n            ]\n          },\n          \"order_by\": {\n            \"type\": \"string\",\n            \"description\": \"The column to use for ordering the results.\",\n            \"enum\": [\n              \"requested_at\"\n            ]\n          },\n          \"time_zone\": {\n            \"type\": \"string\",\n            \"description\": \"The time zone to use for the results.\",\n            \"example\": \"Etc/UTC\"\n          }\n        }\n      },\n      \"examples\": {\n        \"Example Request\": {\n          \"value\": {\n            \"limit\": 20,\n            \"order\": \"desc\",\n            \"order_by\": \"requested_at\",\n            \"time_zone\": \"America/Los_Angeles\"\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"Parameters to apply to the dataset.\"\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

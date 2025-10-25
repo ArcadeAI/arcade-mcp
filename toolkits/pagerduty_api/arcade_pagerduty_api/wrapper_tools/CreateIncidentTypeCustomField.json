@@ -1,0 +1,366 @@
+{
+  "name": "CreateIncidentTypeCustomField",
+  "fully_qualified_name": "PagerdutyApi.CreateIncidentTypeCustomField@2.0.0",
+  "description": "Create a custom field for a specific incident type.\n\nThis tool creates a custom field for a specified incident type on PagerDuty, allowing users to extend incidents with their own data to enhance filtering, search, and analytics. It requires `custom_fields.write` OAuth scope.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_type_id_or_name",
+        "required": true,
+        "description": "The ID or name of the incident type for which the custom field is created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the Incident Type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type_id_or_name"
+      },
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "Specifies the API version using the `Accept` header for versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "The MIME type of the body content. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "custom_field_details",
+        "required": false,
+        "description": "Details of the custom field to be created, including name, display name, data type, field type, description, enabled status, default value, and field options.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "field": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the custom field."
+                },
+                "display_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The display name of the Incident Type."
+                },
+                "data_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The data type of the custom field."
+                },
+                "field_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "single_value",
+                    "single_value_fixed",
+                    "multi_value",
+                    "multi_value_fixed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The field type of the custom field."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The description of the custom field."
+                },
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the custom field is enabled."
+                },
+                "default_value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The default value of the custom field."
+                },
+                "field_options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "The options for the custom field. Can only be applied to fields with a `field_type` of `single_value_fixed` or `multi_value_fixed`. When creating a fixed-value custom field, this property is required, as the field must be created with at least one field option."
+                }
+              },
+              "inner_properties": null,
+              "description": "Details of the custom field to be created."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createIncidentTypeCustomField'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents/types/{type_id_or_name}/custom_fields",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type_id_or_name",
+        "tool_parameter_name": "incident_type_id_or_name",
+        "description": "The ID or name of the Incident Type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the Incident Type."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_field_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "field": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the custom field."
+                },
+                "display_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The display name of the Incident Type."
+                },
+                "data_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The data type of the custom field."
+                },
+                "field_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "single_value",
+                    "single_value_fixed",
+                    "multi_value",
+                    "multi_value_fixed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The field type of the custom field."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The description of the custom field."
+                },
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the custom field is enabled."
+                },
+                "default_value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The default value of the custom field."
+                },
+                "field_options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "The options for the custom field. Can only be applied to fields with a `field_type` of `single_value_fixed` or `multi_value_fixed`. When creating a fixed-value custom field, this property is required, as the field must be created with at least one field option."
+                }
+              },
+              "inner_properties": null,
+              "description": "Details of the custom field to be created."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"field\": {\n            \"type\": \"object\",\n            \"description\": \"Details of the custom field to be created.\",\n            \"properties\": {\n              \"name\": {\n                \"type\": \"string\",\n                \"description\": \"The name of the custom field.\",\n                \"maxLength\": 50\n              },\n              \"display_name\": {\n                \"type\": \"string\",\n                \"description\": \"The display name of the Incident Type.\",\n                \"maxLength\": 50\n              },\n              \"data_type\": {\n                \"type\": \"string\",\n                \"description\": \"The data type of the custom field.\"\n              },\n              \"field_type\": {\n                \"type\": \"string\",\n                \"description\": \"The field type of the custom field.\",\n                \"enum\": [\n                  \"single_value\",\n                  \"single_value_fixed\",\n                  \"multi_value\",\n                  \"multi_value_fixed\"\n                ]\n              },\n              \"description\": {\n                \"type\": \"string\",\n                \"description\": \"The description of the custom field.\",\n                \"maxLength\": 1000\n              },\n              \"enabled\": {\n                \"type\": \"boolean\",\n                \"description\": \"Whether the custom field is enabled.\"\n              },\n              \"default_value\": {\n                \"type\": \"string\",\n                \"description\": \"The default value of the custom field.\"\n              },\n              \"field_options\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"allOf\": [\n                    {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"data\": {\n                          \"oneOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"data_type\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"The kind of data represented by this option. Must match the Field's `data_type`.\",\n                                  \"enum\": [\n                                    \"string\"\n                                  ]\n                                },\n                                \"value\": {\n                                  \"type\": \"string\",\n                                  \"maxLength\": 200\n                                }\n                              },\n                              \"required\": [\n                                \"data_type\",\n                                \"value\"\n                              ]\n                            }\n                          ],\n                          \"discriminator\": {\n                            \"propertyName\": \"data_type\",\n                            \"mapping\": {\n                              \"string\": \"#/paths/~1incidents~1custom_fields/get/responses/200/content/application~1json/schema/allOf/0/properties/fields/items/allOf/0/properties/field_options/items/allOf/0/properties/data/oneOf/0\"\n                            }\n                          }\n                        },\n                        \"id\": {\n                          \"type\": \"string\",\n                          \"readOnly\": true,\n                          \"description\": \"The ID of the resource.\"\n                        },\n                        \"type\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"field_option\"\n                          ],\n                          \"readOnly\": true\n                        },\n                        \"updated_at\": {\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"description\": \"The date/time the object was last updated.\",\n                          \"readOnly\": true\n                        },\n                        \"created_at\": {\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"description\": \"The date/time the object was created at.\",\n                          \"readOnly\": true\n                        }\n                      },\n                      \"required\": [\n                        \"id\",\n                        \"type\",\n                        \"created_at\",\n                        \"updated_at\"\n                      ],\n                      \"description\": \"\"\n                    },\n                    {\n                      \"type\": \"object\",\n                      \"required\": [\n                        \"id\",\n                        \"data\",\n                        \"created_at\",\n                        \"updated_at\"\n                      ]\n                    }\n                  ]\n                },\n                \"description\": \"The options for the custom field. Can only be applied to fields with a `field_type` of `single_value_fixed` or `multi_value_fixed`. When creating a fixed-value custom field, this property is required, as the field must be created with at least one field option.\"\n              }\n            },\n            \"required\": [\n              \"name\",\n              \"display_name\",\n              \"data_type\",\n              \"field_type\"\n            ]\n          }\n        },\n        \"required\": [\n          \"field\"\n        ]\n      },\n      \"examples\": {\n        \"simple_example\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"field\": {\n              \"name\": \"custom_field_1\",\n              \"display_name\": \"Custom Field 1\",\n              \"data_type\": \"string\",\n              \"field_type\": \"single_value\"\n            }\n          }\n        },\n        \"example_with_fixed_value_field\": {\n          \"summary\": \"Example with Fixed Value Field\",\n          \"value\": {\n            \"field\": {\n              \"name\": \"development_environment\",\n              \"display_name\": \"Development Environment\",\n              \"description\": \"The environment that the issue occurred in\",\n              \"data_type\": \"string\",\n              \"field_type\": \"single_value_fixed\",\n              \"field_options\": [\n                {\n                  \"data\": {\n                    \"data_type\": \"string\",\n                    \"value\": \"staging\"\n                  }\n                },\n                {\n                  \"data\": {\n                    \"data_type\": \"string\",\n                    \"value\": \"production\"\n                  }\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

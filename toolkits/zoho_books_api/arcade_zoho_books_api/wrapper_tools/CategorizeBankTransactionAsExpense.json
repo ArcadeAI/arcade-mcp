@@ -1,0 +1,1388 @@
+{
+  "name": "CategorizeBankTransactionAsExpense",
+  "fully_qualified_name": "ZohoBooksApi.CategorizeBankTransactionAsExpense@0.1.0",
+  "description": "Categorize an uncategorized bank transaction as an expense.\n\nUse this tool to classify an uncategorized bank transaction as an expense in Zoho Books. It should be called when a user needs to organize their financial records by assigning a transaction to the expense category.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The unique ID of the organization in Zoho Books. Required to identify which organization's transaction is being categorized.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "bank_transaction_id",
+        "required": true,
+        "description": "Unique identifier for the bank transaction to be categorized as an expense.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the bank transaction."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transaction_id"
+      },
+      {
+        "name": "attachment_document",
+        "required": false,
+        "description": "Document file to attach with the transaction as a string (e.g., base64 encoded or URL).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Document that is to be attached"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "doc"
+      },
+      {
+        "name": "total_number_of_files",
+        "required": false,
+        "description": "Total count of files to be attached to the transaction.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Total number of files."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "totalFiles"
+      },
+      {
+        "name": "document_identifiers",
+        "required": false,
+        "description": "Comma-separated list of document IDs to be attached to the transaction.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "document_ids"
+      },
+      {
+        "name": "transaction_details",
+        "required": false,
+        "description": "JSON object containing all relevant details for categorizing the bank transaction, including account IDs, transaction date, amount, taxes, line items, and any additional metadata required.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mandatory Account id for which transactions are to be listed."
+            },
+            "paid_through_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the credit/ bank account the payment is made."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Transaction date."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax or tax group applied"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount of the transaction"
+            },
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the project associated with the expense."
+            },
+            "tax_exemption_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code of the Tax Exemption"
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Exemption"
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if transaction is tax Inclusive"
+            },
+            "is_billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A boolean value to specify if the expense is billable."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference Number of the transaction"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A brief description about the transaction."
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer or vendor."
+            },
+            "zp_project_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Project"
+            },
+            "zp_project_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Project"
+            },
+            "zp_client_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of client"
+            },
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Vendor"
+            },
+            "vehicle_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Vehicle"
+            },
+            "mileage_unit": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unit of Mileage"
+            },
+            "mileage_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mileage Rate to be Applied"
+            },
+            "can_reclaim_vat_on_mileage": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if VAT can be reclaimed on mileage"
+            },
+            "fuel_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Fuel Used. Allowed Values : <code>petrol</code>, <code>lpg</code>, <code>diesel</code>"
+            },
+            "engine_capacity_range": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Fuel Used. Allowed Values : <code>less_than_1400cc</code>, <code>between_1401cc_and_1600cc</code>, <code>between_1601cc_and_2000cc</code> and <code>more_than_2000cc</code>"
+            },
+            "employee_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Employee"
+            },
+            "mileage_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Mileage. Allowed Values : <code>gmaps</code>,<code>imaps</code>,<code>gps</code>,<code>odometer</code>,<code>wmaps</code>,<code>manual</code>,<code>non_mileage</code> and <code>per_diem</code>"
+            },
+            "expense_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Expense"
+            },
+            "distance": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Distance Covered"
+            },
+            "start_reading": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start Reading of the Odometer"
+            },
+            "end_reading": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End Reading of the Odometer"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currency ID involved in the transaction."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the custom field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tag"
+                },
+                "tag_option_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the Tag Option"
+                }
+              },
+              "description": null
+            },
+            "documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "file_name": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attached file."
+                },
+                "document_id": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the attached file."
+                }
+              },
+              "description": "List of files to be attached to a particular transaction."
+            },
+            "exchange_rate": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The foreign currency exchange rate value."
+            },
+            "recurring_expense_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Recurring Expense"
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the bank transaction. VAT treatment denotes the location of the customer or vendor. If the customer or vendor resides in the UK then the VAT treatment is <code>uk</code>. If the customer or vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing/selling Goods then his VAT treatment is <code>eu_vat_registered</code>. And, if he resides outside the UK then his VAT treatment is <code>overseas</code>."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the bank transaction.Choose whether the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "acquisition_vat_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) This is the ID of the tax applied in case this is an EU - goods purchase or expense and acquisition VAT needs to be reported."
+            },
+            "reverse_charge_vat_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) This is the ID of the tax applied in case this is a non UK - service purchase or expense and reverse charge VAT needs to be reported."
+            },
+            "is_update_customer": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Customer should be updated"
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the transaction. This denotes whether the transaction line item is to be treated as goods or as a service. Allowed Values: <br/> <b>For UK and Europe: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+            },
+            "taxes": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tax_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the Tax"
+                },
+                "tax_amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount of Tax"
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax or tax group applied"
+                }
+              },
+              "description": null
+            },
+            "reason": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reason"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "line_item_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Line Item"
+                },
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Mandatory Account id for which transactions are to be listed."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A brief description about the transaction."
+                },
+                "amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount of the transaction"
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax or tax group applied"
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Order of the Item"
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the transaction. This denotes whether the transaction line item is to be treated as goods or as a service. Allowed Values: <br/> <b>For UK and Europe: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+                },
+                "acquisition_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Optional) This is the ID of the tax applied in case this is an EU - goods purchase or expense and acquisition VAT needs to be reported."
+                },
+                "reverse_charge_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Optional) This is the ID of the tax applied in case this is a non UK - service purchase or expense and reverse charge VAT needs to be reported."
+                },
+                "tax_exemption_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Code of the Tax Exemption"
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tax Exemption"
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Id of the Tag Option"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "zcrm_potential_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'categorize_bank_transaction_as_expense'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.banking.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/expenses",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "doc",
+        "tool_parameter_name": "attachment_document",
+        "description": "Document that is to be attached",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Document that is to be attached"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "totalFiles",
+        "tool_parameter_name": "total_number_of_files",
+        "description": "Total number of files.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Total number of files."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "document_ids",
+        "tool_parameter_name": "document_identifiers",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "transaction_id",
+        "tool_parameter_name": "bank_transaction_id",
+        "description": "Unique identifier of the bank transaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the bank transaction."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "transaction_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mandatory Account id for which transactions are to be listed."
+            },
+            "paid_through_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the credit/ bank account the payment is made."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Transaction date."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax or tax group applied"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount of the transaction"
+            },
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the project associated with the expense."
+            },
+            "tax_exemption_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code of the Tax Exemption"
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Exemption"
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if transaction is tax Inclusive"
+            },
+            "is_billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A boolean value to specify if the expense is billable."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference Number of the transaction"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A brief description about the transaction."
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer or vendor."
+            },
+            "zp_project_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Project"
+            },
+            "zp_project_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Project"
+            },
+            "zp_client_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of client"
+            },
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Vendor"
+            },
+            "vehicle_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Vehicle"
+            },
+            "mileage_unit": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unit of Mileage"
+            },
+            "mileage_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mileage Rate to be Applied"
+            },
+            "can_reclaim_vat_on_mileage": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if VAT can be reclaimed on mileage"
+            },
+            "fuel_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Fuel Used. Allowed Values : <code>petrol</code>, <code>lpg</code>, <code>diesel</code>"
+            },
+            "engine_capacity_range": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Fuel Used. Allowed Values : <code>less_than_1400cc</code>, <code>between_1401cc_and_1600cc</code>, <code>between_1601cc_and_2000cc</code> and <code>more_than_2000cc</code>"
+            },
+            "employee_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Employee"
+            },
+            "mileage_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Mileage. Allowed Values : <code>gmaps</code>,<code>imaps</code>,<code>gps</code>,<code>odometer</code>,<code>wmaps</code>,<code>manual</code>,<code>non_mileage</code> and <code>per_diem</code>"
+            },
+            "expense_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Expense"
+            },
+            "distance": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Distance Covered"
+            },
+            "start_reading": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start Reading of the Odometer"
+            },
+            "end_reading": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End Reading of the Odometer"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currency ID involved in the transaction."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the custom field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tag"
+                },
+                "tag_option_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the Tag Option"
+                }
+              },
+              "description": null
+            },
+            "documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "file_name": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attached file."
+                },
+                "document_id": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the attached file."
+                }
+              },
+              "description": "List of files to be attached to a particular transaction."
+            },
+            "exchange_rate": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The foreign currency exchange rate value."
+            },
+            "recurring_expense_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Recurring Expense"
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the bank transaction. VAT treatment denotes the location of the customer or vendor. If the customer or vendor resides in the UK then the VAT treatment is <code>uk</code>. If the customer or vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing/selling Goods then his VAT treatment is <code>eu_vat_registered</code>. And, if he resides outside the UK then his VAT treatment is <code>overseas</code>."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the bank transaction.Choose whether the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "acquisition_vat_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) This is the ID of the tax applied in case this is an EU - goods purchase or expense and acquisition VAT needs to be reported."
+            },
+            "reverse_charge_vat_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) This is the ID of the tax applied in case this is a non UK - service purchase or expense and reverse charge VAT needs to be reported."
+            },
+            "is_update_customer": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Customer should be updated"
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the transaction. This denotes whether the transaction line item is to be treated as goods or as a service. Allowed Values: <br/> <b>For UK and Europe: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+            },
+            "taxes": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tax_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the Tax"
+                },
+                "tax_amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount of Tax"
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax or tax group applied"
+                }
+              },
+              "description": null
+            },
+            "reason": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reason"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "line_item_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Line Item"
+                },
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Mandatory Account id for which transactions are to be listed."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A brief description about the transaction."
+                },
+                "amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount of the transaction"
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax or tax group applied"
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Order of the Item"
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the transaction. This denotes whether the transaction line item is to be treated as goods or as a service. Allowed Values: <br/> <b>For UK and Europe: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+                },
+                "acquisition_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Optional) This is the ID of the tax applied in case this is an EU - goods purchase or expense and acquisition VAT needs to be reported."
+                },
+                "reverse_charge_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Optional) This is the ID of the tax applied in case this is a non UK - service purchase or expense and reverse charge VAT needs to be reported."
+                },
+                "tax_exemption_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Code of the Tax Exemption"
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tax Exemption"
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Id of the Tag Option"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "zcrm_potential_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"account_id\": {\n            \"description\": \"Mandatory Account id for which transactions are to be listed.\",\n            \"type\": \"string\",\n            \"example\": \"460000000048001\"\n          },\n          \"paid_through_account_id\": {\n            \"description\": \"ID of the credit/ bank account the payment is made.\",\n            \"type\": \"string\",\n            \"example\": \"460000000000358\"\n          },\n          \"date\": {\n            \"description\": \"Transaction date.\",\n            \"type\": \"string\",\n            \"example\": \"2013-10-01\"\n          },\n          \"tax_id\": {\n            \"description\": \"ID of the tax or tax group applied\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [],\n            \"x-node_unavailable_in\": [\n              \"us\"\n            ]\n          },\n          \"amount\": {\n            \"description\": \"Amount of the transaction\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 2000\n          },\n          \"project_id\": {\n            \"description\": \"ID of the project associated with the expense.\",\n            \"type\": \"string\"\n          },\n          \"tax_exemption_code\": {\n            \"description\": \"Code of the Tax Exemption\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\",\n              \"au\",\n              \"ca\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_exemption_id\": {\n            \"description\": \"ID of the Tax Exemption\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\",\n              \"au\",\n              \"ca\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_inclusive_tax\": {\n            \"description\": \"Check if transaction is tax Inclusive\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"is_billable\": {\n            \"description\": \"A boolean value to specify if the expense is billable.\",\n            \"type\": \"boolean\"\n          },\n          \"reference_number\": {\n            \"description\": \"Reference Number of the transaction\",\n            \"type\": \"string\",\n            \"example\": \"Ref-121\"\n          },\n          \"description\": {\n            \"description\": \"A brief description about the transaction.\",\n            \"type\": \"string\"\n          },\n          \"customer_id\": {\n            \"description\": \"ID of the customer or vendor.\",\n            \"type\": \"string\",\n            \"example\": \"460000000000111\"\n          },\n          \"zp_project_id\": {\n            \"description\": \"ID of the Project\",\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"zp_project_name\": {\n            \"description\": \"Name of the Project\",\n            \"type\": \"string\"\n          },\n          \"zp_client_id\": {\n            \"description\": \"ID of client\",\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"vendor_id\": {\n            \"description\": \"ID of the Vendor\",\n            \"type\": \"string\",\n            \"example\": \"460000000026049\"\n          },\n          \"vehicle_id\": {\n            \"description\": \"ID of the Vehicle\",\n            \"type\": \"string\"\n          },\n          \"mileage_unit\": {\n            \"description\": \"Unit of Mileage\",\n            \"type\": \"string\",\n            \"example\": \"km\"\n          },\n          \"mileage_rate\": {\n            \"description\": \"Mileage Rate to be Applied\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 0\n          },\n          \"can_reclaim_vat_on_mileage\": {\n            \"description\": \"Check if VAT can be reclaimed on mileage\",\n            \"type\": \"boolean\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"eu\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"fuel_type\": {\n            \"description\": \"Type of Fuel Used. Allowed Values : <code>petrol</code>, <code>lpg</code>, <code>diesel</code>\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"eu\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"engine_capacity_range\": {\n            \"description\": \"Type of Fuel Used. Allowed Values : <code>less_than_1400cc</code>, <code>between_1401cc_and_1600cc</code>, <code>between_1601cc_and_2000cc</code> and <code>more_than_2000cc</code>\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"eu\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"employee_id\": {\n            \"description\": \"ID of the Employee\",\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"mileage_type\": {\n            \"description\": \"Type of Mileage. Allowed Values : <code>gmaps</code>,<code>imaps</code>,<code>gps</code>,<code>odometer</code>,<code>wmaps</code>,<code>manual</code>,<code>non_mileage</code> and <code>per_diem</code>\",\n            \"type\": \"string\",\n            \"example\": \"non_mileage\"\n          },\n          \"expense_type\": {\n            \"description\": \"Type of Expense\",\n            \"type\": \"string\",\n            \"example\": \"non_mileage\"\n          },\n          \"distance\": {\n            \"description\": \"Distance Covered\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 4\n          },\n          \"start_reading\": {\n            \"description\": \"Start Reading of the Odometer\",\n            \"type\": \"string\"\n          },\n          \"end_reading\": {\n            \"description\": \"End Reading of the Odometer\",\n            \"type\": \"string\"\n          },\n          \"currency_id\": {\n            \"description\": \"The currency ID involved in the transaction.\",\n            \"type\": \"string\",\n            \"example\": \"460000000000097\"\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"index\": {\n                  \"description\": \"Index of the custom field\",\n                  \"type\": \"integer\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the Custom Field\",\n                  \"type\": \"string\"\n                }\n              }\n            }\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"tag_id\": {\n                  \"description\": \"ID of the Tag\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"tag_option_id\": {\n                  \"description\": \"Id of the Tag Option\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                }\n              }\n            }\n          },\n          \"documents\": {\n            \"description\": \"List of files to be attached to a particular transaction.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"file_name\": {\n                  \"description\": \"Name of the attached file.\"\n                },\n                \"document_id\": {\n                  \"description\": \"Unique ID of the attached file.\"\n                }\n              }\n            }\n          },\n          \"exchange_rate\": {\n            \"description\": \"The foreign currency exchange rate value.\",\n            \"type\": \"integer\",\n            \"example\": 1\n          },\n          \"recurring_expense_id\": {\n            \"description\": \"ID of the Recurring Expense\",\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"vat_treatment\": {\n            \"description\": \"VAT treatment for the bank transaction. VAT treatment denotes the location of the customer or vendor. If the customer or vendor resides in the UK then the VAT treatment is <code>uk</code>. If the customer or vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing/selling Goods then his VAT treatment is <code>eu_vat_registered</code>. And, if he resides outside the UK then his VAT treatment is <code>overseas</code>.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"eu\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_treatment\": {\n            \"description\": \"VAT treatment for the bank transaction.Choose whether the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica).\",\n            \"type\": \"string\",\n            \"example\": \"vat_registered\",\n            \"x-node_available_in\": [\n              \"gcc\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"acquisition_vat_id\": {\n            \"description\": \"(Optional) This is the ID of the tax applied in case this is an EU - goods purchase or expense and acquisition VAT needs to be reported.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"eu\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"reverse_charge_vat_id\": {\n            \"description\": \"(Optional) This is the ID of the tax applied in case this is a non UK - service purchase or expense and reverse charge VAT needs to be reported.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"eu\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_update_customer\": {\n            \"description\": \"Check if Customer should be updated\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"product_type\": {\n            \"description\": \"Type of the transaction. This denotes whether the transaction line item is to be treated as goods or as a service. Allowed Values: <br/> <b>For UK and Europe: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"eu\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"taxes\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"tax_name\": {\n                  \"description\": \"Name of the Tax\",\n                  \"type\": \"string\"\n                },\n                \"tax_amount\": {\n                  \"description\": \"Amount of Tax\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 0\n                },\n                \"tax_id\": {\n                  \"description\": \"ID of the tax or tax group applied\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [],\n                  \"x-node_unavailable_in\": [\n                    \"us\"\n                  ]\n                }\n              }\n            }\n          },\n          \"reason\": {\n            \"description\": \"Reason\",\n            \"type\": \"string\"\n          },\n          \"line_items\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"line_item_id\": {\n                  \"description\": \"ID of the Line Item\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\",\n                  \"example\": \"460000000012834\"\n                },\n                \"account_id\": {\n                  \"description\": \"Mandatory Account id for which transactions are to be listed.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000048001\"\n                },\n                \"description\": {\n                  \"description\": \"A brief description about the transaction.\",\n                  \"type\": \"string\"\n                },\n                \"amount\": {\n                  \"description\": \"Amount of the transaction\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 2000\n                },\n                \"tax_id\": {\n                  \"description\": \"ID of the tax or tax group applied\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [],\n                  \"x-node_unavailable_in\": [\n                    \"us\"\n                  ]\n                },\n                \"item_order\": {\n                  \"description\": \"Order of the Item\",\n                  \"type\": \"integer\",\n                  \"example\": 1\n                },\n                \"product_type\": {\n                  \"description\": \"Type of the transaction. This denotes whether the transaction line item is to be treated as goods or as a service. Allowed Values: <br/> <b>For UK and Europe: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"uk\",\n                    \"eu\",\n                    \"za\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"acquisition_vat_id\": {\n                  \"description\": \"(Optional) This is the ID of the tax applied in case this is an EU - goods purchase or expense and acquisition VAT needs to be reported.\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"uk\",\n                    \"eu\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"reverse_charge_vat_id\": {\n                  \"description\": \"(Optional) This is the ID of the tax applied in case this is a non UK - service purchase or expense and reverse charge VAT needs to be reported.\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"uk\",\n                    \"eu\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_exemption_code\": {\n                  \"description\": \"Code of the Tax Exemption\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"us\",\n                    \"au\",\n                    \"ca\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_exemption_id\": {\n                  \"description\": \"ID of the Tax Exemption\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"us\",\n                    \"au\",\n                    \"ca\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tags\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"tag_id\": {\n                        \"description\": \"ID of the Tag\",\n                        \"type\": \"integer\",\n                        \"format\": \"int64\"\n                      },\n                      \"tag_option_id\": {\n                        \"description\": \"Id of the Tag Option\",\n                        \"type\": \"integer\",\n                        \"format\": \"int64\"\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"zcrm_potential_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

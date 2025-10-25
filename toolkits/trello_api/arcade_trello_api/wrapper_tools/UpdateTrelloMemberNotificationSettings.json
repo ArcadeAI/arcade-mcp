@@ -1,0 +1,203 @@
+{
+  "name": "UpdateTrelloMemberNotificationSettings",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloMemberNotificationSettings@2.0.0",
+  "description": "Update blocked notification keys for a Trello member's channel.\n\nUse this tool to update blocked notification keys for a specific channel of a Trello member. This is useful when a user wants to change which notifications are blocked for a particular communication channel.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "member_id_or_username",
+        "required": true,
+        "description": "The ID or username of the Trello member whose notification settings will be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "notification_channel",
+        "required": true,
+        "description": "Specify the channel where notifications should be blocked, e.g., 'email'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "email"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Channel to block notifications on"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel"
+      },
+      {
+        "name": "blocked_notification_keys",
+        "required": true,
+        "description": "A singular or array of notification keys to block for a specific channel.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "blockedKeys": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Singular key or array of notification keys"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-members-id-notificationChannelSettings-channel-blockedKeys'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "member_id_or_username",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "channel",
+        "tool_parameter_name": "notification_channel",
+        "description": "Channel to block notifications on",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "email"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Channel to block notifications on"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "blocked_notification_keys",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "blockedKeys": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Singular key or array of notification keys"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"blockedKeys\"\n        ],\n        \"properties\": {\n          \"blockedKeys\": {\n            \"description\": \"Singular key or array of notification keys\",\n            \"oneOf\": [\n              {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"notification_comment_card\",\n                  \"notification_added_a_due_date\",\n                  \"notification_changed_due_date\",\n                  \"notification_card_due_soon\",\n                  \"notification_removed_from_card\",\n                  \"notification_added_attachment_to_card\",\n                  \"notification_created_card\",\n                  \"notification_moved_card\",\n                  \"notification_archived_card\",\n                  \"notification_unarchived_card\"\n                ],\n                \"example\": \"notification_comment_card\"\n              },\n              {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"notification_comment_card\",\n                    \"notification_added_a_due_date\",\n                    \"notification_changed_due_date\",\n                    \"notification_card_due_soon\",\n                    \"notification_removed_from_card\",\n                    \"notification_added_attachment_to_card\",\n                    \"notification_created_card\",\n                    \"notification_moved_card\",\n                    \"notification_archived_card\",\n                    \"notification_unarchived_card\"\n                  ],\n                  \"example\": \"notification_comment_card\"\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

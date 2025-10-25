@@ -1,0 +1,342 @@
+{
+  "name": "CreateNewDatastore",
+  "fully_qualified_name": "DatadogApi.CreateNewDatastore@0.1.0",
+  "description": "Creates a new datastore in Datadog.\n\nUse this tool to create a new datastore within the Datadog platform. It should be called when a new storage resource needs to be initialized or added to the Datadog system.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "datastore_description",
+        "required": false,
+        "description": "A human-readable description about the datastore.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A human-readable description about the datastore."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.description"
+      },
+      {
+        "name": "datastore_display_name",
+        "required": false,
+        "description": "The display name for the new datastore. This should be a human-readable and descriptive name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The display name for the new datastore."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "organization_access_level",
+        "required": false,
+        "description": "The access level for the datastore within the organization. Options: 'contributor', 'viewer', or 'manager'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "contributor",
+            "viewer",
+            "manager"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization access level for the datastore. For example, 'contributor'."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.org_access"
+      },
+      {
+        "name": "primary_key_column_name",
+        "required": false,
+        "description": "The name of the primary key column for this datastore. Must follow PostgreSQL naming conventions and not exceed 63 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the primary key column for this datastore. Primary column names:\n  - Must abide by both [PostgreSQL naming conventions](https://www.postgresql.org/docs/7.0/syntax525.htm)\n  - Cannot exceed 63 characters"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.primary_column_name"
+      },
+      {
+        "name": "primary_key_generation_strategy",
+        "required": false,
+        "description": "Set to `uuid` for automatic primary key generation when new items are added. Default is `none`, requiring manual key assignment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "none",
+            "uuid"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Can be set to `uuid` to automatically generate primary keys when new items are added. Default value is `none`, which requires you to supply a primary key for each new item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.primary_key_generation_strategy"
+      },
+      {
+        "name": "datastore_id",
+        "required": false,
+        "description": "Optional ID for the new datastore. If not provided, a default one will be generated automatically.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional ID for the new datastore. If not provided, one will be generated automatically."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "datastore_resource_type",
+        "required": false,
+        "description": "Specifies the resource type for the datastore. Valid value is 'datastores'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "datastores"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The resource type for datastores."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateDatastore'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/actions-datastores",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.description",
+        "tool_parameter_name": "datastore_description",
+        "description": "A human-readable description about the datastore.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A human-readable description about the datastore."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "datastore_display_name",
+        "description": "The display name for the new datastore.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The display name for the new datastore."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.org_access",
+        "tool_parameter_name": "organization_access_level",
+        "description": "The organization access level for the datastore. For example, 'contributor'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "contributor",
+            "viewer",
+            "manager"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization access level for the datastore. For example, 'contributor'."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.primary_column_name",
+        "tool_parameter_name": "primary_key_column_name",
+        "description": "The name of the primary key column for this datastore. Primary column names:\n  - Must abide by both [PostgreSQL naming conventions](https://www.postgresql.org/docs/7.0/syntax525.htm)\n  - Cannot exceed 63 characters",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the primary key column for this datastore. Primary column names:\n  - Must abide by both [PostgreSQL naming conventions](https://www.postgresql.org/docs/7.0/syntax525.htm)\n  - Cannot exceed 63 characters"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.primary_key_generation_strategy",
+        "tool_parameter_name": "primary_key_generation_strategy",
+        "description": "Can be set to `uuid` to automatically generate primary keys when new items are added. Default value is `none`, which requires you to supply a primary key for each new item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "none",
+            "uuid"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Can be set to `uuid` to automatically generate primary keys when new items are added. Default value is `none`, which requires you to supply a primary key for each new item."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "datastore_id",
+        "description": "Optional ID for the new datastore. If not provided, one will be generated automatically.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional ID for the new datastore. If not provided, one will be generated automatically."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "datastore_resource_type",
+        "description": "The resource type for datastores.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "datastores"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The resource type for datastores."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "datastores",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to create a new datastore with specified configuration and metadata.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data wrapper containing the configuration needed to create a new datastore.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Configuration and metadata to create a new datastore.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"A human-readable description about the datastore.\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The display name for the new datastore.\",\n                    \"example\": \"datastore-name\",\n                    \"type\": \"string\"\n                  },\n                  \"org_access\": {\n                    \"description\": \"The organization access level for the datastore. For example, 'contributor'.\",\n                    \"enum\": [\n                      \"contributor\",\n                      \"viewer\",\n                      \"manager\"\n                    ],\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"CONTRIBUTOR\",\n                      \"VIEWER\",\n                      \"MANAGER\"\n                    ]\n                  },\n                  \"primary_column_name\": {\n                    \"description\": \"The name of the primary key column for this datastore. Primary column names:\\n  - Must abide by both [PostgreSQL naming conventions](https://www.postgresql.org/docs/7.0/syntax525.htm)\\n  - Cannot exceed 63 characters\",\n                    \"example\": \"\",\n                    \"maxLength\": 63,\n                    \"type\": \"string\"\n                  },\n                  \"primary_key_generation_strategy\": {\n                    \"description\": \"Can be set to `uuid` to automatically generate primary keys when new items are added. Default value is `none`, which requires you to supply a primary key for each new item.\",\n                    \"enum\": [\n                      \"none\",\n                      \"uuid\"\n                    ],\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"NONE\",\n                      \"UUID\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"primary_column_name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"Optional ID for the new datastore. If not provided, one will be generated automatically.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"datastores\",\n                \"description\": \"The resource type for datastores.\",\n                \"enum\": [\n                  \"datastores\"\n                ],\n                \"example\": \"datastores\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"DATASTORES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

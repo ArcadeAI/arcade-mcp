@@ -1,0 +1,225 @@
+{
+  "name": "ListCatalogKinds",
+  "fully_qualified_name": "DatadogApi.ListCatalogKinds@0.1.0",
+  "description": "Retrieve entity kinds from the Software Catalog.\n\nThis tool calls the Datadog API to retrieve a list of entity kinds from the Software Catalog. It should be used when you need information about the types of entities available in the catalog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "page_offset",
+        "required": false,
+        "description": "Specific offset to use as the beginning of the returned page. It determines where the data will start from in the list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific offset to use as the beginning of the returned page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[offset]"
+      },
+      {
+        "name": "max_kinds_in_response",
+        "required": false,
+        "description": "Specify the maximum number of entity kinds to be returned in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of kinds in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[limit]"
+      },
+      {
+        "name": "filter_uuid",
+        "required": false,
+        "description": "Filter entities by their UUID in the catalog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter entities by UUID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[id]"
+      },
+      {
+        "name": "filter_entity_name",
+        "required": false,
+        "description": "Filter entities in the Software Catalog by their name using a string value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter entities by name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[name]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListCatalogKind'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/catalog/kind",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page[offset]",
+        "tool_parameter_name": "page_offset",
+        "description": "Specific offset to use as the beginning of the returned page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific offset to use as the beginning of the returned page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[limit]",
+        "tool_parameter_name": "max_kinds_in_response",
+        "description": "Maximum number of kinds in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of kinds in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 100,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[id]",
+        "tool_parameter_name": "filter_uuid",
+        "description": "Filter entities by UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter entities by UUID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[name]",
+        "tool_parameter_name": "filter_entity_name",
+        "description": "Filter entities by name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter entities by name."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

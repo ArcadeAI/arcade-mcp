@@ -1,0 +1,386 @@
+{
+  "name": "CreateNewTeam",
+  "fully_qualified_name": "DatadogApi.CreateNewTeam@0.1.0",
+  "description": "Create a new team and add specified members.\n\nThis tool creates a new team and adds specified user IDs to it. Use it when you need to establish a team and assign users to it in Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_creation_data",
+        "required": true,
+        "description": "JSON object containing team attributes (name, handle, description, avatar, banner) and relationships (user IDs to be added).",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "avatar": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Unicode representation of the avatar for the team, limited to a single grapheme"
+                    },
+                    "banner": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Banner selection for the team"
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Free-form markdown description/content for the team's homepage"
+                    },
+                    "handle": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The team's identifier"
+                    },
+                    "hidden_modules": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Collection of hidden modules for the team"
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the team"
+                    },
+                    "visible_modules": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Collection of visible modules for the team"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Team creation attributes"
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "users": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the user."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Users resource type."
+                            }
+                          },
+                          "description": "Relationships to user objects."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to users."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships formed with the team on creation"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Team type"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team create"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/team",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "team_creation_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "avatar": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Unicode representation of the avatar for the team, limited to a single grapheme"
+                    },
+                    "banner": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Banner selection for the team"
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Free-form markdown description/content for the team's homepage"
+                    },
+                    "handle": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The team's identifier"
+                    },
+                    "hidden_modules": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Collection of hidden modules for the team"
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the team"
+                    },
+                    "visible_modules": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Collection of visible modules for the team"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Team creation attributes"
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "users": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the user."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Users resource type."
+                            }
+                          },
+                          "description": "Relationships to user objects."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to users."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships formed with the team on creation"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Team type"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team create"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to create a team\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Team create\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Team creation attributes\",\n                \"properties\": {\n                  \"avatar\": {\n                    \"description\": \"Unicode representation of the avatar for the team, limited to a single grapheme\",\n                    \"example\": \"\\ud83e\\udd51\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"banner\": {\n                    \"description\": \"Banner selection for the team\",\n                    \"format\": \"int64\",\n                    \"nullable\": true,\n                    \"type\": \"integer\"\n                  },\n                  \"description\": {\n                    \"description\": \"Free-form markdown description/content for the team's homepage\",\n                    \"type\": \"string\"\n                  },\n                  \"handle\": {\n                    \"description\": \"The team's identifier\",\n                    \"example\": \"example-team\",\n                    \"maxLength\": 195,\n                    \"type\": \"string\"\n                  },\n                  \"hidden_modules\": {\n                    \"description\": \"Collection of hidden modules for the team\",\n                    \"items\": {\n                      \"description\": \"String identifier of the module\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the team\",\n                    \"example\": \"Example Team\",\n                    \"maxLength\": 200,\n                    \"type\": \"string\"\n                  },\n                  \"visible_modules\": {\n                    \"description\": \"Collection of visible modules for the team\",\n                    \"items\": {\n                      \"description\": \"String identifier of the module\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"handle\",\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationships formed with the team on creation\",\n                \"properties\": {\n                  \"users\": {\n                    \"description\": \"Relationship to users.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Relationships to user objects.\",\n                        \"example\": [],\n                        \"items\": {\n                          \"description\": \"Relationship to user object.\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"A unique identifier that represents the user.\",\n                              \"example\": \"00000000-0000-0000-2345-000000000000\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"users\",\n                              \"description\": \"Users resource type.\",\n                              \"enum\": [\n                                \"users\"\n                              ],\n                              \"example\": \"users\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"USERS\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"type\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"team\",\n                \"description\": \"Team type\",\n                \"enum\": [\n                  \"team\"\n                ],\n                \"example\": \"team\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"TEAM\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

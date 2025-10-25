@@ -1,0 +1,234 @@
+{
+  "name": "UpdateScimUserRecord",
+  "fully_qualified_name": "AirtableApi.UpdateScimUserRecord@2.0.0",
+  "description": "Apply SCIM patch operations to update user details.\n\nUse this tool to perform a sequence of SCIM patch operations on an existing user. Suitable for updating user attributes according to SCIM specification.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "The unique identifier for the user to be updated. It should match the user's existing SCIM record.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "scim_patch_operations",
+        "required": false,
+        "description": "A list of SCIM patch operations to perform on a user, including operations and schemas.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "Operations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "op": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "add",
+                    "replace",
+                    "remove"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Path for a [SCIM user](/api/scim-overview#scim-user-objects) field."
+                },
+                "value": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Replacment value. Not used when performing the `'remove'` operation."
+                }
+              },
+              "description": "A list of SCIM patch operations to perform.\n\nSee the [SCIM PATCH protocol](https://datatracker.ietf.org/doc/html/rfc7644#section-3.5.2) for details."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's PatchOp schema."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patch-scim-user'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.scim.usersAndGroups:manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/scim/v2/Users/{userId}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "userId",
+        "tool_parameter_name": "user_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "scim_patch_operations",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "Operations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "op": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "add",
+                    "replace",
+                    "remove"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Path for a [SCIM user](/api/scim-overview#scim-user-objects) field."
+                },
+                "value": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Replacment value. Not used when performing the `'remove'` operation."
+                }
+              },
+              "description": "A list of SCIM patch operations to perform.\n\nSee the [SCIM PATCH protocol](https://datatracker.ietf.org/doc/html/rfc7644#section-3.5.2) for details."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's PatchOp schema."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Patch user example\": {\n          \"description\": \"Newly patched user\",\n          \"summary\": \"Patch user example\",\n          \"value\": {\n            \"Operations\": [\n              {\n                \"op\": \"replace\",\n                \"path\": \"title\",\n                \"value\": \"Manager\"\n              }\n            ],\n            \"schemas\": [\n              \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"Operations\": {\n            \"description\": \"A list of SCIM patch operations to perform.\\n\\nSee the [SCIM PATCH protocol](https://datatracker.ietf.org/doc/html/rfc7644#section-3.5.2) for details.\",\n            \"items\": {\n              \"properties\": {\n                \"op\": {\n                  \"enum\": [\n                    \"add\",\n                    \"replace\",\n                    \"remove\"\n                  ],\n                  \"type\": \"string\"\n                },\n                \"path\": {\n                  \"description\": \"Path for a [SCIM user](/api/scim-overview#scim-user-objects) field.\",\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"anyOf\": [\n                    {\n                      \"type\": \"string\"\n                    },\n                    {}\n                  ],\n                  \"description\": \"Replacment value. Not used when performing the `'remove'` operation.\"\n                }\n              },\n              \"required\": [\n                \"op\",\n                \"path\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"schemas\": {\n            \"description\": \"A list of schemas, including at least SCIM's PatchOp schema.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"schemas\",\n          \"Operations\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

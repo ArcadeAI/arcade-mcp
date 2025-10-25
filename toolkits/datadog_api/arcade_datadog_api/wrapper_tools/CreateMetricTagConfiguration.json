@@ -1,0 +1,379 @@
+{
+  "name": "CreateMetricTagConfiguration",
+  "fully_qualified_name": "DatadogApi.CreateMetricTagConfiguration@0.1.0",
+  "description": "Create queryable tag configurations for metrics.\n\nThis tool is used to create and define a list of queryable tag keys for an existing metric in Datadog, such as count, gauge, rate, or distribution metrics. It allows for optional percentile aggregations on distribution metrics. By setting the 'exclude_tags_mode' to true, users can switch from an allow-list to a deny-list mode, where defined tags are not queryable. This tool requires the `Manage Tags for Metrics` permission.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "metric_name",
+        "required": true,
+        "description": "The name of the existing metric for which the tag configuration is to be created. This is required to identify the specific metric in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metric."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "metric_name"
+      },
+      {
+        "name": "metric_tag_configuration",
+        "required": true,
+        "description": "Defines the configuration for metric tags, including attributes like type, tags, exclusions, percentiles, and aggregations.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "aggregations": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "space": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "avg",
+                            "max",
+                            "min",
+                            "sum"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A space aggregation for use in query."
+                        },
+                        "time": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "avg",
+                            "count",
+                            "max",
+                            "min",
+                            "sum"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A time aggregation for use in query."
+                        }
+                      },
+                      "description": "Deprecated. You no longer need to configure specific time and space aggregations for Metrics Without Limits."
+                    },
+                    "exclude_tags_mode": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When set to true, the configuration will exclude the configured tags and include any other submitted tags.\nWhen set to false, the configuration will include the configured tags and exclude any other submitted tags.\nDefaults to false. Requires `tags` property."
+                    },
+                    "include_percentiles": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Toggle to include/exclude percentiles for a distribution metric.\nDefaults to false. Can only be applied to metrics that have a `metric_type` of `distribution`."
+                    },
+                    "metric_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "gauge",
+                        "count",
+                        "rate",
+                        "distribution"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The metric's type."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A list of tag keys that will be queryable for your metric."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Object containing the definition of a metric tag configuration to be created."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The metric name for this resource."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "manage_tags"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The metric tag configuration resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for a single metric to be configure tags on."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateTagConfiguration'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/metrics/{metric_name}/tags",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "metric_name",
+        "tool_parameter_name": "metric_name",
+        "description": "The name of the metric.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metric."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "metric_tag_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "aggregations": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "space": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "avg",
+                            "max",
+                            "min",
+                            "sum"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A space aggregation for use in query."
+                        },
+                        "time": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "avg",
+                            "count",
+                            "max",
+                            "min",
+                            "sum"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A time aggregation for use in query."
+                        }
+                      },
+                      "description": "Deprecated. You no longer need to configure specific time and space aggregations for Metrics Without Limits."
+                    },
+                    "exclude_tags_mode": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When set to true, the configuration will exclude the configured tags and include any other submitted tags.\nWhen set to false, the configuration will include the configured tags and exclude any other submitted tags.\nDefaults to false. Requires `tags` property."
+                    },
+                    "include_percentiles": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Toggle to include/exclude percentiles for a distribution metric.\nDefaults to false. Can only be applied to metrics that have a `metric_type` of `distribution`."
+                    },
+                    "metric_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "gauge",
+                        "count",
+                        "rate",
+                        "distribution"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The metric's type."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A list of tag keys that will be queryable for your metric."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Object containing the definition of a metric tag configuration to be created."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The metric name for this resource."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "manage_tags"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The metric tag configuration resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for a single metric to be configure tags on."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request object that includes the metric that you would like to configure tags for.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object for a single metric to be configure tags on.\",\n            \"example\": {\n              \"attributes\": {\n                \"include_percentiles\": false,\n                \"metric_type\": \"distribution\",\n                \"tags\": [\n                  \"app\",\n                  \"datacenter\"\n                ]\n              },\n              \"id\": \"http.endpoint.request\",\n              \"type\": \"manage_tags\"\n            },\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Object containing the definition of a metric tag configuration to be created.\",\n                \"properties\": {\n                  \"aggregations\": {\n                    \"description\": \"Deprecated. You no longer need to configure specific time and space aggregations for Metrics Without Limits.\",\n                    \"example\": [\n                      {\n                        \"space\": \"sum\",\n                        \"time\": \"sum\"\n                      },\n                      {\n                        \"space\": \"sum\",\n                        \"time\": \"count\"\n                      }\n                    ],\n                    \"items\": {\n                      \"description\": \"A time and space aggregation combination for use in query.\",\n                      \"example\": {\n                        \"space\": \"sum\",\n                        \"time\": \"sum\"\n                      },\n                      \"properties\": {\n                        \"space\": {\n                          \"description\": \"A space aggregation for use in query.\",\n                          \"enum\": [\n                            \"avg\",\n                            \"max\",\n                            \"min\",\n                            \"sum\"\n                          ],\n                          \"example\": \"sum\",\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"AVG\",\n                            \"MAX\",\n                            \"MIN\",\n                            \"SUM\"\n                          ]\n                        },\n                        \"time\": {\n                          \"description\": \"A time aggregation for use in query.\",\n                          \"enum\": [\n                            \"avg\",\n                            \"count\",\n                            \"max\",\n                            \"min\",\n                            \"sum\"\n                          ],\n                          \"example\": \"sum\",\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"AVG\",\n                            \"COUNT\",\n                            \"MAX\",\n                            \"MIN\",\n                            \"SUM\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"time\",\n                        \"space\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"exclude_tags_mode\": {\n                    \"description\": \"When set to true, the configuration will exclude the configured tags and include any other submitted tags.\\nWhen set to false, the configuration will include the configured tags and exclude any other submitted tags.\\nDefaults to false. Requires `tags` property.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"include_percentiles\": {\n                    \"description\": \"Toggle to include/exclude percentiles for a distribution metric.\\nDefaults to false. Can only be applied to metrics that have a `metric_type` of `distribution`.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"metric_type\": {\n                    \"default\": \"gauge\",\n                    \"description\": \"The metric's type.\",\n                    \"enum\": [\n                      \"gauge\",\n                      \"count\",\n                      \"rate\",\n                      \"distribution\"\n                    ],\n                    \"example\": \"count\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"GAUGE\",\n                      \"COUNT\",\n                      \"RATE\",\n                      \"DISTRIBUTION\"\n                    ]\n                  },\n                  \"tags\": {\n                    \"default\": [],\n                    \"description\": \"A list of tag keys that will be queryable for your metric.\",\n                    \"example\": [\n                      \"app\",\n                      \"datacenter\"\n                    ],\n                    \"items\": {\n                      \"description\": \"Tag keys to group by.\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"tags\",\n                  \"metric_type\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The metric name for this resource.\",\n                \"example\": \"test.metric.latency\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"manage_tags\",\n                \"description\": \"The metric tag configuration resource type.\",\n                \"enum\": [\n                  \"manage_tags\"\n                ],\n                \"example\": \"manage_tags\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"MANAGE_TAGS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,332 @@
+{
+  "name": "LogTimeEntries",
+  "fully_qualified_name": "ZohoBooksApi.LogTimeEntries@0.1.0",
+  "description": "Log time entries in Zoho Books.\n\nUse this tool to log time entries for projects in Zoho Books. It should be called when you need to track time spent on project tasks.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization in Zoho Books. Required for logging time entries.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "time_entry_details",
+        "required": false,
+        "description": "JSON object containing details for a time entry: project_id, task_id, user_id, log_date, log_time, begin_time, end_time, is_billable, notes, start_timer, and cost_rate.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the project."
+            },
+            "task_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the task."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the user."
+            },
+            "log_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date on which the user spent on the task. <code>Date-Format [HH:mm]</code>"
+            },
+            "log_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time the user spent on this task. Either send this attribute or begin and end time attributes. <code>Time-Format [HH:mm]</code>"
+            },
+            "begin_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time the user started working on this task. <code>Time-Format [HH:mm]</code>"
+            },
+            "end_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time the user stopped working on this task. <code>Time-Format [HH:mm]</code>"
+            },
+            "is_billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether it is billable or not."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the work done. <code>Max-length [500]</code>"
+            },
+            "start_timer": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start timer."
+            },
+            "cost_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Hourly cost rate"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_time_entries'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.projects.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/projects/timeentries",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "time_entry_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the project."
+            },
+            "task_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the task."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the user."
+            },
+            "log_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date on which the user spent on the task. <code>Date-Format [HH:mm]</code>"
+            },
+            "log_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time the user spent on this task. Either send this attribute or begin and end time attributes. <code>Time-Format [HH:mm]</code>"
+            },
+            "begin_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time the user started working on this task. <code>Time-Format [HH:mm]</code>"
+            },
+            "end_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time the user stopped working on this task. <code>Time-Format [HH:mm]</code>"
+            },
+            "is_billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether it is billable or not."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the work done. <code>Max-length [500]</code>"
+            },
+            "start_timer": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start timer."
+            },
+            "cost_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Hourly cost rate"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"project_id\",\n          \"task_id\",\n          \"user_id\",\n          \"log_date\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"project_id\": {\n            \"description\": \"ID of the project.\",\n            \"type\": \"string\",\n            \"example\": \"Network Distribution\"\n          },\n          \"task_id\": {\n            \"description\": \"ID of the task.\",\n            \"type\": \"string\",\n            \"example\": \"460000000044001\"\n          },\n          \"user_id\": {\n            \"description\": \"ID of the user.\",\n            \"type\": \"string\",\n            \"example\": \"460000000024003\"\n          },\n          \"log_date\": {\n            \"description\": \"Date on which the user spent on the task. <code>Date-Format [HH:mm]</code>\",\n            \"type\": \"string\",\n            \"example\": \"2013-09-17\"\n          },\n          \"log_time\": {\n            \"description\": \"Time the user spent on this task. Either send this attribute or begin and end time attributes. <code>Time-Format [HH:mm]</code>\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"begin_time\": {\n            \"description\": \"Time the user started working on this task. <code>Time-Format [HH:mm]</code>\",\n            \"type\": \"string\",\n            \"example\": \"10:00\"\n          },\n          \"end_time\": {\n            \"description\": \"Time the user stopped working on this task. <code>Time-Format [HH:mm]</code>\",\n            \"type\": \"string\",\n            \"example\": \"15:00\"\n          },\n          \"is_billable\": {\n            \"description\": \"Whether it is billable or not.\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"notes\": {\n            \"description\": \"Description of the work done. <code>Max-length [500]</code>\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"start_timer\": {\n            \"description\": \"Start timer.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"cost_rate\": {\n            \"description\": \"Hourly cost rate\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 10\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

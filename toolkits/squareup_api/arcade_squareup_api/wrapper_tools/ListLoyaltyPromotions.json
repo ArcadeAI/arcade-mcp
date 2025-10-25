@@ -1,18 +1,18 @@
 {
   "name": "ListLoyaltyPromotions",
-  "fully_qualified_name": "SquareupApi.ListLoyaltyPromotions@0.1.0",
-  "description": "Fetches loyalty promotions for a specific program.\n\nUse this tool to retrieve a list of loyalty promotions linked to a specific loyalty program, sorted by their creation date, from newest to oldest.",
+  "fully_qualified_name": "SquareupApi.ListLoyaltyPromotions@2.0.0",
+  "description": "Retrieve promotions from a specific loyalty program.\n\nCall this tool to list loyalty promotions associated with a specific loyalty program, sorted by the most recent creation date.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "loyalty_program_id",
         "required": true,
-        "description": "The ID of the base loyalty program. Use the 'RetrieveLoyaltyProgram' API with 'main' to get this ID.",
+        "description": "The ID of the loyalty program to list promotions for. Obtain via `RetrieveLoyaltyProgram` using `main`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "program_id"
       },
       {
-        "name": "filter_by_status",
+        "name": "promotion_status_filter",
         "required": false,
-        "description": "Filter loyalty promotions by status. Options: ACTIVE, ENDED, CANCELED, SCHEDULED.",
+        "description": "Specify the status to filter loyalty promotions. Options include ACTIVE, ENDED, CANCELED, SCHEDULED. Returns promotions with the specified status.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -47,7 +47,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The cursor for retrieving the next page of loyalty promotions. Obtain this from the previous response to continue pagination.",
+        "description": "The cursor for retrieving the next page of results from the previous call.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -62,7 +62,7 @@
       {
         "name": "max_results_per_page",
         "required": false,
-        "description": "Specifies the maximum number of loyalty promotions to return per page. Must be between 1 and 30. Default is 30.",
+        "description": "Specify the maximum number of promotions to return in a single response. Must be between 1 and 30, defaults to 30.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -109,13 +109,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions",
@@ -124,7 +124,7 @@
     "parameters": [
       {
         "name": "status",
-        "tool_parameter_name": "filter_by_status",
+        "tool_parameter_name": "promotion_status_filter",
         "description": "The status to filter the results by. If a status is provided, only loyalty promotions\nwith the specified status are returned. Otherwise, all loyalty promotions associated with\nthe loyalty program are returned.",
         "value_schema": {
           "val_type": "string",
@@ -142,6 +142,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -159,6 +160,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -176,6 +178,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -193,6 +196,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -206,6 +210,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

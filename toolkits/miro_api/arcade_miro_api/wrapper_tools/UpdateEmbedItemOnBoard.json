@@ -1,0 +1,408 @@
+{
+  "name": "UpdateEmbedItemOnBoard",
+  "fully_qualified_name": "MiroApi.UpdateEmbedItemOnBoard@2.0.0",
+  "description": "Update an embed item on a Miro board.\n\nUse this tool to update specific embed items on a Miro board. Ensure you have the required 'boards:write' scope before calling this tool. This action involves modifying the properties of an embed on the board and is subject to Level 2 rate limiting.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "Unique identifier (ID) of the board where you want to update the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to update the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "embed_item_id",
+        "required": true,
+        "description": "Unique identifier (ID) of the embed item to update on the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the item that you want to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "embed_display_mode",
+        "required": false,
+        "description": "Defines how the content in the embed item is displayed on the board. Use 'inline' for direct display and 'modal' for a modal overlay view.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "inline",
+            "modal"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines how the content in the embed item is displayed on the board.\n`inline`: The embedded content is displayed directly on the board.\n`modal`: The embedded content is displayed inside a modal overlay on the board."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.mode"
+      },
+      {
+        "name": "preview_image_url",
+        "required": false,
+        "description": "URL of the image used as the preview for the embedded item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "URL of the image to be used as the preview image for the embedded item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.previewUrl"
+      },
+      {
+        "name": "content_resource_url",
+        "required": false,
+        "description": "A valid URL pointing to the content resource to embed in the board. Supports HTTP and HTTPS protocols.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A [valid URL](https://developers.miro.com/reference/data#embeddata) pointing to the content resource that you want to embed in the board. Possible transport protocols: HTTP, HTTPS."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.url"
+      },
+      {
+        "name": "x_axis_coordinate_on_board",
+        "required": false,
+        "description": "X-axis coordinate for the location of the item on the board. Defaults to `0`, representing the center of the board.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position.x"
+      },
+      {
+        "name": "y_axis_coordinate",
+        "required": false,
+        "description": "Y-axis coordinate of the item's location on the board. Defaults to `0`. Center of board is `y: 0`.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position.y"
+      },
+      {
+        "name": "item_height_in_pixels",
+        "required": false,
+        "description": "Specify the height of the embed item in pixels.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Height of the item, in pixels."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "geometry.height"
+      },
+      {
+        "name": "item_width_pixels",
+        "required": false,
+        "description": "Specifies the width of the item on the board in pixels.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Width of the item, in pixels."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "geometry.width"
+      },
+      {
+        "name": "parent_frame_id",
+        "required": false,
+        "description": "Unique identifier (ID) of the parent frame for the item being updated on the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the parent frame for the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parent.id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-embed-item'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/embeds/{item_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_id",
+        "description": "Unique identifier (ID) of the board where you want to update the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to update the item."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "embed_item_id",
+        "description": "Unique identifier (ID) of the item that you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the item that you want to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.mode",
+        "tool_parameter_name": "embed_display_mode",
+        "description": "Defines how the content in the embed item is displayed on the board.\n`inline`: The embedded content is displayed directly on the board.\n`modal`: The embedded content is displayed inside a modal overlay on the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "inline",
+            "modal"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines how the content in the embed item is displayed on the board.\n`inline`: The embedded content is displayed directly on the board.\n`modal`: The embedded content is displayed inside a modal overlay on the board."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.previewUrl",
+        "tool_parameter_name": "preview_image_url",
+        "description": "URL of the image to be used as the preview image for the embedded item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "URL of the image to be used as the preview image for the embedded item."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.url",
+        "tool_parameter_name": "content_resource_url",
+        "description": "A [valid URL](https://developers.miro.com/reference/data#embeddata) pointing to the content resource that you want to embed in the board. Possible transport protocols: HTTP, HTTPS.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A [valid URL](https://developers.miro.com/reference/data#embeddata) pointing to the content resource that you want to embed in the board. Possible transport protocols: HTTP, HTTPS."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "position.x",
+        "tool_parameter_name": "x_axis_coordinate_on_board",
+        "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "position.y",
+        "tool_parameter_name": "y_axis_coordinate",
+        "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "geometry.height",
+        "tool_parameter_name": "item_height_in_pixels",
+        "description": "Height of the item, in pixels.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Height of the item, in pixels."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "geometry.width",
+        "tool_parameter_name": "item_width_pixels",
+        "description": "Width of the item, in pixels.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Width of the item, in pixels."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "parent.id",
+        "tool_parameter_name": "parent_frame_id",
+        "description": "Unique identifier (ID) of the parent frame for the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the parent frame for the item."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the embed URL.\",\n            \"properties\": {\n              \"mode\": {\n                \"type\": \"string\",\n                \"description\": \"Defines how the content in the embed item is displayed on the board.\\n`inline`: The embedded content is displayed directly on the board.\\n`modal`: The embedded content is displayed inside a modal overlay on the board.\",\n                \"enum\": [\n                  \"inline\",\n                  \"modal\"\n                ]\n              },\n              \"previewUrl\": {\n                \"type\": \"string\",\n                \"description\": \"URL of the image to be used as the preview image for the embedded item.\"\n              },\n              \"url\": {\n                \"type\": \"string\",\n                \"description\": \"A [valid URL](https://developers.miro.com/reference/data#embeddata) pointing to the content resource that you want to embed in the board. Possible transport protocols: HTTP, HTTPS.\",\n                \"example\": \"https://www.youtube.com/watch?v=HlVSNEiFCBk\"\n              }\n            }\n          },\n          \"position\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates.\",\n            \"properties\": {\n              \"x\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"X-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              },\n              \"y\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Y-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              }\n            }\n          },\n          \"geometry\": {\n            \"type\": \"object\",\n            \"description\": \"Contains geometrical information about the item. You can set either the width or height. You cannot set both the width and height at the same time.\",\n            \"properties\": {\n              \"height\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Height of the item, in pixels.\"\n              },\n              \"width\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Width of the item, in pixels.\"\n              }\n            }\n          },\n          \"parent\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the parent frame for the item.\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"format\": \"int64\",\n                \"description\": \"Unique identifier (ID) of the parent frame for the item.\",\n                \"example\": \"3074457362577955300\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

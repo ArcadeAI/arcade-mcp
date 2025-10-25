@@ -1,0 +1,406 @@
+{
+  "name": "AddUserToTeam",
+  "fully_qualified_name": "DatadogApi.AddUserToTeam@0.1.0",
+  "description": "Add a user to a team in Datadog.\n\nUse this tool to add a specified user to an existing team within Datadog by providing the team ID.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_id",
+        "required": true,
+        "description": "The ID of the team to which the user will be added. This is required to specify the target team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "team_membership_type",
+        "required": true,
+        "description": "Specify the type of team membership. Use 'team_memberships'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team_memberships"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team membership type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "provisioning_mechanism",
+        "required": false,
+        "description": "Mechanism responsible for provisioning the team relationship. Possible values: null for user-added, \"service_account\" for service account, \"saml_mapping\" for SAML mapping.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mechanism responsible for provisioning the team relationship.\nPossible values: null for added by a user, \"service_account\" if added by a service account, and \"saml_mapping\" if provisioned via SAML mapping."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.provisioned_by"
+      },
+      {
+        "name": "provisioned_user_or_service_account_id",
+        "required": false,
+        "description": "UUID of the User or Service Account who provisioned the team membership, or null if done via SAML mapping.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UUID of the User or Service Account who provisioned this team membership, or null if provisioned via SAML mapping."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.provisioned_by_id"
+      },
+      {
+        "name": "user_role_in_team",
+        "required": false,
+        "description": "Specifies the user's role within the team. Currently, only 'admin' is supported as a role.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admin"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The user's role within the team"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.role"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique ID of the team to which the user will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the team associated with the membership"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.team.data.id"
+      },
+      {
+        "name": "user_team_type",
+        "required": false,
+        "description": "Specifies the type for the team relationship, fixed as 'team'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "User team team type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.team.data.type"
+      },
+      {
+        "name": "user_id",
+        "required": false,
+        "description": "The ID of the user to be added to the team in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the user associated with the team"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.user.data.id"
+      },
+      {
+        "name": "user_team_user_type",
+        "required": false,
+        "description": "Set to 'users' as the type for the user in the team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "users"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "User team user type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.user.data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateTeamMembership'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/team/{team_id}/memberships",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_id",
+        "description": "None",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.provisioned_by",
+        "tool_parameter_name": "provisioning_mechanism",
+        "description": "The mechanism responsible for provisioning the team relationship.\nPossible values: null for added by a user, \"service_account\" if added by a service account, and \"saml_mapping\" if provisioned via SAML mapping.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mechanism responsible for provisioning the team relationship.\nPossible values: null for added by a user, \"service_account\" if added by a service account, and \"saml_mapping\" if provisioned via SAML mapping."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.provisioned_by_id",
+        "tool_parameter_name": "provisioned_user_or_service_account_id",
+        "description": "UUID of the User or Service Account who provisioned this team membership, or null if provisioned via SAML mapping.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UUID of the User or Service Account who provisioned this team membership, or null if provisioned via SAML mapping."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.role",
+        "tool_parameter_name": "user_role_in_team",
+        "description": "The user's role within the team",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admin"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The user's role within the team"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.team.data.id",
+        "tool_parameter_name": "team_identifier",
+        "description": "The ID of the team associated with the membership",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the team associated with the membership"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.team.data.type",
+        "tool_parameter_name": "user_team_type",
+        "description": "User team team type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "User team team type"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "team",
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.user.data.id",
+        "tool_parameter_name": "user_id",
+        "description": "The ID of the user associated with the team",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the user associated with the team"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.user.data.type",
+        "tool_parameter_name": "user_team_user_type",
+        "description": "User team user type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "users"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "User team user type"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "users",
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "team_membership_type",
+        "description": "Team membership type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team_memberships"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team membership type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "team_memberships",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Team membership request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"A user's relationship with a team\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Team membership attributes\",\n                \"properties\": {\n                  \"provisioned_by\": {\n                    \"description\": \"The mechanism responsible for provisioning the team relationship.\\nPossible values: null for added by a user, \\\"service_account\\\" if added by a service account, and \\\"saml_mapping\\\" if provisioned via SAML mapping.\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"provisioned_by_id\": {\n                    \"description\": \"UUID of the User or Service Account who provisioned this team membership, or null if provisioned via SAML mapping.\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"role\": {\n                    \"description\": \"The user's role within the team\",\n                    \"enum\": [\n                      \"admin\"\n                    ],\n                    \"nullable\": true,\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"ADMIN\"\n                    ]\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationship between membership and a user\",\n                \"properties\": {\n                  \"team\": {\n                    \"description\": \"Relationship between team membership and team\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"The team associated with the membership\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"The ID of the team associated with the membership\",\n                            \"example\": \"d7e15d9d-d346-43da-81d8-3d9e71d9a5e9\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"team\",\n                            \"description\": \"User team team type\",\n                            \"enum\": [\n                              \"team\"\n                            ],\n                            \"example\": \"team\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"TEAM\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"id\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"user\": {\n                    \"description\": \"Relationship between team membership and user\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"A user's relationship with a team\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"The ID of the user associated with the team\",\n                            \"example\": \"b8626d7e-cedd-11eb-abf5-da7ad0900001\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"users\",\n                            \"description\": \"User team user type\",\n                            \"enum\": [\n                              \"users\"\n                            ],\n                            \"example\": \"users\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"USERS\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"id\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"team_memberships\",\n                \"description\": \"Team membership type\",\n                \"enum\": [\n                  \"team_memberships\"\n                ],\n                \"example\": \"team_memberships\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"TEAM_MEMBERSHIPS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

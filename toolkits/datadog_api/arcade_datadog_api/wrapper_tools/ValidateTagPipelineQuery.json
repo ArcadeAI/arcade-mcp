@@ -1,0 +1,196 @@
+{
+  "name": "ValidateTagPipelineQuery",
+  "fully_qualified_name": "DatadogApi.ValidateTagPipelineQuery@0.1.0",
+  "description": "Validate the syntax and structure of a tag pipeline query.\n\nUse this tool to ensure that a tag pipeline query is correctly structured and free of syntax errors.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "query_attributes",
+        "required": false,
+        "description": "The tag pipeline query to validate. Ensure it is correctly structured and free of syntax errors.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `attributes` `Query`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.Query"
+      },
+      {
+        "name": "query_request_data_id",
+        "required": false,
+        "description": "The unique identifier for the RulesValidateQueryRequestData.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `RulesValidateQueryRequestData` `id`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "query_resource_type",
+        "required": false,
+        "description": "Specify the type of resource for query validation, always use 'validate_query'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "validate_query"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Validate query resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ValidateQuery'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/tags/enrichment/validate-query",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.Query",
+        "tool_parameter_name": "query_attributes",
+        "description": "The `attributes` `Query`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `attributes` `Query`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "query_request_data_id",
+        "description": "The `RulesValidateQueryRequestData` `id`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `RulesValidateQueryRequestData` `id`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "query_resource_type",
+        "description": "Validate query resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "validate_query"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Validate query resource type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "validate_query",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The definition of `RulesValidateQueryRequest` object.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"Query\": \"example:query AND test:true\"\n            },\n            \"type\": \"validate_query\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The definition of `RulesValidateQueryRequestData` object.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The definition of `RulesValidateQueryRequestDataAttributes` object.\",\n                \"properties\": {\n                  \"Query\": {\n                    \"description\": \"The `attributes` `Query`.\",\n                    \"example\": \"\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"Query\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The `RulesValidateQueryRequestData` `id`.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"validate_query\",\n                \"description\": \"Validate query resource type.\",\n                \"enum\": [\n                  \"validate_query\"\n                ],\n                \"example\": \"validate_query\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"VALIDATE_QUERY\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

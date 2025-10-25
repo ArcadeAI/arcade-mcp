@@ -1,0 +1,456 @@
+{
+  "name": "CreateProjectTask",
+  "fully_qualified_name": "FreshserviceApi.CreateProjectTask@1.0.0",
+  "description": "Create a new project task in Freshservice.\n\nUse this tool to create a new project task within Freshservice. It should be called when you need to add a task to an existing project.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "ID of the project to which the task will be added. This must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of project to retrieve"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_task_details",
+        "required": true,
+        "description": "Details of the project task to be created, including id, title, description, status, owner, dates, and notification settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the task"
+            },
+            "project_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the project"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the task"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the task"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the task"
+            },
+            "owner_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Owner of the task"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Agent who created the task"
+            },
+            "closed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Closed time of the task"
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date of the task"
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End date of the task"
+            },
+            "parent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Immediate parent of the task"
+            },
+            "root_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Root parent of the task"
+            },
+            "has_subtasks": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "States if the task has subtasks"
+            },
+            "notification_needed": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specify if needed to be notified"
+            },
+            "notify": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "BEFORE_START_DATE",
+                    "BEFORE_END_DATE"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify whether notification should be sent before start or before end date"
+                },
+                "value": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Time period of notification"
+                },
+                "time_unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "minutes",
+                    "hours",
+                    "days",
+                    "weeks"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Time unit"
+                }
+              },
+              "inner_properties": null,
+              "description": "Task notification details. Allowed range - 15 minutes to 4 weeks"
+            }
+          },
+          "inner_properties": null,
+          "description": "project task that needs to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-project-task'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{id}/tasks",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "project_id",
+        "description": "ID of project to retrieve",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of project to retrieve"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "project_task_details",
+        "description": "project task that needs to be created",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the task"
+            },
+            "project_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the project"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the task"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the task"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the task"
+            },
+            "owner_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Owner of the task"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Agent who created the task"
+            },
+            "closed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Closed time of the task"
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date of the task"
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End date of the task"
+            },
+            "parent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Immediate parent of the task"
+            },
+            "root_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Root parent of the task"
+            },
+            "has_subtasks": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "States if the task has subtasks"
+            },
+            "notification_needed": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specify if needed to be notified"
+            },
+            "notify": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "BEFORE_START_DATE",
+                    "BEFORE_END_DATE"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify whether notification should be sent before start or before end date"
+                },
+                "value": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Time period of notification"
+                },
+                "time_unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "minutes",
+                    "hours",
+                    "days",
+                    "weeks"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Time unit"
+                }
+              },
+              "inner_properties": null,
+              "description": "Task notification details. Allowed range - 15 minutes to 4 weeks"
+            }
+          },
+          "inner_properties": null,
+          "description": "project task that needs to be created"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"project task that needs to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the task\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 1001\n          },\n          \"project_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the project\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 10\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the task\",\n            \"example\": \"Clear backlog\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description about the task\",\n            \"example\": \"Clear backlog\"\n          },\n          \"status\": {\n            \"type\": \"integer\",\n            \"description\": \"Status of the task\",\n            \"format\": \"int32\",\n            \"example\": 1\n          },\n          \"owner_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Owner of the task\",\n            \"format\": \"int64\",\n            \"example\": 984793\n          },\n          \"user_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Agent who created the task\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 23423423\n          },\n          \"closed_at\": {\n            \"type\": \"string\",\n            \"description\": \"Closed time of the task\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-06-14T07:16:45Z\"\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"description\": \"Start date of the task\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-06-14T07:16:45Z\"\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"description\": \"End date of the task\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-06-11T07:16:45Z\"\n          },\n          \"parent_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Immediate parent of the task\",\n            \"format\": \"int64\",\n            \"example\": 34534\n          },\n          \"root_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Root parent of the task\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 12312\n          },\n          \"has_subtasks\": {\n            \"type\": \"boolean\",\n            \"description\": \"States if the task has subtasks\",\n            \"readOnly\": true,\n            \"example\": true\n          },\n          \"notification_needed\": {\n            \"type\": \"boolean\",\n            \"description\": \"Specify if needed to be notified\",\n            \"example\": true\n          },\n          \"notify\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"type\": {\n                \"type\": \"string\",\n                \"description\": \"Specify whether notification should be sent before start or before end date\",\n                \"example\": \"BEFORE_START_DATE\",\n                \"enum\": [\n                  \"BEFORE_START_DATE\",\n                  \"BEFORE_END_DATE\"\n                ]\n              },\n              \"value\": {\n                \"type\": \"integer\",\n                \"description\": \"Time period of notification\",\n                \"example\": 2\n              },\n              \"time_unit\": {\n                \"type\": \"string\",\n                \"description\": \"Time unit\",\n                \"example\": \"hours\",\n                \"enum\": [\n                  \"minutes\",\n                  \"hours\",\n                  \"days\",\n                  \"weeks\"\n                ]\n              }\n            },\n            \"description\": \"Task notification details. Allowed range - 15 minutes to 4 weeks\",\n            \"example\": {\n              \"type\": \"BEFORE_START_DATE\",\n              \"value\": 2,\n              \"time_unit\": \"hours\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

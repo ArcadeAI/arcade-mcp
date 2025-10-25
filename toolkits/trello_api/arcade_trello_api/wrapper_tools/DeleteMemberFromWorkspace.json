@@ -1,18 +1,18 @@
 {
   "name": "DeleteMemberFromWorkspace",
-  "fully_qualified_name": "TrelloApi.DeleteMemberFromWorkspace@0.1.0",
-  "description": "Remove a member from a Trello Workspace and all its boards.\n\nThis tool removes a specified member from a Trello Workspace and all associated boards. It should be used when you need to completely revoke a member's access to a workspace and its boards.",
+  "fully_qualified_name": "TrelloApi.DeleteMemberFromWorkspace@2.0.0",
+  "description": "Remove a member from a Workspace and all Workspace boards.\n\nUse this tool to remove a specified member from a Trello Workspace and all associated boards. Useful for managing Workspace membership and access control.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id_or_name",
         "required": true,
-        "description": "The ID or name of the Trello organization to specify which workspace the member should be removed from.",
+        "description": "The ID or name of the Trello organization (Workspace) from which the member is to be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_id_to_remove",
         "required": true,
-        "description": "The ID of the member to remove from the Trello Workspace and all associated boards.",
+        "description": "The ID of the member to be removed from the Workspace.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/organizations/{id}/members/{idMember}/all",
@@ -100,6 +100,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

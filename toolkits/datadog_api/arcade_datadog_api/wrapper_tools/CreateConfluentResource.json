@@ -1,0 +1,295 @@
+{
+  "name": "CreateConfluentResource",
+  "fully_qualified_name": "DatadogApi.CreateConfluentResource@0.1.0",
+  "description": "Create a Confluent resource for a specified account.\n\nUse this tool to create a Confluent resource within a specific account using its ID. It's useful for managing Confluent resources in Datadog integrations.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "confluent_account_id",
+        "required": true,
+        "description": "The ID of the Confluent account for which to create the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Confluent Account ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "resource_type",
+        "required": true,
+        "description": "The type of Confluent resource to create: `kafka`, `connector`, `ksql`, or `schema_registry`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.resource_type"
+      },
+      {
+        "name": "confluent_resource_id",
+        "required": true,
+        "description": "The unique ID for the Confluent resource to be created or managed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID associated with a Confluent resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "json_api_request_type",
+        "required": true,
+        "description": "The JSON:API type for this request. Must be 'confluent-cloud-resources'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "confluent-cloud-resources"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The JSON:API type for this request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "resource_tags",
+        "required": false,
+        "description": "A list of tag strings for the Confluent resource. Use key-value pairs separated by colons or single keys.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.tags"
+      },
+      {
+        "name": "enable_custom_metrics",
+        "required": false,
+        "description": "Set to true to enable the `custom.consumer_lag_offset` metric with extra tags, false to disable.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.enable_custom_metrics"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateConfluentResource'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integrations/confluent-cloud/accounts/{account_id}/resources",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "account_id",
+        "tool_parameter_name": "confluent_account_id",
+        "description": "Confluent Account ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Confluent Account ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.enable_custom_metrics",
+        "tool_parameter_name": "enable_custom_metrics",
+        "description": "Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.resource_type",
+        "tool_parameter_name": "resource_type",
+        "description": "The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.tags",
+        "tool_parameter_name": "resource_tags",
+        "description": "A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "confluent_resource_id",
+        "description": "The ID associated with a Confluent resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID associated with a Confluent resource."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "json_api_request_type",
+        "description": "The JSON:API type for this request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "confluent-cloud-resources"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The JSON:API type for this request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "confluent-cloud-resources",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The JSON:API request for updating a Confluent resource.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"JSON:API request for updating a Confluent resource.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes object for updating a Confluent resource.\",\n                \"properties\": {\n                  \"enable_custom_metrics\": {\n                    \"default\": false,\n                    \"description\": \"Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"resource_type\": {\n                    \"description\": \"The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.\",\n                    \"example\": \"kafka\",\n                    \"type\": \"string\"\n                  },\n                  \"tags\": {\n                    \"description\": \"A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.\",\n                    \"example\": [\n                      \"myTag\",\n                      \"myTag2:myValue\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"resource_type\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID associated with a Confluent resource.\",\n                \"example\": \"resource-id-123\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"confluent-cloud-resources\",\n                \"description\": \"The JSON:API type for this request.\",\n                \"enum\": [\n                  \"confluent-cloud-resources\"\n                ],\n                \"example\": \"confluent-cloud-resources\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CONFLUENT_CLOUD_RESOURCES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\",\n              \"id\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Confluent payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

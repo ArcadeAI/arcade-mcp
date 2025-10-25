@@ -1,0 +1,205 @@
+{
+  "name": "UpdateFirewallConfig",
+  "fully_qualified_name": "VercelApi.UpdateFirewallConfig@0.1.0",
+  "description": "Modify the existing firewall config for a project.\n\n",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The unique identifier for the project to modify the firewall config.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projectId"
+      },
+      {
+        "name": "firewall_configuration_updates",
+        "required": true,
+        "description": "A JSON object containing the updates for the firewall configuration, specifying changes like rules, policies, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier for the team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The Team slug used to identify the team for the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateFirewallConfig'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/security/firewall/config",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "projectId",
+        "tool_parameter_name": "project_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "firewall_configuration_updates",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"oneOf\": [\n          {\n            \"description\": \"Enable Firewall\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"firewallEnabled\"\n                ]\n              },\n              \"id\": {\n                \"nullable\": true\n              },\n              \"value\": {\n                \"type\": \"boolean\"\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Add a custom rule\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"rules.insert\"\n                ]\n              },\n              \"id\": {\n                \"nullable\": true\n              },\n              \"value\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 160\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 256\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"conditionGroup\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"conditions\": {\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"host\",\n                                  \"path\",\n                                  \"method\",\n                                  \"header\",\n                                  \"query\",\n                                  \"cookie\",\n                                  \"target_path\",\n                                  \"route\",\n                                  \"raw_path\",\n                                  \"ip_address\",\n                                  \"region\",\n                                  \"protocol\",\n                                  \"scheme\",\n                                  \"environment\",\n                                  \"user_agent\",\n                                  \"geo_continent\",\n                                  \"geo_country\",\n                                  \"geo_country_region\",\n                                  \"geo_city\",\n                                  \"geo_as_number\",\n                                  \"ja4_digest\",\n                                  \"ja3_digest\",\n                                  \"rate_limit_api_id\",\n                                  \"server_action\"\n                                ]\n                              },\n                              \"op\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"re\",\n                                  \"eq\",\n                                  \"neq\",\n                                  \"ex\",\n                                  \"nex\",\n                                  \"inc\",\n                                  \"ninc\",\n                                  \"pre\",\n                                  \"suf\",\n                                  \"sub\",\n                                  \"gt\",\n                                  \"gte\",\n                                  \"lt\",\n                                  \"lte\"\n                                ]\n                              },\n                              \"neg\": {\n                                \"type\": \"boolean\"\n                              },\n                              \"key\": {\n                                \"type\": \"string\"\n                              },\n                              \"value\": {\n                                \"oneOf\": [\n                                  {\n                                    \"type\": \"string\"\n                                  },\n                                  {\n                                    \"type\": \"array\",\n                                    \"items\": {\n                                      \"type\": \"string\"\n                                    },\n                                    \"maxItems\": 75\n                                  },\n                                  {\n                                    \"type\": \"number\"\n                                  }\n                                ]\n                              }\n                            },\n                            \"required\": [\n                              \"type\",\n                              \"op\"\n                            ],\n                            \"additionalProperties\": false\n                          },\n                          \"maxItems\": 65\n                        }\n                      },\n                      \"required\": [\n                        \"conditions\"\n                      ],\n                      \"additionalProperties\": false\n                    },\n                    \"maxItems\": 25\n                  },\n                  \"action\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"mitigate\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"action\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                              \"log\",\n                              \"challenge\",\n                              \"deny\",\n                              \"bypass\",\n                              \"rate_limit\",\n                              \"redirect\"\n                            ]\n                          },\n                          \"rateLimit\": {\n                            \"anyOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"algo\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                      \"fixed_window\",\n                                      \"token_bucket\"\n                                    ]\n                                  },\n                                  \"window\": {\n                                    \"type\": \"number\"\n                                  },\n                                  \"limit\": {\n                                    \"type\": \"number\"\n                                  },\n                                  \"keys\": {\n                                    \"type\": \"array\",\n                                    \"items\": {\n                                      \"type\": \"string\"\n                                    }\n                                  },\n                                  \"action\": {\n                                    \"anyOf\": [\n                                      {\n                                        \"type\": \"string\",\n                                        \"enum\": [\n                                          \"log\",\n                                          \"challenge\",\n                                          \"deny\",\n                                          \"rate_limit\"\n                                        ]\n                                      },\n                                      {}\n                                    ],\n                                    \"nullable\": true\n                                  }\n                                },\n                                \"required\": [\n                                  \"algo\",\n                                  \"window\",\n                                  \"limit\",\n                                  \"keys\"\n                                ],\n                                \"additionalProperties\": false\n                              },\n                              {}\n                            ],\n                            \"nullable\": true\n                          },\n                          \"redirect\": {\n                            \"anyOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"location\": {\n                                    \"type\": \"string\"\n                                  },\n                                  \"permanent\": {\n                                    \"type\": \"boolean\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"location\",\n                                  \"permanent\"\n                                ],\n                                \"additionalProperties\": false\n                              },\n                              {}\n                            ],\n                            \"nullable\": true\n                          },\n                          \"actionDuration\": {\n                            \"type\": \"string\",\n                            \"nullable\": true\n                          },\n                          \"bypassSystem\": {\n                            \"type\": \"boolean\",\n                            \"nullable\": true\n                          }\n                        },\n                        \"required\": [\n                          \"action\"\n                        ],\n                        \"additionalProperties\": false\n                      }\n                    },\n                    \"additionalProperties\": false\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"active\",\n                  \"conditionGroup\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Update a custom rule\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"rules.update\"\n                ]\n              },\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"value\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 160\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 256\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"conditionGroup\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"conditions\": {\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"host\",\n                                  \"path\",\n                                  \"method\",\n                                  \"header\",\n                                  \"query\",\n                                  \"cookie\",\n                                  \"target_path\",\n                                  \"route\",\n                                  \"raw_path\",\n                                  \"ip_address\",\n                                  \"region\",\n                                  \"protocol\",\n                                  \"scheme\",\n                                  \"environment\",\n                                  \"user_agent\",\n                                  \"geo_continent\",\n                                  \"geo_country\",\n                                  \"geo_country_region\",\n                                  \"geo_city\",\n                                  \"geo_as_number\",\n                                  \"ja4_digest\",\n                                  \"ja3_digest\",\n                                  \"rate_limit_api_id\",\n                                  \"server_action\"\n                                ]\n                              },\n                              \"op\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"re\",\n                                  \"eq\",\n                                  \"neq\",\n                                  \"ex\",\n                                  \"nex\",\n                                  \"inc\",\n                                  \"ninc\",\n                                  \"pre\",\n                                  \"suf\",\n                                  \"sub\",\n                                  \"gt\",\n                                  \"gte\",\n                                  \"lt\",\n                                  \"lte\"\n                                ]\n                              },\n                              \"neg\": {\n                                \"type\": \"boolean\"\n                              },\n                              \"key\": {\n                                \"type\": \"string\"\n                              },\n                              \"value\": {\n                                \"anyOf\": [\n                                  {\n                                    \"type\": \"string\"\n                                  },\n                                  {\n                                    \"type\": \"array\",\n                                    \"items\": {\n                                      \"type\": \"string\"\n                                    },\n                                    \"maxItems\": 75\n                                  },\n                                  {\n                                    \"type\": \"number\"\n                                  }\n                                ]\n                              }\n                            },\n                            \"required\": [\n                              \"type\",\n                              \"op\"\n                            ],\n                            \"additionalProperties\": false\n                          },\n                          \"maxItems\": 65\n                        }\n                      },\n                      \"required\": [\n                        \"conditions\"\n                      ],\n                      \"additionalProperties\": false\n                    },\n                    \"maxItems\": 25\n                  },\n                  \"action\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"mitigate\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"action\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                              \"log\",\n                              \"challenge\",\n                              \"deny\",\n                              \"bypass\",\n                              \"rate_limit\",\n                              \"redirect\"\n                            ]\n                          },\n                          \"rateLimit\": {\n                            \"anyOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"algo\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                      \"fixed_window\",\n                                      \"token_bucket\"\n                                    ]\n                                  },\n                                  \"window\": {\n                                    \"type\": \"number\"\n                                  },\n                                  \"limit\": {\n                                    \"type\": \"number\"\n                                  },\n                                  \"keys\": {\n                                    \"type\": \"array\",\n                                    \"items\": {\n                                      \"type\": \"string\"\n                                    }\n                                  },\n                                  \"action\": {\n                                    \"anyOf\": [\n                                      {\n                                        \"type\": \"string\",\n                                        \"enum\": [\n                                          \"log\",\n                                          \"challenge\",\n                                          \"deny\",\n                                          \"rate_limit\"\n                                        ]\n                                      },\n                                      {}\n                                    ],\n                                    \"nullable\": true\n                                  }\n                                },\n                                \"required\": [\n                                  \"algo\",\n                                  \"window\",\n                                  \"limit\",\n                                  \"keys\"\n                                ],\n                                \"additionalProperties\": false\n                              },\n                              {}\n                            ],\n                            \"nullable\": true\n                          },\n                          \"redirect\": {\n                            \"anyOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"location\": {\n                                    \"type\": \"string\"\n                                  },\n                                  \"permanent\": {\n                                    \"type\": \"boolean\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"location\",\n                                  \"permanent\"\n                                ],\n                                \"additionalProperties\": false\n                              },\n                              {}\n                            ],\n                            \"nullable\": true\n                          },\n                          \"actionDuration\": {\n                            \"type\": \"string\",\n                            \"nullable\": true\n                          },\n                          \"bypassSystem\": {\n                            \"type\": \"boolean\",\n                            \"nullable\": true\n                          }\n                        },\n                        \"required\": [\n                          \"action\"\n                        ],\n                        \"additionalProperties\": false\n                      }\n                    },\n                    \"additionalProperties\": false\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"active\",\n                  \"conditionGroup\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"id\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Remove a custom rule\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"rules.remove\"\n                ]\n              },\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"value\": {\n                \"nullable\": true\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"id\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Reorder a custom rule\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"rules.priority\"\n                ]\n              },\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"value\": {\n                \"type\": \"number\"\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"id\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Enable a managed rule\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"crs.update\"\n                ]\n              },\n              \"id\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"sd\",\n                  \"ma\",\n                  \"lfi\",\n                  \"rfi\",\n                  \"rce\",\n                  \"php\",\n                  \"gen\",\n                  \"xss\",\n                  \"sqli\",\n                  \"sf\",\n                  \"java\"\n                ]\n              },\n              \"value\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"id\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Disable a managed rule\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"crs.disable\"\n                ]\n              },\n              \"id\": {\n                \"nullable\": true\n              },\n              \"value\": {\n                \"nullable\": true\n              }\n            },\n            \"required\": [\n              \"action\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Add an IP Blocking rule\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"ip.insert\"\n                ]\n              },\n              \"id\": {\n                \"nullable\": true\n              },\n              \"value\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"hostname\": {\n                    \"type\": \"string\"\n                  },\n                  \"ip\": {\n                    \"type\": \"string\"\n                  },\n                  \"notes\": {\n                    \"type\": \"string\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"challenge\",\n                      \"log\",\n                      \"bypass\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"hostname\",\n                  \"ip\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Update an IP Blocking rule\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"ip.update\"\n                ]\n              },\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"value\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"hostname\": {\n                    \"type\": \"string\"\n                  },\n                  \"ip\": {\n                    \"type\": \"string\"\n                  },\n                  \"notes\": {\n                    \"type\": \"string\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"challenge\",\n                      \"log\",\n                      \"bypass\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"hostname\",\n                  \"ip\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"id\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Remove an IP Blocking rule\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"ip.remove\"\n                ]\n              },\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"value\": {\n                \"nullable\": true\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"id\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Update a managed ruleset\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"managedRules.update\"\n                ]\n              },\n              \"id\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"ai_bots\",\n                  \"bot_filter\",\n                  \"bot_protection\",\n                  \"owasp\"\n                ]\n              },\n              \"value\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"log\",\n                      \"challenge\",\n                      \"deny\"\n                    ]\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"required\": [\n                  \"active\"\n                ],\n                \"additionalProperties\": false\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"id\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Update a managed rule group\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\"\n              },\n              \"id\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"ai_bots\",\n                  \"bot_filter\",\n                  \"bot_protection\",\n                  \"owasp\"\n                ]\n              },\n              \"value\": {\n                \"type\": \"object\",\n                \"additionalProperties\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"active\": {\n                      \"type\": \"boolean\"\n                    },\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"enum\": [\n                        \"log\",\n                        \"challenge\",\n                        \"deny\"\n                      ]\n                    }\n                  },\n                  \"required\": [\n                    \"active\"\n                  ],\n                  \"additionalProperties\": false\n                }\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"id\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"description\": \"Toggle bot ID\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"action\": {\n                \"type\": \"string\"\n              },\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"value\": {\n                \"type\": \"boolean\"\n              }\n            },\n            \"required\": [\n              \"action\",\n              \"value\"\n            ],\n            \"additionalProperties\": false\n          }\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

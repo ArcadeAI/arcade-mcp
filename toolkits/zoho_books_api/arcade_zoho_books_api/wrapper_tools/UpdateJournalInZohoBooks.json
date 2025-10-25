@@ -1,0 +1,771 @@
+{
+  "name": "UpdateJournalInZohoBooks",
+  "fully_qualified_name": "ZohoBooksApi.UpdateJournalInZohoBooks@0.1.0",
+  "description": "Updates a journal entry in Zoho Books with specified details.\n\nThis tool updates an existing journal entry in Zoho Books using the provided details. It should be called when a user needs to modify a journal entry in their Zoho Books account.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique ID of the organization in Zoho Books. Required for identifying which organization's journal entry to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "journal_identifier",
+        "required": true,
+        "description": "The unique identifier for the journal entry to be updated in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the journal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "journal_id"
+      },
+      {
+        "name": "journal_update_details",
+        "required": false,
+        "description": "JSON object containing all update details for the journal, including dates, reference numbers, notes, VAT information, line items, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "journal_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date on which the journal to be recorded."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number for the journal."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Notes for the journal."
+            },
+            "journal_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the Journal. Allowed values: <code> Cash </code> and  <code> Both </code>."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the journals. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "include_in_vat_return": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Journal should be included in VAT Return"
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the journal. This denotes whether the journal is to be treated as goods or service. Allowed Values: <code> digital_service</code>, <code>goods</code> and <code>service</code>."
+            },
+            "is_bas_adjustment": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Journal is created for BAS Adjustment"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Currency Associated with the Journal"
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange Rate between the Currencies"
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of account for which journals to be recorded."
+                },
+                "customer_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Customer/Vendor"
+                },
+                "line_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Line"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description that can be given at the line item level."
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tax Exemption"
+                },
+                "tax_authority_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tax Authority"
+                },
+                "tax_exemption_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the Tax Exemption. Allowed Values : <code>customer</code> and <code>item</code>"
+                },
+                "tax_exemption_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Code of the Tax Exemption"
+                },
+                "tax_authority_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the Tax Authority"
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax."
+                },
+                "amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount to be recorded for the journal."
+                },
+                "debit_or_credit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the accounts needs to be debited or credited. Allowed Values: <code>debit</code> and <code>credit</code>."
+                },
+                "acquisition_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Optional) This is the ID of the tax applied in case this is an EU - goods journal and acquisition VAT needs to be reported."
+                },
+                "reverse_charge_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Optional) This is the ID of the tax applied in case this is a non UK - service journal and reverse charge VAT needs to be reported."
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Tag Option"
+                    }
+                  },
+                  "description": null
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                },
+                "project_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Project"
+                }
+              },
+              "description": null
+            },
+            "tax_exemption_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code of the Tax Exemption"
+            },
+            "tax_exemption_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the Tax Exemption. Allowed Values : <code>customer</code> and <code>item</code>"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_journal'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.accountants.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/journals/{journal_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "journal_id",
+        "tool_parameter_name": "journal_identifier",
+        "description": "Unique identifier of the journal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the journal."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "journal_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "journal_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date on which the journal to be recorded."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number for the journal."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Notes for the journal."
+            },
+            "journal_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the Journal. Allowed values: <code> Cash </code> and  <code> Both </code>."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the journals. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "include_in_vat_return": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Journal should be included in VAT Return"
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the journal. This denotes whether the journal is to be treated as goods or service. Allowed Values: <code> digital_service</code>, <code>goods</code> and <code>service</code>."
+            },
+            "is_bas_adjustment": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Journal is created for BAS Adjustment"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Currency Associated with the Journal"
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange Rate between the Currencies"
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of account for which journals to be recorded."
+                },
+                "customer_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Customer/Vendor"
+                },
+                "line_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Line"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description that can be given at the line item level."
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tax Exemption"
+                },
+                "tax_authority_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tax Authority"
+                },
+                "tax_exemption_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the Tax Exemption. Allowed Values : <code>customer</code> and <code>item</code>"
+                },
+                "tax_exemption_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Code of the Tax Exemption"
+                },
+                "tax_authority_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the Tax Authority"
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax."
+                },
+                "amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount to be recorded for the journal."
+                },
+                "debit_or_credit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the accounts needs to be debited or credited. Allowed Values: <code>debit</code> and <code>credit</code>."
+                },
+                "acquisition_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Optional) This is the ID of the tax applied in case this is an EU - goods journal and acquisition VAT needs to be reported."
+                },
+                "reverse_charge_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Optional) This is the ID of the tax applied in case this is a non UK - service journal and reverse charge VAT needs to be reported."
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Tag Option"
+                    }
+                  },
+                  "description": null
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                },
+                "project_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Project"
+                }
+              },
+              "description": null
+            },
+            "tax_exemption_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code of the Tax Exemption"
+            },
+            "tax_exemption_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the Tax Exemption. Allowed Values : <code>customer</code> and <code>item</code>"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"journal_date\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"journal_date\": {\n            \"description\": \"Date on which the journal to be recorded.\",\n            \"type\": \"string\",\n            \"example\": \"2013-09-04\"\n          },\n          \"reference_number\": {\n            \"description\": \"Reference number for the journal.\",\n            \"type\": \"string\",\n            \"example\": \"7355\"\n          },\n          \"notes\": {\n            \"description\": \"Notes for the journal.\",\n            \"type\": \"string\",\n            \"example\": \"Loan repayment\"\n          },\n          \"journal_type\": {\n            \"description\": \"Type of the Journal. Allowed values: <code> Cash </code> and  <code> Both </code>.\",\n            \"type\": \"string\",\n            \"example\": \"both\"\n          },\n          \"vat_treatment\": {\n            \"description\": \"(Optional) VAT treatment for the journals. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>).\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"eu\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"include_in_vat_return\": {\n            \"description\": \"Check if Journal should be included in VAT Return\",\n            \"type\": \"boolean\",\n            \"x-node_available_in\": [\n              \"eu\",\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"product_type\": {\n            \"description\": \"Type of the journal. This denotes whether the journal is to be treated as goods or service. Allowed Values: <code> digital_service</code>, <code>goods</code> and <code>service</code>.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_bas_adjustment\": {\n            \"description\": \"Check if Journal is created for BAS Adjustment\",\n            \"type\": \"boolean\",\n            \"x-node_available_in\": [\n              \"au\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"currency_id\": {\n            \"description\": \"ID of the Currency Associated with the Journal\",\n            \"type\": \"string\",\n            \"example\": \"460000000000097\"\n          },\n          \"exchange_rate\": {\n            \"description\": \"Exchange Rate between the Currencies\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1\n          },\n          \"location_id\": {\n            \"description\": \"Location ID\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\"\n          },\n          \"line_items\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"amount\",\n                \"debit_or_credit\"\n              ],\n              \"properties\": {\n                \"account_id\": {\n                  \"description\": \"ID of account for which journals to be recorded.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000000361\"\n                },\n                \"customer_id\": {\n                  \"description\": \"ID of the Customer/Vendor\",\n                  \"type\": \"string\"\n                },\n                \"line_id\": {\n                  \"description\": \"ID of the Line\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000038005\"\n                },\n                \"description\": {\n                  \"description\": \"Description that can be given at the line item level.\",\n                  \"type\": \"string\"\n                },\n                \"tax_exemption_id\": {\n                  \"description\": \"ID of the Tax Exemption\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"us\",\n                    \"au\",\n                    \"ca\",\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_authority_id\": {\n                  \"description\": \"ID of the Tax Authority\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"us\",\n                    \"au\",\n                    \"ca\",\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_exemption_type\": {\n                  \"description\": \"Type of the Tax Exemption. Allowed Values : <code>customer</code> and <code>item</code>\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"us\",\n                    \"au\",\n                    \"ca\",\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_exemption_code\": {\n                  \"description\": \"Code of the Tax Exemption\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"us\",\n                    \"au\",\n                    \"ca\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_authority_name\": {\n                  \"description\": \"Name of the Tax Authority\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"us\",\n                    \"au\",\n                    \"ca\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_id\": {\n                  \"description\": \"ID of the tax.\",\n                  \"type\": \"string\"\n                },\n                \"amount\": {\n                  \"description\": \"Amount to be recorded for the journal.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 5000\n                },\n                \"debit_or_credit\": {\n                  \"description\": \"Whether the accounts needs to be debited or credited. Allowed Values: <code>debit</code> and <code>credit</code>.\",\n                  \"type\": \"string\",\n                  \"example\": \"credit\"\n                },\n                \"acquisition_vat_id\": {\n                  \"description\": \"(Optional) This is the ID of the tax applied in case this is an EU - goods journal and acquisition VAT needs to be reported.\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"uk\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"reverse_charge_vat_id\": {\n                  \"description\": \"(Optional) This is the ID of the tax applied in case this is a non UK - service journal and reverse charge VAT needs to be reported.\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"uk\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tags\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"tag_id\": {\n                        \"description\": \"ID of the Tag\",\n                        \"type\": \"integer\",\n                        \"format\": \"int64\",\n                        \"example\": \"460000000094001\"\n                      },\n                      \"tag_option_id\": {\n                        \"description\": \"ID of the Tag Option\",\n                        \"type\": \"integer\",\n                        \"format\": \"int64\",\n                        \"example\": \"460000000048001\"\n                      }\n                    }\n                  }\n                },\n                \"location_id\": {\n                  \"description\": \"Location ID\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000038080\"\n                },\n                \"project_id\": {\n                  \"description\": \"ID of the Project\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000898001\"\n                }\n              }\n            }\n          },\n          \"tax_exemption_code\": {\n            \"description\": \"Code of the Tax Exemption\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\",\n              \"au\",\n              \"ca\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_exemption_type\": {\n            \"description\": \"Type of the Tax Exemption. Allowed Values : <code>customer</code> and <code>item</code>\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\",\n              \"au\",\n              \"ca\",\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"customfield_id\": {\n                  \"description\": \"ID of the Custom Field\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000098001\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the Custom Field\",\n                  \"type\": \"string\",\n                  \"example\": \"Normal\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

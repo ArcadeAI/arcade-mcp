@@ -1,0 +1,324 @@
+{
+  "name": "UpdateWorkweekConfiguration",
+  "fully_qualified_name": "SquareupApi.UpdateWorkweekConfiguration@2.0.0",
+  "description": "Update workweek configuration settings.\n\nUse this tool to update the settings for a specific workweek configuration in the system.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workweek_config_id",
+        "required": true,
+        "description": "The UUID for the `WorkweekConfig` object to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID for the `WorkweekConfig` object being updated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "workweek_start_day",
+        "required": true,
+        "description": "Specifies the start day of the workweek. Acceptable values are: MON, TUE, WED, THU, FRI, SAT, SUN.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "MON",
+            "TUE",
+            "WED",
+            "THU",
+            "FRI",
+            "SAT",
+            "SUN"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The days of the week."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workweek_config.start_of_week"
+      },
+      {
+        "name": "workweek_start_time_local",
+        "required": true,
+        "description": "The local time a business week starts, represented as a string in `HH:MM` format (`HH:MM:SS` is accepted, but seconds are truncated).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The local time at which a business week starts. Represented as a\nstring in `HH:MM` format (`HH:MM:SS` is also accepted, but seconds are\ntruncated)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workweek_config.start_of_day_local_time"
+      },
+      {
+        "name": "workweek_config_uuid",
+        "required": false,
+        "description": "The UUID of the workweek configuration object to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID for this object."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workweek_config.id"
+      },
+      {
+        "name": "workweek_config_version",
+        "required": false,
+        "description": "Version number to resolve concurrency issues. If it doesn't match the server, the update fails. If omitted, a blind write occurs.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for resolving concurrency issues. The request fails if the version\nprovided does not match the server version at the time of the request. If not provided,\nSquare executes a blind write; potentially overwriting data from another\nwrite."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workweek_config.version"
+      },
+      {
+        "name": "workweek_creation_timestamp",
+        "required": false,
+        "description": "Read-only UTC timestamp of workweek config creation in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A read-only timestamp in RFC 3339 format; presented in UTC."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workweek_config.created_at"
+      },
+      {
+        "name": "read_only_updated_at",
+        "required": false,
+        "description": "A read-only timestamp in RFC 3339 format; presented in UTC, to indicate the last update time of the workweek configuration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A read-only timestamp in RFC 3339 format; presented in UTC."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workweek_config.updated_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateWorkweekConfig'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "TIMECARDS_SETTINGS_READ",
+          "TIMECARDS_SETTINGS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/labor/workweek-configs/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "workweek_config_id",
+        "description": "The UUID for the `WorkweekConfig` object being updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID for the `WorkweekConfig` object being updated."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workweek_config.id",
+        "tool_parameter_name": "workweek_config_uuid",
+        "description": "The UUID for this object.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID for this object."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workweek_config.start_of_week",
+        "tool_parameter_name": "workweek_start_day",
+        "description": "The days of the week.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "MON",
+            "TUE",
+            "WED",
+            "THU",
+            "FRI",
+            "SAT",
+            "SUN"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The days of the week."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workweek_config.start_of_day_local_time",
+        "tool_parameter_name": "workweek_start_time_local",
+        "description": "The local time at which a business week starts. Represented as a\nstring in `HH:MM` format (`HH:MM:SS` is also accepted, but seconds are\ntruncated).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The local time at which a business week starts. Represented as a\nstring in `HH:MM` format (`HH:MM:SS` is also accepted, but seconds are\ntruncated)."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workweek_config.version",
+        "tool_parameter_name": "workweek_config_version",
+        "description": "Used for resolving concurrency issues. The request fails if the version\nprovided does not match the server version at the time of the request. If not provided,\nSquare executes a blind write; potentially overwriting data from another\nwrite.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for resolving concurrency issues. The request fails if the version\nprovided does not match the server version at the time of the request. If not provided,\nSquare executes a blind write; potentially overwriting data from another\nwrite."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workweek_config.created_at",
+        "tool_parameter_name": "workweek_creation_timestamp",
+        "description": "A read-only timestamp in RFC 3339 format; presented in UTC.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A read-only timestamp in RFC 3339 format; presented in UTC."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workweek_config.updated_at",
+        "tool_parameter_name": "read_only_updated_at",
+        "description": "A read-only timestamp in RFC 3339 format; presented in UTC.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A read-only timestamp in RFC 3339 format; presented in UTC."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to update a `WorkweekConfig` object.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"workweek_config\"\n        ],\n        \"properties\": {\n          \"workweek_config\": {\n            \"type\": \"object\",\n            \"description\": \"Sets the day of the week and hour of the day that a business starts a\\nworkweek. This is used to calculate overtime pay.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"start_of_week\",\n              \"start_of_day_local_time\"\n            ],\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"The UUID for this object.\"\n              },\n              \"start_of_week\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"MON\",\n                  \"TUE\",\n                  \"WED\",\n                  \"THU\",\n                  \"FRI\",\n                  \"SAT\",\n                  \"SUN\"\n                ],\n                \"x-enum-elements\": [\n                  {\n                    \"name\": \"MON\",\n                    \"description\": \"Monday\"\n                  },\n                  {\n                    \"name\": \"TUE\",\n                    \"description\": \"Tuesday\"\n                  },\n                  {\n                    \"name\": \"WED\",\n                    \"description\": \"Wednesday\"\n                  },\n                  {\n                    \"name\": \"THU\",\n                    \"description\": \"Thursday\"\n                  },\n                  {\n                    \"name\": \"FRI\",\n                    \"description\": \"Friday\"\n                  },\n                  {\n                    \"name\": \"SAT\",\n                    \"description\": \"Saturday\"\n                  },\n                  {\n                    \"name\": \"SUN\",\n                    \"description\": \"Sunday\"\n                  }\n                ],\n                \"description\": \"The days of the week.\",\n                \"x-release-status\": \"PUBLIC\"\n              },\n              \"start_of_day_local_time\": {\n                \"type\": \"string\",\n                \"description\": \"The local time at which a business week starts. Represented as a\\nstring in `HH:MM` format (`HH:MM:SS` is also accepted, but seconds are\\ntruncated).\",\n                \"minLength\": 1\n              },\n              \"version\": {\n                \"type\": \"integer\",\n                \"description\": \"Used for resolving concurrency issues. The request fails if the version\\nprovided does not match the server version at the time of the request. If not provided,\\nSquare executes a blind write; potentially overwriting data from another\\nwrite.\"\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"A read-only timestamp in RFC 3339 format; presented in UTC.\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"A read-only timestamp in RFC 3339 format; presented in UTC.\",\n                \"readOnly\": true\n              }\n            }\n          }\n        },\n        \"example\": {\n          \"workweek_config\": {\n            \"start_of_day_local_time\": \"10:00\",\n            \"start_of_week\": \"MON\",\n            \"version\": 10\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

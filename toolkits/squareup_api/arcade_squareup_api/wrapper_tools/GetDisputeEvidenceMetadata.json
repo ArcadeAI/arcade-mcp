@@ -1,18 +1,18 @@
 {
   "name": "GetDisputeEvidenceMetadata",
-  "fully_qualified_name": "SquareupApi.GetDisputeEvidenceMetadata@0.1.0",
-  "description": "Retrieve metadata for specified dispute evidence.\n\nCall this tool to obtain metadata of dispute evidence using a given dispute ID and evidence ID. Ensure to maintain a copy of any evidence uploaded as it cannot be downloaded later.",
+  "fully_qualified_name": "SquareupApi.GetDisputeEvidenceMetadata@2.0.0",
+  "description": "Get metadata for specified dispute evidence.\n\nUse this tool to retrieve the metadata of a specific piece of evidence related to a dispute by providing the dispute ID and evidence ID. Useful for managing and reviewing evidence details.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "dispute_id",
         "required": true,
-        "description": "The unique ID of the dispute to retrieve its evidence metadata.",
+        "description": "The unique ID of the dispute to retrieve evidence metadata from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "evidence_id",
         "required": true,
-        "description": "The ID of the evidence you wish to retrieve metadata for. Ensure correct ID is provided to access the specific evidence details.",
+        "description": "The unique identifier for the evidence to retrieve metadata for. Required to specify which evidence's metadata is needed in the dispute.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/disputes/{dispute_id}/evidence/{evidence_id}",
@@ -102,6 +102,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -119,6 +120,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

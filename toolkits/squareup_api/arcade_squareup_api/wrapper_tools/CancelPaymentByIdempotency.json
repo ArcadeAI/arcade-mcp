@@ -1,0 +1,109 @@
+{
+  "name": "CancelPaymentByIdempotency",
+  "fully_qualified_name": "SquareupApi.CancelPaymentByIdempotency@2.0.0",
+  "description": "Cancel a payment by idempotency key when status is unknown.\n\nUse this tool to cancel a payment when a CreatePayment request status is uncertain, typically due to network issues. Provide the same idempotency key used in the original CreatePayment request. If no payment is found, the tool confirms no action was taken.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "payment_idempotency_key",
+        "required": true,
+        "description": "The idempotency key used to identify the payment to cancel. It should match the key used in the original CreatePayment request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `idempotency_key` identifying the payment to be canceled."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CancelPaymentByIdempotencyKey'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "PAYMENTS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/payments/cancel",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "payment_idempotency_key",
+        "description": "The `idempotency_key` identifying the payment to be canceled.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `idempotency_key` identifying the payment to be canceled."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Describes a request to cancel a payment using\\n[CancelPaymentByIdempotencyKey](api-endpoint:Payments-CancelPaymentByIdempotencyKey).\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"idempotency_key\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"The `idempotency_key` identifying the payment to be canceled.\",\n            \"minLength\": 1,\n            \"maxLength\": 45\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"a7e36d40-d24b-11e8-b568-0800200c9a66\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

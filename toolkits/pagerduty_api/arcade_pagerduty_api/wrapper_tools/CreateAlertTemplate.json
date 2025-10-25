@@ -1,0 +1,274 @@
+{
+  "name": "CreateAlertTemplate",
+  "fully_qualified_name": "PagerdutyApi.CreateAlertTemplate@2.0.0",
+  "description": "Create a new alert or incident template.\n\nUse this tool to create a new template in PagerDuty, which can be used for alerts or incidents. Requires OAuth with `templates.write` scope.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "template_type",
+        "required": false,
+        "description": "The type of template. Currently, only 'status_update' is supported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "status_update"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of template (`status_update` is the only supported template at this time)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template.template_type"
+      },
+      {
+        "name": "template_name",
+        "required": false,
+        "description": "The name for the new template to be created in PagerDuty.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the template"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template.name"
+      },
+      {
+        "name": "template_description",
+        "required": false,
+        "description": "Provide a brief description of the template, outlining its purpose and use case.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description of the template"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template.description"
+      },
+      {
+        "name": "email_subject",
+        "required": false,
+        "description": "The subject line for the email template, which will appear as the email's subject.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The subject of the e-mail"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template.templated_fields.email_subject"
+      },
+      {
+        "name": "email_body_html",
+        "required": false,
+        "description": "The HTML body content for the email message to be sent as part of the template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The HTML body of the e-mail message"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template.templated_fields.email_body"
+      },
+      {
+        "name": "short_message_template",
+        "required": false,
+        "description": "The short message for the template, used in SMS, Push notifications, Slack, etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The short-message of the template (SMS, Push notification, Slack,\netc)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template.templated_fields.message"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createTemplate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/templates",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "template.template_type",
+        "tool_parameter_name": "template_type",
+        "description": "The type of template (`status_update` is the only supported template at this time)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "status_update"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of template (`status_update` is the only supported template at this time)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "template.name",
+        "tool_parameter_name": "template_name",
+        "description": "The name of the template",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the template"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "template.description",
+        "tool_parameter_name": "template_description",
+        "description": "Description of the template",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description of the template"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "template.templated_fields.email_subject",
+        "tool_parameter_name": "email_subject",
+        "description": "The subject of the e-mail",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The subject of the e-mail"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "template.templated_fields.email_body",
+        "tool_parameter_name": "email_body_html",
+        "description": "The HTML body of the e-mail message",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The HTML body of the e-mail message"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "template.templated_fields.message",
+        "tool_parameter_name": "short_message_template",
+        "description": "The short-message of the template (SMS, Push notification, Slack,\netc)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The short-message of the template (SMS, Push notification, Slack,\netc)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"template\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"template_type\": {\n                \"type\": \"string\",\n                \"description\": \"The type of template (`status_update` is the only supported template at this time)\",\n                \"enum\": [\n                  \"status_update\"\n                ]\n              },\n              \"name\": {\n                \"type\": \"string\",\n                \"description\": \"The name of the template\"\n              },\n              \"description\": {\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"description\": \"Description of the template\"\n              },\n              \"templated_fields\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"email_subject\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"description\": \"The subject of the e-mail\"\n                  },\n                  \"email_body\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"description\": \"The HTML body of the e-mail message\"\n                  },\n                  \"message\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"description\": \"The short-message of the template (SMS, Push notification, Slack,\\netc)\"\n                  }\n                }\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"template\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"template\": {\n              \"description\": \"Sample template description\",\n              \"templated_fields\": {\n                \"email_body\": \"<div> sample </div>\",\n                \"email_subject\": \"Sample email Subject\",\n                \"message\": \"Sample SMS message\"\n              },\n              \"name\": \"Sample Template\",\n              \"template_type\": \"status_update\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

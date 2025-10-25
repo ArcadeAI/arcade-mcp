@@ -1,0 +1,544 @@
+{
+  "name": "UpdateRuleset",
+  "fully_qualified_name": "PagerdutyApi.UpdateRuleset@2.0.0",
+  "description": "Update an existing ruleset in PagerDuty.\n\nUse this tool to update a ruleset in PagerDuty, which routes events to endpoints and defines actions based on event content. Note: Rulesets are being phased out, and migration to Event Orchestration is recommended. Requires `event_rules.write` OAuth scope.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier for the ruleset to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "String specifying the API version for the Accept header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the request body, must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "ruleset_update_data",
+        "required": false,
+        "description": "The JSON object containing details of the ruleset to be updated, including ID, type, name, routing keys, creator, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "ruleset": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Ruleset."
+                },
+                "self": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "the API show URL at which the object is accessible"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "global",
+                    "default_global"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the Ruleset."
+                },
+                "routing_keys": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Routing keys routed to this Ruleset."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date the Ruleset was created at."
+                },
+                "creator": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object"
+                    },
+                    "self": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The API show URL at which the object is accessible"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Reference to the user that has created the Ruleset."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date the Ruleset was last updated."
+                },
+                "updater": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object"
+                    },
+                    "self": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The API show URL at which the object is accessible"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Reference to the user that has updated the Ruleset last."
+                },
+                "team": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object"
+                    },
+                    "self": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The API show URL at which the object is accessible"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Reference to the team that owns the Ruleset. If none is specified, only admins have access."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateRuleset'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/rulesets/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "ruleset_update_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "ruleset": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Ruleset."
+                },
+                "self": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "the API show URL at which the object is accessible"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "global",
+                    "default_global"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the Ruleset."
+                },
+                "routing_keys": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Routing keys routed to this Ruleset."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date the Ruleset was created at."
+                },
+                "creator": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object"
+                    },
+                    "self": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The API show URL at which the object is accessible"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Reference to the user that has created the Ruleset."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date the Ruleset was last updated."
+                },
+                "updater": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object"
+                    },
+                    "self": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The API show URL at which the object is accessible"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Reference to the user that has updated the Ruleset last."
+                },
+                "team": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object"
+                    },
+                    "self": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The API show URL at which the object is accessible"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Reference to the team that owns the Ruleset. If none is specified, only admins have access."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"ruleset\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"description\": \"ID of the Ruleset.\"\n              },\n              \"self\": {\n                \"type\": \"string\",\n                \"format\": \"url\",\n                \"description\": \"the API show URL at which the object is accessible\",\n                \"readOnly\": true\n              },\n              \"type\": {\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"enum\": [\n                  \"global\",\n                  \"default_global\"\n                ]\n              },\n              \"name\": {\n                \"type\": \"string\",\n                \"description\": \"Name of the Ruleset.\"\n              },\n              \"routing_keys\": {\n                \"type\": \"array\",\n                \"readOnly\": true,\n                \"description\": \"Routing keys routed to this Ruleset.\",\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"readOnly\": true,\n                \"description\": \"The date the Ruleset was created at.\"\n              },\n              \"creator\": {\n                \"type\": \"object\",\n                \"readOnly\": true,\n                \"description\": \"Reference to the user that has created the Ruleset.\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"A string that determines the schema of the object\",\n                    \"readOnly\": true\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"format\": \"url\",\n                    \"description\": \"The API show URL at which the object is accessible\",\n                    \"readOnly\": true\n                  }\n                }\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"readOnly\": true,\n                \"description\": \"The date the Ruleset was last updated.\"\n              },\n              \"updater\": {\n                \"type\": \"object\",\n                \"readOnly\": true,\n                \"description\": \"Reference to the user that has updated the Ruleset last.\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"A string that determines the schema of the object\",\n                    \"readOnly\": true\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"format\": \"url\",\n                    \"description\": \"The API show URL at which the object is accessible\",\n                    \"readOnly\": true\n                  }\n                }\n              },\n              \"team\": {\n                \"type\": \"object\",\n                \"description\": \"Reference to the team that owns the Ruleset. If none is specified, only admins have access.\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"A string that determines the schema of the object\",\n                    \"readOnly\": true\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"format\": \"url\",\n                    \"description\": \"The API show URL at which the object is accessible\",\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"id\",\n                  \"type\"\n                ]\n              }\n            },\n            \"example\": {\n              \"id\": \"0e84de00-9511-4380-9f4f-a7b568bb49a0\",\n              \"name\": \"MySQL Clusters\",\n              \"type\": \"global\",\n              \"routing_keys\": [\n                \"R0212P1QXGEIQE2NMTQ7L7WXD00DWHIN\"\n              ],\n              \"self\": \"https://api.pagerduty.com/rulesets/0e84de00-9511-4380-9f4f-a7b568bb49a0\",\n              \"created_at\": \"2019-12-24T21:18:52Z\",\n              \"creator\": {\n                \"type\": \"user_reference\",\n                \"self\": \"https://api.pagerduty.com/users/PABO808\",\n                \"id\": \"PABO808\"\n              },\n              \"updated_at\": \"2019-12-25T14:54:23Z\",\n              \"updater\": {\n                \"type\": \"user_reference\",\n                \"self\": \"https://api.pagerduty.com/users/PABO808\",\n                \"id\": \"PABO808\"\n              },\n              \"team\": {\n                \"type\": \"team_reference\",\n                \"self\": \"https://api.pagerduty.com/teams/P3ZQXDF\",\n                \"id\": \"P3ZQXDF\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"ruleset\"\n        ]\n      },\n      \"examples\": {\n        \"change_name\": {\n          \"summary\": \"Example: Change name\",\n          \"value\": {\n            \"ruleset\": {\n              \"name\": \"MySQL Clusters\"\n            }\n          }\n        },\n        \"change_team\": {\n          \"summary\": \"Example: Change team\",\n          \"value\": {\n            \"ruleset\": {\n              \"team\": {\n                \"id\": \"PWL7QXS\",\n                \"type\": \"team_reference\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
