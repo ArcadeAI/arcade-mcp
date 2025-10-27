@@ -47397,3 +47397,4 @@ async def verify_user_email(
     except Exception:
         return {"response_text": response.text}
 
+
