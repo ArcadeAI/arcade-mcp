@@ -38,11 +38,14 @@ from arcade_core.schema import (
 )
 
 from arcade_mcp_server.types import (
+    AudioContent,
     CallToolParams,
     CallToolRequest,
     CallToolResult,
     ClientCapabilities,
+    CreateMessageResult,
     ElicitResult,
+    ImageContent,
     JSONRPCError,
     LoggingLevel,
     ModelHint,
@@ -508,7 +511,7 @@ class Tools(_ContextComponent):
         if isinstance(response, JSONRPCError):
             error_message = response.error.get("message", "Unknown error")
             return CallToolResult(
-                content=[{"type": "text", "text": error_message}],
+                content=[TextContent(type="text", text=error_message)],
                 structuredContent={"error": error_message},
                 isError=True,
             )
@@ -540,7 +543,7 @@ class Sampling(_ContextComponent):
         temperature: float | None = None,
         max_tokens: int | None = None,
         model_preferences: ModelPreferences | str | list[str] | None = None,
-    ) -> Any:
+    ) -> TextContent | ImageContent | AudioContent | CreateMessageResult:
         if self._ctx._session is None:
             raise ValueError("Session not available")
 
@@ -577,7 +580,7 @@ class Sampling(_ContextComponent):
             model_preferences=parsed_prefs,
         )
 
-        return result.content if hasattr(result, "content") else result
+        return result.content if hasattr(result, "content") else result  # type: ignore[no-any-return]
 
 
 class UI(_ContextComponent):
