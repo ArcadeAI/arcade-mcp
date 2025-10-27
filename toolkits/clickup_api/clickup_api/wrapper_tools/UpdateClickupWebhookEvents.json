@@ -1,0 +1,204 @@
+{
+  "name": "UpdateClickupWebhookEvents",
+  "fully_qualified_name": "ClickupApi.UpdateClickupWebhookEvents@0.1.0",
+  "description": "Update a ClickUp webhook to modify monitored events.\n\nUse this tool to update the events a ClickUp webhook monitors, allowing for changes to event tracking as needed.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_identifier",
+        "required": true,
+        "description": "The unique identifier for the webhook to be updated, formatted as a UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e506-4a29-9d42-26e504e3435e (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webhook_id"
+      },
+      {
+        "name": "webhook_endpoint_url",
+        "required": true,
+        "description": "The URL where the webhook should send POST requests for the events. Must be a valid and accessible URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "endpoint"
+      },
+      {
+        "name": "monitored_events",
+        "required": true,
+        "description": "A comma-separated list of events for the webhook to monitor. Use valid event names as per ClickUp webhook documentation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "events"
+      },
+      {
+        "name": "webhook_status",
+        "required": true,
+        "description": "Specify the new status of the webhook. Use 'active' to enable or 'inactive' to disable it.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateWebhook'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/webhook/{webhook_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "webhook_id",
+        "tool_parameter_name": "webhook_identifier",
+        "description": "e506-4a29-9d42-26e504e3435e (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e506-4a29-9d42-26e504e3435e (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "endpoint",
+        "tool_parameter_name": "webhook_endpoint_url",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "events",
+        "tool_parameter_name": "monitored_events",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "webhook_status",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"To subscribe to specific events, pass an array of `events` that you want to subscribe to, or use the wildcard character `\\\"*\\\"` to subscribe to everything.\\\\\\n \\\\\\nIf you don't specify any events, all events will be sent to the webhook.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"UpdateWebhookrequest\",\n        \"required\": [\n          \"endpoint\",\n          \"events\",\n          \"status\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"endpoint\": {\n            \"type\": \"string\"\n          },\n          \"events\": {\n            \"type\": \"string\"\n          },\n          \"status\": {\n            \"type\": \"string\"\n          }\n        },\n        \"examples\": [\n          {\n            \"endpoint\": \"https://yourdomain.com/webhook\",\n            \"events\": \"*\",\n            \"status\": \"active\"\n          }\n        ]\n      },\n      \"example\": {\n        \"endpoint\": \"https://yourdomain.com/webhook\",\n        \"events\": \"*\",\n        \"status\": \"active\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

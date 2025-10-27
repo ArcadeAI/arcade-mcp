@@ -1,0 +1,592 @@
+{
+  "name": "UpdateClickupSpace",
+  "fully_qualified_name": "ClickupApi.UpdateClickupSpace@0.1.0",
+  "description": "Update space attributes in ClickUp.\n\nUse this tool to rename a ClickUp space, change its color, and enable or disable ClickApps for it. Call this when you need to modify the settings of an existing space.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "space_identifier",
+        "required": true,
+        "description": "The unique identifier for the ClickUp space to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "space_id"
+      },
+      {
+        "name": "space_update_details",
+        "required": true,
+        "description": "JSON object containing the new settings for the space. Includes name, color, privacy settings, admin management, multiple assignees, and feature settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "color": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "private": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "admin_can_manage": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "***Note:** Allowing or restricting admins from managing private Spaces using `\"admin_can_manage\"` is an [Enterprise Plan](https://clickup.com/pricing) feature.*"
+            },
+            "multiple_assignees": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "features": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "due_dates": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "start_date": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "remap_due_dates": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "remap_closed_due_date": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "time_tracking": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "tags": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "time_estimates": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "checklists": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "custom_fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "remap_dependencies": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "dependency_warning": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "portfolios": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateSpace'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/space/{space_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "space_id",
+        "tool_parameter_name": "space_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "space_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "color": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "private": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "admin_can_manage": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "***Note:** Allowing or restricting admins from managing private Spaces using `\"admin_can_manage\"` is an [Enterprise Plan](https://clickup.com/pricing) feature.*"
+            },
+            "multiple_assignees": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "features": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "due_dates": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "start_date": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "remap_due_dates": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "remap_closed_due_date": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "time_tracking": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "tags": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "time_estimates": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "checklists": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "custom_fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "remap_dependencies": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "dependency_warning": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "portfolios": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"UpdateSpacerequest\",\n        \"required\": [\n          \"name\",\n          \"color\",\n          \"private\",\n          \"admin_can_manage\",\n          \"multiple_assignees\",\n          \"features\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"color\": {\n            \"type\": \"string\"\n          },\n          \"private\": {\n            \"type\": \"boolean\"\n          },\n          \"admin_can_manage\": {\n            \"description\": \"***Note:** Allowing or restricting admins from managing private Spaces using `\\\"admin_can_manage\\\"` is an [Enterprise Plan](https://clickup.com/pricing) feature.*\",\n            \"type\": \"boolean\"\n          },\n          \"multiple_assignees\": {\n            \"type\": \"boolean\"\n          },\n          \"features\": {\n            \"title\": \"Features\",\n            \"required\": [\n              \"due_dates\",\n              \"time_tracking\",\n              \"tags\",\n              \"time_estimates\",\n              \"checklists\",\n              \"custom_fields\",\n              \"remap_dependencies\",\n              \"dependency_warning\",\n              \"portfolios\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"due_dates\": {\n                \"title\": \"DueDates\",\n                \"required\": [\n                  \"enabled\",\n                  \"start_date\",\n                  \"remap_due_dates\",\n                  \"remap_closed_due_date\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"start_date\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"remap_due_dates\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"remap_closed_due_date\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"examples\": [\n                  {\n                    \"enabled\": true,\n                    \"start_date\": false,\n                    \"remap_due_dates\": true,\n                    \"remap_closed_due_date\": false\n                  }\n                ]\n              },\n              \"time_tracking\": {\n                \"title\": \"TimeTracking\",\n                \"required\": [\n                  \"enabled\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"examples\": [\n                  {\n                    \"enabled\": false\n                  }\n                ]\n              },\n              \"tags\": {\n                \"title\": \"Tags\",\n                \"required\": [\n                  \"enabled\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"examples\": [\n                  {\n                    \"enabled\": true\n                  }\n                ]\n              },\n              \"time_estimates\": {\n                \"title\": \"TimeEstimates\",\n                \"required\": [\n                  \"enabled\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"examples\": [\n                  {\n                    \"enabled\": true\n                  }\n                ]\n              },\n              \"checklists\": {\n                \"title\": \"Checklists\",\n                \"required\": [\n                  \"enabled\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"examples\": [\n                  {\n                    \"enabled\": true\n                  }\n                ]\n              },\n              \"custom_fields\": {\n                \"title\": \"CustomFields\",\n                \"required\": [\n                  \"enabled\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"examples\": [\n                  {\n                    \"enabled\": true\n                  }\n                ]\n              },\n              \"remap_dependencies\": {\n                \"title\": \"RemapDependencies\",\n                \"required\": [\n                  \"enabled\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"examples\": [\n                  {\n                    \"enabled\": true\n                  }\n                ]\n              },\n              \"dependency_warning\": {\n                \"title\": \"DependencyWarning\",\n                \"required\": [\n                  \"enabled\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"examples\": [\n                  {\n                    \"enabled\": true\n                  }\n                ]\n              },\n              \"portfolios\": {\n                \"title\": \"Portfolios\",\n                \"required\": [\n                  \"enabled\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"examples\": [\n                  {\n                    \"enabled\": true\n                  }\n                ]\n              }\n            },\n            \"examples\": [\n              {\n                \"due_dates\": {\n                  \"enabled\": true,\n                  \"start_date\": false,\n                  \"remap_due_dates\": true,\n                  \"remap_closed_due_date\": false\n                },\n                \"time_tracking\": {\n                  \"enabled\": false\n                },\n                \"tags\": {\n                  \"enabled\": true\n                },\n                \"time_estimates\": {\n                  \"enabled\": true\n                },\n                \"checklists\": {\n                  \"enabled\": true\n                },\n                \"custom_fields\": {\n                  \"enabled\": true\n                },\n                \"remap_dependencies\": {\n                  \"enabled\": true\n                },\n                \"dependency_warning\": {\n                  \"enabled\": true\n                },\n                \"portfolios\": {\n                  \"enabled\": true\n                }\n              }\n            ]\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"Updated Space Name\",\n            \"color\": \"#7B68EE\",\n            \"private\": false,\n            \"admin_can_manage\": false,\n            \"multiple_assignees\": false,\n            \"features\": {\n              \"due_dates\": {\n                \"enabled\": false,\n                \"start_date\": false,\n                \"remap_due_dates\": false,\n                \"remap_closed_due_date\": false\n              },\n              \"time_tracking\": {\n                \"enabled\": false\n              },\n              \"tags\": {\n                \"enabled\": false\n              },\n              \"time_estimates\": {\n                \"enabled\": false\n              },\n              \"checklists\": {\n                \"enabled\": true\n              },\n              \"custom_fields\": {\n                \"enabled\": true\n              },\n              \"remap_dependencies\": {\n                \"enabled\": false\n              },\n              \"dependency_warning\": {\n                \"enabled\": false\n              },\n              \"portfolios\": {\n                \"enabled\": false\n              }\n            }\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"Updated Space Name\",\n        \"color\": \"#7B68EE\",\n        \"private\": false,\n        \"admin_can_manage\": false,\n        \"multiple_assignees\": false,\n        \"features\": {\n          \"due_dates\": {\n            \"enabled\": false,\n            \"start_date\": false,\n            \"remap_due_dates\": false,\n            \"remap_closed_due_date\": false\n          },\n          \"time_tracking\": {\n            \"enabled\": false\n          },\n          \"tags\": {\n            \"enabled\": false\n          },\n          \"time_estimates\": {\n            \"enabled\": false\n          },\n          \"checklists\": {\n            \"enabled\": true\n          },\n          \"custom_fields\": {\n            \"enabled\": true\n          },\n          \"remap_dependencies\": {\n            \"enabled\": false\n          },\n          \"dependency_warning\": {\n            \"enabled\": false\n          },\n          \"portfolios\": {\n            \"enabled\": false\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

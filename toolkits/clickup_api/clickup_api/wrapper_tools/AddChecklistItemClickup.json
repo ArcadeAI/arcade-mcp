@@ -1,0 +1,171 @@
+{
+  "name": "AddChecklistItemClickup",
+  "fully_qualified_name": "ClickupApi.AddChecklistItemClickup@0.1.0",
+  "description": "Add an item to a checklist in ClickUp tasks.\n\nUse this tool to add a new line item to an existing checklist within a task in ClickUp. This can be useful for task management and ensuring all steps are documented within a checklist.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "checklist_identifier",
+        "required": true,
+        "description": "A unique identifier for the checklist. Must be in UUID format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checklist_id"
+      },
+      {
+        "name": "checklist_item_name",
+        "required": false,
+        "description": "The name of the checklist item to be added. This should clearly describe the task or item to be completed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "assignee_user_id",
+        "required": false,
+        "description": "The unique ID of the user assigned to the checklist item. This should be an integer value representing the user's ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignee"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateChecklistItem'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/checklist/{checklist_id}/checklist_item",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "checklist_id",
+        "tool_parameter_name": "checklist_identifier",
+        "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "checklist_item_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assignee",
+        "tool_parameter_name": "assignee_user_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateChecklistItemrequest\",\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"assignee\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"Checklist Item\",\n            \"assignee\": 183\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"Checklist Item\",\n        \"assignee\": 183\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

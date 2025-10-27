@@ -1,0 +1,402 @@
+{
+  "name": "UpdateClickupList",
+  "fully_qualified_name": "ClickupApi.UpdateClickupList@0.1.0",
+  "description": "Update the details of a ClickUp list.\n\nUse this tool to rename a ClickUp list, update its description, set a due date or time, change the priority, assign someone, or modify the list color.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_identifier",
+        "required": true,
+        "description": "The unique identifier of the ClickUp list to update. This is a required string field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_id"
+      },
+      {
+        "name": "list_name",
+        "required": true,
+        "description": "The new name for the ClickUp list. This should be a string value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "list_description_content",
+        "required": false,
+        "description": "The plain text description to update for the ClickUp list. Use this instead of markdown for simple text updates.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "content"
+      },
+      {
+        "name": "formatted_list_description",
+        "required": false,
+        "description": "Formatted description of the list using Markdown syntax instead of plain text.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use `markdown_content` instead of `content` to format your List description."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "markdown_content"
+      },
+      {
+        "name": "list_due_date",
+        "required": false,
+        "description": "Set the list's due date as a Unix timestamp in milliseconds, representing the time the list is due.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date"
+      },
+      {
+        "name": "list_priority",
+        "required": false,
+        "description": "Set the list's priority as an integer. Usually, 1 is high, 2 is medium, and 3 is low priority.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "priority"
+      },
+      {
+        "name": "list_assignee_id",
+        "required": false,
+        "description": "The ID of the user to assign to the list. Provide a valid user ID string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignee"
+      },
+      {
+        "name": "list_color",
+        "required": false,
+        "description": "Specify the color of the list. This refers to the List color rather than task statuses.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Status** refers to the List color rather than the task Statuses available in the List."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "include_due_date_time",
+        "required": false,
+        "description": "Set to true to include a specific time with the due date.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date_time"
+      },
+      {
+        "name": "remove_list_color",
+        "required": false,
+        "description": "Set to `true` to remove the List color; default is `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default, this is `false.` To remove the List color use `unset_status: true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unset_status"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateList'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/list/{list_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "list_id",
+        "tool_parameter_name": "list_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "list_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "content",
+        "tool_parameter_name": "list_description_content",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "markdown_content",
+        "tool_parameter_name": "formatted_list_description",
+        "description": "Use `markdown_content` instead of `content` to format your List description.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use `markdown_content` instead of `content` to format your List description."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date",
+        "tool_parameter_name": "list_due_date",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date_time",
+        "tool_parameter_name": "include_due_date_time",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "priority",
+        "tool_parameter_name": "list_priority",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assignee",
+        "tool_parameter_name": "list_assignee_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "list_color",
+        "description": "**Status** refers to the List color rather than the task Statuses available in the List.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Status** refers to the List color rather than the task Statuses available in the List."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "unset_status",
+        "tool_parameter_name": "remove_list_color",
+        "description": "By default, this is `false.` To remove the List color use `unset_status: true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default, this is `false.` To remove the List color use `unset_status: true`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"UpdateListrequest\",\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"content\": {\n            \"type\": \"string\"\n          },\n          \"markdown_content\": {\n            \"type\": \"string\",\n            \"description\": \"Use `markdown_content` instead of `content` to format your List description.\"\n          },\n          \"due_date\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int64\"\n          },\n          \"due_date_time\": {\n            \"type\": \"boolean\"\n          },\n          \"priority\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          },\n          \"assignee\": {\n            \"type\": \"string\"\n          },\n          \"status\": {\n            \"description\": \"**Status** refers to the List color rather than the task Statuses available in the List.\",\n            \"type\": \"string\"\n          },\n          \"unset_status\": {\n            \"description\": \"By default, this is `false.` To remove the List color use `unset_status: true`.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"Updated List Name\",\n            \"content\": \"Updated List Content\",\n            \"markdown_content\": \"# This is markdown\\n ***bold and italicized text***\",\n            \"due_date\": 1567780450202,\n            \"due_date_time\": true,\n            \"priority\": 2,\n            \"assignee\": \"none\",\n            \"status\": \"red\",\n            \"unset_status\": true\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"Updated List Name\",\n        \"content\": \"Updated List Content\",\n        \"markdown_content\": \"# This is markdown\\n ***bold and italicized text***\",\n        \"due_date\": 1567780450202,\n        \"due_date_time\": true,\n        \"priority\": 2,\n        \"assignee\": \"none\",\n        \"status\": \"red\",\n        \"unset_status\": true\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

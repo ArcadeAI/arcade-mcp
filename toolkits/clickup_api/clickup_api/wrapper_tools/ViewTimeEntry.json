@@ -1,0 +1,303 @@
+{
+  "name": "ViewTimeEntry",
+  "fully_qualified_name": "ClickupApi.ViewTimeEntry@0.1.0",
+  "description": "Retrieve details of a specific time entry.\n\nUse this tool to view information about a single time entry, including its duration. If the duration is negative, it indicates an active timer for the user.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The ID of the workspace (team) to which the time entry belongs.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "time_entry_id",
+        "required": true,
+        "description": "The ID of a specific time entry, which can be found using the Get Time Entries Within a Date Range endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a time entry. \\\n \\\nThis can be found using the [Get Time Entries Within a Date Range](ref:gettimeentrieswithinadaterange) endpoint."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "timer_id"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the format of the content being sent or received, such as 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "include_task_tags",
+        "required": false,
+        "description": "Set to true to include task tags in the response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include task tags in the response for time entries associated with tasks."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_task_tags"
+      },
+      {
+        "name": "include_location_names",
+        "required": false,
+        "description": "Include names of the List, Folder, and Space in the response along with their respective IDs.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the names of the List, Folder, and Space along with `list_id`,`folder_id`, and `space_id`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_location_names"
+      },
+      {
+        "name": "include_approval_history",
+        "required": false,
+        "description": "Include the approval history of the time entry in the response. Set to true to include.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the history of the approval for the time entry."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_approval_history"
+      },
+      {
+        "name": "include_approval_details",
+        "required": false,
+        "description": "Include the details of the approval for the time entry when true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the details of the approval for the time entry."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_approval_details"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'Getsingulartimeentry'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/time_entries/{timer_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include_task_tags",
+        "tool_parameter_name": "include_task_tags",
+        "description": "Include task tags in the response for time entries associated with tasks.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include task tags in the response for time entries associated with tasks."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_location_names",
+        "tool_parameter_name": "include_location_names",
+        "description": "Include the names of the List, Folder, and Space along with `list_id`,`folder_id`, and `space_id`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the names of the List, Folder, and Space along with `list_id`,`folder_id`, and `space_id`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_approval_history",
+        "tool_parameter_name": "include_approval_history",
+        "description": "Include the history of the approval for the time entry.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the history of the approval for the time entry."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_approval_details",
+        "tool_parameter_name": "include_approval_details",
+        "description": "Include the details of the approval for the time entry.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the details of the approval for the time entry."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "timer_id",
+        "tool_parameter_name": "time_entry_id",
+        "description": "The ID of a time entry. \\\n \\\nThis can be found using the [Get Time Entries Within a Date Range](ref:gettimeentrieswithinadaterange) endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a time entry. \\\n \\\nThis can be found using the [Get Time Entries Within a Date Range](ref:gettimeentrieswithinadaterange) endpoint."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

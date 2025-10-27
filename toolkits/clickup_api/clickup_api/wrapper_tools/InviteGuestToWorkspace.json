@@ -1,0 +1,336 @@
+{
+  "name": "InviteGuestToWorkspace",
+  "fully_qualified_name": "ClickupApi.InviteGuestToWorkspace@0.1.0",
+  "description": "Invite a guest to join a ClickUp workspace.\n\nThis tool is used to invite a guest to a ClickUp workspace on an Enterprise Plan. Ensure the guest has access to specific items in the workspace using additional endpoints.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The integer ID of the Workspace to which the guest will be invited.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "guest_email",
+        "required": true,
+        "description": "The email address of the guest to be invited to the workspace. Ensure it is correctly formatted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "custom_role_id",
+        "required": false,
+        "description": "The ID of the custom role to assign to the guest. Must be an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_role_id"
+      },
+      {
+        "name": "allow_tag_editing",
+        "required": false,
+        "description": "Set to true if the guest should be allowed to edit tags in the workspace.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "can_edit_tags"
+      },
+      {
+        "name": "allow_view_time_spent",
+        "required": false,
+        "description": "Allow the guest to view time spent in the workspace. Accepts a boolean value: true to allow, false to deny.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "can_see_time_spent"
+      },
+      {
+        "name": "can_view_estimated_times",
+        "required": false,
+        "description": "Set to true to allow the guest to view estimated times for tasks.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "can_see_time_estimated"
+      },
+      {
+        "name": "allow_guest_to_create_views",
+        "required": false,
+        "description": "Indicates if the guest can create views in the workspace. Accepts a boolean value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "can_create_views"
+      },
+      {
+        "name": "can_view_points_estimated",
+        "required": false,
+        "description": "Set to true to allow the guest to view estimated points for tasks.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "can_see_points_estimated"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'InviteGuestToWorkspace'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/guest",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "guest_email",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "can_edit_tags",
+        "tool_parameter_name": "allow_tag_editing",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "can_see_time_spent",
+        "tool_parameter_name": "allow_view_time_spent",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "can_see_time_estimated",
+        "tool_parameter_name": "can_view_estimated_times",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "can_create_views",
+        "tool_parameter_name": "allow_guest_to_create_views",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "can_see_points_estimated",
+        "tool_parameter_name": "can_view_points_estimated",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_role_id",
+        "tool_parameter_name": "custom_role_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"InviteGuestToWorkspacerequest\",\n        \"required\": [\n          \"email\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"email\": {\n            \"type\": \"string\"\n          },\n          \"can_edit_tags\": {\n            \"type\": \"boolean\"\n          },\n          \"can_see_time_spent\": {\n            \"type\": \"boolean\"\n          },\n          \"can_see_time_estimated\": {\n            \"type\": \"boolean\"\n          },\n          \"can_create_views\": {\n            \"type\": \"boolean\"\n          },\n          \"can_see_points_estimated\": {\n            \"type\": \"boolean\"\n          },\n          \"custom_role_id\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          }\n        },\n        \"examples\": [\n          {\n            \"email\": \"guest@example.com\",\n            \"can_edit_tags\": true,\n            \"can_see_time_spent\": true,\n            \"can_see_time_estimated\": true,\n            \"can_create_views\": true,\n            \"can_see_points_estimated\": true,\n            \"custom_role_id\": 12345\n          }\n        ]\n      },\n      \"example\": {\n        \"email\": \"guest@example.com\",\n        \"can_edit_tags\": true,\n        \"can_see_time_spent\": true,\n        \"can_see_time_estimated\": true,\n        \"can_create_views\": true,\n        \"custom_role_id\": 12345\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

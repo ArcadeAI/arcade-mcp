@@ -1,0 +1,237 @@
+{
+  "name": "UpdateUserGroup",
+  "fully_qualified_name": "ClickupApi.UpdateUserGroup@0.1.0",
+  "description": "Update and manage user groups within a ClickUp Workspace.\n\nUse this tool to update user groups in your ClickUp Workspace. Useful for managing team membership, permissions, or configurations. Note that adding a guest with view-only permissions will incur additional charges as they convert to paid guests.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_group_id",
+        "required": true,
+        "description": "The unique identifier of the User Group within the Workspace. This ID is required to specify which group to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "User Group ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_id"
+      },
+      {
+        "name": "user_group_name",
+        "required": false,
+        "description": "The new name for the User Group within the ClickUp Workspace. This should be a string representing the desired name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "handle_identifier",
+        "required": false,
+        "description": "A unique identifier or handle for the User Group. This is used to reference the group within ClickUp.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "handle"
+      },
+      {
+        "name": "add_member_ids",
+        "required": false,
+        "description": "An array of user IDs to add to the User Group. Each ID should be an integer.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "members.add"
+      },
+      {
+        "name": "remove_members_ids",
+        "required": false,
+        "description": "An array of integer IDs representing the users to be removed from the User Group.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "members.rem"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/group/{group_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "group_id",
+        "tool_parameter_name": "user_group_id",
+        "description": "User Group ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "User Group ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "user_group_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "handle",
+        "tool_parameter_name": "handle_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "members.add",
+        "tool_parameter_name": "add_member_ids",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "members.rem",
+        "tool_parameter_name": "remove_members_ids",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The group handle can be updated, which is used to @mention a User Group within the Workspace.\\\\\\n \\\\\\nModify Group members by using the \\\"add\\\" and \\\"rem\\\" parameters with an array of user IDs to include or exclude members.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"UpdateTeamrequest\",\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"handle\": {\n            \"type\": \"string\"\n          },\n          \"members\": {\n            \"title\": \"Members2\",\n            \"required\": [\n              \"add\",\n              \"rem\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"add\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"contentEncoding\": \"int32\"\n                },\n                \"description\": \"\"\n              },\n              \"rem\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"contentEncoding\": \"int32\"\n                },\n                \"description\": \"\"\n              }\n            },\n            \"examples\": [\n              {\n                \"add\": [\n                  123456,\n                  987654\n                ],\n                \"rem\": [\n                  159753\n                ]\n              }\n            ]\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"New User Group Name\",\n            \"handle\": \"newusergroupname\",\n            \"members\": {\n              \"add\": [\n                123456,\n                987654\n              ],\n              \"rem\": [\n                159753\n              ]\n            }\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"New User Group Name\",\n        \"handle\": \"newusergroupname\",\n        \"members\": {\n          \"add\": [\n            123456,\n            987654\n          ],\n          \"rem\": [\n            159753\n          ]\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

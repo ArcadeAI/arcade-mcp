@@ -1,0 +1,171 @@
+{
+  "name": "ViewChatComments",
+  "fully_qualified_name": "ClickupApi.ViewChatComments@0.1.0",
+  "description": "Retrieve the most recent comments from a Chat view.\n\nThis tool fetches comments from a Chat view in ClickUp. It returns the 25 most recent comments if no parameters are provided. To access older comments, use `start` and `start_id` parameters.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "chat_view_id",
+        "required": true,
+        "description": "The unique identifier for the Chat view to retrieve comments from. It should be a string, typically '105'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "105 (string)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "view_id"
+      },
+      {
+        "name": "comment_start_date_unix_ms",
+        "required": false,
+        "description": "The start date of a Chat view comment in Unix time (milliseconds) to fetch older comments.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter the `date` of a Chat view comment using Unix time in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start"
+      },
+      {
+        "name": "start_comment_id",
+        "required": false,
+        "description": "The comment ID to start retrieving older comments from in the Chat view. Use this to fetch comments beyond the most recent 25.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter the Comment `id` of a Chat view comment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetChatViewComments'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/view/{view_id}/comment",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "start",
+        "tool_parameter_name": "comment_start_date_unix_ms",
+        "description": "Enter the `date` of a Chat view comment using Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter the `date` of a Chat view comment using Unix time in milliseconds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_id",
+        "tool_parameter_name": "start_comment_id",
+        "description": "Enter the Comment `id` of a Chat view comment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter the Comment `id` of a Chat view comment."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "view_id",
+        "tool_parameter_name": "chat_view_id",
+        "description": "105 (string)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "105 (string)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

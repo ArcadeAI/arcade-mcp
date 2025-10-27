@@ -1,0 +1,695 @@
+{
+  "name": "CreateFolderFromTemplate",
+  "fully_qualified_name": "ClickupApi.CreateFolderFromTemplate@0.1.0",
+  "description": "Creates a new folder from a template in a ClickUp space.\n\nThis tool creates a new folder using a predefined template within a specified ClickUp space. It can also incorporate nested assets like lists and tasks from the template into the new folder. Templates must be added to your Workspace before use. The operation can be executed asynchronously or synchronously.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "clickup_space_id",
+        "required": true,
+        "description": "ID of the ClickUp Space where the folder will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Space where the Folder will be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "space_id"
+      },
+      {
+        "name": "folder_template_id",
+        "required": true,
+        "description": "The ID of the folder template to be used for creating a new folder in a ClickUp space. Ensure the template is added to your Workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Folder template to use."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template_id"
+      },
+      {
+        "name": "folder_creation_options",
+        "required": true,
+        "description": "JSON object containing name and options for creating the folder, including import settings and date remapping.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the new Folder"
+            },
+            "options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "return_immediately": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Flag if newly created Object ID should be returned without waiting for the asset itself and all its nested assets to be applied. If set to true, access checks are performed before returning, but the object might not be fully created yet. In case of a timeout on syncronous requests, the of objects from the template will continue to be created past the timeout.\n"
+                },
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List description"
+                },
+                "time_estimate": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Include time (hours, minutes and seconds)"
+                },
+                "automation": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import automation options"
+                },
+                "include_views": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import views"
+                },
+                "old_due_date": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks due dates"
+                },
+                "old_start_date": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks start dates"
+                },
+                "old_followers": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks watchers"
+                },
+                "comment_attachments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks comment attachments"
+                },
+                "recur_settings": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks recurring settings"
+                },
+                "old_tags": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks tags"
+                },
+                "old_statuses": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks status settings"
+                },
+                "subtasks": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks subtasks"
+                },
+                "custom_type": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks types"
+                },
+                "old_assignees": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks assignees"
+                },
+                "attachments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks attachments"
+                },
+                "comment": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks comments"
+                },
+                "old_status": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks current statuses"
+                },
+                "external_dependencies": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks external dependencies"
+                },
+                "internal_dependencies": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks internal dependencies"
+                },
+                "priority": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks priority"
+                },
+                "custom_fields": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks Custom Fields"
+                },
+                "old_checklists": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks checklists"
+                },
+                "relationships": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks relationships"
+                },
+                "old_subtask_assignees": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks subtasks and assignees combination"
+                },
+                "start_date": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Project start date for remapping dates"
+                },
+                "due_date": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Project due date for remapping dates"
+                },
+                "remap_start_date": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Remap start dates"
+                },
+                "skip_weekends": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Skip weekends when remapping dates"
+                },
+                "archived": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": [
+                    "1",
+                    "2",
+                    "None"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Include archived tasks (1 or 2 or null)"
+                }
+              },
+              "inner_properties": null,
+              "description": "Options for creating the Folder"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateFolderFromTemplate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/space/{space_id}/folder_template/{template_id}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "space_id",
+        "tool_parameter_name": "clickup_space_id",
+        "description": "ID of the Space where the Folder will be created",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Space where the Folder will be created"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "template_id",
+        "tool_parameter_name": "folder_template_id",
+        "description": "ID of the Folder template to use.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Folder template to use."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "folder_creation_options",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the new Folder"
+            },
+            "options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "return_immediately": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Flag if newly created Object ID should be returned without waiting for the asset itself and all its nested assets to be applied. If set to true, access checks are performed before returning, but the object might not be fully created yet. In case of a timeout on syncronous requests, the of objects from the template will continue to be created past the timeout.\n"
+                },
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List description"
+                },
+                "time_estimate": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Include time (hours, minutes and seconds)"
+                },
+                "automation": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import automation options"
+                },
+                "include_views": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import views"
+                },
+                "old_due_date": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks due dates"
+                },
+                "old_start_date": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks start dates"
+                },
+                "old_followers": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks watchers"
+                },
+                "comment_attachments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks comment attachments"
+                },
+                "recur_settings": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks recurring settings"
+                },
+                "old_tags": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks tags"
+                },
+                "old_statuses": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks status settings"
+                },
+                "subtasks": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks subtasks"
+                },
+                "custom_type": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks types"
+                },
+                "old_assignees": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks assignees"
+                },
+                "attachments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks attachments"
+                },
+                "comment": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks comments"
+                },
+                "old_status": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks current statuses"
+                },
+                "external_dependencies": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks external dependencies"
+                },
+                "internal_dependencies": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks internal dependencies"
+                },
+                "priority": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks priority"
+                },
+                "custom_fields": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks Custom Fields"
+                },
+                "old_checklists": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks checklists"
+                },
+                "relationships": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks relationships"
+                },
+                "old_subtask_assignees": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Import tasks subtasks and assignees combination"
+                },
+                "start_date": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Project start date for remapping dates"
+                },
+                "due_date": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Project due date for remapping dates"
+                },
+                "remap_start_date": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Remap start dates"
+                },
+                "skip_weekends": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Skip weekends when remapping dates"
+                },
+                "archived": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": [
+                    "1",
+                    "2",
+                    "None"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Include archived tasks (1 or 2 or null)"
+                }
+              },
+              "inner_properties": null,
+              "description": "Options for creating the Folder"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"name\"\n        ],\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the new Folder\"\n          },\n          \"options\": {\n            \"type\": \"object\",\n            \"description\": \"Options for creating the Folder\",\n            \"properties\": {\n              \"return_immediately\": {\n                \"type\": \"boolean\",\n                \"description\": \"Flag if newly created Object ID should be returned without waiting for the asset itself and all its nested assets to be applied. If set to true, access checks are performed before returning, but the object might not be fully created yet. In case of a timeout on syncronous requests, the of objects from the template will continue to be created past the timeout.\\n\",\n                \"default\": true\n              },\n              \"content\": {\n                \"type\": \"string\",\n                \"description\": \"List description\"\n              },\n              \"time_estimate\": {\n                \"type\": \"boolean\",\n                \"description\": \"Include time (hours, minutes and seconds)\"\n              },\n              \"automation\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import automation options\"\n              },\n              \"include_views\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import views\"\n              },\n              \"old_due_date\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks due dates\"\n              },\n              \"old_start_date\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks start dates\"\n              },\n              \"old_followers\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks watchers\"\n              },\n              \"comment_attachments\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks comment attachments\"\n              },\n              \"recur_settings\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks recurring settings\"\n              },\n              \"old_tags\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks tags\"\n              },\n              \"old_statuses\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks status settings\"\n              },\n              \"subtasks\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks subtasks\"\n              },\n              \"custom_type\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks types\"\n              },\n              \"old_assignees\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks assignees\"\n              },\n              \"attachments\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks attachments\"\n              },\n              \"comment\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks comments\"\n              },\n              \"old_status\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks current statuses\"\n              },\n              \"external_dependencies\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks external dependencies\"\n              },\n              \"internal_dependencies\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks internal dependencies\"\n              },\n              \"priority\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks priority\"\n              },\n              \"custom_fields\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks Custom Fields\"\n              },\n              \"old_checklists\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks checklists\"\n              },\n              \"relationships\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks relationships\"\n              },\n              \"old_subtask_assignees\": {\n                \"type\": \"boolean\",\n                \"description\": \"Import tasks subtasks and assignees combination\"\n              },\n              \"start_date\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"Project start date for remapping dates\"\n              },\n              \"due_date\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"Project due date for remapping dates\"\n              },\n              \"remap_start_date\": {\n                \"type\": \"boolean\",\n                \"description\": \"Remap start dates\"\n              },\n              \"skip_weekends\": {\n                \"type\": \"boolean\",\n                \"description\": \"Skip weekends when remapping dates\"\n              },\n              \"archived\": {\n                \"type\": \"integer\",\n                \"enum\": [\n                  1,\n                  2,\n                  null\n                ],\n                \"description\": \"Include archived tasks (1 or 2 or null)\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,303 @@
+{
+  "name": "CreateWorkspaceGoal",
+  "fully_qualified_name": "ClickupApi.CreateWorkspaceGoal@0.1.0",
+  "description": "Add a new goal to a specified workspace.\n\nThis tool allows you to create a new goal in a specific workspace by providing the necessary details. Use it to set objectives and track progress within teams.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The ID of the workspace where the goal will be added. This is a numeric value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "goal_name",
+        "required": true,
+        "description": "The name or title of the goal to be added to the workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "due_date_timestamp",
+        "required": true,
+        "description": "The due date for the goal as a Unix timestamp in milliseconds. Represents when the goal should be completed.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date"
+      },
+      {
+        "name": "goal_description",
+        "required": true,
+        "description": "A brief explanation of the goal to be added, providing context and details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "goal_owners",
+        "required": true,
+        "description": "Array of user IDs for those assigned to own the goal, allowing multiple owners.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of user IDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owners"
+      },
+      {
+        "name": "goal_color",
+        "required": true,
+        "description": "The color code for the goal. Expected to be a string representing a color, such as a hex code like '#FF5733'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "color"
+      },
+      {
+        "name": "allow_multiple_owners",
+        "required": true,
+        "description": "Set to true to allow a goal to have multiple owners, or false for a single owner.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "multiple_owners"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateGoal'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/goal",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "goal_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date",
+        "tool_parameter_name": "due_date_timestamp",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "goal_description",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "multiple_owners",
+        "tool_parameter_name": "allow_multiple_owners",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "owners",
+        "tool_parameter_name": "goal_owners",
+        "description": "Array of user IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of user IDs."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "color",
+        "tool_parameter_name": "goal_color",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateGoalrequest\",\n        \"required\": [\n          \"name\",\n          \"due_date\",\n          \"description\",\n          \"multiple_owners\",\n          \"owners\",\n          \"color\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"due_date\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int64\"\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"multiple_owners\": {\n            \"type\": \"boolean\"\n          },\n          \"owners\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\",\n              \"contentEncoding\": \"int32\"\n            },\n            \"description\": \"Array of user IDs.\"\n          },\n          \"color\": {\n            \"type\": \"string\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"Goal Name\",\n            \"due_date\": 1568036964079,\n            \"description\": \"Goal Description\",\n            \"multiple_owners\": true,\n            \"owners\": [\n              183\n            ],\n            \"color\": \"#32a852\"\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"Goal Name\",\n        \"due_date\": 1568036964079,\n        \"description\": \"Goal Description\",\n        \"multiple_owners\": true,\n        \"owners\": [\n          183\n        ],\n        \"color\": \"#32a852\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

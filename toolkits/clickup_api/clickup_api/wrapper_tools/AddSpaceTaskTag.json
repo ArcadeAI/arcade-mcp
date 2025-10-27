@@ -1,0 +1,204 @@
+{
+  "name": "AddSpaceTaskTag",
+  "fully_qualified_name": "ClickupApi.AddSpaceTaskTag@0.1.0",
+  "description": "Add a new task tag to a specified space in ClickUp.\n\nUse this tool to create a new tag for tasks within a specific space in ClickUp. It's useful for organizing tasks by category or priority.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "space_identifier",
+        "required": true,
+        "description": "The unique identifier for the space where the tag will be added. It must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "space_id"
+      },
+      {
+        "name": "tag_name",
+        "required": true,
+        "description": "Name of the new tag to be added to the space. It should be a descriptive and concise identifier for categorizing tasks.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag.name"
+      },
+      {
+        "name": "tag_foreground_color",
+        "required": true,
+        "description": "Hex code for the tag's foreground color. It defines the text color of the tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag.tag_fg"
+      },
+      {
+        "name": "tag_background_color",
+        "required": true,
+        "description": "Hex code representing the background color for the tag. It should be a string in the format '#RRGGBB'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag.tag_bg"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateSpaceTag'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/space/{space_id}/tag",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "space_id",
+        "tool_parameter_name": "space_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag.name",
+        "tool_parameter_name": "tag_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag.tag_fg",
+        "tool_parameter_name": "tag_foreground_color",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag.tag_bg",
+        "tool_parameter_name": "tag_background_color",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateSpaceTagrequest\",\n        \"required\": [\n          \"tag\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"tag\": {\n            \"title\": \"Tag\",\n            \"required\": [\n              \"name\",\n              \"tag_fg\",\n              \"tag_bg\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"name\": {\n                \"type\": \"string\"\n              },\n              \"tag_fg\": {\n                \"type\": \"string\"\n              },\n              \"tag_bg\": {\n                \"type\": \"string\"\n              }\n            },\n            \"examples\": [\n              {\n                \"name\": \"Tag Name\",\n                \"tag_fg\": \"#000000\",\n                \"tag_bg\": \"#000000\"\n              }\n            ]\n          }\n        },\n        \"examples\": [\n          {\n            \"tag\": {\n              \"name\": \"Tag Name\",\n              \"tag_fg\": \"#000000\",\n              \"tag_bg\": \"#000000\"\n            }\n          }\n        ]\n      },\n      \"example\": {\n        \"tag\": {\n          \"name\": \"Tag Name\",\n          \"tag_fg\": \"#000000\",\n          \"tag_bg\": \"#000000\"\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
