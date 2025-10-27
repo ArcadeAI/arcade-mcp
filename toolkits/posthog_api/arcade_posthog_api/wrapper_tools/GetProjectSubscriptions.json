@@ -1,0 +1,181 @@
+{
+  "name": "GetProjectSubscriptions",
+  "fully_qualified_name": "PosthogApi.GetProjectSubscriptions@0.1.0",
+  "description": "Retrieve a list of subscriptions for a specific project.\n\nUse this tool to get details on all subscriptions associated with a given project, identified by project ID.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The ID of the project to access subscriptions for. Use /api/projects/ to find the ID if unknown.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specify the number of results to return per page for the subscription list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "results_start_index",
+        "required": false,
+        "description": "The index position to start returning results from within the subscription list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The initial index from which to return the results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'subscriptions_list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/subscriptions/",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "Number of results to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "results_start_index",
+        "description": "The initial index from which to return the results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The initial index from which to return the results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

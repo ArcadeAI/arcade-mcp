@@ -1,0 +1,406 @@
+{
+  "name": "CreateSessionRecordingPlaylist",
+  "fully_qualified_name": "PosthogApi.CreateSessionRecordingPlaylist@0.1.0",
+  "description": "Create a new session recording playlist for an environment.\n\nUse this tool to create a session recording playlist within a specific environment by providing the required project ID. It logs views and tracks file system interactions with each GET request.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "Provide the Project ID to access the specific project. You can retrieve the ID by calling /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "session_recording_playlist_details",
+        "required": false,
+        "description": "A JSON object containing properties like id, short_id, name, description, and more for creating a session recording playlist.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "short_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "derived_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "pinned": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "last_modified_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "last_modified_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "recordings_counts": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_synthetic": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Return whether this is a synthetic playlist"
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'environments_session_recording_playlists_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/environments/{project_id}/session_recording_playlists/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "session_recording_playlist_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "short_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "derived_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "pinned": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "last_modified_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "last_modified_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "recordings_counts": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_synthetic": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Return whether this is a synthetic playlist"
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"short_id\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"derived_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"pinned\": {\n            \"type\": \"boolean\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"filters\": {},\n          \"last_modified_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"last_modified_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"recordings_counts\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"oneOf\": [\n                  {\n                    \"type\": \"integer\"\n                  },\n                  {\n                    \"type\": \"boolean\"\n                  }\n                ],\n                \"nullable\": true\n              }\n            },\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"readOnly\": true,\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"collection\",\n                  \"filters\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `collection` - Collection\\n* `filters` - Filters\"\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"is_synthetic\": {\n            \"type\": \"boolean\",\n            \"description\": \"Return whether this is a synthetic playlist\",\n            \"readOnly\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"is_synthetic\",\n          \"last_modified_at\",\n          \"last_modified_by\",\n          \"recordings_counts\",\n          \"short_id\",\n          \"type\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"short_id\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"derived_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"pinned\": {\n            \"type\": \"boolean\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"filters\": {},\n          \"last_modified_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"last_modified_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"recordings_counts\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"oneOf\": [\n                  {\n                    \"type\": \"integer\"\n                  },\n                  {\n                    \"type\": \"boolean\"\n                  }\n                ],\n                \"nullable\": true\n              }\n            },\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"readOnly\": true,\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"collection\",\n                  \"filters\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `collection` - Collection\\n* `filters` - Filters\"\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"is_synthetic\": {\n            \"type\": \"boolean\",\n            \"description\": \"Return whether this is a synthetic playlist\",\n            \"readOnly\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"is_synthetic\",\n          \"last_modified_at\",\n          \"last_modified_by\",\n          \"recordings_counts\",\n          \"short_id\",\n          \"type\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"short_id\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"derived_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"pinned\": {\n            \"type\": \"boolean\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"filters\": {},\n          \"last_modified_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"last_modified_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"recordings_counts\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"oneOf\": [\n                  {\n                    \"type\": \"integer\"\n                  },\n                  {\n                    \"type\": \"boolean\"\n                  }\n                ],\n                \"nullable\": true\n              }\n            },\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"readOnly\": true,\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"collection\",\n                  \"filters\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `collection` - Collection\\n* `filters` - Filters\"\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"is_synthetic\": {\n            \"type\": \"boolean\",\n            \"description\": \"Return whether this is a synthetic playlist\",\n            \"readOnly\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"is_synthetic\",\n          \"last_modified_at\",\n          \"last_modified_by\",\n          \"recordings_counts\",\n          \"short_id\",\n          \"type\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

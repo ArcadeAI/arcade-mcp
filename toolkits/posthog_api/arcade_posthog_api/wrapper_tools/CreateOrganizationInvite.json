@@ -1,0 +1,358 @@
+{
+  "name": "CreateOrganizationInvite",
+  "fully_qualified_name": "PosthogApi.CreateOrganizationInvite@0.1.0",
+  "description": "Send an invitation to join an organization.\n\nUse this tool to create and send an invitation email to a user for joining a specified organization on Datadog. It should be called when you want to add new members to an organization.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the Datadog organization to which the invitation will be sent.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "invite_request_details",
+        "required": true,
+        "description": "Details for the invitation request, including target email, name, and access levels.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "target_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "emailing_attempt_made": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "level": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_expired": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if invite is older than INVITE_DAYS_VALIDITY days."
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "private_project_access": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of team IDs and corresponding access levels to private projects."
+            },
+            "send_email": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "combine_pending_invites": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'invites_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/organizations/{organization_id}/invites/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "invite_request_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "target_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "emailing_attempt_made": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "level": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_expired": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if invite is older than INVITE_DAYS_VALIDITY days."
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "private_project_access": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of team IDs and corresponding access levels to private projects."
+            },
+            "send_email": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "combine_pending_invites": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"target_email\": {\n            \"type\": \"string\",\n            \"format\": \"email\",\n            \"maxLength\": 254\n          },\n          \"first_name\": {\n            \"type\": \"string\",\n            \"maxLength\": 30\n          },\n          \"emailing_attempt_made\": {\n            \"type\": \"boolean\",\n            \"readOnly\": true\n          },\n          \"level\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  1,\n                  8,\n                  15\n                ],\n                \"type\": \"integer\",\n                \"description\": \"* `1` - member\\n* `8` - administrator\\n* `15` - owner\"\n              }\n            ],\n            \"minimum\": 0,\n            \"maximum\": 32767\n          },\n          \"is_expired\": {\n            \"type\": \"boolean\",\n            \"description\": \"Check if invite is older than INVITE_DAYS_VALIDITY days.\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"message\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"private_project_access\": {\n            \"nullable\": true,\n            \"description\": \"List of team IDs and corresponding access levels to private projects.\"\n          },\n          \"send_email\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true,\n            \"default\": true\n          },\n          \"combine_pending_invites\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true,\n            \"default\": false\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"emailing_attempt_made\",\n          \"id\",\n          \"is_expired\",\n          \"target_email\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"target_email\": {\n            \"type\": \"string\",\n            \"format\": \"email\",\n            \"maxLength\": 254\n          },\n          \"first_name\": {\n            \"type\": \"string\",\n            \"maxLength\": 30\n          },\n          \"emailing_attempt_made\": {\n            \"type\": \"boolean\",\n            \"readOnly\": true\n          },\n          \"level\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  1,\n                  8,\n                  15\n                ],\n                \"type\": \"integer\",\n                \"description\": \"* `1` - member\\n* `8` - administrator\\n* `15` - owner\"\n              }\n            ],\n            \"minimum\": 0,\n            \"maximum\": 32767\n          },\n          \"is_expired\": {\n            \"type\": \"boolean\",\n            \"description\": \"Check if invite is older than INVITE_DAYS_VALIDITY days.\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"message\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"private_project_access\": {\n            \"nullable\": true,\n            \"description\": \"List of team IDs and corresponding access levels to private projects.\"\n          },\n          \"send_email\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true,\n            \"default\": true\n          },\n          \"combine_pending_invites\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true,\n            \"default\": false\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"emailing_attempt_made\",\n          \"id\",\n          \"is_expired\",\n          \"target_email\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"target_email\": {\n            \"type\": \"string\",\n            \"format\": \"email\",\n            \"maxLength\": 254\n          },\n          \"first_name\": {\n            \"type\": \"string\",\n            \"maxLength\": 30\n          },\n          \"emailing_attempt_made\": {\n            \"type\": \"boolean\",\n            \"readOnly\": true\n          },\n          \"level\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  1,\n                  8,\n                  15\n                ],\n                \"type\": \"integer\",\n                \"description\": \"* `1` - member\\n* `8` - administrator\\n* `15` - owner\"\n              }\n            ],\n            \"minimum\": 0,\n            \"maximum\": 32767\n          },\n          \"is_expired\": {\n            \"type\": \"boolean\",\n            \"description\": \"Check if invite is older than INVITE_DAYS_VALIDITY days.\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"message\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"private_project_access\": {\n            \"nullable\": true,\n            \"description\": \"List of team IDs and corresponding access levels to private projects.\"\n          },\n          \"send_email\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true,\n            \"default\": true\n          },\n          \"combine_pending_invites\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true,\n            \"default\": false\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"emailing_attempt_made\",\n          \"id\",\n          \"is_expired\",\n          \"target_email\",\n          \"updated_at\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "name": "RetrieveEnvironmentGroupActivity",
+  "fully_qualified_name": "PosthogApi.RetrieveEnvironmentGroupActivity@0.1.0",
+  "description": "Retrieve activity data for groups within an environment.\n\nUse this tool to access activity details for groups within a specific environment by providing the project ID. Ideal for monitoring or analyzing environment group activities.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_type_index",
+        "required": true,
+        "description": "An integer that specifies the type of group to find within the environment.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the group type to find"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_type_index"
+      },
+      {
+        "name": "user_id_for_group_retrieval",
+        "required": true,
+        "description": "Specify the user ID to retrieve group activities for within a project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the id of the user to find groups for"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "Project ID required to access activity data for the specified environment group. Obtain this ID by making a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'environments_groups_activity_retrieve'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/environments/{project_id}/groups/activity/",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "group_type_index",
+        "tool_parameter_name": "group_type_index",
+        "description": "Specify the group type to find",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the group type to find"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "user_id_for_group_retrieval",
+        "description": "Specify the id of the user to find groups for",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the id of the user to find groups for"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

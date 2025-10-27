@@ -1,0 +1,309 @@
+{
+  "name": "ModifyEarlyAccessFeature",
+  "fully_qualified_name": "PosthogApi.ModifyEarlyAccessFeature@0.1.0",
+  "description": "Update early access feature for a project.\n\nUse this tool to update the details of an early access feature in a specified project. It logs each update operation.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "early_access_feature_id",
+        "required": true,
+        "description": "A UUID string identifying the early access feature to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this early access feature."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The unique identifier for the project. Fetch it by calling /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "update_details",
+        "required": true,
+        "description": "JSON object containing details for updating the early access feature, including properties like `id`, `feature_flag`, `name`, `description`, `stage`, `documentation_url`, and `created_at`.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "feature_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "draft",
+                "concept",
+                "alpha",
+                "beta",
+                "general-availability",
+                "archived"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `draft` - draft\n* `concept` - concept\n* `alpha` - alpha\n* `beta` - beta\n* `general-availability` - general availability\n* `archived` - archived"
+            },
+            "documentation_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'early_access_feature_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/early_access_feature/{id}/",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "early_access_feature_id",
+        "description": "A UUID string identifying this early access feature.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this early access feature."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "feature_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "draft",
+                "concept",
+                "alpha",
+                "beta",
+                "general-availability",
+                "archived"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `draft` - draft\n* `concept` - concept\n* `alpha` - alpha\n* `beta` - beta\n* `general-availability` - general availability\n* `archived` - archived"
+            },
+            "documentation_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"feature_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 200\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"stage\": {\n            \"enum\": [\n              \"draft\",\n              \"concept\",\n              \"alpha\",\n              \"beta\",\n              \"general-availability\",\n              \"archived\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `draft` - draft\\n* `concept` - concept\\n* `alpha` - alpha\\n* `beta` - beta\\n* `general-availability` - general availability\\n* `archived` - archived\"\n          },\n          \"documentation_url\": {\n            \"type\": \"string\",\n            \"format\": \"uri\",\n            \"maxLength\": 800\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"feature_flag\",\n          \"id\",\n          \"name\",\n          \"stage\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"feature_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 200\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"stage\": {\n            \"enum\": [\n              \"draft\",\n              \"concept\",\n              \"alpha\",\n              \"beta\",\n              \"general-availability\",\n              \"archived\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `draft` - draft\\n* `concept` - concept\\n* `alpha` - alpha\\n* `beta` - beta\\n* `general-availability` - general availability\\n* `archived` - archived\"\n          },\n          \"documentation_url\": {\n            \"type\": \"string\",\n            \"format\": \"uri\",\n            \"maxLength\": 800\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"feature_flag\",\n          \"id\",\n          \"name\",\n          \"stage\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"feature_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 200\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"stage\": {\n            \"enum\": [\n              \"draft\",\n              \"concept\",\n              \"alpha\",\n              \"beta\",\n              \"general-availability\",\n              \"archived\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `draft` - draft\\n* `concept` - concept\\n* `alpha` - alpha\\n* `beta` - beta\\n* `general-availability` - general availability\\n* `archived` - archived\"\n          },\n          \"documentation_url\": {\n            \"type\": \"string\",\n            \"format\": \"uri\",\n            \"maxLength\": 800\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"feature_flag\",\n          \"id\",\n          \"name\",\n          \"stage\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

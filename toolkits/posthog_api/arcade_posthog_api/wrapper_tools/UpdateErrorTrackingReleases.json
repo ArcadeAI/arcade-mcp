@@ -1,0 +1,379 @@
+{
+  "name": "UpdateErrorTrackingReleases",
+  "fully_qualified_name": "PosthogApi.UpdateErrorTrackingReleases@0.1.0",
+  "description": "Update error tracking releases in a project environment.\n\nUse this tool to update error tracking releases for a specific project environment in Datadog. Ideal for modifying release information in error tracking systems.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "release_id",
+        "required": true,
+        "description": "A UUID string identifying the error tracking release to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The Project ID for accessing the specific project in Datadog. Obtainable by calling /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "update_id",
+        "required": true,
+        "description": "The unique identifier for the release you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "release_hash_id",
+        "required": true,
+        "description": "A unique identifier for the release you want to update. Provides a reference to the specific release version within the project's error tracking data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "hash_id"
+      },
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique integer identifier for the team. Used to specify which team's release information to update.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "created_at_timestamp",
+        "required": true,
+        "description": "The timestamp indicating when the release was created. Format should be ISO 8601 (e.g., '2023-09-23T18:25:43.511Z').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at"
+      },
+      {
+        "name": "release_version",
+        "required": true,
+        "description": "The version of the release being updated. This should typically be a string representing the version code or number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      },
+      {
+        "name": "project_key",
+        "required": true,
+        "description": "The identifier or name of the project for which you're updating the error tracking release.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project"
+      },
+      {
+        "name": "metadata_description",
+        "required": false,
+        "description": "Provide a string with additional information or details about the release metadata.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "metadata"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'environments_error_tracking_releases_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/environments/{project_id}/error_tracking/releases/{id}/",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "update_id",
+        "description": "A UUID string identifying this error tracking release.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this error tracking release."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "update_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "hash_id",
+        "tool_parameter_name": "release_hash_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at",
+        "tool_parameter_name": "created_at_timestamp",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "metadata",
+        "tool_parameter_name": "metadata_description",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "version",
+        "tool_parameter_name": "release_version",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project",
+        "tool_parameter_name": "project_key",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"hash_id\": {\n            \"type\": \"string\"\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"metadata\": {\n            \"nullable\": true\n          },\n          \"version\": {\n            \"type\": \"string\"\n          },\n          \"project\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"hash_id\",\n          \"id\",\n          \"project\",\n          \"team_id\",\n          \"version\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"hash_id\": {\n            \"type\": \"string\"\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"metadata\": {\n            \"nullable\": true\n          },\n          \"version\": {\n            \"type\": \"string\"\n          },\n          \"project\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"hash_id\",\n          \"id\",\n          \"project\",\n          \"team_id\",\n          \"version\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"hash_id\": {\n            \"type\": \"string\"\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"metadata\": {\n            \"nullable\": true\n          },\n          \"version\": {\n            \"type\": \"string\"\n          },\n          \"project\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"hash_id\",\n          \"id\",\n          \"project\",\n          \"team_id\",\n          \"version\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

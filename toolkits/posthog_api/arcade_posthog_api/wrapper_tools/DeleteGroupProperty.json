@@ -1,0 +1,313 @@
+{
+  "name": "DeleteGroupProperty",
+  "fully_qualified_name": "PosthogApi.DeleteGroupProperty@0.1.0",
+  "description": "Delete a group property in a Datadog project.\n\nThis tool deletes a property from a group within a specified Datadog project. It should be used when there's a need to remove specific properties from groups in the context of project management within Datadog.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_key_for_deletion",
+        "required": true,
+        "description": "The unique key identifying the group from which the property will be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_key"
+      },
+      {
+        "name": "group_type_index",
+        "required": true,
+        "description": "An integer specifying the group type to find within a project for property deletion.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_type_index"
+      },
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The ID of the Datadog project for accessing and managing group properties. To find this ID, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "group_index_type",
+        "required": true,
+        "description": "An integer representing the index of the group type to delete a property from.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_type_index"
+      },
+      {
+        "name": "group_identifier_key",
+        "required": true,
+        "description": "The unique identifier key of the group from which the property will be deleted. This is required to specify the exact group within the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_key"
+      },
+      {
+        "name": "property_creation_date",
+        "required": true,
+        "description": "The timestamp when the group property was created. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at"
+      },
+      {
+        "name": "group_property_key",
+        "required": false,
+        "description": "The key of the group property to be deleted from the Datadog project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_properties"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'groups_delete_property_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/groups/delete_property/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "group_key",
+        "tool_parameter_name": "group_identifier_key",
+        "description": "Specify the key of the group to find",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the key of the group to find"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_type_index",
+        "tool_parameter_name": "group_index_type",
+        "description": "Specify the group type to find",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the group type to find"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_type_index",
+        "tool_parameter_name": "group_index_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_key",
+        "tool_parameter_name": "group_identifier_key",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_properties",
+        "tool_parameter_name": "group_property_key",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at",
+        "tool_parameter_name": "property_creation_date",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"group_type_index\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648\n          },\n          \"group_key\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"group_properties\": {},\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"group_key\",\n          \"group_type_index\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"group_type_index\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648\n          },\n          \"group_key\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"group_properties\": {},\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"group_key\",\n          \"group_type_index\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"group_type_index\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648\n          },\n          \"group_key\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"group_properties\": {},\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"group_key\",\n          \"group_type_index\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

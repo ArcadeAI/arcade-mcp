@@ -1,0 +1,346 @@
+{
+  "name": "UpdateGroupTypeMetadata",
+  "fully_qualified_name": "PosthogApi.UpdateGroupTypeMetadata@0.1.0",
+  "description": "Updates metadata for group types in a project.\n\nUse this tool to update the metadata for group types within a specific project. It should be called when there's a need to partially update this information for better organization and management of project data.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "Project ID to access a specific project. Use /api/projects/ to find the ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "group_type_identifier",
+        "required": false,
+        "description": "The identifier for the group type to update metadata for. Provide a unique string value that represents the group type within the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_type"
+      },
+      {
+        "name": "group_type_index",
+        "required": false,
+        "description": "An integer representing the index of the group type you want to update within the project. It identifies which specific group type's metadata is to be modified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_type_index"
+      },
+      {
+        "name": "singular_group_name",
+        "required": false,
+        "description": "The singular name to be used for a specific group type. This is used for clear identification and communication.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name_singular"
+      },
+      {
+        "name": "group_type_name_plural",
+        "required": false,
+        "description": "The plural name for the group type to be updated. This should reflect the plural form used in the project metadata.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name_plural"
+      },
+      {
+        "name": "detail_dashboard_id",
+        "required": false,
+        "description": "The integer ID of the detail dashboard associated with the group type.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "detail_dashboard"
+      },
+      {
+        "name": "default_columns",
+        "required": false,
+        "description": "An array of strings representing the default columns for the group type metadata. Each string specifies a column name to be included by default.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "default_columns"
+      },
+      {
+        "name": "group_type_creation_date",
+        "required": false,
+        "description": "The creation date of the group type in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'groups_types_update_metadata_partial_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/groups_types/update_metadata/",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_type",
+        "tool_parameter_name": "group_type_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_type_index",
+        "tool_parameter_name": "group_type_index",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name_singular",
+        "tool_parameter_name": "singular_group_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name_plural",
+        "tool_parameter_name": "group_type_name_plural",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "detail_dashboard",
+        "tool_parameter_name": "detail_dashboard_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "default_columns",
+        "tool_parameter_name": "default_columns",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at",
+        "tool_parameter_name": "group_type_creation_date",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"group_type\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"group_type_index\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name_singular\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"name_plural\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"detail_dashboard\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"default_columns\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          }\n        }\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"group_type\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"group_type_index\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name_singular\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"name_plural\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"detail_dashboard\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"default_columns\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          }\n        }\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"group_type\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"group_type_index\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name_singular\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"name_plural\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"detail_dashboard\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"default_columns\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

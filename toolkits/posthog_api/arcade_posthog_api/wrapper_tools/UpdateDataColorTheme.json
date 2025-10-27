@@ -1,0 +1,279 @@
+{
+  "name": "UpdateDataColorTheme",
+  "fully_qualified_name": "PosthogApi.UpdateDataColorTheme@0.1.0",
+  "description": "Update the color theme for a specific project.\n\nThis tool updates the color theme settings for a given project in Datadog. Use this when you need to change the visual representation of data by altering the color theme.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "color_theme_id",
+        "required": true,
+        "description": "A unique integer identifying the data color theme to update.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique integer value identifying this data color theme."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The unique ID of the project you want to access. Retrieve the ID by querying /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "color_theme_update_request",
+        "required": true,
+        "description": "The JSON payload to update the color theme, including id, name, colors, is_global, created_at, and created_by.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "colors": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_global": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'data_color_themes_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/data_color_themes/{id}/",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "color_theme_id",
+        "description": "A unique integer value identifying this data color theme.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique integer value identifying this data color theme."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "color_theme_update_request",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "colors": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_global": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 100\n          },\n          \"colors\": {},\n          \"is_global\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"is_global\",\n          \"name\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 100\n          },\n          \"colors\": {},\n          \"is_global\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"is_global\",\n          \"name\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 100\n          },\n          \"colors\": {},\n          \"is_global\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"is_global\",\n          \"name\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,688 @@
+{
+  "name": "CreateSurvey",
+  "fully_qualified_name": "PosthogApi.CreateSurvey@0.1.0",
+  "description": "Create a new survey for a project.\n\nUse this tool to initiate the creation of a new survey within a specified project. This tool should be called when you need to log a new survey for project tracking purposes.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The ID of the project for creating a survey. Retrieve this ID via a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "survey_details",
+        "required": true,
+        "description": "JSON containing survey details including ID, name, description, type, schedule, questions, etc. Use specific formats for question types and branching logic as described.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "popover",
+                "widget",
+                "external_survey",
+                "api"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `popover` - popover\n* `widget` - widget\n* `external_survey` - external survey\n* `api` - api"
+            },
+            "schedule": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "linked_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "linked_flag_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "targeting_flag_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "targeting_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "internal_targeting_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "targeting_flag_filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "remove_targeting_flag": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "questions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "\n        The `array` of questions included in the survey. Each question must conform to one of the defined question types: Basic, Link, Rating, or Multiple Choice.\n\n        Basic (open-ended question)\n        - `id`: The question ID\n        - `type`: `open`\n        - `question`: The text of the question.\n        - `description`: Optional description of the question.\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\n        - `optional`: Whether the question is optional (`boolean`).\n        - `buttonText`: Text displayed on the submit button.\n        - `branching`: Branching logic for the question. See branching types below for details.\n\n        Link (a question with a link)\n        - `id`: The question ID\n        - `type`: `link`\n        - `question`: The text of the question.\n        - `description`: Optional description of the question.\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\n        - `optional`: Whether the question is optional (`boolean`).\n        - `buttonText`: Text displayed on the submit button.\n        - `link`: The URL associated with the question.\n        - `branching`: Branching logic for the question. See branching types below for details.\n\n        Rating (a question with a rating scale)\n        - `id`: The question ID\n        - `type`: `rating`\n        - `question`: The text of the question.\n        - `description`: Optional description of the question.\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\n        - `optional`: Whether the question is optional (`boolean`).\n        - `buttonText`: Text displayed on the submit button.\n        - `display`: Display style of the rating (`number` or `emoji`).\n        - `scale`: The scale of the rating (`number`).\n        - `lowerBoundLabel`: Label for the lower bound of the scale.\n        - `upperBoundLabel`: Label for the upper bound of the scale.\n        - `branching`: Branching logic for the question. See branching types below for details.\n\n        Multiple choice\n        - `id`: The question ID\n        - `type`: `single_choice` or `multiple_choice`\n        - `question`: The text of the question.\n        - `description`: Optional description of the question.\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\n        - `optional`: Whether the question is optional (`boolean`).\n        - `buttonText`: Text displayed on the submit button.\n        - `choices`: An array of choices for the question.\n        - `shuffleOptions`: Whether to shuffle the order of the choices (`boolean`).\n        - `hasOpenChoice`: Whether the question allows an open-ended response (`boolean`).\n        - `branching`: Branching logic for the question. See branching types below for details.\n\n        Branching logic can be one of the following types:\n\n        Next question: Proceeds to the next question\n        ```json\n        {\n            \"type\": \"next_question\"\n        }\n        ```\n\n        End: Ends the survey, optionally displaying a confirmation message.\n        ```json\n        {\n            \"type\": \"end\"\n        }\n        ```\n\n        Response-based: Branches based on the response values. Available for the `rating` and `single_choice` question types.\n        ```json\n        {\n            \"type\": \"response_based\",\n            \"responseValues\": {\n                \"responseKey\": \"value\"\n            }\n        }\n        ```\n\n        Specific question: Proceeds to a specific question by index.\n        ```json\n        {\n            \"type\": \"specific_question\",\n            \"index\": 2\n        }\n        ```\n        "
+            },
+            "conditions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "appearance": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "responses_limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "iteration_count": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "iteration_frequency_days": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "iteration_start_dates": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "current_iteration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "current_iteration_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_interval_type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_interval": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_daily_limits": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "enable_partial_responses": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'surveys_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/surveys/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "survey_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "popover",
+                "widget",
+                "external_survey",
+                "api"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `popover` - popover\n* `widget` - widget\n* `external_survey` - external survey\n* `api` - api"
+            },
+            "schedule": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "linked_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "linked_flag_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "targeting_flag_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "targeting_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "internal_targeting_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "targeting_flag_filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "remove_targeting_flag": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "questions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "\n        The `array` of questions included in the survey. Each question must conform to one of the defined question types: Basic, Link, Rating, or Multiple Choice.\n\n        Basic (open-ended question)\n        - `id`: The question ID\n        - `type`: `open`\n        - `question`: The text of the question.\n        - `description`: Optional description of the question.\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\n        - `optional`: Whether the question is optional (`boolean`).\n        - `buttonText`: Text displayed on the submit button.\n        - `branching`: Branching logic for the question. See branching types below for details.\n\n        Link (a question with a link)\n        - `id`: The question ID\n        - `type`: `link`\n        - `question`: The text of the question.\n        - `description`: Optional description of the question.\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\n        - `optional`: Whether the question is optional (`boolean`).\n        - `buttonText`: Text displayed on the submit button.\n        - `link`: The URL associated with the question.\n        - `branching`: Branching logic for the question. See branching types below for details.\n\n        Rating (a question with a rating scale)\n        - `id`: The question ID\n        - `type`: `rating`\n        - `question`: The text of the question.\n        - `description`: Optional description of the question.\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\n        - `optional`: Whether the question is optional (`boolean`).\n        - `buttonText`: Text displayed on the submit button.\n        - `display`: Display style of the rating (`number` or `emoji`).\n        - `scale`: The scale of the rating (`number`).\n        - `lowerBoundLabel`: Label for the lower bound of the scale.\n        - `upperBoundLabel`: Label for the upper bound of the scale.\n        - `branching`: Branching logic for the question. See branching types below for details.\n\n        Multiple choice\n        - `id`: The question ID\n        - `type`: `single_choice` or `multiple_choice`\n        - `question`: The text of the question.\n        - `description`: Optional description of the question.\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\n        - `optional`: Whether the question is optional (`boolean`).\n        - `buttonText`: Text displayed on the submit button.\n        - `choices`: An array of choices for the question.\n        - `shuffleOptions`: Whether to shuffle the order of the choices (`boolean`).\n        - `hasOpenChoice`: Whether the question allows an open-ended response (`boolean`).\n        - `branching`: Branching logic for the question. See branching types below for details.\n\n        Branching logic can be one of the following types:\n\n        Next question: Proceeds to the next question\n        ```json\n        {\n            \"type\": \"next_question\"\n        }\n        ```\n\n        End: Ends the survey, optionally displaying a confirmation message.\n        ```json\n        {\n            \"type\": \"end\"\n        }\n        ```\n\n        Response-based: Branches based on the response values. Available for the `rating` and `single_choice` question types.\n        ```json\n        {\n            \"type\": \"response_based\",\n            \"responseValues\": {\n                \"responseKey\": \"value\"\n            }\n        }\n        ```\n\n        Specific question: Proceeds to a specific question by index.\n        ```json\n        {\n            \"type\": \"specific_question\",\n            \"index\": 2\n        }\n        ```\n        "
+            },
+            "conditions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "appearance": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "responses_limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "iteration_count": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "iteration_frequency_days": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "iteration_start_dates": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "current_iteration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "current_iteration_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_interval_type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_interval": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_sampling_daily_limits": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "enable_partial_responses": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"type\": {\n            \"enum\": [\n              \"popover\",\n              \"widget\",\n              \"external_survey\",\n              \"api\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `popover` - popover\\n* `widget` - widget\\n* `external_survey` - external survey\\n* `api` - api\"\n          },\n          \"schedule\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"linked_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"linked_flag_id\": {\n            \"type\": \"integer\",\n            \"writeOnly\": true,\n            \"nullable\": true\n          },\n          \"targeting_flag_id\": {\n            \"type\": \"integer\",\n            \"writeOnly\": true\n          },\n          \"targeting_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"internal_targeting_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"targeting_flag_filters\": {\n            \"writeOnly\": true,\n            \"nullable\": true\n          },\n          \"remove_targeting_flag\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true,\n            \"nullable\": true\n          },\n          \"questions\": {\n            \"nullable\": true,\n            \"description\": \"\\n        The `array` of questions included in the survey. Each question must conform to one of the defined question types: Basic, Link, Rating, or Multiple Choice.\\n\\n        Basic (open-ended question)\\n        - `id`: The question ID\\n        - `type`: `open`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Link (a question with a link)\\n        - `id`: The question ID\\n        - `type`: `link`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `link`: The URL associated with the question.\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Rating (a question with a rating scale)\\n        - `id`: The question ID\\n        - `type`: `rating`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `display`: Display style of the rating (`number` or `emoji`).\\n        - `scale`: The scale of the rating (`number`).\\n        - `lowerBoundLabel`: Label for the lower bound of the scale.\\n        - `upperBoundLabel`: Label for the upper bound of the scale.\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Multiple choice\\n        - `id`: The question ID\\n        - `type`: `single_choice` or `multiple_choice`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `choices`: An array of choices for the question.\\n        - `shuffleOptions`: Whether to shuffle the order of the choices (`boolean`).\\n        - `hasOpenChoice`: Whether the question allows an open-ended response (`boolean`).\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Branching logic can be one of the following types:\\n\\n        Next question: Proceeds to the next question\\n        ```json\\n        {\\n            \\\"type\\\": \\\"next_question\\\"\\n        }\\n        ```\\n\\n        End: Ends the survey, optionally displaying a confirmation message.\\n        ```json\\n        {\\n            \\\"type\\\": \\\"end\\\"\\n        }\\n        ```\\n\\n        Response-based: Branches based on the response values. Available for the `rating` and `single_choice` question types.\\n        ```json\\n        {\\n            \\\"type\\\": \\\"response_based\\\",\\n            \\\"responseValues\\\": {\\n                \\\"responseKey\\\": \\\"value\\\"\\n            }\\n        }\\n        ```\\n\\n        Specific question: Proceeds to a specific question by index.\\n        ```json\\n        {\\n            \\\"type\\\": \\\"specific_question\\\",\\n            \\\"index\\\": 2\\n        }\\n        ```\\n        \"\n          },\n          \"conditions\": {\n            \"nullable\": true\n          },\n          \"appearance\": {\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"archived\": {\n            \"type\": \"boolean\"\n          },\n          \"responses_limit\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"iteration_count\": {\n            \"type\": \"integer\",\n            \"maximum\": 500,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"iteration_frequency_days\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"iteration_start_dates\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"format\": \"date-time\",\n              \"nullable\": true\n            },\n            \"nullable\": true\n          },\n          \"current_iteration\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"current_iteration_start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"response_sampling_start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"response_sampling_interval_type\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"day\",\n                  \"week\",\n                  \"month\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `day` - day\\n* `week` - week\\n* `month` - month\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"response_sampling_interval\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"response_sampling_limit\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"response_sampling_daily_limits\": {\n            \"nullable\": true\n          },\n          \"enable_partial_responses\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"internal_targeting_flag\",\n          \"linked_flag\",\n          \"name\",\n          \"targeting_flag\",\n          \"type\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"type\": {\n            \"enum\": [\n              \"popover\",\n              \"widget\",\n              \"external_survey\",\n              \"api\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `popover` - popover\\n* `widget` - widget\\n* `external_survey` - external survey\\n* `api` - api\"\n          },\n          \"schedule\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"linked_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"linked_flag_id\": {\n            \"type\": \"integer\",\n            \"writeOnly\": true,\n            \"nullable\": true\n          },\n          \"targeting_flag_id\": {\n            \"type\": \"integer\",\n            \"writeOnly\": true\n          },\n          \"targeting_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"internal_targeting_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"targeting_flag_filters\": {\n            \"writeOnly\": true,\n            \"nullable\": true\n          },\n          \"remove_targeting_flag\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true,\n            \"nullable\": true\n          },\n          \"questions\": {\n            \"nullable\": true,\n            \"description\": \"\\n        The `array` of questions included in the survey. Each question must conform to one of the defined question types: Basic, Link, Rating, or Multiple Choice.\\n\\n        Basic (open-ended question)\\n        - `id`: The question ID\\n        - `type`: `open`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Link (a question with a link)\\n        - `id`: The question ID\\n        - `type`: `link`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `link`: The URL associated with the question.\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Rating (a question with a rating scale)\\n        - `id`: The question ID\\n        - `type`: `rating`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `display`: Display style of the rating (`number` or `emoji`).\\n        - `scale`: The scale of the rating (`number`).\\n        - `lowerBoundLabel`: Label for the lower bound of the scale.\\n        - `upperBoundLabel`: Label for the upper bound of the scale.\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Multiple choice\\n        - `id`: The question ID\\n        - `type`: `single_choice` or `multiple_choice`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `choices`: An array of choices for the question.\\n        - `shuffleOptions`: Whether to shuffle the order of the choices (`boolean`).\\n        - `hasOpenChoice`: Whether the question allows an open-ended response (`boolean`).\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Branching logic can be one of the following types:\\n\\n        Next question: Proceeds to the next question\\n        ```json\\n        {\\n            \\\"type\\\": \\\"next_question\\\"\\n        }\\n        ```\\n\\n        End: Ends the survey, optionally displaying a confirmation message.\\n        ```json\\n        {\\n            \\\"type\\\": \\\"end\\\"\\n        }\\n        ```\\n\\n        Response-based: Branches based on the response values. Available for the `rating` and `single_choice` question types.\\n        ```json\\n        {\\n            \\\"type\\\": \\\"response_based\\\",\\n            \\\"responseValues\\\": {\\n                \\\"responseKey\\\": \\\"value\\\"\\n            }\\n        }\\n        ```\\n\\n        Specific question: Proceeds to a specific question by index.\\n        ```json\\n        {\\n            \\\"type\\\": \\\"specific_question\\\",\\n            \\\"index\\\": 2\\n        }\\n        ```\\n        \"\n          },\n          \"conditions\": {\n            \"nullable\": true\n          },\n          \"appearance\": {\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"archived\": {\n            \"type\": \"boolean\"\n          },\n          \"responses_limit\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"iteration_count\": {\n            \"type\": \"integer\",\n            \"maximum\": 500,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"iteration_frequency_days\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"iteration_start_dates\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"format\": \"date-time\",\n              \"nullable\": true\n            },\n            \"nullable\": true\n          },\n          \"current_iteration\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"current_iteration_start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"response_sampling_start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"response_sampling_interval_type\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"day\",\n                  \"week\",\n                  \"month\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `day` - day\\n* `week` - week\\n* `month` - month\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"response_sampling_interval\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"response_sampling_limit\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"response_sampling_daily_limits\": {\n            \"nullable\": true\n          },\n          \"enable_partial_responses\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"internal_targeting_flag\",\n          \"linked_flag\",\n          \"name\",\n          \"targeting_flag\",\n          \"type\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"type\": {\n            \"enum\": [\n              \"popover\",\n              \"widget\",\n              \"external_survey\",\n              \"api\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `popover` - popover\\n* `widget` - widget\\n* `external_survey` - external survey\\n* `api` - api\"\n          },\n          \"schedule\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"linked_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"linked_flag_id\": {\n            \"type\": \"integer\",\n            \"writeOnly\": true,\n            \"nullable\": true\n          },\n          \"targeting_flag_id\": {\n            \"type\": \"integer\",\n            \"writeOnly\": true\n          },\n          \"targeting_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"internal_targeting_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"targeting_flag_filters\": {\n            \"writeOnly\": true,\n            \"nullable\": true\n          },\n          \"remove_targeting_flag\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true,\n            \"nullable\": true\n          },\n          \"questions\": {\n            \"nullable\": true,\n            \"description\": \"\\n        The `array` of questions included in the survey. Each question must conform to one of the defined question types: Basic, Link, Rating, or Multiple Choice.\\n\\n        Basic (open-ended question)\\n        - `id`: The question ID\\n        - `type`: `open`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Link (a question with a link)\\n        - `id`: The question ID\\n        - `type`: `link`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `link`: The URL associated with the question.\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Rating (a question with a rating scale)\\n        - `id`: The question ID\\n        - `type`: `rating`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `display`: Display style of the rating (`number` or `emoji`).\\n        - `scale`: The scale of the rating (`number`).\\n        - `lowerBoundLabel`: Label for the lower bound of the scale.\\n        - `upperBoundLabel`: Label for the upper bound of the scale.\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Multiple choice\\n        - `id`: The question ID\\n        - `type`: `single_choice` or `multiple_choice`\\n        - `question`: The text of the question.\\n        - `description`: Optional description of the question.\\n        - `descriptionContentType`: Content type of the description (`html` or `text`).\\n        - `optional`: Whether the question is optional (`boolean`).\\n        - `buttonText`: Text displayed on the submit button.\\n        - `choices`: An array of choices for the question.\\n        - `shuffleOptions`: Whether to shuffle the order of the choices (`boolean`).\\n        - `hasOpenChoice`: Whether the question allows an open-ended response (`boolean`).\\n        - `branching`: Branching logic for the question. See branching types below for details.\\n\\n        Branching logic can be one of the following types:\\n\\n        Next question: Proceeds to the next question\\n        ```json\\n        {\\n            \\\"type\\\": \\\"next_question\\\"\\n        }\\n        ```\\n\\n        End: Ends the survey, optionally displaying a confirmation message.\\n        ```json\\n        {\\n            \\\"type\\\": \\\"end\\\"\\n        }\\n        ```\\n\\n        Response-based: Branches based on the response values. Available for the `rating` and `single_choice` question types.\\n        ```json\\n        {\\n            \\\"type\\\": \\\"response_based\\\",\\n            \\\"responseValues\\\": {\\n                \\\"responseKey\\\": \\\"value\\\"\\n            }\\n        }\\n        ```\\n\\n        Specific question: Proceeds to a specific question by index.\\n        ```json\\n        {\\n            \\\"type\\\": \\\"specific_question\\\",\\n            \\\"index\\\": 2\\n        }\\n        ```\\n        \"\n          },\n          \"conditions\": {\n            \"nullable\": true\n          },\n          \"appearance\": {\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"archived\": {\n            \"type\": \"boolean\"\n          },\n          \"responses_limit\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"iteration_count\": {\n            \"type\": \"integer\",\n            \"maximum\": 500,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"iteration_frequency_days\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"iteration_start_dates\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"format\": \"date-time\",\n              \"nullable\": true\n            },\n            \"nullable\": true\n          },\n          \"current_iteration\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"current_iteration_start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"response_sampling_start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"response_sampling_interval_type\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"day\",\n                  \"week\",\n                  \"month\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `day` - day\\n* `week` - week\\n* `month` - month\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"response_sampling_interval\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"response_sampling_limit\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"response_sampling_daily_limits\": {\n            \"nullable\": true\n          },\n          \"enable_partial_responses\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"internal_targeting_flag\",\n          \"linked_flag\",\n          \"name\",\n          \"targeting_flag\",\n          \"type\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

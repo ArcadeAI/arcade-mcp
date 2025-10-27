@@ -1,0 +1,669 @@
+{
+  "name": "CreateChatCompletion",
+  "fully_qualified_name": "PosthogApi.CreateChatCompletion@0.1.0",
+  "description": "Create a chat completion using OpenAI or compatible models.\n\nUtilize this tool to generate chat responses using OpenAI or compatible models. It adheres to OpenAI's Chat Completions API format, providing a seamless integration for chat completion needs.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The unique identifier for the project to access. Retrieve via a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "chat_request_body",
+        "required": true,
+        "description": "The JSON payload containing parameters such as model, messages, temperature, max tokens, and other settings for generating a chat completion.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "model": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The model to use for completion (e.g., 'gpt-4', 'gpt-3.5-turbo')"
+            },
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "List of message objects with 'role' and 'content'"
+            },
+            "temperature": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sampling temperature between 0 and 2"
+            },
+            "top_p": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Nucleus sampling parameter"
+            },
+            "n": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of completions to generate"
+            },
+            "stream": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to stream the response"
+            },
+            "stream_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional options for streaming"
+            },
+            "stop": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Stop sequences"
+            },
+            "max_tokens": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Maximum number of tokens to generate"
+            },
+            "max_completion_tokens": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Maximum number of completion tokens (alternative to max_tokens)"
+            },
+            "presence_penalty": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Presence penalty between -2.0 and 2.0"
+            },
+            "frequency_penalty": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Frequency penalty between -2.0 and 2.0"
+            },
+            "logit_bias": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Logit bias mapping"
+            },
+            "user": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique user identifier"
+            },
+            "tools": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of tools available to the model"
+            },
+            "tool_choice": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls which tool is called"
+            },
+            "parallel_tool_calls": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow parallel tool calls"
+            },
+            "response_format": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Format for the model output"
+            },
+            "seed": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Random seed for deterministic sampling"
+            },
+            "logprobs": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to return log probabilities"
+            },
+            "top_logprobs": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of most likely tokens to return at each position"
+            },
+            "modalities": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Output modalities"
+            },
+            "prediction": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Prediction content for speculative decoding"
+            },
+            "audio": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Audio input parameters"
+            },
+            "reasoning_effort": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reasoning effort level for o-series models\n\n* `none` - none\n* `minimal` - minimal\n* `low` - low\n* `medium` - medium\n* `high` - high\n* `default` - default"
+            },
+            "verbosity": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls the verbosity level of the model's output\n\n* `concise` - concise\n* `standard` - standard\n* `verbose` - verbose"
+            },
+            "store": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to store the output for model distillation or evals"
+            },
+            "web_search_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Web search tool configuration"
+            },
+            "functions": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deprecated in favor of tools. List of functions the model may call"
+            },
+            "function_call": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deprecated in favor of tool_choice. Controls which function is called"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "response_format",
+        "required": false,
+        "description": "Specify the format of the chat completion response. Possible values are 'json' or 'txt'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "json",
+            "txt"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "format"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'llm_gateway_v1_chat_completions_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/llm_gateway/v1/chat/completions/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "format",
+        "tool_parameter_name": "response_format",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "json",
+            "txt"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "chat_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "model": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The model to use for completion (e.g., 'gpt-4', 'gpt-3.5-turbo')"
+            },
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "List of message objects with 'role' and 'content'"
+            },
+            "temperature": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sampling temperature between 0 and 2"
+            },
+            "top_p": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Nucleus sampling parameter"
+            },
+            "n": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of completions to generate"
+            },
+            "stream": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to stream the response"
+            },
+            "stream_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional options for streaming"
+            },
+            "stop": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Stop sequences"
+            },
+            "max_tokens": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Maximum number of tokens to generate"
+            },
+            "max_completion_tokens": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Maximum number of completion tokens (alternative to max_tokens)"
+            },
+            "presence_penalty": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Presence penalty between -2.0 and 2.0"
+            },
+            "frequency_penalty": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Frequency penalty between -2.0 and 2.0"
+            },
+            "logit_bias": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Logit bias mapping"
+            },
+            "user": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique user identifier"
+            },
+            "tools": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of tools available to the model"
+            },
+            "tool_choice": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls which tool is called"
+            },
+            "parallel_tool_calls": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow parallel tool calls"
+            },
+            "response_format": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Format for the model output"
+            },
+            "seed": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Random seed for deterministic sampling"
+            },
+            "logprobs": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to return log probabilities"
+            },
+            "top_logprobs": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of most likely tokens to return at each position"
+            },
+            "modalities": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Output modalities"
+            },
+            "prediction": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Prediction content for speculative decoding"
+            },
+            "audio": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Audio input parameters"
+            },
+            "reasoning_effort": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reasoning effort level for o-series models\n\n* `none` - none\n* `minimal` - minimal\n* `low` - low\n* `medium` - medium\n* `high` - high\n* `default` - default"
+            },
+            "verbosity": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls the verbosity level of the model's output\n\n* `concise` - concise\n* `standard` - standard\n* `verbose` - verbose"
+            },
+            "store": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to store the output for model distillation or evals"
+            },
+            "web_search_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Web search tool configuration"
+            },
+            "functions": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deprecated in favor of tools. List of functions the model may call"
+            },
+            "function_call": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deprecated in favor of tool_choice. Controls which function is called"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"model\": {\n            \"type\": \"string\",\n            \"description\": \"The model to use for completion (e.g., 'gpt-4', 'gpt-3.5-turbo')\"\n          },\n          \"messages\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"description\": \"List of message objects with 'role' and 'content'\"\n          },\n          \"temperature\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 2.0,\n            \"minimum\": 0.0,\n            \"description\": \"Sampling temperature between 0 and 2\"\n          },\n          \"top_p\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 1.0,\n            \"minimum\": 0.0,\n            \"description\": \"Nucleus sampling parameter\"\n          },\n          \"n\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"description\": \"Number of completions to generate\"\n          },\n          \"stream\": {\n            \"type\": \"boolean\",\n            \"default\": false,\n            \"description\": \"Whether to stream the response\"\n          },\n          \"stream_options\": {\n            \"description\": \"Additional options for streaming\"\n          },\n          \"stop\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Stop sequences\"\n          },\n          \"max_tokens\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"description\": \"Maximum number of tokens to generate\"\n          },\n          \"max_completion_tokens\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"description\": \"Maximum number of completion tokens (alternative to max_tokens)\"\n          },\n          \"presence_penalty\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 2.0,\n            \"minimum\": -2.0,\n            \"description\": \"Presence penalty between -2.0 and 2.0\"\n          },\n          \"frequency_penalty\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 2.0,\n            \"minimum\": -2.0,\n            \"description\": \"Frequency penalty between -2.0 and 2.0\"\n          },\n          \"logit_bias\": {\n            \"description\": \"Logit bias mapping\"\n          },\n          \"user\": {\n            \"type\": \"string\",\n            \"description\": \"Unique user identifier\"\n          },\n          \"tools\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"description\": \"List of tools available to the model\"\n          },\n          \"tool_choice\": {\n            \"description\": \"Controls which tool is called\"\n          },\n          \"parallel_tool_calls\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to allow parallel tool calls\"\n          },\n          \"response_format\": {\n            \"description\": \"Format for the model output\"\n          },\n          \"seed\": {\n            \"type\": \"integer\",\n            \"description\": \"Random seed for deterministic sampling\"\n          },\n          \"logprobs\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to return log probabilities\"\n          },\n          \"top_logprobs\": {\n            \"type\": \"integer\",\n            \"maximum\": 20,\n            \"minimum\": 0,\n            \"description\": \"Number of most likely tokens to return at each position\"\n          },\n          \"modalities\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"enum\": [\n                \"text\",\n                \"audio\"\n              ],\n              \"type\": \"string\",\n              \"description\": \"* `text` - text\\n* `audio` - audio\"\n            },\n            \"description\": \"Output modalities\"\n          },\n          \"prediction\": {\n            \"description\": \"Prediction content for speculative decoding\"\n          },\n          \"audio\": {\n            \"description\": \"Audio input parameters\"\n          },\n          \"reasoning_effort\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"none\",\n                  \"minimal\",\n                  \"low\",\n                  \"medium\",\n                  \"high\",\n                  \"default\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `none` - none\\n* `minimal` - minimal\\n* `low` - low\\n* `medium` - medium\\n* `high` - high\\n* `default` - default\"\n              }\n            ],\n            \"description\": \"Reasoning effort level for o-series models\\n\\n* `none` - none\\n* `minimal` - minimal\\n* `low` - low\\n* `medium` - medium\\n* `high` - high\\n* `default` - default\"\n          },\n          \"verbosity\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"concise\",\n                  \"standard\",\n                  \"verbose\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `concise` - concise\\n* `standard` - standard\\n* `verbose` - verbose\"\n              }\n            ],\n            \"description\": \"Controls the verbosity level of the model's output\\n\\n* `concise` - concise\\n* `standard` - standard\\n* `verbose` - verbose\"\n          },\n          \"store\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to store the output for model distillation or evals\"\n          },\n          \"web_search_options\": {\n            \"description\": \"Web search tool configuration\"\n          },\n          \"functions\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"description\": \"Deprecated in favor of tools. List of functions the model may call\"\n          },\n          \"function_call\": {\n            \"description\": \"Deprecated in favor of tool_choice. Controls which function is called\"\n          }\n        },\n        \"required\": [\n          \"messages\",\n          \"model\"\n        ]\n      },\n      \"examples\": {\n        \"BasicRequest\": {\n          \"value\": {\n            \"model\": \"gpt-4\",\n            \"messages\": [\n              {\n                \"role\": \"user\",\n                \"content\": \"Hello!\"\n              }\n            ]\n          },\n          \"summary\": \"Basic Request\",\n          \"description\": \"Simple chat completion request\"\n        },\n        \"StreamingRequest\": {\n          \"value\": {\n            \"model\": \"gpt-4\",\n            \"messages\": [\n              {\n                \"role\": \"user\",\n                \"content\": \"Write a short poem\"\n              }\n            ],\n            \"stream\": true,\n            \"temperature\": 0.7\n          },\n          \"summary\": \"Streaming Request\",\n          \"description\": \"Request with streaming enabled\"\n        }\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"model\": {\n            \"type\": \"string\",\n            \"description\": \"The model to use for completion (e.g., 'gpt-4', 'gpt-3.5-turbo')\"\n          },\n          \"messages\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"description\": \"List of message objects with 'role' and 'content'\"\n          },\n          \"temperature\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 2.0,\n            \"minimum\": 0.0,\n            \"description\": \"Sampling temperature between 0 and 2\"\n          },\n          \"top_p\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 1.0,\n            \"minimum\": 0.0,\n            \"description\": \"Nucleus sampling parameter\"\n          },\n          \"n\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"description\": \"Number of completions to generate\"\n          },\n          \"stream\": {\n            \"type\": \"boolean\",\n            \"default\": false,\n            \"description\": \"Whether to stream the response\"\n          },\n          \"stream_options\": {\n            \"description\": \"Additional options for streaming\"\n          },\n          \"stop\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Stop sequences\"\n          },\n          \"max_tokens\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"description\": \"Maximum number of tokens to generate\"\n          },\n          \"max_completion_tokens\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"description\": \"Maximum number of completion tokens (alternative to max_tokens)\"\n          },\n          \"presence_penalty\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 2.0,\n            \"minimum\": -2.0,\n            \"description\": \"Presence penalty between -2.0 and 2.0\"\n          },\n          \"frequency_penalty\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 2.0,\n            \"minimum\": -2.0,\n            \"description\": \"Frequency penalty between -2.0 and 2.0\"\n          },\n          \"logit_bias\": {\n            \"description\": \"Logit bias mapping\"\n          },\n          \"user\": {\n            \"type\": \"string\",\n            \"description\": \"Unique user identifier\"\n          },\n          \"tools\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"description\": \"List of tools available to the model\"\n          },\n          \"tool_choice\": {\n            \"description\": \"Controls which tool is called\"\n          },\n          \"parallel_tool_calls\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to allow parallel tool calls\"\n          },\n          \"response_format\": {\n            \"description\": \"Format for the model output\"\n          },\n          \"seed\": {\n            \"type\": \"integer\",\n            \"description\": \"Random seed for deterministic sampling\"\n          },\n          \"logprobs\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to return log probabilities\"\n          },\n          \"top_logprobs\": {\n            \"type\": \"integer\",\n            \"maximum\": 20,\n            \"minimum\": 0,\n            \"description\": \"Number of most likely tokens to return at each position\"\n          },\n          \"modalities\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"enum\": [\n                \"text\",\n                \"audio\"\n              ],\n              \"type\": \"string\",\n              \"description\": \"* `text` - text\\n* `audio` - audio\"\n            },\n            \"description\": \"Output modalities\"\n          },\n          \"prediction\": {\n            \"description\": \"Prediction content for speculative decoding\"\n          },\n          \"audio\": {\n            \"description\": \"Audio input parameters\"\n          },\n          \"reasoning_effort\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"none\",\n                  \"minimal\",\n                  \"low\",\n                  \"medium\",\n                  \"high\",\n                  \"default\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `none` - none\\n* `minimal` - minimal\\n* `low` - low\\n* `medium` - medium\\n* `high` - high\\n* `default` - default\"\n              }\n            ],\n            \"description\": \"Reasoning effort level for o-series models\\n\\n* `none` - none\\n* `minimal` - minimal\\n* `low` - low\\n* `medium` - medium\\n* `high` - high\\n* `default` - default\"\n          },\n          \"verbosity\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"concise\",\n                  \"standard\",\n                  \"verbose\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `concise` - concise\\n* `standard` - standard\\n* `verbose` - verbose\"\n              }\n            ],\n            \"description\": \"Controls the verbosity level of the model's output\\n\\n* `concise` - concise\\n* `standard` - standard\\n* `verbose` - verbose\"\n          },\n          \"store\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to store the output for model distillation or evals\"\n          },\n          \"web_search_options\": {\n            \"description\": \"Web search tool configuration\"\n          },\n          \"functions\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"description\": \"Deprecated in favor of tools. List of functions the model may call\"\n          },\n          \"function_call\": {\n            \"description\": \"Deprecated in favor of tool_choice. Controls which function is called\"\n          }\n        },\n        \"required\": [\n          \"messages\",\n          \"model\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"model\": {\n            \"type\": \"string\",\n            \"description\": \"The model to use for completion (e.g., 'gpt-4', 'gpt-3.5-turbo')\"\n          },\n          \"messages\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"description\": \"List of message objects with 'role' and 'content'\"\n          },\n          \"temperature\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 2.0,\n            \"minimum\": 0.0,\n            \"description\": \"Sampling temperature between 0 and 2\"\n          },\n          \"top_p\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 1.0,\n            \"minimum\": 0.0,\n            \"description\": \"Nucleus sampling parameter\"\n          },\n          \"n\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"description\": \"Number of completions to generate\"\n          },\n          \"stream\": {\n            \"type\": \"boolean\",\n            \"default\": false,\n            \"description\": \"Whether to stream the response\"\n          },\n          \"stream_options\": {\n            \"description\": \"Additional options for streaming\"\n          },\n          \"stop\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Stop sequences\"\n          },\n          \"max_tokens\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"description\": \"Maximum number of tokens to generate\"\n          },\n          \"max_completion_tokens\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"description\": \"Maximum number of completion tokens (alternative to max_tokens)\"\n          },\n          \"presence_penalty\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 2.0,\n            \"minimum\": -2.0,\n            \"description\": \"Presence penalty between -2.0 and 2.0\"\n          },\n          \"frequency_penalty\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 2.0,\n            \"minimum\": -2.0,\n            \"description\": \"Frequency penalty between -2.0 and 2.0\"\n          },\n          \"logit_bias\": {\n            \"description\": \"Logit bias mapping\"\n          },\n          \"user\": {\n            \"type\": \"string\",\n            \"description\": \"Unique user identifier\"\n          },\n          \"tools\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"description\": \"List of tools available to the model\"\n          },\n          \"tool_choice\": {\n            \"description\": \"Controls which tool is called\"\n          },\n          \"parallel_tool_calls\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to allow parallel tool calls\"\n          },\n          \"response_format\": {\n            \"description\": \"Format for the model output\"\n          },\n          \"seed\": {\n            \"type\": \"integer\",\n            \"description\": \"Random seed for deterministic sampling\"\n          },\n          \"logprobs\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to return log probabilities\"\n          },\n          \"top_logprobs\": {\n            \"type\": \"integer\",\n            \"maximum\": 20,\n            \"minimum\": 0,\n            \"description\": \"Number of most likely tokens to return at each position\"\n          },\n          \"modalities\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"enum\": [\n                \"text\",\n                \"audio\"\n              ],\n              \"type\": \"string\",\n              \"description\": \"* `text` - text\\n* `audio` - audio\"\n            },\n            \"description\": \"Output modalities\"\n          },\n          \"prediction\": {\n            \"description\": \"Prediction content for speculative decoding\"\n          },\n          \"audio\": {\n            \"description\": \"Audio input parameters\"\n          },\n          \"reasoning_effort\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"none\",\n                  \"minimal\",\n                  \"low\",\n                  \"medium\",\n                  \"high\",\n                  \"default\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `none` - none\\n* `minimal` - minimal\\n* `low` - low\\n* `medium` - medium\\n* `high` - high\\n* `default` - default\"\n              }\n            ],\n            \"description\": \"Reasoning effort level for o-series models\\n\\n* `none` - none\\n* `minimal` - minimal\\n* `low` - low\\n* `medium` - medium\\n* `high` - high\\n* `default` - default\"\n          },\n          \"verbosity\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"concise\",\n                  \"standard\",\n                  \"verbose\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `concise` - concise\\n* `standard` - standard\\n* `verbose` - verbose\"\n              }\n            ],\n            \"description\": \"Controls the verbosity level of the model's output\\n\\n* `concise` - concise\\n* `standard` - standard\\n* `verbose` - verbose\"\n          },\n          \"store\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to store the output for model distillation or evals\"\n          },\n          \"web_search_options\": {\n            \"description\": \"Web search tool configuration\"\n          },\n          \"functions\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"description\": \"Deprecated in favor of tools. List of functions the model may call\"\n          },\n          \"function_call\": {\n            \"description\": \"Deprecated in favor of tool_choice. Controls which function is called\"\n          }\n        },\n        \"required\": [\n          \"messages\",\n          \"model\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

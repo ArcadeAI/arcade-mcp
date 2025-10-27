@@ -1,0 +1,418 @@
+{
+  "name": "UpdateTaskRunStatus",
+  "fully_qualified_name": "PosthogApi.UpdateTaskRunStatus@0.1.0",
+  "description": "Update the status of a specific task run.\n\nUse this tool to update details of a specific task run within a project. Suitable for changing statuses or executing minor updates on task executions.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_run_id",
+        "required": true,
+        "description": "A UUID string identifying the specific task run to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this task run."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The ID of the project to access. Retrieve via /api/projects/ if unknown.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "task_run_task_identifier",
+        "required": true,
+        "description": "The unique task ID for identifying the specific task run to update. This ID is associated with the task execution.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_id"
+      },
+      {
+        "name": "task_run_update_details",
+        "required": false,
+        "description": "JSON object with details to update a task run, including id, task, stage, branch, status, log, error_message, output, state, and timestamps.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "task": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Current stage for this run (e.g., 'backlog', 'in_progress', 'done')"
+            },
+            "branch": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Branch name for the run"
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "started",
+                "in_progress",
+                "completed",
+                "failed"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `started` - Started\n* `in_progress` - In Progress\n* `completed` - Completed\n* `failed` - Failed"
+            },
+            "log": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Live output from Claude Code execution"
+            },
+            "error_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Error message if execution failed"
+            },
+            "output": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Run output data (e.g., PR URL, commit SHA, etc.)"
+            },
+            "state": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Run state data for resuming or tracking execution state"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "completed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'tasks_runs_partial_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/tasks/{task_id}/runs/{id}/",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "task_run_id",
+        "description": "A UUID string identifying this task run.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this task run."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_id",
+        "tool_parameter_name": "task_run_task_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "task_run_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "task": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Current stage for this run (e.g., 'backlog', 'in_progress', 'done')"
+            },
+            "branch": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Branch name for the run"
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "started",
+                "in_progress",
+                "completed",
+                "failed"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `started` - Started\n* `in_progress` - In Progress\n* `completed` - Completed\n* `failed` - Failed"
+            },
+            "log": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Live output from Claude Code execution"
+            },
+            "error_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Error message if execution failed"
+            },
+            "output": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Run output data (e.g., PR URL, commit SHA, etc.)"
+            },
+            "state": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Run state data for resuming or tracking execution state"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "completed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"task\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"stage\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"Current stage for this run (e.g., 'backlog', 'in_progress', 'done')\",\n            \"maxLength\": 100\n          },\n          \"branch\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"Branch name for the run\",\n            \"maxLength\": 255\n          },\n          \"status\": {\n            \"enum\": [\n              \"started\",\n              \"in_progress\",\n              \"completed\",\n              \"failed\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `started` - Started\\n* `in_progress` - In Progress\\n* `completed` - Completed\\n* `failed` - Failed\"\n          },\n          \"log\": {\n            \"description\": \"Live output from Claude Code execution\"\n          },\n          \"error_message\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"Error message if execution failed\"\n          },\n          \"output\": {\n            \"nullable\": true,\n            \"description\": \"Run output data (e.g., PR URL, commit SHA, etc.)\"\n          },\n          \"state\": {\n            \"description\": \"Run state data for resuming or tracking execution state\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"completed_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          }\n        }\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"task\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"stage\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"Current stage for this run (e.g., 'backlog', 'in_progress', 'done')\",\n            \"maxLength\": 100\n          },\n          \"branch\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"Branch name for the run\",\n            \"maxLength\": 255\n          },\n          \"status\": {\n            \"enum\": [\n              \"started\",\n              \"in_progress\",\n              \"completed\",\n              \"failed\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `started` - Started\\n* `in_progress` - In Progress\\n* `completed` - Completed\\n* `failed` - Failed\"\n          },\n          \"log\": {\n            \"description\": \"Live output from Claude Code execution\"\n          },\n          \"error_message\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"Error message if execution failed\"\n          },\n          \"output\": {\n            \"nullable\": true,\n            \"description\": \"Run output data (e.g., PR URL, commit SHA, etc.)\"\n          },\n          \"state\": {\n            \"description\": \"Run state data for resuming or tracking execution state\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"completed_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          }\n        }\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"task\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"stage\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"Current stage for this run (e.g., 'backlog', 'in_progress', 'done')\",\n            \"maxLength\": 100\n          },\n          \"branch\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"Branch name for the run\",\n            \"maxLength\": 255\n          },\n          \"status\": {\n            \"enum\": [\n              \"started\",\n              \"in_progress\",\n              \"completed\",\n              \"failed\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `started` - Started\\n* `in_progress` - In Progress\\n* `completed` - Completed\\n* `failed` - Failed\"\n          },\n          \"log\": {\n            \"description\": \"Live output from Claude Code execution\"\n          },\n          \"error_message\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"Error message if execution failed\"\n          },\n          \"output\": {\n            \"nullable\": true,\n            \"description\": \"Run output data (e.g., PR URL, commit SHA, etc.)\"\n          },\n          \"state\": {\n            \"description\": \"Run state data for resuming or tracking execution state\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"completed_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
