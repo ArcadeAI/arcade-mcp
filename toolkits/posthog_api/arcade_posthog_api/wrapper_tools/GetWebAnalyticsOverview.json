@@ -1,0 +1,247 @@
+{
+  "name": "GetWebAnalyticsOverview",
+  "fully_qualified_name": "PosthogApi.GetWebAnalyticsOverview@0.1.0",
+  "description": "Retrieve an overview of web analytics data for a project.\n\nThis tool provides insights into web analytics, such as the number of visitors, views, sessions, bounce rate, and session duration for a specified project. It should be called when there's a need to analyze or monitor web traffic and user behavior.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_date",
+        "required": true,
+        "description": "Start date for the query in YYYY-MM-DD format. Determines the beginning of the analytics data range.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date for the query (format: YYYY-MM-DD)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_from"
+      },
+      {
+        "name": "end_date_query",
+        "required": true,
+        "description": "End date for the query in the format YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for the query (format: YYYY-MM-DD)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_to"
+      },
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The unique identifier for the project you want to access web analytics data for. Obtain this by calling /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "host_filter",
+        "required": false,
+        "description": "Specify the host to filter web analytics data by (e.g., example.com).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Host to filter by (e.g. example.com)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "host"
+      },
+      {
+        "name": "filter_test_accounts",
+        "required": false,
+        "description": "Set to true to filter out test accounts from the analytics data.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter out test accounts"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_test_accounts"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'web_analytics_overview_retrieve'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/web_analytics/overview/",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "date_from",
+        "tool_parameter_name": "start_date",
+        "description": "Start date for the query (format: YYYY-MM-DD)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date for the query (format: YYYY-MM-DD)"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_to",
+        "tool_parameter_name": "end_date_query",
+        "description": "End date for the query (format: YYYY-MM-DD)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for the query (format: YYYY-MM-DD)"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_test_accounts",
+        "tool_parameter_name": "filter_test_accounts",
+        "description": "Filter out test accounts",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter out test accounts"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": true,
+        "documentation_urls": []
+      },
+      {
+        "name": "host",
+        "tool_parameter_name": "host_filter",
+        "description": "Host to filter by (e.g. example.com)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Host to filter by (e.g. example.com)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

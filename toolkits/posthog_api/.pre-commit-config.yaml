@@ -1,0 +1,20 @@
+files: ^(arcade_posthog_api/|tests/|pyproject\.toml|Makefile)
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v4.4.0"
+    hooks:
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+        exclude: ^arcade_posthog_api/tools/__init__\.py$
+      - id: trailing-whitespace
+        exclude: ^arcade_posthog_api/tools/__init__\.py$
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.7
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format

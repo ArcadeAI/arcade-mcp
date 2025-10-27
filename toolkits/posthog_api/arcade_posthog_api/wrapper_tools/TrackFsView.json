@@ -1,0 +1,1405 @@
+{
+  "name": "TrackFsView",
+  "fully_qualified_name": "PosthogApi.TrackFsView@0.1.0",
+  "description": "Logs a view each time a resource is accessed via GET.\n\nUse this tool to track access views on file system resources by logging a view each time they are accessed. This can help in monitoring and analyzing file system interactions within a specified project.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "hog_function_uuid",
+        "required": true,
+        "description": "A UUID string identifying this hog function. Required for logging views.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this hog function."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The ID of the project you are accessing. Retrieve it via /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "view_logging_request_data",
+        "required": false,
+        "description": "A JSON object containing details of the file system view logging. Include properties such as 'id', 'type', 'name', 'description', 'created_at', 'created_by', 'updated_at', 'enabled', 'deleted', 'hog', 'bytecode', 'transpiled', 'inputs_schema', 'inputs', 'filters', 'masking', 'mappings', 'icon_url', 'template', 'template_id', 'status', and 'execution_order'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "hog": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "bytecode": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "transpiled": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "inputs_schema": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "dictionary",
+                    "choice",
+                    "json",
+                    "integration",
+                    "integration_field",
+                    "email",
+                    "native_email"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "* `string` - string\n* `number` - number\n* `boolean` - boolean\n* `dictionary` - dictionary\n* `choice` - choice\n* `json` - json\n* `integration` - integration\n* `integration_field` - integration_field\n* `email` - email\n* `native_email` - native_email"
+                },
+                "key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "choices": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "required": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "default": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "secret": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "hidden": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "integration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "integration_key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "requires_field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "integration_field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "requiredScopes": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "templating": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "* `True` - True\n* `False` - False\n* `hog` - hog\n* `liquid` - liquid"
+                }
+              },
+              "description": null
+            },
+            "inputs": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "source": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "actions": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "events": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "properties": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "bytecode": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "transpiled": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "filter_test_accounts": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "bytecode_error": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "masking": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "mappings": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "inputs_schema": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "string",
+                        "number",
+                        "boolean",
+                        "dictionary",
+                        "choice",
+                        "json",
+                        "integration",
+                        "integration_field",
+                        "email",
+                        "native_email"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "* `string` - string\n* `number` - number\n* `boolean` - boolean\n* `dictionary` - dictionary\n* `choice` - choice\n* `json` - json\n* `integration` - integration\n* `integration_field` - integration_field\n* `email` - email\n* `native_email` - native_email"
+                    },
+                    "key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "label": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "choices": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": null
+                    },
+                    "required": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "default": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "secret": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "hidden": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "integration": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "integration_key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "requires_field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "integration_field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "requiredScopes": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "templating": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "* `True` - True\n* `False` - False\n* `hog` - hog\n* `liquid` - liquid"
+                    }
+                  },
+                  "description": null
+                },
+                "inputs": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "filters": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "source": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "actions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": null
+                    },
+                    "events": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": null
+                    },
+                    "properties": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": null
+                    },
+                    "bytecode": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "transpiled": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "filter_test_accounts": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "bytecode_error": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "icon_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "template": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "status": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "execution_order": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'hog_functions_invocations_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/hog_functions/{id}/invocations/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "hog_function_uuid",
+        "description": "A UUID string identifying this hog function.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this hog function."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "view_logging_request_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "hog": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "bytecode": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "transpiled": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "inputs_schema": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "dictionary",
+                    "choice",
+                    "json",
+                    "integration",
+                    "integration_field",
+                    "email",
+                    "native_email"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "* `string` - string\n* `number` - number\n* `boolean` - boolean\n* `dictionary` - dictionary\n* `choice` - choice\n* `json` - json\n* `integration` - integration\n* `integration_field` - integration_field\n* `email` - email\n* `native_email` - native_email"
+                },
+                "key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "choices": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "required": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "default": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "secret": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "hidden": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "integration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "integration_key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "requires_field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "integration_field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "requiredScopes": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "templating": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "* `True` - True\n* `False` - False\n* `hog` - hog\n* `liquid` - liquid"
+                }
+              },
+              "description": null
+            },
+            "inputs": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "source": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "actions": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "events": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "properties": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": null
+                },
+                "bytecode": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "transpiled": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "filter_test_accounts": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "bytecode_error": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "masking": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "mappings": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "inputs_schema": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "string",
+                        "number",
+                        "boolean",
+                        "dictionary",
+                        "choice",
+                        "json",
+                        "integration",
+                        "integration_field",
+                        "email",
+                        "native_email"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "* `string` - string\n* `number` - number\n* `boolean` - boolean\n* `dictionary` - dictionary\n* `choice` - choice\n* `json` - json\n* `integration` - integration\n* `integration_field` - integration_field\n* `email` - email\n* `native_email` - native_email"
+                    },
+                    "key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "label": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "choices": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": null
+                    },
+                    "required": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "default": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "secret": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "hidden": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "integration": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "integration_key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "requires_field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "integration_field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "requiredScopes": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "templating": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "* `True` - True\n* `False` - False\n* `hog` - hog\n* `liquid` - liquid"
+                    }
+                  },
+                  "description": null
+                },
+                "inputs": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "filters": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "source": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "actions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": null
+                    },
+                    "events": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": null
+                    },
+                    "properties": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": null
+                    },
+                    "bytecode": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "transpiled": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "filter_test_accounts": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "bytecode_error": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "icon_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "template": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "status": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "execution_order": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"destination\",\n                  \"site_destination\",\n                  \"internal_destination\",\n                  \"source_webhook\",\n                  \"site_app\",\n                  \"transformation\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `destination` - Destination\\n* `site_destination` - Site Destination\\n* `internal_destination` - Internal Destination\\n* `source_webhook` - Source Webhook\\n* `site_app` - Site App\\n* `transformation` - Transformation\"\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true\n          },\n          \"hog\": {\n            \"type\": \"string\"\n          },\n          \"bytecode\": {\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"transpiled\": {\n            \"type\": \"string\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"inputs_schema\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"type\": {\n                  \"enum\": [\n                    \"string\",\n                    \"number\",\n                    \"boolean\",\n                    \"dictionary\",\n                    \"choice\",\n                    \"json\",\n                    \"integration\",\n                    \"integration_field\",\n                    \"email\",\n                    \"native_email\"\n                  ],\n                  \"type\": \"string\",\n                  \"description\": \"* `string` - string\\n* `number` - number\\n* `boolean` - boolean\\n* `dictionary` - dictionary\\n* `choice` - choice\\n* `json` - json\\n* `integration` - integration\\n* `integration_field` - integration_field\\n* `email` - email\\n* `native_email` - native_email\"\n                },\n                \"key\": {\n                  \"type\": \"string\"\n                },\n                \"label\": {\n                  \"type\": \"string\"\n                },\n                \"choices\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  }\n                },\n                \"required\": {\n                  \"type\": \"boolean\",\n                  \"default\": false\n                },\n                \"default\": {},\n                \"secret\": {\n                  \"type\": \"boolean\",\n                  \"default\": false\n                },\n                \"hidden\": {\n                  \"type\": \"boolean\",\n                  \"default\": false\n                },\n                \"description\": {\n                  \"type\": \"string\"\n                },\n                \"integration\": {\n                  \"type\": \"string\"\n                },\n                \"integration_key\": {\n                  \"type\": \"string\"\n                },\n                \"requires_field\": {\n                  \"type\": \"string\"\n                },\n                \"integration_field\": {\n                  \"type\": \"string\"\n                },\n                \"requiredScopes\": {\n                  \"type\": \"string\"\n                },\n                \"templating\": {\n                  \"enum\": [\n                    true,\n                    false,\n                    \"hog\",\n                    \"liquid\"\n                  ],\n                  \"description\": \"* `True` - True\\n* `False` - False\\n* `hog` - hog\\n* `liquid` - liquid\"\n                }\n              },\n              \"required\": [\n                \"key\",\n                \"type\"\n              ]\n            }\n          },\n          \"inputs\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"value\": {\n                  \"type\": \"string\"\n                },\n                \"templating\": {\n                  \"enum\": [\n                    \"hog\",\n                    \"liquid\"\n                  ],\n                  \"type\": \"string\",\n                  \"description\": \"* `hog` - hog\\n* `liquid` - liquid\"\n                },\n                \"bytecode\": {\n                  \"type\": \"array\",\n                  \"items\": {},\n                  \"readOnly\": true\n                },\n                \"order\": {\n                  \"type\": \"integer\",\n                  \"readOnly\": true\n                },\n                \"transpiled\": {\n                  \"readOnly\": true\n                }\n              },\n              \"required\": [\n                \"bytecode\",\n                \"order\",\n                \"transpiled\"\n              ]\n            }\n          },\n          \"filters\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"source\": {\n                \"allOf\": [\n                  {\n                    \"enum\": [\n                      \"events\",\n                      \"person-updates\"\n                    ],\n                    \"type\": \"string\",\n                    \"description\": \"* `events` - events\\n* `person-updates` - person-updates\"\n                  }\n                ],\n                \"default\": \"events\"\n              },\n              \"actions\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {}\n                }\n              },\n              \"events\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {}\n                }\n              },\n              \"properties\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {}\n                }\n              },\n              \"bytecode\": {\n                \"nullable\": true\n              },\n              \"transpiled\": {},\n              \"filter_test_accounts\": {\n                \"type\": \"boolean\"\n              },\n              \"bytecode_error\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"masking\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"ttl\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 86400,\n                    \"minimum\": 60\n                  },\n                  \"threshold\": {\n                    \"type\": \"integer\",\n                    \"nullable\": true\n                  },\n                  \"hash\": {\n                    \"type\": \"string\"\n                  },\n                  \"bytecode\": {\n                    \"nullable\": true\n                  }\n                },\n                \"required\": [\n                  \"hash\",\n                  \"ttl\"\n                ]\n              }\n            ],\n            \"nullable\": true\n          },\n          \"mappings\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"name\": {\n                  \"type\": \"string\"\n                },\n                \"inputs_schema\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"enum\": [\n                          \"string\",\n                          \"number\",\n                          \"boolean\",\n                          \"dictionary\",\n                          \"choice\",\n                          \"json\",\n                          \"integration\",\n                          \"integration_field\",\n                          \"email\",\n                          \"native_email\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `string` - string\\n* `number` - number\\n* `boolean` - boolean\\n* `dictionary` - dictionary\\n* `choice` - choice\\n* `json` - json\\n* `integration` - integration\\n* `integration_field` - integration_field\\n* `email` - email\\n* `native_email` - native_email\"\n                      },\n                      \"key\": {\n                        \"type\": \"string\"\n                      },\n                      \"label\": {\n                        \"type\": \"string\"\n                      },\n                      \"choices\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"object\",\n                          \"additionalProperties\": {}\n                        }\n                      },\n                      \"required\": {\n                        \"type\": \"boolean\",\n                        \"default\": false\n                      },\n                      \"default\": {},\n                      \"secret\": {\n                        \"type\": \"boolean\",\n                        \"default\": false\n                      },\n                      \"hidden\": {\n                        \"type\": \"boolean\",\n                        \"default\": false\n                      },\n                      \"description\": {\n                        \"type\": \"string\"\n                      },\n                      \"integration\": {\n                        \"type\": \"string\"\n                      },\n                      \"integration_key\": {\n                        \"type\": \"string\"\n                      },\n                      \"requires_field\": {\n                        \"type\": \"string\"\n                      },\n                      \"integration_field\": {\n                        \"type\": \"string\"\n                      },\n                      \"requiredScopes\": {\n                        \"type\": \"string\"\n                      },\n                      \"templating\": {\n                        \"enum\": [\n                          true,\n                          false,\n                          \"hog\",\n                          \"liquid\"\n                        ],\n                        \"description\": \"* `True` - True\\n* `False` - False\\n* `hog` - hog\\n* `liquid` - liquid\"\n                      }\n                    },\n                    \"required\": [\n                      \"key\",\n                      \"type\"\n                    ]\n                  }\n                },\n                \"inputs\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"value\": {\n                        \"type\": \"string\"\n                      },\n                      \"templating\": {\n                        \"enum\": [\n                          \"hog\",\n                          \"liquid\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `hog` - hog\\n* `liquid` - liquid\"\n                      },\n                      \"bytecode\": {\n                        \"type\": \"array\",\n                        \"items\": {},\n                        \"readOnly\": true\n                      },\n                      \"order\": {\n                        \"type\": \"integer\",\n                        \"readOnly\": true\n                      },\n                      \"transpiled\": {\n                        \"readOnly\": true\n                      }\n                    },\n                    \"required\": [\n                      \"bytecode\",\n                      \"order\",\n                      \"transpiled\"\n                    ]\n                  }\n                },\n                \"filters\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"source\": {\n                      \"allOf\": [\n                        {\n                          \"enum\": [\n                            \"events\",\n                            \"person-updates\"\n                          ],\n                          \"type\": \"string\",\n                          \"description\": \"* `events` - events\\n* `person-updates` - person-updates\"\n                        }\n                      ],\n                      \"default\": \"events\"\n                    },\n                    \"actions\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {}\n                      }\n                    },\n                    \"events\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {}\n                      }\n                    },\n                    \"properties\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {}\n                      }\n                    },\n                    \"bytecode\": {\n                      \"nullable\": true\n                    },\n                    \"transpiled\": {},\n                    \"filter_test_accounts\": {\n                      \"type\": \"boolean\"\n                    },\n                    \"bytecode_error\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                }\n              }\n            },\n            \"nullable\": true\n          },\n          \"icon_url\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"template\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"nullable\": true\n                  },\n                  \"code\": {\n                    \"type\": \"string\"\n                  },\n                  \"code_language\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 20\n                  },\n                  \"inputs_schema\": {},\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 50\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 20\n                  },\n                  \"category\": {},\n                  \"free\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"icon_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true\n                  },\n                  \"filters\": {\n                    \"nullable\": true\n                  },\n                  \"masking\": {\n                    \"nullable\": true\n                  },\n                  \"mapping_templates\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"name\": {\n                          \"type\": \"string\"\n                        },\n                        \"include_by_default\": {\n                          \"type\": \"boolean\",\n                          \"nullable\": true\n                        },\n                        \"filters\": {\n                          \"nullable\": true\n                        },\n                        \"inputs\": {\n                          \"nullable\": true\n                        },\n                        \"inputs_schema\": {\n                          \"nullable\": true\n                        }\n                      },\n                      \"required\": [\n                        \"name\"\n                      ]\n                    },\n                    \"nullable\": true\n                  }\n                },\n                \"required\": [\n                  \"code\",\n                  \"id\",\n                  \"inputs_schema\",\n                  \"name\",\n                  \"type\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"template_id\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"status\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"state\": {\n                    \"enum\": [\n                      0,\n                      1,\n                      2,\n                      3,\n                      11,\n                      12\n                    ],\n                    \"type\": \"integer\",\n                    \"description\": \"* `0` - 0\\n* `1` - 1\\n* `2` - 2\\n* `3` - 3\\n* `11` - 11\\n* `12` - 12\"\n                  },\n                  \"tokens\": {\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"state\",\n                  \"tokens\"\n                ]\n              }\n            ],\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"execution_order\": {\n            \"type\": \"integer\",\n            \"maximum\": 32767,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          }\n        },\n        \"required\": [\n          \"bytecode\",\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"status\",\n          \"template\",\n          \"transpiled\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"destination\",\n                  \"site_destination\",\n                  \"internal_destination\",\n                  \"source_webhook\",\n                  \"site_app\",\n                  \"transformation\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `destination` - Destination\\n* `site_destination` - Site Destination\\n* `internal_destination` - Internal Destination\\n* `source_webhook` - Source Webhook\\n* `site_app` - Site App\\n* `transformation` - Transformation\"\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true\n          },\n          \"hog\": {\n            \"type\": \"string\"\n          },\n          \"bytecode\": {\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"transpiled\": {\n            \"type\": \"string\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"inputs_schema\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"type\": {\n                  \"enum\": [\n                    \"string\",\n                    \"number\",\n                    \"boolean\",\n                    \"dictionary\",\n                    \"choice\",\n                    \"json\",\n                    \"integration\",\n                    \"integration_field\",\n                    \"email\",\n                    \"native_email\"\n                  ],\n                  \"type\": \"string\",\n                  \"description\": \"* `string` - string\\n* `number` - number\\n* `boolean` - boolean\\n* `dictionary` - dictionary\\n* `choice` - choice\\n* `json` - json\\n* `integration` - integration\\n* `integration_field` - integration_field\\n* `email` - email\\n* `native_email` - native_email\"\n                },\n                \"key\": {\n                  \"type\": \"string\"\n                },\n                \"label\": {\n                  \"type\": \"string\"\n                },\n                \"choices\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  }\n                },\n                \"required\": {\n                  \"type\": \"boolean\",\n                  \"default\": false\n                },\n                \"default\": {},\n                \"secret\": {\n                  \"type\": \"boolean\",\n                  \"default\": false\n                },\n                \"hidden\": {\n                  \"type\": \"boolean\",\n                  \"default\": false\n                },\n                \"description\": {\n                  \"type\": \"string\"\n                },\n                \"integration\": {\n                  \"type\": \"string\"\n                },\n                \"integration_key\": {\n                  \"type\": \"string\"\n                },\n                \"requires_field\": {\n                  \"type\": \"string\"\n                },\n                \"integration_field\": {\n                  \"type\": \"string\"\n                },\n                \"requiredScopes\": {\n                  \"type\": \"string\"\n                },\n                \"templating\": {\n                  \"enum\": [\n                    true,\n                    false,\n                    \"hog\",\n                    \"liquid\"\n                  ],\n                  \"description\": \"* `True` - True\\n* `False` - False\\n* `hog` - hog\\n* `liquid` - liquid\"\n                }\n              },\n              \"required\": [\n                \"key\",\n                \"type\"\n              ]\n            }\n          },\n          \"inputs\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"value\": {\n                  \"type\": \"string\"\n                },\n                \"templating\": {\n                  \"enum\": [\n                    \"hog\",\n                    \"liquid\"\n                  ],\n                  \"type\": \"string\",\n                  \"description\": \"* `hog` - hog\\n* `liquid` - liquid\"\n                },\n                \"bytecode\": {\n                  \"type\": \"array\",\n                  \"items\": {},\n                  \"readOnly\": true\n                },\n                \"order\": {\n                  \"type\": \"integer\",\n                  \"readOnly\": true\n                },\n                \"transpiled\": {\n                  \"readOnly\": true\n                }\n              },\n              \"required\": [\n                \"bytecode\",\n                \"order\",\n                \"transpiled\"\n              ]\n            }\n          },\n          \"filters\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"source\": {\n                \"allOf\": [\n                  {\n                    \"enum\": [\n                      \"events\",\n                      \"person-updates\"\n                    ],\n                    \"type\": \"string\",\n                    \"description\": \"* `events` - events\\n* `person-updates` - person-updates\"\n                  }\n                ],\n                \"default\": \"events\"\n              },\n              \"actions\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {}\n                }\n              },\n              \"events\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {}\n                }\n              },\n              \"properties\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {}\n                }\n              },\n              \"bytecode\": {\n                \"nullable\": true\n              },\n              \"transpiled\": {},\n              \"filter_test_accounts\": {\n                \"type\": \"boolean\"\n              },\n              \"bytecode_error\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"masking\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"ttl\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 86400,\n                    \"minimum\": 60\n                  },\n                  \"threshold\": {\n                    \"type\": \"integer\",\n                    \"nullable\": true\n                  },\n                  \"hash\": {\n                    \"type\": \"string\"\n                  },\n                  \"bytecode\": {\n                    \"nullable\": true\n                  }\n                },\n                \"required\": [\n                  \"hash\",\n                  \"ttl\"\n                ]\n              }\n            ],\n            \"nullable\": true\n          },\n          \"mappings\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"name\": {\n                  \"type\": \"string\"\n                },\n                \"inputs_schema\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"enum\": [\n                          \"string\",\n                          \"number\",\n                          \"boolean\",\n                          \"dictionary\",\n                          \"choice\",\n                          \"json\",\n                          \"integration\",\n                          \"integration_field\",\n                          \"email\",\n                          \"native_email\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `string` - string\\n* `number` - number\\n* `boolean` - boolean\\n* `dictionary` - dictionary\\n* `choice` - choice\\n* `json` - json\\n* `integration` - integration\\n* `integration_field` - integration_field\\n* `email` - email\\n* `native_email` - native_email\"\n                      },\n                      \"key\": {\n                        \"type\": \"string\"\n                      },\n                      \"label\": {\n                        \"type\": \"string\"\n                      },\n                      \"choices\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"object\",\n                          \"additionalProperties\": {}\n                        }\n                      },\n                      \"required\": {\n                        \"type\": \"boolean\",\n                        \"default\": false\n                      },\n                      \"default\": {},\n                      \"secret\": {\n                        \"type\": \"boolean\",\n                        \"default\": false\n                      },\n                      \"hidden\": {\n                        \"type\": \"boolean\",\n                        \"default\": false\n                      },\n                      \"description\": {\n                        \"type\": \"string\"\n                      },\n                      \"integration\": {\n                        \"type\": \"string\"\n                      },\n                      \"integration_key\": {\n                        \"type\": \"string\"\n                      },\n                      \"requires_field\": {\n                        \"type\": \"string\"\n                      },\n                      \"integration_field\": {\n                        \"type\": \"string\"\n                      },\n                      \"requiredScopes\": {\n                        \"type\": \"string\"\n                      },\n                      \"templating\": {\n                        \"enum\": [\n                          true,\n                          false,\n                          \"hog\",\n                          \"liquid\"\n                        ],\n                        \"description\": \"* `True` - True\\n* `False` - False\\n* `hog` - hog\\n* `liquid` - liquid\"\n                      }\n                    },\n                    \"required\": [\n                      \"key\",\n                      \"type\"\n                    ]\n                  }\n                },\n                \"inputs\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"value\": {\n                        \"type\": \"string\"\n                      },\n                      \"templating\": {\n                        \"enum\": [\n                          \"hog\",\n                          \"liquid\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `hog` - hog\\n* `liquid` - liquid\"\n                      },\n                      \"bytecode\": {\n                        \"type\": \"array\",\n                        \"items\": {},\n                        \"readOnly\": true\n                      },\n                      \"order\": {\n                        \"type\": \"integer\",\n                        \"readOnly\": true\n                      },\n                      \"transpiled\": {\n                        \"readOnly\": true\n                      }\n                    },\n                    \"required\": [\n                      \"bytecode\",\n                      \"order\",\n                      \"transpiled\"\n                    ]\n                  }\n                },\n                \"filters\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"source\": {\n                      \"allOf\": [\n                        {\n                          \"enum\": [\n                            \"events\",\n                            \"person-updates\"\n                          ],\n                          \"type\": \"string\",\n                          \"description\": \"* `events` - events\\n* `person-updates` - person-updates\"\n                        }\n                      ],\n                      \"default\": \"events\"\n                    },\n                    \"actions\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {}\n                      }\n                    },\n                    \"events\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {}\n                      }\n                    },\n                    \"properties\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {}\n                      }\n                    },\n                    \"bytecode\": {\n                      \"nullable\": true\n                    },\n                    \"transpiled\": {},\n                    \"filter_test_accounts\": {\n                      \"type\": \"boolean\"\n                    },\n                    \"bytecode_error\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                }\n              }\n            },\n            \"nullable\": true\n          },\n          \"icon_url\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"template\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"nullable\": true\n                  },\n                  \"code\": {\n                    \"type\": \"string\"\n                  },\n                  \"code_language\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 20\n                  },\n                  \"inputs_schema\": {},\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 50\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 20\n                  },\n                  \"category\": {},\n                  \"free\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"icon_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true\n                  },\n                  \"filters\": {\n                    \"nullable\": true\n                  },\n                  \"masking\": {\n                    \"nullable\": true\n                  },\n                  \"mapping_templates\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"name\": {\n                          \"type\": \"string\"\n                        },\n                        \"include_by_default\": {\n                          \"type\": \"boolean\",\n                          \"nullable\": true\n                        },\n                        \"filters\": {\n                          \"nullable\": true\n                        },\n                        \"inputs\": {\n                          \"nullable\": true\n                        },\n                        \"inputs_schema\": {\n                          \"nullable\": true\n                        }\n                      },\n                      \"required\": [\n                        \"name\"\n                      ]\n                    },\n                    \"nullable\": true\n                  }\n                },\n                \"required\": [\n                  \"code\",\n                  \"id\",\n                  \"inputs_schema\",\n                  \"name\",\n                  \"type\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"template_id\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"status\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"state\": {\n                    \"enum\": [\n                      0,\n                      1,\n                      2,\n                      3,\n                      11,\n                      12\n                    ],\n                    \"type\": \"integer\",\n                    \"description\": \"* `0` - 0\\n* `1` - 1\\n* `2` - 2\\n* `3` - 3\\n* `11` - 11\\n* `12` - 12\"\n                  },\n                  \"tokens\": {\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"state\",\n                  \"tokens\"\n                ]\n              }\n            ],\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"execution_order\": {\n            \"type\": \"integer\",\n            \"maximum\": 32767,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          }\n        },\n        \"required\": [\n          \"bytecode\",\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"status\",\n          \"template\",\n          \"transpiled\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"destination\",\n                  \"site_destination\",\n                  \"internal_destination\",\n                  \"source_webhook\",\n                  \"site_app\",\n                  \"transformation\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `destination` - Destination\\n* `site_destination` - Site Destination\\n* `internal_destination` - Internal Destination\\n* `source_webhook` - Source Webhook\\n* `site_app` - Site App\\n* `transformation` - Transformation\"\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"writeOnly\": true\n          },\n          \"hog\": {\n            \"type\": \"string\"\n          },\n          \"bytecode\": {\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"transpiled\": {\n            \"type\": \"string\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"inputs_schema\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"type\": {\n                  \"enum\": [\n                    \"string\",\n                    \"number\",\n                    \"boolean\",\n                    \"dictionary\",\n                    \"choice\",\n                    \"json\",\n                    \"integration\",\n                    \"integration_field\",\n                    \"email\",\n                    \"native_email\"\n                  ],\n                  \"type\": \"string\",\n                  \"description\": \"* `string` - string\\n* `number` - number\\n* `boolean` - boolean\\n* `dictionary` - dictionary\\n* `choice` - choice\\n* `json` - json\\n* `integration` - integration\\n* `integration_field` - integration_field\\n* `email` - email\\n* `native_email` - native_email\"\n                },\n                \"key\": {\n                  \"type\": \"string\"\n                },\n                \"label\": {\n                  \"type\": \"string\"\n                },\n                \"choices\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  }\n                },\n                \"required\": {\n                  \"type\": \"boolean\",\n                  \"default\": false\n                },\n                \"default\": {},\n                \"secret\": {\n                  \"type\": \"boolean\",\n                  \"default\": false\n                },\n                \"hidden\": {\n                  \"type\": \"boolean\",\n                  \"default\": false\n                },\n                \"description\": {\n                  \"type\": \"string\"\n                },\n                \"integration\": {\n                  \"type\": \"string\"\n                },\n                \"integration_key\": {\n                  \"type\": \"string\"\n                },\n                \"requires_field\": {\n                  \"type\": \"string\"\n                },\n                \"integration_field\": {\n                  \"type\": \"string\"\n                },\n                \"requiredScopes\": {\n                  \"type\": \"string\"\n                },\n                \"templating\": {\n                  \"enum\": [\n                    true,\n                    false,\n                    \"hog\",\n                    \"liquid\"\n                  ],\n                  \"description\": \"* `True` - True\\n* `False` - False\\n* `hog` - hog\\n* `liquid` - liquid\"\n                }\n              },\n              \"required\": [\n                \"key\",\n                \"type\"\n              ]\n            }\n          },\n          \"inputs\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"value\": {\n                  \"type\": \"string\"\n                },\n                \"templating\": {\n                  \"enum\": [\n                    \"hog\",\n                    \"liquid\"\n                  ],\n                  \"type\": \"string\",\n                  \"description\": \"* `hog` - hog\\n* `liquid` - liquid\"\n                },\n                \"bytecode\": {\n                  \"type\": \"array\",\n                  \"items\": {},\n                  \"readOnly\": true\n                },\n                \"order\": {\n                  \"type\": \"integer\",\n                  \"readOnly\": true\n                },\n                \"transpiled\": {\n                  \"readOnly\": true\n                }\n              },\n              \"required\": [\n                \"bytecode\",\n                \"order\",\n                \"transpiled\"\n              ]\n            }\n          },\n          \"filters\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"source\": {\n                \"allOf\": [\n                  {\n                    \"enum\": [\n                      \"events\",\n                      \"person-updates\"\n                    ],\n                    \"type\": \"string\",\n                    \"description\": \"* `events` - events\\n* `person-updates` - person-updates\"\n                  }\n                ],\n                \"default\": \"events\"\n              },\n              \"actions\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {}\n                }\n              },\n              \"events\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {}\n                }\n              },\n              \"properties\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {}\n                }\n              },\n              \"bytecode\": {\n                \"nullable\": true\n              },\n              \"transpiled\": {},\n              \"filter_test_accounts\": {\n                \"type\": \"boolean\"\n              },\n              \"bytecode_error\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"masking\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"ttl\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 86400,\n                    \"minimum\": 60\n                  },\n                  \"threshold\": {\n                    \"type\": \"integer\",\n                    \"nullable\": true\n                  },\n                  \"hash\": {\n                    \"type\": \"string\"\n                  },\n                  \"bytecode\": {\n                    \"nullable\": true\n                  }\n                },\n                \"required\": [\n                  \"hash\",\n                  \"ttl\"\n                ]\n              }\n            ],\n            \"nullable\": true\n          },\n          \"mappings\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"name\": {\n                  \"type\": \"string\"\n                },\n                \"inputs_schema\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"enum\": [\n                          \"string\",\n                          \"number\",\n                          \"boolean\",\n                          \"dictionary\",\n                          \"choice\",\n                          \"json\",\n                          \"integration\",\n                          \"integration_field\",\n                          \"email\",\n                          \"native_email\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `string` - string\\n* `number` - number\\n* `boolean` - boolean\\n* `dictionary` - dictionary\\n* `choice` - choice\\n* `json` - json\\n* `integration` - integration\\n* `integration_field` - integration_field\\n* `email` - email\\n* `native_email` - native_email\"\n                      },\n                      \"key\": {\n                        \"type\": \"string\"\n                      },\n                      \"label\": {\n                        \"type\": \"string\"\n                      },\n                      \"choices\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"object\",\n                          \"additionalProperties\": {}\n                        }\n                      },\n                      \"required\": {\n                        \"type\": \"boolean\",\n                        \"default\": false\n                      },\n                      \"default\": {},\n                      \"secret\": {\n                        \"type\": \"boolean\",\n                        \"default\": false\n                      },\n                      \"hidden\": {\n                        \"type\": \"boolean\",\n                        \"default\": false\n                      },\n                      \"description\": {\n                        \"type\": \"string\"\n                      },\n                      \"integration\": {\n                        \"type\": \"string\"\n                      },\n                      \"integration_key\": {\n                        \"type\": \"string\"\n                      },\n                      \"requires_field\": {\n                        \"type\": \"string\"\n                      },\n                      \"integration_field\": {\n                        \"type\": \"string\"\n                      },\n                      \"requiredScopes\": {\n                        \"type\": \"string\"\n                      },\n                      \"templating\": {\n                        \"enum\": [\n                          true,\n                          false,\n                          \"hog\",\n                          \"liquid\"\n                        ],\n                        \"description\": \"* `True` - True\\n* `False` - False\\n* `hog` - hog\\n* `liquid` - liquid\"\n                      }\n                    },\n                    \"required\": [\n                      \"key\",\n                      \"type\"\n                    ]\n                  }\n                },\n                \"inputs\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"value\": {\n                        \"type\": \"string\"\n                      },\n                      \"templating\": {\n                        \"enum\": [\n                          \"hog\",\n                          \"liquid\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `hog` - hog\\n* `liquid` - liquid\"\n                      },\n                      \"bytecode\": {\n                        \"type\": \"array\",\n                        \"items\": {},\n                        \"readOnly\": true\n                      },\n                      \"order\": {\n                        \"type\": \"integer\",\n                        \"readOnly\": true\n                      },\n                      \"transpiled\": {\n                        \"readOnly\": true\n                      }\n                    },\n                    \"required\": [\n                      \"bytecode\",\n                      \"order\",\n                      \"transpiled\"\n                    ]\n                  }\n                },\n                \"filters\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"source\": {\n                      \"allOf\": [\n                        {\n                          \"enum\": [\n                            \"events\",\n                            \"person-updates\"\n                          ],\n                          \"type\": \"string\",\n                          \"description\": \"* `events` - events\\n* `person-updates` - person-updates\"\n                        }\n                      ],\n                      \"default\": \"events\"\n                    },\n                    \"actions\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {}\n                      }\n                    },\n                    \"events\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {}\n                      }\n                    },\n                    \"properties\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {}\n                      }\n                    },\n                    \"bytecode\": {\n                      \"nullable\": true\n                    },\n                    \"transpiled\": {},\n                    \"filter_test_accounts\": {\n                      \"type\": \"boolean\"\n                    },\n                    \"bytecode_error\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                }\n              }\n            },\n            \"nullable\": true\n          },\n          \"icon_url\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"template\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"nullable\": true\n                  },\n                  \"code\": {\n                    \"type\": \"string\"\n                  },\n                  \"code_language\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 20\n                  },\n                  \"inputs_schema\": {},\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 50\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 20\n                  },\n                  \"category\": {},\n                  \"free\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"icon_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true\n                  },\n                  \"filters\": {\n                    \"nullable\": true\n                  },\n                  \"masking\": {\n                    \"nullable\": true\n                  },\n                  \"mapping_templates\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"name\": {\n                          \"type\": \"string\"\n                        },\n                        \"include_by_default\": {\n                          \"type\": \"boolean\",\n                          \"nullable\": true\n                        },\n                        \"filters\": {\n                          \"nullable\": true\n                        },\n                        \"inputs\": {\n                          \"nullable\": true\n                        },\n                        \"inputs_schema\": {\n                          \"nullable\": true\n                        }\n                      },\n                      \"required\": [\n                        \"name\"\n                      ]\n                    },\n                    \"nullable\": true\n                  }\n                },\n                \"required\": [\n                  \"code\",\n                  \"id\",\n                  \"inputs_schema\",\n                  \"name\",\n                  \"type\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"template_id\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"status\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"state\": {\n                    \"enum\": [\n                      0,\n                      1,\n                      2,\n                      3,\n                      11,\n                      12\n                    ],\n                    \"type\": \"integer\",\n                    \"description\": \"* `0` - 0\\n* `1` - 1\\n* `2` - 2\\n* `3` - 3\\n* `11` - 11\\n* `12` - 12\"\n                  },\n                  \"tokens\": {\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"state\",\n                  \"tokens\"\n                ]\n              }\n            ],\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"execution_order\": {\n            \"type\": \"integer\",\n            \"maximum\": 32767,\n            \"minimum\": 0,\n            \"nullable\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          }\n        },\n        \"required\": [\n          \"bytecode\",\n          \"created_at\",\n          \"created_by\",\n          \"id\",\n          \"status\",\n          \"template\",\n          \"transpiled\",\n          \"updated_at\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
