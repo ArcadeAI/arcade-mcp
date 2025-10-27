@@ -11,6 +11,7 @@ import json
 import logging
 import uuid
 from enum import Enum
+from types import SimpleNamespace
 from typing import Any
 
 import anyio
@@ -275,6 +276,7 @@ class ServerSession:
         self.initialization_state = InitializationState.NOT_INITIALIZED
         self.client_params: InitializeParams | None = None
         self._session_data: dict[str, Any] = {}
+        self._request_meta: Any = None
 
         # Request management
         self._request_manager = RequestManager(write_stream) if write_stream else None
@@ -625,6 +627,15 @@ class ServerSession:
         )
 
         return ElicitResult(**result)
+
+    # Request metadata management
+    def set_request_meta(self, meta: dict[str, Any] | None) -> None:
+        """Store meta for the current request"""
+        self._request_meta = SimpleNamespace(**meta) if meta else None
+
+    def clear_request_meta(self) -> None:
+        """Clear the request's meta after the request is complete"""
+        self._request_meta = None
 
     # Context management
     async def create_request_context(self) -> Context:

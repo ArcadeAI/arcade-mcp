@@ -454,6 +454,12 @@ class MCPServer:
 
         # Create context and apply middleware
         try:
+            # Store the request's meta in the session
+            if session:
+                params = message.get("params", {})
+                meta = params.get("_meta")
+                session.set_request_meta(meta)
+
             # Create request context
             context = (
                 await session.create_request_context()
@@ -494,6 +500,7 @@ class MCPServer:
                 set_current_model_context(None, token)
                 if session:
                     await session.cleanup_request_context(context)
+                    session.clear_request_meta()
 
         except Exception:
             logger.exception("Error handling message")

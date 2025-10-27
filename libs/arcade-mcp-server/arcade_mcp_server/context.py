@@ -443,7 +443,7 @@ class Progress(_ContextComponent):
         if session is None:
             return
         progress_token = None
-        if hasattr(session, "_request_meta"):
+        if hasattr(session, "_request_meta") and session._request_meta is not None:
             progress_token = getattr(session._request_meta, "progressToken", None)
         if progress_token is None:
             return
