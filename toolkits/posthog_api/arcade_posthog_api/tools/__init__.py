@@ -43851,7 +43851,7 @@ async def append_task_run_logs(
         "mode is 'execute', ignored when mode is 'get_request_schema'",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'tasks_runs_append_log_create'."]:
-    """Append log entries to a specific task run log array. 
+    """Append log entries to a specific task run log array.
 
     This tool is used to add one or more log entries to the log array of a specified task run, identified by project, task, and run IDs.
 
@@ -47396,5 +47396,3 @@ async def verify_user_email(
         return {"response_json": response.json()}
     except Exception:
         return {"response_text": response.text}
-
-
