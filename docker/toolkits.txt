@@ -10,6 +10,7 @@ arcade-freshservice-api
 arcade-linkedin
 arcade-math
 arcade-miro-api
+arcade-posthog-api
 arcade-slack-api
 arcade-stripe-api
 arcade-squareup-api
