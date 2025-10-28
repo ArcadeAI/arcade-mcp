@@ -3,6 +3,7 @@ arcade-arcade-engine-api
 arcade-box-api
 arcade-brightdata
 arcade-calendly-api
+arcade-clickup-api
 arcade-cursor-agents-api
 arcade-datadog-api
 arcade-figma-api
@@ -10,6 +11,7 @@ arcade-freshservice-api
 arcade-linkedin
 arcade-math
 arcade-miro-api
+arcade-pylon-api
 arcade-posthog-api
 arcade-slack-api
 arcade-stripe-api

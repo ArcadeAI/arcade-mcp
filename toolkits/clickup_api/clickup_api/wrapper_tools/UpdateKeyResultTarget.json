@@ -1,0 +1,171 @@
+{
+  "name": "UpdateKeyResultTarget",
+  "fully_qualified_name": "ClickupApi.UpdateKeyResultTarget@0.1.0",
+  "description": "Update the target of a specific key result.\n\nUse this tool to update the target value of a specified key result. It should be called when there's a need to modify the target associated with a key result in ClickUp.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "key_result_identifier",
+        "required": true,
+        "description": "Unique identifier for the key result to be updated, provided as a UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "8480-49bc-8c57-e569747efe93 (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "key_result_id"
+      },
+      {
+        "name": "current_steps_value",
+        "required": true,
+        "description": "The current number of steps completed for the key result target. Provide an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "steps_current"
+      },
+      {
+        "name": "note_update_description",
+        "required": true,
+        "description": "Text for the note associated with the key result. Use to add or update content related to the key result.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "note"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'EditKeyResult'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/key_result/{key_result_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "key_result_id",
+        "tool_parameter_name": "key_result_identifier",
+        "description": "8480-49bc-8c57-e569747efe93 (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "8480-49bc-8c57-e569747efe93 (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "steps_current",
+        "tool_parameter_name": "current_steps_value",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "note",
+        "tool_parameter_name": "note_update_description",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"All properties available in the Create Key Result endpoint may also be used along with the additional properties below.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"EditKeyResultrequest\",\n        \"required\": [\n          \"steps_current\",\n          \"note\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"steps_current\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          },\n          \"note\": {\n            \"type\": \"string\"\n          }\n        },\n        \"examples\": [\n          {\n            \"steps_current\": 5,\n            \"note\": \"Target achieved\"\n          }\n        ]\n      },\n      \"example\": {\n        \"steps_current\": 5,\n        \"note\": \"Target achieved\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

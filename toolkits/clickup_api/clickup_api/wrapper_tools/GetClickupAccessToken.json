@@ -1,0 +1,155 @@
+{
+  "name": "GetClickupAccessToken",
+  "fully_qualified_name": "ClickupApi.GetClickupAccessToken@0.1.0",
+  "description": "Obtain an OAuth access token for ClickUp API authentication.\n\nUse this tool to obtain an OAuth access token for authenticating applications with the ClickUp API. This tool is not for personal API tokens and does not support the 'Try It' feature in browser-based API documentation.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "oauth_credentials",
+        "required": true,
+        "description": "JSON object containing 'client_id', 'client_secret', and 'code' for OAuth access.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "client_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "OAuth app client id"
+            },
+            "client_secret": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "OAuth app client secret"
+            },
+            "code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code given in redirect url"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetAccessToken'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/oauth/token",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "oauth_credentials",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "client_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "OAuth app client id"
+            },
+            "client_secret": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "OAuth app client secret"
+            },
+            "code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code given in redirect url"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"GetAccessTokenrequest\",\n        \"required\": [\n          \"client_id\",\n          \"client_secret\",\n          \"code\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"client_id\": {\n            \"type\": \"string\",\n            \"description\": \"OAuth app client id\"\n          },\n          \"client_secret\": {\n            \"type\": \"string\",\n            \"description\": \"OAuth app client secret\"\n          },\n          \"code\": {\n            \"type\": \"string\",\n            \"description\": \"Code given in redirect url\"\n          }\n        },\n        \"examples\": [\n          {\n            \"client_id\": \"your_client_id\",\n            \"client_secret\": \"your_client_secret\",\n            \"code\": \"authorization_code\"\n          }\n        ]\n      },\n      \"example\": {\n        \"client_id\": \"your_client_id\",\n        \"client_secret\": \"your_client_secret\",\n        \"code\": \"authorization_code\"\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Schema reference broken: #/paths/~1v2~1oauth~1token/post/requestBody/content/application~1json/schema\",\n        \"additionalProperties\": true,\n        \"x-moar-broken-reference\": \"#/paths/~1v2~1oauth~1token/post/requestBody/content/application~1json/schema\"\n      },\n      \"example\": {\n        \"client_id\": \"your_client_id\",\n        \"client_secret\": \"your_client_secret\",\n        \"code\": \"authorization_code\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

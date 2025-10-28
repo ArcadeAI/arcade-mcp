@@ -1,0 +1,205 @@
+{
+  "name": "CreateListFromFolderTemplate",
+  "fully_qualified_name": "ClickupApi.CreateListFromFolderTemplate@0.1.0",
+  "description": "Create a new list in a folder using a template.\n\nUse this tool to create a new list in a ClickUp folder using an existing list template. Ensure the template is added to your Workspace library before invoking this tool. The tool returns the future List ID immediately, though the list creation may continue asynchronously.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "folder_identifier",
+        "required": true,
+        "description": "The ID of the folder where the new list will be created using the specified template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Folder where the List will be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folder_id"
+      },
+      {
+        "name": "template_id_for_list_creation",
+        "required": true,
+        "description": "ID of the template to use for creating a new list in the folder. Ensure the template is added to your Workspace library.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the template to use"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template_id"
+      },
+      {
+        "name": "list_details",
+        "required": true,
+        "description": "A JSON object containing the properties for the new list, such as 'name' for the list name and 'options' for additional configurations.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the new List"
+            },
+            "options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1space~1%7Bspace_id%7D~1list_template~1%7Btemplate_id%7D/post/requestBody/content/application~1json/schema/properties/options"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateFolderListFromTemplate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/folder/{folder_id}/list_template/{template_id}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "folder_id",
+        "tool_parameter_name": "folder_identifier",
+        "description": "ID of the Folder where the List will be created",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Folder where the List will be created"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "template_id",
+        "tool_parameter_name": "template_id_for_list_creation",
+        "description": "ID of the template to use",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the template to use"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "list_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the new List"
+            },
+            "options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1space~1%7Bspace_id%7D~1list_template~1%7Btemplate_id%7D/post/requestBody/content/application~1json/schema/properties/options"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"name\"\n        ],\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the new List\"\n          },\n          \"options\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1space~1%7Bspace_id%7D~1list_template~1%7Btemplate_id%7D/post/requestBody/content/application~1json/schema/properties/options\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1space~1%7Bspace_id%7D~1list_template~1%7Btemplate_id%7D/post/requestBody/content/application~1json/schema/properties/options\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
