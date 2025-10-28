@@ -3,6 +3,7 @@ arcade-arcade-engine-api
 arcade-box-api
 arcade-brightdata
 arcade-calendly-api
+arcade-clickup-api
 arcade-cursor-agents-api
 arcade-datadog-api
 arcade-figma-api
