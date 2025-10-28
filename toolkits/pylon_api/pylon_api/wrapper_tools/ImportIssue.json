@@ -566,7 +566,7 @@
         "arcade_key": "PYLON_SECRET_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
-        "formatted_value": "",
+        "formatted_value": "Bearer {authorization}",
         "description": "",
         "is_auth_token": false
       }

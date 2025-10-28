@@ -1,4 +1,4 @@
-"""Arcade Starter Tools for pylon
+"""Arcade Starter Tools for Pylon
 
 DO NOT EDIT THIS MODULE DIRECTLY.
 
@@ -9,12 +9,13 @@ BE OVERWRITTEN BY THE TRANSPILER.
 
 import asyncio
 import json
+import jsonschema
 from enum import Enum
 from typing import Annotated, Any
 
 import httpx
-import jsonschema
-from arcade_tdk import ToolContext, tool
+
+from arcade_tdk import tool, ToolContext
 from arcade_tdk.errors import RetryableToolError
 
 from .request_body_schemas import REQUEST_BODY_SCHEMAS
@@ -218,7 +219,11 @@ async def get_account_list(
         url="https://api.usepylon.com/accounts",
         method="GET",
         params=remove_none_values({"cursor": pagination_cursor, "limit": account_fetch_limit}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -311,7 +316,9 @@ async def update_multiple_accounts(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -404,7 +411,9 @@ async def create_new_account(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -495,7 +504,9 @@ async def search_accounts(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=json.dumps(request_data),
     )
@@ -612,7 +623,9 @@ async def create_account_highlight(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -643,7 +656,11 @@ async def delete_account_highlight(
         ),
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -688,7 +705,9 @@ async def update_account_highlight(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -714,7 +733,11 @@ async def delete_account(
         url="https://api.usepylon.com/accounts/{id}".format(id=account_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -739,7 +762,11 @@ async def get_account_info(
         url="https://api.usepylon.com/accounts/{id}".format(id=account_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -853,7 +880,9 @@ async def update_account(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -967,7 +996,9 @@ async def create_account_activity(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -991,7 +1022,11 @@ async def get_custom_activity_types(
         url="https://api.usepylon.com/activity-types",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -1015,7 +1050,11 @@ async def get_all_contacts(
         url="https://api.usepylon.com/contacts",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -1108,7 +1147,9 @@ async def create_new_contact(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -1199,7 +1240,9 @@ async def search_contacts(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=json.dumps(request_data),
     )
@@ -1225,7 +1268,11 @@ async def delete_contact(
         url="https://api.usepylon.com/contacts/{id}".format(id=contact_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -1261,7 +1308,11 @@ async def get_contact_by_id(
             "cursor": pagination_cursor,
             "limit": number_of_accounts_to_fetch,
         }),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -1375,7 +1426,9 @@ async def update_contact_info(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -1402,7 +1455,11 @@ async def get_all_custom_fields(
         url="https://api.usepylon.com/custom-fields",
         method="GET",
         params=remove_none_values({"object_type": custom_field_object_type}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -1495,7 +1552,9 @@ async def create_custom_field(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -1520,7 +1579,11 @@ async def get_custom_field(
         url="https://api.usepylon.com/custom-fields/{id}".format(id=custom_field_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -1634,7 +1697,9 @@ async def update_custom_field(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -1727,7 +1792,9 @@ async def import_new_contact(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -1820,7 +1887,9 @@ async def import_issue(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -1934,7 +2003,9 @@ async def import_messages_to_issue(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -1958,7 +2029,11 @@ async def get_issue_statuses(
         url="https://api.usepylon.com/issue-statuses",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -1993,7 +2068,11 @@ async def get_issues_list(
             "start_time": start_time_for_issue_range,
             "end_time": end_time_rfc3339,
         }),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -2086,7 +2165,9 @@ async def create_new_issue(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -2177,7 +2258,9 @@ async def search_issues_by_filters(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=json.dumps(request_data),
     )
@@ -2203,7 +2286,11 @@ async def delete_issue(
         url="https://api.usepylon.com/issues/{id}".format(id=issue_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -2228,7 +2315,11 @@ async def get_issue_by_id(
         url="https://api.usepylon.com/issues/{id}".format(id=issue_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -2342,7 +2433,9 @@ async def update_issue(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -2456,7 +2549,9 @@ async def create_ai_response_for_issue(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -2570,7 +2665,9 @@ async def link_external_issue(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -2595,7 +2692,11 @@ async def get_issue_followers(
         url="https://api.usepylon.com/issues/{id}/followers".format(id=issue_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -2636,7 +2737,9 @@ async def update_issue_followers(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -2662,7 +2765,11 @@ async def get_issue_messages(
         url="https://api.usepylon.com/issues/{id}/messages".format(id=issue_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -2690,7 +2797,11 @@ async def redact_message(
         ),
         method="POST",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -2804,7 +2915,9 @@ async def create_issue_note(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -2918,7 +3031,9 @@ async def create_issue_reply(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -3032,7 +3147,9 @@ async def snooze_issue(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -3057,7 +3174,11 @@ async def get_issue_threads(
         url="https://api.usepylon.com/issues/{id}/threads".format(id=issue_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3091,7 +3212,9 @@ async def create_issue_thread(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -3116,7 +3239,11 @@ async def get_knowledge_bases(
         url="https://api.usepylon.com/knowledge-bases",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3143,7 +3270,11 @@ async def get_knowledge_base_by_id(
         url="https://api.usepylon.com/knowledge-bases/{id}".format(id=knowledge_base_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3259,7 +3390,9 @@ async def create_knowledge_base_article(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=json.dumps(request_data),
     )
@@ -3290,7 +3423,11 @@ async def delete_article(
         ),
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3410,7 +3547,9 @@ async def update_article(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=json.dumps(request_data),
     )
@@ -3438,7 +3577,11 @@ async def list_collections_in_knowledge_base(
         ),
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3554,7 +3697,9 @@ async def create_new_collection(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -3586,7 +3731,11 @@ async def get_collection_by_id(
         ),
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3702,7 +3851,9 @@ async def create_route_redirect(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -3726,7 +3877,11 @@ async def get_organization_details(
         url="https://api.usepylon.com/me",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3770,7 +3925,11 @@ async def create_milestone(
             "project_id": project_id_for_milestone,
             "account_id": account_id_for_project,
         }),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3798,7 +3957,11 @@ async def delete_milestone(
         url="https://api.usepylon.com/milestones/{id}".format(id=milestone_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3832,7 +3995,9 @@ async def update_milestone(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -3897,7 +4062,11 @@ async def create_new_project(
             "owner_id": project_owner_id,
             "project_template_id": project_template_id,
         }),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -3922,7 +4091,11 @@ async def delete_existing_project(
         url="https://api.usepylon.com/projects/{id}".format(id=project_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4071,7 +4244,9 @@ async def update_project(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -4095,7 +4270,11 @@ async def fetch_all_tags(
         url="https://api.usepylon.com/tags",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4188,7 +4367,9 @@ async def create_new_tag(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
     )
     try:
@@ -4216,7 +4397,11 @@ async def delete_existing_tag(
         url="https://api.usepylon.com/tags/{id}".format(id=tag_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4239,7 +4424,11 @@ async def get_tag_by_id(
         url="https://api.usepylon.com/tags/{id}".format(id=tag_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4271,7 +4460,9 @@ async def update_existing_tag(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -4338,7 +4529,11 @@ async def create_task(
             "account_id": account_id_for_task,
             "project_id": project_id,
         }),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4363,7 +4558,11 @@ async def delete_task(
         url="https://api.usepylon.com/tasks/{id}".format(id=task_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4428,7 +4627,9 @@ async def update_task(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -4453,7 +4654,11 @@ async def fetch_team_list(
         url="https://api.usepylon.com/teams",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4484,7 +4689,9 @@ async def create_new_team(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -4510,7 +4717,11 @@ async def get_team_by_id(
         url="https://api.usepylon.com/teams/{id}".format(id=team_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4542,7 +4753,9 @@ async def update_existing_team(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -4567,7 +4780,11 @@ async def get_ticket_forms(
         url="https://api.usepylon.com/ticket-forms",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4592,7 +4809,11 @@ async def get_ticket_form(
         url="https://api.usepylon.com/ticket-forms/{id}".format(id=ticket_form_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4616,7 +4837,11 @@ async def list_training_data(
         url="https://api.usepylon.com/training-data",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4652,7 +4877,9 @@ async def create_training_data_config(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -4680,7 +4907,11 @@ async def retrieve_training_data_configuration(
         url="https://api.usepylon.com/training-data/{id}".format(id=training_data_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4718,7 +4949,11 @@ async def delete_training_data_documents(
             "document_ids": document_ids_to_delete,
             "external_ids": external_ids_to_delete,
         }),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4742,7 +4977,11 @@ async def get_user_roles(
         url="https://api.usepylon.com/user-roles",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4766,7 +5005,11 @@ async def list_users(
         url="https://api.usepylon.com/users",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4857,7 +5100,9 @@ async def search_users_by_email(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=json.dumps(request_data),
     )
@@ -4883,7 +5128,11 @@ async def get_user_by_id(
         url="https://api.usepylon.com/users/{id}".format(id=user_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("PYLON_SECRET_TOKEN")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            )
+        }),
         content=content,
     )
     try:
@@ -4915,7 +5164,9 @@ async def update_user_profile(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": context.get_secret("PYLON_SECRET_TOKEN"),
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_secret("PYLON_SECRET_TOKEN")
+            ),
         }),
         content=content,
     )
@@ -4923,3 +5174,4 @@ async def update_user_profile(
         return {"response_json": response.json()}
     except Exception:
         return {"response_text": response.text}
+

@@ -1,5 +1,5 @@
 {
-  "name": "pylon",
+  "name": "Pylon",
   "spec_source": "openapi_spec",
   "token_for_http_testing": "",
   "package_name": "pylon_api",
@@ -18,7 +18,7 @@
       "arcade_key_name": "PYLON_SECRET_TOKEN",
       "service_key_name": "Authorization",
       "where_to_provide": "header",
-      "formatted_value": ""
+      "formatted_value": "Bearer {authorization}"
     }
   ],
   "global_base_url": "https://api.usepylon.com",
