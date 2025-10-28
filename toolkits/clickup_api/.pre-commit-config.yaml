@@ -1,4 +1,4 @@
-files: ^.*/clickup_api/.*
+files: ^.*/arcade_clickup_api/.*
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: "v4.4.0"
