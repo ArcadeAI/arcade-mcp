@@ -1,4 +1,4 @@
-files: ^(pylon_api/|tests/|pyproject\.toml|Makefile)
+files: ^.*/arcade_pylon_api/.*
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: "v4.4.0"
@@ -8,9 +8,7 @@ repos:
       - id: check-toml
       - id: check-yaml
       - id: end-of-file-fixer
-        exclude: ^pylon_api/tools/__init__\.py$
       - id: trailing-whitespace
-        exclude: ^pylon_api/tools/__init__\.py$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.7

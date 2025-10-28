@@ -3,8 +3,8 @@ requires = [ "hatchling",]
 build-backend = "hatchling.build"
 
 [project]
-name = "pylon_api"
-version = "0.1.1"
+name = "arcade_pylon_api"
+version = "0.1.2"
 description = "Tools that enable LLMs to interact directly with the pylon API."
 requires-python = ">=3.10"
 dependencies = [
@@ -36,10 +36,10 @@ arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 # Tell Arcade.dev that this package is a toolkit
 [project.entry-points.arcade_toolkits]
-toolkit_name = "pylon_api"
+toolkit_name = "arcade_pylon_api"
 
 [tool.mypy]
-files = [ "pylon_api/**/*.py",]
+files = [ "arcade_pylon_api/**/*.py",]
 python_version = "3.10"
 disallow_untyped_defs = true
 disallow_any_unimported = true
@@ -57,4 +57,4 @@ testpaths = [ "tests",]
 skip_empty = true
 
 [tool.hatch.build.targets.wheel]
-packages = [ "pylon_api",]
+packages = [ "arcade_pylon_api",]
