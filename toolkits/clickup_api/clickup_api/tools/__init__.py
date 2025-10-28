@@ -73,14 +73,14 @@ async def make_request(
                 continue
             # Re-raise for 4xx errors or if max retries reached
             raise
-        except httpx.RequestError as e:
+        except httpx.RequestError:
             # Don't retry request errors (network issues are handled by transport)
             raise
         else:
             return response
 
     # This should never be reached, but satisfies type checker
-    raise httpx.RequestError("Max retries exceeded")  # noqa: TRY003
+    raise httpx.RequestError("Max retries exceeded")
 
 
 async def make_request_with_schema_validation(
@@ -225,7 +225,7 @@ async def get_clickup_access_token(
       JSON.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["GETCLICKUPACCESSTOKEN"],
@@ -323,7 +323,7 @@ async def get_authorized_teams(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetAuthorizedTeams'."]:
     """Retrieve the workspaces for the authenticated user.
 
-    Use this tool to get a list of workspaces (teams) available to the user who is currently authenticated. It provides an overview of the user's accessible workspaces in ClickUp."""  # noqa: E501
+    Use this tool to get a list of workspaces (teams) available to the user who is currently authenticated. It provides an overview of the user's accessible workspaces in ClickUp."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -350,18 +350,18 @@ async def add_checklist_to_task(
     context: ToolContext,
     checklist_name: Annotated[
         str,
-        "The name or title of the checklist to be added to the task. It should be a descriptive string identifying the purpose or contents of the checklist.",  # noqa: E501
+        "The name or title of the checklist to be added to the task. It should be a descriptive string identifying the purpose or contents of the checklist.",
     ],
     task_identifier: Annotated[
         str,
-        "A unique identifier for the task to which the checklist will be added. It can be a custom or default task ID.",  # noqa: E501
+        "A unique identifier for the task to which the checklist will be added. It can be a custom or default task ID.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true to reference a task by its custom task ID."
     ] = None,
     workspace_id_for_custom_task: Annotated[
         int | None,
-        "Provide the Workspace ID when 'custom_task_ids' is set to true. It's necessary to reference tasks by custom IDs.",  # noqa: E501
+        "Provide the Workspace ID when 'custom_task_ids' is set to true. It's necessary to reference tasks by custom IDs.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateChecklist'."]:
     """Add a new checklist to a task in ClickUp.
@@ -405,12 +405,12 @@ async def edit_checklist(
     ] = None,
     checklist_position: Annotated[
         int | None,
-        "Specify the order in which the checklist should appear on a task. Use 0 to place it at the top.",  # noqa: E501
+        "Specify the order in which the checklist should appear on a task. Use 0 to place it at the top.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'EditChecklist'."]:
     """Rename or reorder a task checklist in ClickUp.
 
-    Use this tool to rename a checklist or change its order within a task in ClickUp. It is suitable when you need to update the checklist name or adjust its position in relation to other checklists in a specific task."""  # noqa: E501
+    Use this tool to rename a checklist or change its order within a task in ClickUp. It is suitable when you need to update the checklist name or adjust its position in relation to other checklists in a specific task."""
     request_data: Any = {"name": checklist_name, "position": checklist_position}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -444,7 +444,7 @@ async def delete_checklist(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteChecklist'."]:
     """Deletes a checklist from a task in ClickUp.
 
-    Use this tool to delete a specific checklist from a task in ClickUp by providing the checklist ID. Ideal for when you need to manage or reorganize task checklists."""  # noqa: E501
+    Use this tool to delete a specific checklist from a task in ClickUp by providing the checklist ID. Ideal for when you need to manage or reorganize task checklists."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -476,16 +476,16 @@ async def add_checklist_item_clickup(
     ],
     assignee_user_id: Annotated[
         int | None,
-        "The unique ID of the user assigned to the checklist item. This should be an integer value representing the user's ID.",  # noqa: E501
+        "The unique ID of the user assigned to the checklist item. This should be an integer value representing the user's ID.",
     ] = None,
     checklist_item_name: Annotated[
         str | None,
-        "The name of the checklist item to be added. This should clearly describe the task or item to be completed.",  # noqa: E501
+        "The name of the checklist item to be added. This should clearly describe the task or item to be completed.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateChecklistItem'."]:
     """Add an item to a checklist in ClickUp tasks.
 
-    Use this tool to add a new line item to an existing checklist within a task in ClickUp. This can be useful for task management and ensuring all steps are documented within a checklist."""  # noqa: E501
+    Use this tool to add a new line item to an existing checklist within a task in ClickUp. This can be useful for task management and ensuring all steps are documented within a checklist."""
     request_data: Any = {"name": checklist_item_name, "assignee": assignee_user_id}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -519,7 +519,7 @@ async def update_checklist_item(
     ],
     assign_item_to_user: Annotated[
         str | None,
-        "The user ID to which the checklist item will be assigned. This should be a string representing a valid user identifier in ClickUp.",  # noqa: E501
+        "The user ID to which the checklist item will be assigned. This should be a string representing a valid user identifier in ClickUp.",
     ] = None,
     checklist_item_name: Annotated[
         str | None, "The new name for the checklist item. Provide a string to rename the item."
@@ -533,7 +533,7 @@ async def update_checklist_item(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'EditChecklistItem'."]:
     """Modify or update a specific task checklist item.
 
-    This tool updates an individual line item in a task checklist. It can rename the item, set the assignee, mark it as resolved, or nest it under another item."""  # noqa: E501
+    This tool updates an individual line item in a task checklist. It can rename the item, set the assignee, mark it as resolved, or nest it under another item."""
     request_data: Any = {
         "name": checklist_item_name,
         "assignee": assign_item_to_user,
@@ -568,7 +568,7 @@ async def delete_task_checklist_item(
     context: ToolContext,
     checklist_identifier: Annotated[
         str,
-        "The unique identifier (UUID) for the checklist. Used to specify the checklist from which the item will be deleted.",  # noqa: E501
+        "The unique identifier (UUID) for the checklist. Used to specify the checklist from which the item will be deleted.",
     ],
     checklist_item_uuid: Annotated[
         str, "The unique identifier (UUID) of the checklist item to be deleted."
@@ -576,7 +576,7 @@ async def delete_task_checklist_item(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteChecklistItem'."]:
     """Delete an item from a task checklist in ClickUp.
 
-    Use this tool to delete a specific line item from a checklist associated with a task. Ideal for managing and updating task checklists by removing unnecessary or completed items."""  # noqa: E501
+    Use this tool to delete a specific line item from a checklist associated with a task. Ideal for managing and updating task checklists by removing unnecessary or completed items."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -618,12 +618,12 @@ async def get_task_comments(
     ] = None,
     workspace_id_for_custom_task: Annotated[
         int | None,
-        "Provide the Workspace ID when using a custom task ID (requires `custom_task_ids` to be true).",  # noqa: E501
+        "Provide the Workspace ID when using a custom task ID (requires `custom_task_ids` to be true).",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTaskComments'."]:
     """Retrieve comments from a specified task in ClickUp.
 
-    Use this tool to view comments on a specific task within ClickUp. If no 'start' and 'start_id' parameters are provided, it will return the latest 25 comments. Provide 'start' and 'start_id' to paginate through older comments."""  # noqa: E501
+    Use this tool to view comments on a specific task within ClickUp. If no 'start' and 'start_id' parameters are provided, it will return the latest 25 comments. Provide 'start' and 'start_id' to paginate through older comments."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -655,7 +655,7 @@ async def add_task_comment(
     context: ToolContext,
     comment_content: Annotated[
         str,
-        "The text of the comment to be added to the task. It should contain any updates, feedback, or relevant information.",  # noqa: E501
+        "The text of the comment to be added to the task. It should contain any updates, feedback, or relevant information.",
     ],
     send_notifications_to_all: Annotated[
         bool,
@@ -666,7 +666,7 @@ async def add_task_comment(
     ],
     assignee_group: Annotated[
         str | None,
-        "Specifies a group of users (as a comma-separated string) to be assigned to the comment. Ensure the group is relevant to the task.",  # noqa: E501
+        "Specifies a group of users (as a comma-separated string) to be assigned to the comment. Ensure the group is relevant to the task.",
     ] = None,
     comment_assignee_id: Annotated[
         int | None,
@@ -677,12 +677,12 @@ async def add_task_comment(
     ] = None,
     workspace_id_for_custom_task: Annotated[
         int | None,
-        "Provide the Workspace ID when referencing a task by its custom task ID (set `custom_task_ids` to true).",  # noqa: E501
+        "Provide the Workspace ID when referencing a task by its custom task ID (set `custom_task_ids` to true).",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateTaskComment'."]:
     """Add a new comment to a specific task on ClickUp.
 
-    This tool allows users to add a new comment to a specified task on ClickUp. It should be called when there's a need to comment on a task, offering a way to communicate updates, feedback, or any relevant information directly related to the task in question."""  # noqa: E501
+    This tool allows users to add a new comment to a specified task on ClickUp. It should be called when there's a need to comment on a task, offering a way to communicate updates, feedback, or any relevant information directly related to the task in question."""
     request_data: Any = {
         "comment_text": comment_content,
         "assignee": comment_assignee_id,
@@ -720,20 +720,20 @@ async def view_chat_comments(
     context: ToolContext,
     chat_view_id: Annotated[
         str,
-        "The unique identifier for the Chat view to retrieve comments from. It should be a string, typically '105'.",  # noqa: E501
+        "The unique identifier for the Chat view to retrieve comments from. It should be a string, typically '105'.",
     ],
     comment_start_date_unix_ms: Annotated[
         int | None,
-        "The start date of a Chat view comment in Unix time (milliseconds) to fetch older comments.",  # noqa: E501
+        "The start date of a Chat view comment in Unix time (milliseconds) to fetch older comments.",
     ] = None,
     start_comment_id: Annotated[
         str | None,
-        "The comment ID to start retrieving older comments from in the Chat view. Use this to fetch comments beyond the most recent 25.",  # noqa: E501
+        "The comment ID to start retrieving older comments from in the Chat view. Use this to fetch comments beyond the most recent 25.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetChatViewComments'."]:
     """Retrieve the most recent comments from a Chat view.
 
-    This tool fetches comments from a Chat view in ClickUp. It returns the 25 most recent comments if no parameters are provided. To access older comments, use `start` and `start_id` parameters."""  # noqa: E501
+    This tool fetches comments from a Chat view in ClickUp. It returns the 25 most recent comments if no parameters are provided. To access older comments, use `start` and `start_id` parameters."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -771,7 +771,7 @@ async def add_chat_view_comment(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateChatViewComment'."]:
     """Add a new comment to a Chat view.
 
-    Use this tool to add a comment to a Chat view in ClickUp. This can be used to facilitate discussion and share information in a specific View context."""  # noqa: E501
+    Use this tool to add a comment to a Chat view in ClickUp. This can be used to facilitate discussion and share information in a specific View context."""
     request_data: Any = {"comment_text": comment_text, "notify_all": send_notifications_to_all}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -806,12 +806,12 @@ async def get_list_comments(
     ] = None,
     start_date_unix_millis: Annotated[
         int | None,
-        "Enter the date of a list info comment using Unix time in milliseconds to retrieve comments starting from this timestamp.",  # noqa: E501
+        "Enter the date of a list info comment using Unix time in milliseconds to retrieve comments starting from this timestamp.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetListComments'."]:
     """View comments from a specific ClickUp list.
 
-    Use this tool to retrieve the most recent comments from a specified ClickUp list. It returns up to 25 comments by default. To fetch older comments, utilize the optional parameters `start` and `start_id`."""  # noqa: E501
+    Use this tool to retrieve the most recent comments from a specified ClickUp list. It returns up to 25 comments by default. To fetch older comments, utilize the optional parameters `start` and `start_id`."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -838,11 +838,11 @@ async def add_comment_to_list(
     context: ToolContext,
     assignee_id: Annotated[
         int,
-        "The ID of the user to whom the comment is assigned. This should be an integer value representing the user's unique identifier.",  # noqa: E501
+        "The ID of the user to whom the comment is assigned. This should be an integer value representing the user's unique identifier.",
     ],
     comment_text: Annotated[
         str,
-        "The text of the comment to be added to the list. This should contain the message or information you wish to convey.",  # noqa: E501
+        "The text of the comment to be added to the list. This should contain the message or information you wish to convey.",
     ],
     list_identifier: Annotated[int, "The unique ID of the list where the comment will be added."],
     notify_all: Annotated[
@@ -851,7 +851,7 @@ async def add_comment_to_list(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateListComment'."]:
     """Add a comment to a specific list in ClickUp.
 
-    This tool allows you to add a comment to a specified list in ClickUp. Use it when you need to provide additional information or feedback on a list."""  # noqa: E501
+    This tool allows you to add a comment to a specified list in ClickUp. Use it when you need to provide additional information or feedback on a list."""
     request_data: Any = {
         "comment_text": comment_text,
         "assignee": assignee_id,
@@ -890,7 +890,7 @@ async def update_task_comment(
     ],
     mark_comment_as_resolved: Annotated[
         bool,
-        "Set to true to mark the comment as resolved; false to leave it unresolved. Accepts a boolean value.",  # noqa: E501
+        "Set to true to mark the comment as resolved; false to leave it unresolved. Accepts a boolean value.",
     ],
     new_comment_content: Annotated[
         str, "The new content for the task comment. This will replace the existing comment text."
@@ -901,7 +901,7 @@ async def update_task_comment(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'UpdateComment'."]:
     """Update a task comment in ClickUp.
 
-    Use this tool to replace a task comment's content, assign it, or mark it as resolved in ClickUp."""  # noqa: E501
+    Use this tool to replace a task comment's content, assign it, or mark it as resolved in ClickUp."""
     request_data: Any = {
         "comment_text": new_comment_content,
         "assignee": assignee_user_id,
@@ -938,7 +938,7 @@ async def delete_task_comment(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteComment'."]:
     """Delete a comment from a task.
 
-    Use this tool to delete a specific comment from a task. It should be called when you need to remove a comment based on its unique identifier."""  # noqa: E501
+    Use this tool to delete a specific comment from a task. It should be called when you need to remove a comment based on its unique identifier."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -965,12 +965,12 @@ async def view_threaded_comments(
     context: ToolContext,
     thread_comment_id: Annotated[
         int,
-        "The ID of the comment for which threaded replies are to be retrieved. This ID should be an integer and corresponds to the comment in a ClickUp task whose replies you want to view.",  # noqa: E501
+        "The ID of the comment for which threaded replies are to be retrieved. This ID should be an integer and corresponds to the comment in a ClickUp task whose replies you want to view.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetThreadedComments'."]:
     """Retrieve threaded replies to a comment.
 
-    This tool allows for the retrieval of threaded comments in a ClickUp task, excluding the parent comment. Use this tool to view discussions or replies linked to a specific comment by providing the comment ID."""  # noqa: E501
+    This tool allows for the retrieval of threaded comments in a ClickUp task, excluding the parent comment. Use this tool to view discussions or replies linked to a specific comment by providing the comment ID."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1004,7 +1004,7 @@ async def create_threaded_comment(
     ],
     parent_comment_id: Annotated[
         int | None,
-        "The ID of the parent comment to which the threaded reply will be attached. It should be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The ID of the parent comment to which the threaded reply will be attached. It should be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -1027,7 +1027,7 @@ async def create_threaded_comment(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["CREATETHREADEDCOMMENT"],
@@ -1124,7 +1124,7 @@ async def view_list_custom_fields(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetAccessibleCustomFields'."]:
     """Retrieve accessible custom fields for a specific list.
 
-    Use this tool to view the custom fields you have access to in a specific list. This is useful for understanding which custom fields are available for use or modification in your lists."""  # noqa: E501
+    Use this tool to view the custom fields you have access to in a specific list. This is useful for understanding which custom fields are available for use or modification in your lists."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1155,12 +1155,12 @@ async def get_folder_custom_fields(
     ],
     folder_id: Annotated[
         int,
-        "The unique identifier of the folder to retrieve custom fields from. Must be an integer corresponding to a specific folder in ClickUp.",  # noqa: E501
+        "The unique identifier of the folder to retrieve custom fields from. Must be an integer corresponding to a specific folder in ClickUp.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getFolderAvailableFields'."]:
     """Retrieve accessible custom fields from a folder in ClickUp.
 
-    This tool retrieves the custom fields that are accessible at the folder level in ClickUp. It's useful when you need to know what folder-level custom fields are available for a specific folder. Custom fields created at the list level aren't included."""  # noqa: E501
+    This tool retrieves the custom fields that are accessible at the folder level in ClickUp. It's useful when you need to know what folder-level custom fields are available for a specific folder. Custom fields created at the list level aren't included."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1191,12 +1191,12 @@ async def get_space_custom_fields(
     ],
     space_identifier: Annotated[
         int,
-        "The unique identifier for the ClickUp space from which to fetch available custom fields. It should be an integer.",  # noqa: E501
+        "The unique identifier for the ClickUp space from which to fetch available custom fields. It should be an integer.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getSpaceAvailableFields'."]:
     """Retrieve custom fields accessible in a specific ClickUp space.
 
-    This tool retrieves the custom fields available to you in a specified ClickUp space. It returns only the custom fields created at the space level, excluding those at the folder and list levels."""  # noqa: E501
+    This tool retrieves the custom fields available to you in a specified ClickUp space. It returns only the custom fields created at the space level, excluding those at the folder and list levels."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1229,12 +1229,12 @@ async def view_workspace_custom_fields(
     ],
     workspace_id: Annotated[
         int,
-        "The ID of the Workspace to retrieve custom fields for. This identifies which Workspace's fields you want to view.",  # noqa: E501
+        "The ID of the Workspace to retrieve custom fields for. This identifies which Workspace's fields you want to view.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getTeamAvailableFields'."]:
     """Retrieve Workspace-level Custom Fields in ClickUp.
 
-    Use this tool to view custom fields accessible at the workspace level in ClickUp. It doesn't include fields from Space, Folder, or List levels."""  # noqa: E501
+    Use this tool to view custom fields accessible at the workspace level in ClickUp. It doesn't include fields from Space, Folder, or List levels."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1267,19 +1267,19 @@ async def update_task_custom_field(
     ],
     task_id: Annotated[
         str | None,
-        "The ID of the task to be updated with new custom field data.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The ID of the task to be updated with new custom field data.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     custom_field_uuid: Annotated[
         str | None,
-        "The UUID of the custom field to update for a specific task.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The UUID of the custom field to update for a specific task.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "Provide the Workspace ID when referencing a task by its Custom Task ID (`custom_task_ids` must be true).  Only used when mode is 'execute'.",  # noqa: E501
+        "Provide the Workspace ID when referencing a task by its Custom Task ID (`custom_task_ids` must be true).  Only used when mode is 'execute'.",
     ] = None,
     use_custom_task_id_reference: Annotated[
         bool | None,
-        "Set to `true` to reference a task using its Custom Task ID.  Only used when mode is 'execute'.",  # noqa: E501
+        "Set to `true` to reference a task using its Custom Task ID.  Only used when mode is 'execute'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -1302,7 +1302,7 @@ async def update_task_custom_field(
       JSON.\n      Note: You must also provide the required path, query parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATETASKCUSTOMFIELD"],
@@ -1397,7 +1397,7 @@ async def remove_custom_field_value(
     context: ToolContext,
     custom_field_id: Annotated[
         str,
-        "UUID of the custom field to be removed from the task. Example: b8a8-48d8-a0c6-b4200788a683",  # noqa: E501
+        "UUID of the custom field to be removed from the task. Example: b8a8-48d8-a0c6-b4200788a683",
     ],
     task_identifier: Annotated[
         str,
@@ -1412,7 +1412,7 @@ async def remove_custom_field_value(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RemoveCustomFieldValue'."]:
     """Remove a custom field value from a ClickUp task.
 
-    Use this tool to remove the data from a custom field on a ClickUp task without deleting the field option itself."""  # noqa: E501
+    Use this tool to remove the data from a custom field on a ClickUp task without deleting the field option itself."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1447,23 +1447,23 @@ async def set_task_dependency(
     ],
     dependent_task_id: Annotated[
         str | None,
-        "The ID of the task that the specified task depends on or is blocking. This establishes the task dependency relationship.",  # noqa: E501
+        "The ID of the task that the specified task depends on or is blocking. This establishes the task dependency relationship.",
     ] = None,
     depends_on_task_id: Annotated[
         str | None,
-        "Specify the task ID that this task depends on or is blocked by. It should be a valid task ID in ClickUp.",  # noqa: E501
+        "Specify the task ID that this task depends on or is blocked by. It should be a valid task ID in ClickUp.",
     ] = None,
     use_custom_task_ids: Annotated[
         bool | None, "Set to true to reference a task by its custom task ID."
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "Provide the Workspace ID when `custom_task_ids` is true. Necessary for task identification.",  # noqa: E501
+        "Provide the Workspace ID when `custom_task_ids` is true. Necessary for task identification.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'AddDependency'."]:
     """Set a task as waiting on or blocking another task.
 
-    Use this tool to establish a dependency between tasks in ClickUp, either setting a task as waiting on another or as blocking one."""  # noqa: E501
+    Use this tool to establish a dependency between tasks in ClickUp, either setting a task as waiting on another or as blocking one."""
     request_data: Any = {"depends_on": depends_on_task_id, "depedency_of": dependent_task_id}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1499,23 +1499,23 @@ async def remove_task_dependency(
     ],
     depends_on_task_id: Annotated[
         str,
-        "The ID of the task that another task depends on. Provide a valid task ID to specify the dependent task.",  # noqa: E501
+        "The ID of the task that another task depends on. Provide a valid task ID to specify the dependent task.",
     ],
     task_id_to_remove_dependency: Annotated[
         str,
-        "Specify the task ID from which the dependency is to be removed. This is required to identify the task involved in the dependency relationship.",  # noqa: E501
+        "Specify the task ID from which the dependency is to be removed. This is required to identify the task involved in the dependency relationship.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true if referencing tasks by their custom task IDs is desired."
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "Provide the Workspace ID when using custom task IDs by setting `custom_task_ids` to `true`.",  # noqa: E501
+        "Provide the Workspace ID when using custom task IDs by setting `custom_task_ids` to `true`.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteDependency'."]:
     """Remove a dependency relationship between tasks.
 
-    This tool is used to remove the dependency relationship between two or more tasks in ClickUp. Call this when two tasks that are currently dependent on one another need to be independent."""  # noqa: E501
+    This tool is used to remove the dependency relationship between two or more tasks in ClickUp. Call this when two tasks that are currently dependent on one another need to be independent."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1554,12 +1554,12 @@ async def link_tasks_clickup(
     ] = None,
     workspace_id_for_custom_task: Annotated[
         int | None,
-        "Provide the Workspace ID if referencing a task by custom task id (when custom_task_ids is true).",  # noqa: E501
+        "Provide the Workspace ID if referencing a task by custom task id (when custom_task_ids is true).",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'AddTaskLink'."]:
     """Link two ClickUp tasks together.
 
-    This tool allows you to link two tasks in ClickUp via the Task Links feature in the right-hand sidebar of a task. It should be called when you need to associate tasks directly, but does not support linking to other types of objects."""  # noqa: E501
+    This tool allows you to link two tasks in ClickUp via the Task Links feature in the right-hand sidebar of a task. It should be called when you need to associate tasks directly, but does not support linking to other types of objects."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1591,11 +1591,11 @@ async def remove_task_link(
     context: ToolContext,
     linked_task_id: Annotated[
         str,
-        "The task ID of the task to which the original task is linked. This specifies the connection to be removed.",  # noqa: E501
+        "The task ID of the task to which the original task is linked. This specifies the connection to be removed.",
     ],
     primary_task_id: Annotated[
         str,
-        "The ID of the primary task from which to remove the link. This is required to identify the task.",  # noqa: E501
+        "The ID of the primary task from which to remove the link. This is required to identify the task.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true to reference a task by its custom task ID."
@@ -1606,7 +1606,7 @@ async def remove_task_link(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteTaskLink'."]:
     """Remove the link between two tasks.
 
-    Use this tool to delete an existing link between two tasks in ClickUp. It is helpful when you need to unlink tasks that are no longer related."""  # noqa: E501
+    Use this tool to delete an existing link between two tasks in ClickUp. It is helpful when you need to unlink tasks that are no longer related."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1638,7 +1638,7 @@ async def get_space_folders(
     context: ToolContext,
     space_id: Annotated[
         int,
-        "The unique identifier of the space from which to retrieve folders. This is required to specify which space's folders are being requested.",  # noqa: E501
+        "The unique identifier of the space from which to retrieve folders. This is required to specify which space's folders are being requested.",
     ],
     include_archived_folders: Annotated[
         bool | None, "Set to true to include archived folders in the results."
@@ -1646,7 +1646,7 @@ async def get_space_folders(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetFolders'."]:
     """Retrieve a list of folders from a specified space.
 
-    Use this tool to view folders within a specific space in ClickUp. It is useful when you need to access or manage the folders in a particular workspace."""  # noqa: E501
+    Use this tool to view folders within a specific space in ClickUp. It is useful when you need to access or manage the folders in a particular workspace."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1673,16 +1673,16 @@ async def create_folder_in_space(
     context: ToolContext,
     folder_name: Annotated[
         str,
-        "The name of the new folder to be created in the specified space. It should be a string representing the folder's title.",  # noqa: E501
+        "The name of the new folder to be created in the specified space. It should be a string representing the folder's title.",
     ],
     space_id: Annotated[
         int,
-        "The unique identifier for the ClickUp Space where the folder will be created. It should be an integer.",  # noqa: E501
+        "The unique identifier for the ClickUp Space where the folder will be created. It should be an integer.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateFolder'."]:
     """Add a new Folder to a Space in ClickUp.
 
-    This tool allows you to create a new folder within a specified space in ClickUp. Use it when you need to organize tasks or projects into a new folder under an existing space."""  # noqa: E501
+    This tool allows you to create a new folder within a specified space in ClickUp. Use it when you need to organize tasks or projects into a new folder under an existing space."""
     request_data: Any = {"name": folder_name}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1710,12 +1710,12 @@ async def view_folder_lists(
     context: ToolContext,
     folder_id: Annotated[
         int,
-        "The unique identifier for the folder whose lists you want to retrieve. This must be an integer.",  # noqa: E501
+        "The unique identifier for the folder whose lists you want to retrieve. This must be an integer.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetFolder'."]:
     """Retrieve lists contained in a specified folder.
 
-    Call this tool to access all the lists that are organized under a specific folder in ClickUp by providing the folder ID."""  # noqa: E501
+    Call this tool to access all the lists that are organized under a specific folder in ClickUp by providing the folder ID."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1745,12 +1745,12 @@ async def rename_clickup_folder(
     ],
     new_folder_name: Annotated[
         str,
-        "Specify the new name for the folder. This is the name that the folder will be renamed to in ClickUp.",  # noqa: E501
+        "Specify the new name for the folder. This is the name that the folder will be renamed to in ClickUp.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'UpdateFolder'."]:
     """Rename a folder in ClickUp.
 
-    Use this tool to update the name of a folder in ClickUp by specifying the folder ID and the new name."""  # noqa: E501
+    Use this tool to update the name of a folder in ClickUp by specifying the folder ID and the new name."""
     request_data: Any = {"name": new_folder_name}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1778,12 +1778,12 @@ async def delete_workspace_folder(
     context: ToolContext,
     folder_id: Annotated[
         int,
-        "The unique ID of the folder to be deleted from your ClickUp workspace. Ensure this ID is correct to avoid unintended deletions.",  # noqa: E501
+        "The unique ID of the folder to be deleted from your ClickUp workspace. Ensure this ID is correct to avoid unintended deletions.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteFolder'."]:
     """Delete a folder from your ClickUp workspace.
 
-    Use this tool to permanently delete a specific folder from your ClickUp workspace. Ensure you have the correct folder ID before performing this action."""  # noqa: E501
+    Use this tool to permanently delete a specific folder from your ClickUp workspace. Ensure you have the correct folder ID before performing this action."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1811,12 +1811,12 @@ async def view_workspace_goals(
     workspace_id: Annotated[int, "The unique identifier for the workspace to view its goals."],
     include_completed_goals: Annotated[
         bool | None,
-        "Indicate whether to include completed goals in the results. Set to true to include completed goals, or false to exclude them.",  # noqa: E501
+        "Indicate whether to include completed goals in the results. Set to true to include completed goals, or false to exclude them.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetGoals'."]:
     """View the Goals available in a Workspace.
 
-    This tool retrieves the goals available in a specific workspace on ClickUp. It should be used when you need to access or display information about the goals associated with a given workspace."""  # noqa: E501
+    This tool retrieves the goals available in a specific workspace on ClickUp. It should be used when you need to access or display information about the goals associated with a given workspace."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -1846,11 +1846,11 @@ async def create_workspace_goal(
     ],
     due_date_timestamp: Annotated[
         int,
-        "The due date for the goal as a Unix timestamp in milliseconds. Represents when the goal should be completed.",  # noqa: E501
+        "The due date for the goal as a Unix timestamp in milliseconds. Represents when the goal should be completed.",
     ],
     goal_color: Annotated[
         str,
-        "The color code for the goal. Expected to be a string representing a color, such as a hex code like '#FF5733'.",  # noqa: E501
+        "The color code for the goal. Expected to be a string representing a color, such as a hex code like '#FF5733'.",
     ],
     goal_description: Annotated[
         str, "A brief explanation of the goal to be added, providing context and details."
@@ -1865,7 +1865,7 @@ async def create_workspace_goal(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateGoal'."]:
     """Add a new goal to a specified workspace.
 
-    This tool allows you to create a new goal in a specific workspace by providing the necessary details. Use it to set objectives and track progress within teams."""  # noqa: E501
+    This tool allows you to create a new goal in a specific workspace by providing the necessary details. Use it to set objectives and track progress within teams."""
     request_data: Any = {
         "name": goal_name,
         "due_date": due_date_timestamp,
@@ -1933,7 +1933,7 @@ async def update_goal_details(
     ],
     goal_description: Annotated[
         str,
-        "The new description for the goal. This should provide an overview or details of the goal's purpose.",  # noqa: E501
+        "The new description for the goal. This should provide an overview or details of the goal's purpose.",
     ],
     goal_due_date: Annotated[
         int,
@@ -1950,7 +1950,7 @@ async def update_goal_details(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'UpdateGoal'."]:
     """Update goal details such as name, due date, and owners.
 
-    Use this tool to rename a goal, set its due date, update its description, manage owners, or change its color in ClickUp."""  # noqa: E501
+    Use this tool to rename a goal, set its due date, update its description, manage owners, or change its color in ClickUp."""
     request_data: Any = {
         "name": goal_name,
         "due_date": goal_due_date,
@@ -1992,7 +1992,7 @@ async def delete_goal(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteGoal'."]:
     """Deletes a goal from your workspace in ClickUp.
 
-    Use this tool to remove a specified goal from your ClickUp workspace by providing the goal ID."""  # noqa: E501
+    Use this tool to remove a specified goal from your ClickUp workspace by providing the goal ID."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2032,7 +2032,7 @@ async def add_target_to_goal(
     ],
     target_name: Annotated[
         str,
-        "Specify the name for the target being added to the goal. It should be a descriptive label for easy identification.",  # noqa: E501
+        "Specify the name for the target being added to the goal. It should be a descriptive label for easy identification.",
     ],
     target_owners_ids: Annotated[
         list[int], "An array of user IDs representing the owners of the key result target."
@@ -2043,7 +2043,7 @@ async def add_target_to_goal(
     ],
     target_type: Annotated[
         str,
-        "Specify the type of target (key result) as one of the following: `number`, `currency`, `boolean`, `percentage`, or `automatic`.",  # noqa: E501
+        "Specify the type of target (key result) as one of the following: `number`, `currency`, `boolean`, `percentage`, or `automatic`.",
     ],
     target_unit: Annotated[
         str, "Specify the unit for the target if using types like number, currency, or percentage."
@@ -2051,7 +2051,7 @@ async def add_target_to_goal(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateKeyResult'."]:
     """Add a target to a specific goal in ClickUp.
 
-    Use this tool to add a key result target to an existing goal in ClickUp, enhancing goal tracking and achievement."""  # noqa: E501
+    Use this tool to add a key result target to an existing goal in ClickUp, enhancing goal tracking and achievement."""
     request_data: Any = {
         "name": target_name,
         "owners": target_owners_ids,
@@ -2090,19 +2090,19 @@ async def update_key_result_target(
     context: ToolContext,
     current_steps_value: Annotated[
         int,
-        "The current number of steps completed for the key result target. Provide an integer value.",  # noqa: E501
+        "The current number of steps completed for the key result target. Provide an integer value.",
     ],
     key_result_identifier: Annotated[
         str, "Unique identifier for the key result to be updated, provided as a UUID."
     ],
     note_update_description: Annotated[
         str,
-        "Text for the note associated with the key result. Use to add or update content related to the key result.",  # noqa: E501
+        "Text for the note associated with the key result. Use to add or update content related to the key result.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'EditKeyResult'."]:
     """Update the target of a specific key result.
 
-    Use this tool to update the target value of a specified key result. It should be called when there's a need to modify the target associated with a key result in ClickUp."""  # noqa: E501
+    Use this tool to update the target value of a specified key result. It should be called when there's a need to modify the target associated with a key result in ClickUp."""
     request_data: Any = {"steps_current": current_steps_value, "note": note_update_description}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2136,7 +2136,7 @@ async def delete_goal_target(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteKeyResult'."]:
     """Delete a target from a goal in ClickUp.
 
-    Use this tool to delete a key result (target) from a goal in ClickUp when a specific target needs to be removed."""  # noqa: E501
+    Use this tool to delete a key result (target) from a goal in ClickUp when a specific target needs to be removed."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2165,7 +2165,7 @@ async def invite_guest_to_workspace(
     context: ToolContext,
     guest_email: Annotated[
         str,
-        "The email address of the guest to be invited to the workspace. Ensure it is correctly formatted.",  # noqa: E501
+        "The email address of the guest to be invited to the workspace. Ensure it is correctly formatted.",
     ],
     workspace_id: Annotated[
         int, "The integer ID of the Workspace to which the guest will be invited."
@@ -2179,7 +2179,7 @@ async def invite_guest_to_workspace(
     ] = None,
     allow_view_time_spent: Annotated[
         bool | None,
-        "Allow the guest to view time spent in the workspace. Accepts a boolean value: true to allow, false to deny.",  # noqa: E501
+        "Allow the guest to view time spent in the workspace. Accepts a boolean value: true to allow, false to deny.",
     ] = None,
     can_view_estimated_times: Annotated[
         bool | None, "Set to true to allow the guest to view estimated times for tasks."
@@ -2193,7 +2193,7 @@ async def invite_guest_to_workspace(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'InviteGuestToWorkspace'."]:
     """Invite a guest to join a ClickUp workspace.
 
-    This tool is used to invite a guest to a ClickUp workspace on an Enterprise Plan. Ensure the guest has access to specific items in the workspace using additional endpoints."""  # noqa: E501
+    This tool is used to invite a guest to a ClickUp workspace on an Enterprise Plan. Ensure the guest has access to specific items in the workspace using additional endpoints."""
     request_data: Any = {
         "email": guest_email,
         "can_edit_tags": allow_tag_editing,
@@ -2233,12 +2233,12 @@ async def get_guest_information(
     ],
     workspace_id: Annotated[
         int,
-        "The ID of the ClickUp workspace. This is required for identifying the specific workspace where the guest information is being retrieved.",  # noqa: E501
+        "The ID of the ClickUp workspace. This is required for identifying the specific workspace where the guest information is being retrieved.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetGuest'."]:
     """Retrieve information about a guest in a workspace.
 
-    This tool is used to view details about a guest in a ClickUp workspace. It is available only for Workspaces on the Enterprise Plan. Use it when you need to obtain guest-related information, such as profile or access details."""  # noqa: E501
+    This tool is used to view details about a guest in a ClickUp workspace. It is available only for Workspaces on the Enterprise Plan. Use it when you need to obtain guest-related information, such as profile or access details."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2270,7 +2270,7 @@ async def configure_workspace_guest(
     ],
     workspace_id: Annotated[
         int,
-        "The unique identifier for the ClickUp workspace where the guest is being configured. This is required for identifying the specific workspace.",  # noqa: E501
+        "The unique identifier for the ClickUp workspace where the guest is being configured. This is required for identifying the specific workspace.",
     ],
     allow_guest_to_edit_tags: Annotated[
         bool | None,
@@ -2278,11 +2278,11 @@ async def configure_workspace_guest(
     ] = None,
     allow_view_creation: Annotated[
         bool | None,
-        "A boolean to specify if the guest can create views. True allows view creation, false denies it.",  # noqa: E501
+        "A boolean to specify if the guest can create views. True allows view creation, false denies it.",
     ] = None,
     allow_viewing_points_estimated: Annotated[
         bool | None,
-        "Specify if the guest can view estimated points in the workspace. True allows viewing; false restricts it.",  # noqa: E501
+        "Specify if the guest can view estimated points in the workspace. True allows viewing; false restricts it.",
     ] = None,
     allow_viewing_time_spent: Annotated[
         bool | None,
@@ -2299,7 +2299,7 @@ async def configure_workspace_guest(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'EditGuestOnWorkspace'."]:
     """Configure options for a guest in a workspace.
 
-    This tool adjusts settings for a guest in a ClickUp workspace, specifically for teams on the Enterprise Plan."""  # noqa: E501
+    This tool adjusts settings for a guest in a ClickUp workspace, specifically for teams on the Enterprise Plan."""
     request_data: Any = {
         "can_see_points_estimated": allow_viewing_points_estimated,
         "can_edit_tags": allow_guest_to_edit_tags,
@@ -2336,16 +2336,16 @@ async def remove_guest_from_workspace(
     context: ToolContext,
     guest_id: Annotated[
         int,
-        "The unique identifier for the guest to be removed from the workspace. This should be an integer value.",  # noqa: E501
+        "The unique identifier for the guest to be removed from the workspace. This should be an integer value.",
     ],
     workspace_id: Annotated[
         int,
-        "The unique ID of the ClickUp workspace from which the guest will be removed. This is an integer.",  # noqa: E501
+        "The unique ID of the ClickUp workspace from which the guest will be removed. This is an integer.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RemoveGuestFromWorkspace'."]:
     """Revoke a guest's access to a ClickUp workspace.
 
-    Remove a guest from a ClickUp workspace. Available only for Workspaces on the Enterprise Plan."""  # noqa: E501
+    Remove a guest from a ClickUp workspace. Available only for Workspaces on the Enterprise Plan."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2387,7 +2387,7 @@ async def share_task_with_guest(
     ] = None,
     workspace_id_when_custom_task_ids_enabled: Annotated[
         int | None,
-        "Provide the Workspace ID when referencing tasks by custom task IDs. Required if `custom_task_ids` is `true`.",  # noqa: E501
+        "Provide the Workspace ID when referencing tasks by custom task IDs. Required if `custom_task_ids` is `true`.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'AddGuestToTask'."]:
     """Share a task with a guest in the ClickUp Workspace.
@@ -2429,7 +2429,7 @@ async def remove_guest_from_task(
     ],
     task_id: Annotated[
         str,
-        "The unique identifier of the task from which the guest's access should be revoked. This is required to specify the task.",  # noqa: E501
+        "The unique identifier of the task from which the guest's access should be revoked. This is required to specify the task.",
     ],
     include_shared_details: Annotated[
         bool | None,
@@ -2440,12 +2440,12 @@ async def remove_guest_from_task(
     ] = None,
     workspace_id_for_custom_task: Annotated[
         int | None,
-        "Provide the Workspace ID when referencing a task by its custom task ID. This is required if 'custom_task_ids' is set to 'true'.",  # noqa: E501
+        "Provide the Workspace ID when referencing a task by its custom task ID. This is required if 'custom_task_ids' is set to 'true'.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RemoveGuestFromTask'."]:
     """Revoke a guest's access to a specific task in ClickUp.
 
-    Use this tool to remove a guest from a task in ClickUp. This action is available only for Workspaces on the Enterprise Plan."""  # noqa: E501
+    Use this tool to remove a guest from a task in ClickUp. This action is available only for Workspaces on the Enterprise Plan."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2481,17 +2481,17 @@ async def add_guest_to_list(
     ],
     guest_permission_level: Annotated[
         str,
-        "Permission level for the guest on the list. Options are `read`, `comment`, `edit`, or `create`.",  # noqa: E501
+        "Permission level for the guest on the list. Options are `read`, `comment`, `edit`, or `create`.",
     ],
     list_id: Annotated[int, "The identifier of the list to which the guest will be added."],
     include_shared_details: Annotated[
         bool | None,
-        "Set to false to exclude shared item details from the guest view; defaults to true to include them.",  # noqa: E501
+        "Set to false to exclude shared item details from the guest view; defaults to true to include them.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'AddGuestToList'."]:
     """Add a guest to a specific list in ClickUp.
 
-    This tool adds a guest to a list within ClickUp, available only for Enterprise Plan workspaces."""  # noqa: E501
+    This tool adds a guest to a list within ClickUp, available only for Enterprise Plan workspaces."""
     request_data: Any = {"permission_level": guest_permission_level}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2524,7 +2524,7 @@ async def remove_guest_from_list(
     ],
     list_identifier: Annotated[
         int,
-        "The unique identifier for the list from which the guest's access will be revoked. This must be an integer.",  # noqa: E501
+        "The unique identifier for the list from which the guest's access will be revoked. This must be an integer.",
     ],
     include_shared_details: Annotated[
         bool | None,
@@ -2533,7 +2533,7 @@ async def remove_guest_from_list(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RemoveGuestFromList'."]:
     """Revoke a guest's access to a specific list in ClickUp.
 
-    This tool removes a guest's access from a specified list within ClickUp. It is available only for Workspaces on the Enterprise Plan."""  # noqa: E501
+    This tool removes a guest's access from a specified list within ClickUp. It is available only for Workspaces on the Enterprise Plan."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2563,11 +2563,11 @@ async def add_guest_to_folder(
     folder_id: Annotated[int, "The unique integer ID of the folder to be shared with the guest."],
     guest_identifier: Annotated[
         int,
-        "The unique identifier for the guest to whom the folder will be shared. This should be an integer representing the guest's ID.",  # noqa: E501
+        "The unique identifier for the guest to whom the folder will be shared. This should be an integer representing the guest's ID.",
     ],
     guest_permission_level: Annotated[
         str,
-        "Defines guest's access level: 'read' for view only, 'comment', 'edit', or 'create' for full access.",  # noqa: E501
+        "Defines guest's access level: 'read' for view only, 'comment', 'edit', or 'create' for full access.",
     ],
     include_shared_items: Annotated[
         bool | None,
@@ -2576,7 +2576,7 @@ async def add_guest_to_folder(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'AddGuestToFolder'."]:
     """Share a folder with a guest in ClickUp's Enterprise Plan.
 
-    This tool shares a specific folder with a guest, available only for ClickUp Workspaces on the Enterprise Plan. Use it to collaborate by granting access to specified guests."""  # noqa: E501
+    This tool shares a specific folder with a guest, available only for ClickUp Workspaces on the Enterprise Plan. Use it to collaborate by granting access to specified guests."""
     request_data: Any = {"permission_level": guest_permission_level}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2606,11 +2606,11 @@ async def remove_guest_from_folder(
     context: ToolContext,
     folder_identifier: Annotated[
         int,
-        "The unique identifier for the folder from which the guest's access should be revoked. This ID is essential to specify the exact folder within the ClickUp workspace.",  # noqa: E501
+        "The unique identifier for the folder from which the guest's access should be revoked. This ID is essential to specify the exact folder within the ClickUp workspace.",
     ],
     guest_identifier: Annotated[
         int,
-        "The unique numeric ID of the guest to be removed from the folder. This is required to identify which guest's access is being revoked.",  # noqa: E501
+        "The unique numeric ID of the guest to be removed from the folder. This is required to identify which guest's access is being revoked.",
     ],
     include_shared_items: Annotated[
         bool | None,
@@ -2619,7 +2619,7 @@ async def remove_guest_from_folder(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RemoveGuestFromFolder'."]:
     """Revoke a guest's access to a specified folder.
 
-    Use this tool to remove a guest's access to a specific folder in ClickUp workspaces on the Enterprise Plan."""  # noqa: E501
+    Use this tool to remove a guest's access to a specific folder in ClickUp workspaces on the Enterprise Plan."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2648,7 +2648,7 @@ async def view_lists_in_folder(
     context: ToolContext,
     folder_id: Annotated[
         int,
-        "The unique identifier for the folder whose lists are to be retrieved. This is required to specify which folder's lists to view.",  # noqa: E501
+        "The unique identifier for the folder whose lists are to be retrieved. This is required to specify which folder's lists to view.",
     ],
     include_archived_lists: Annotated[
         bool | None,
@@ -2657,7 +2657,7 @@ async def view_lists_in_folder(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetLists'."]:
     """Retrieve lists from a specific folder.
 
-    Use this tool to view all the lists contained within a specified folder by providing the folder ID. It should be called when you need to access or manage lists within a folder within ClickUp."""  # noqa: E501
+    Use this tool to view all the lists contained within a specified folder by providing the folder ID. It should be called when you need to access or manage lists within a folder within ClickUp."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2690,34 +2690,34 @@ async def create_clickup_list(
     ],
     due_date_timestamp: Annotated[
         int | None,
-        "The due date for the list in Unix timestamp format. Determines when the list should be completed.",  # noqa: E501
+        "The due date for the list in Unix timestamp format. Determines when the list should be completed.",
     ] = None,
     formatted_list_description: Annotated[
         str | None,
-        "Provide a markdown-formatted description for the List. Use this instead of plain text content.",  # noqa: E501
+        "Provide a markdown-formatted description for the List. Use this instead of plain text content.",
     ] = None,
     include_time_in_due_date: Annotated[
         bool | None, "Set to true to include a specific time with the due date."
     ] = None,
     list_assignee_user_id: Annotated[
         int | None,
-        "The user ID to assign this list to a specific user. This identifies who will be responsible for the list.",  # noqa: E501
+        "The user ID to assign this list to a specific user. This identifies who will be responsible for the list.",
     ] = None,
     list_color: Annotated[
         str | None, "Specifies the color of the List, not related to task statuses."
     ] = None,
     list_description: Annotated[
         str | None,
-        "A plain text description for the list. Use this to provide details about the list's purpose.",  # noqa: E501
+        "A plain text description for the list. Use this to provide details about the list's purpose.",
     ] = None,
     list_priority: Annotated[
         int | None,
-        "An integer value indicating the priority of the list, where a higher number typically means higher priority.",  # noqa: E501
+        "An integer value indicating the priority of the list, where a higher number typically means higher priority.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateList'."]:
     """Create a new list in a ClickUp folder.
 
-    Use this tool to add a new list to a specified folder in ClickUp. Ideal for organizing tasks or projects within a folder."""  # noqa: E501
+    Use this tool to add a new list to a specified folder in ClickUp. Ideal for organizing tasks or projects within a folder."""
     request_data: Any = {
         "name": list_name,
         "content": list_description,
@@ -2759,11 +2759,11 @@ async def create_folder_from_template(
     ],
     clickup_space_id: Annotated[
         str | None,
-        "ID of the ClickUp Space where the folder will be created.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "ID of the ClickUp Space where the folder will be created.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     folder_template_id: Annotated[
         str | None,
-        "The ID of the folder template to be used for creating a new folder in a ClickUp space. Ensure the template is added to your Workspace.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The ID of the folder template to be used for creating a new folder in a ClickUp space. Ensure the template is added to your Workspace.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -2786,7 +2786,7 @@ async def create_folder_from_template(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEFOLDERFROMTEMPLATE"],
@@ -2878,7 +2878,7 @@ async def get_folderless_lists(
     context: ToolContext,
     space_identifier: Annotated[
         int,
-        "The unique identifier of the space to retrieve the folderless lists from. It should be an integer.",  # noqa: E501
+        "The unique identifier of the space to retrieve the folderless lists from. It should be an integer.",
     ],
     include_archived_lists: Annotated[
         bool | None, "Specify true to include archived lists, or false to exclude them."
@@ -2886,7 +2886,7 @@ async def get_folderless_lists(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetFolderlessLists'."]:
     """View Lists in a Space not located in a Folder.
 
-    Use this tool to retrieve lists within a specified space that are not contained within any folder, providing an organized view of unassigned lists."""  # noqa: E501
+    Use this tool to retrieve lists within a specified space that are not contained within any folder, providing an organized view of unassigned lists."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -2917,34 +2917,34 @@ async def add_folderless_list_to_space(
     space_id: Annotated[int, "The unique identifier of the space where the list will be added."],
     due_date_timestamp: Annotated[
         int | None,
-        "An integer representing the UNIX timestamp for the list's due date. This defines the deadline for the list.",  # noqa: E501
+        "An integer representing the UNIX timestamp for the list's due date. This defines the deadline for the list.",
     ] = None,
     include_due_time: Annotated[
         bool | None, "Set to true if the due date should include a specific time."
     ] = None,
     list_color_status: Annotated[
         str | None,
-        "Specifies the color representing the List. This is for visual identification and does not affect task statuses.",  # noqa: E501
+        "Specifies the color representing the List. This is for visual identification and does not affect task statuses.",
     ] = None,
     list_description: Annotated[
         str | None,
-        "A text description for the new list. Use plain text. For markdown, use `markdown_content`.",  # noqa: E501
+        "A text description for the new list. Use plain text. For markdown, use `markdown_content`.",
     ] = None,
     list_markdown_description: Annotated[
         str | None,
-        "Markdown formatted description for the list. Use this instead of a plain text description.",  # noqa: E501
+        "Markdown formatted description for the list. Use this instead of a plain text description.",
     ] = None,
     list_owner_user_id: Annotated[
         int | None, "The user ID for the list owner to be assigned to the new list."
     ] = None,
     list_priority_level: Annotated[
         int | None,
-        "Set the priority level for the list. It should be an integer value indicating the list's urgency or importance.",  # noqa: E501
+        "Set the priority level for the list. It should be an integer value indicating the list's urgency or importance.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateFolderlessList'."]:
     """Add a new folderless list to a specified space.
 
-    This tool is used to create a new list within a specified space in ClickUp without associating it with a folder. It facilitates the organization of tasks directly within the space."""  # noqa: E501
+    This tool is used to create a new list within a specified space in ClickUp without associating it with a folder. It facilitates the organization of tasks directly within the space."""
     request_data: Any = {
         "name": list_name,
         "content": list_description,
@@ -2981,12 +2981,12 @@ async def view_list_details(
     context: ToolContext,
     list_id: Annotated[
         int,
-        "The unique ID of the list to view details. Right-click the list in your ClickUp sidebar, select 'Copy link', and paste the URL's last string.",  # noqa: E501
+        "The unique ID of the list to view details. Right-click the list in your ClickUp sidebar, select 'Copy link', and paste the URL's last string.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetList'."]:
     """Retrieve details of a specific list in ClickUp.
 
-    Use this tool to get detailed information about a specific list in ClickUp by providing the list ID. It helps in obtaining metadata and current status of the list."""  # noqa: E501
+    Use this tool to get detailed information about a specific list in ClickUp by providing the list ID. It helps in obtaining metadata and current status of the list."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3030,15 +3030,15 @@ async def update_clickup_list(
     ] = None,
     list_description_content: Annotated[
         str | None,
-        "The plain text description to update for the ClickUp list. Use this instead of markdown for simple text updates.",  # noqa: E501
+        "The plain text description to update for the ClickUp list. Use this instead of markdown for simple text updates.",
     ] = None,
     list_due_date: Annotated[
         int | None,
-        "Set the list's due date as a Unix timestamp in milliseconds, representing the time the list is due.",  # noqa: E501
+        "Set the list's due date as a Unix timestamp in milliseconds, representing the time the list is due.",
     ] = None,
     list_priority: Annotated[
         int | None,
-        "Set the list's priority as an integer. Usually, 1 is high, 2 is medium, and 3 is low priority.",  # noqa: E501
+        "Set the list's priority as an integer. Usually, 1 is high, 2 is medium, and 3 is low priority.",
     ] = None,
     remove_list_color: Annotated[
         bool | None, "Set to `true` to remove the List color; default is `false`."
@@ -3046,7 +3046,7 @@ async def update_clickup_list(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'UpdateList'."]:
     """Update the details of a ClickUp list.
 
-    Use this tool to rename a ClickUp list, update its description, set a due date or time, change the priority, assign someone, or modify the list color."""  # noqa: E501
+    Use this tool to rename a ClickUp list, update its description, set a due date or time, change the priority, assign someone, or modify the list color."""
     request_data: Any = {
         "name": list_name,
         "content": list_description_content,
@@ -3091,7 +3091,7 @@ async def delete_workspace_list(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteList'."]:
     """Delete a list from your ClickUp workspace.
 
-    Use this tool to remove a specific list from your ClickUp workspace when it's no longer needed."""  # noqa: E501
+    Use this tool to remove a specific list from your ClickUp workspace when it's no longer needed."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3119,7 +3119,7 @@ async def add_task_to_clickup_list(
     context: ToolContext,
     target_list_id: Annotated[
         int,
-        "The unique identifier for the target list where the task will be added. This is required to associate the task with the correct list in ClickUp.",  # noqa: E501
+        "The unique identifier for the target list where the task will be added. This is required to associate the task with the correct list in ClickUp.",
     ],
     task_identifier: Annotated[
         str, "Specify the ID of the task to be added to an additional list in ClickUp."
@@ -3127,7 +3127,7 @@ async def add_task_to_clickup_list(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'AddTaskToList'."]:
     """Add a task to an additional list in ClickUp.
 
-    This tool adds a specified task to an additional list in ClickUp, requiring the 'Tasks in Multiple List' ClickApp to be enabled. Use this tool to manage tasks across multiple lists efficiently."""  # noqa: E501
+    This tool adds a specified task to an additional list in ClickUp, requiring the 'Tasks in Multiple List' ClickApp to be enabled. Use this tool to manage tasks across multiple lists efficiently."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3156,7 +3156,7 @@ async def remove_task_from_additional_list(
     context: ToolContext,
     additional_list_id: Annotated[
         int,
-        "The ID of the additional list from which the task should be removed. This is required for identifying the secondary list, not the task's home list.",  # noqa: E501
+        "The ID of the additional list from which the task should be removed. This is required for identifying the secondary list, not the task's home list.",
     ],
     task_identifier: Annotated[
         str, "The unique identifier for the task to be removed from the additional list."
@@ -3164,7 +3164,7 @@ async def remove_task_from_additional_list(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RemoveTaskFromList'."]:
     """Remove a task from an additional list in ClickUp.
 
-    Use this tool to remove a task from an additional list, not the task's home list. Requires the 'Tasks in Multiple Lists' feature to be enabled in ClickUp."""  # noqa: E501
+    Use this tool to remove a task from an additional list, not the task's home list. Requires the 'Tasks in Multiple Lists' feature to be enabled in ClickUp."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3193,12 +3193,12 @@ async def get_task_members(
     context: ToolContext,
     task_identifier: Annotated[
         str,
-        "The unique identifier of the task to retrieve members for. This ID is necessary to specify the task in question.",  # noqa: E501
+        "The unique identifier of the task to retrieve members for. This ID is necessary to specify the task in question.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTaskMembers'."]:
     """Retrieve members with direct access to a task.
 
-    Use this tool to view the people who have direct access to a specific task in ClickUp. It does not include members with inherited permissions through the hierarchy."""  # noqa: E501
+    Use this tool to view the people who have direct access to a specific task in ClickUp. It does not include members with inherited permissions through the hierarchy."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3225,12 +3225,12 @@ async def get_list_members(
     context: ToolContext,
     list_id: Annotated[
         int,
-        "The unique identifier for the list in ClickUp. It is required to fetch the members with access to this list.",  # noqa: E501
+        "The unique identifier for the list in ClickUp. It is required to fetch the members with access to this list.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetListMembers'."]:
     """Retrieve members with access to a specific list in ClickUp.
 
-    Use this tool to get the members of a ClickUp workspace who have access to a specified list. It helps in managing and viewing user access to project resources."""  # noqa: E501
+    Use this tool to get the members of a ClickUp workspace who have access to a specified list. It helps in managing and viewing user access to project resources."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3265,7 +3265,7 @@ async def get_workspace_custom_roles(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetCustomRoles'."]:
     """Retrieve custom roles from a specific workspace.
 
-    This tool is used to retrieve the custom roles available in a specified workspace on ClickUp. It should be called when you need to view or manage roles in a ClickUp workspace."""  # noqa: E501
+    This tool is used to retrieve the custom roles available in a specified workspace on ClickUp. It should be called when you need to view or manage roles in a ClickUp workspace."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3296,7 +3296,7 @@ async def view_shared_hierarchy(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'SharedHierarchy'."]:
     """View shared tasks, lists, and folders.
 
-    Use this tool to view tasks, lists, and folders shared with the authenticated user in a specified team."""  # noqa: E501
+    Use this tool to view tasks, lists, and folders shared with the authenticated user in a specified team."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3324,12 +3324,12 @@ async def retrieve_available_spaces(
     workspace_id: Annotated[int, "The ID of the workspace to retrieve available spaces from."],
     include_archived_spaces: Annotated[
         bool | None,
-        "Set to true to include archived Spaces in the results. Otherwise, only active Spaces are returned.",  # noqa: E501
+        "Set to true to include archived Spaces in the results. Otherwise, only active Spaces are returned.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetSpaces'."]:
     """View available Spaces in a Workspace.
 
-    The tool retrieves the Spaces within a specified Workspace, providing member info for private Spaces if applicable."""  # noqa: E501
+    The tool retrieves the Spaces within a specified Workspace, providing member info for private Spaces if applicable."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3361,7 +3361,7 @@ async def create_space_in_workspace(
     ],
     workspace_id: Annotated[
         int | None,
-        "The ID of the workspace where the new space will be added. It should be an integer value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The ID of the workspace where the new space will be added. It should be an integer value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -3384,7 +3384,7 @@ async def create_space_in_workspace(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["CREATESPACEINWORKSPACE"],
@@ -3476,7 +3476,7 @@ async def get_workspace_spaces(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetSpace'."]:
     """Retrieve available Spaces in a Workspace.
 
-    Use this tool to get information about the Spaces available in a specific Workspace identified by its space ID."""  # noqa: E501
+    Use this tool to get information about the Spaces available in a specific Workspace identified by its space ID."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3508,7 +3508,7 @@ async def update_clickup_space(
     ],
     space_identifier: Annotated[
         int | None,
-        "The unique identifier for the ClickUp space to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The unique identifier for the ClickUp space to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -3531,7 +3531,7 @@ async def update_clickup_space(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATECLICKUPSPACE"],
@@ -3619,12 +3619,12 @@ async def delete_workspace_space(
     context: ToolContext,
     workspace_space_id: Annotated[
         int,
-        "The unique identifier for the space to delete in your ClickUp workspace. Provide the specific space ID to permanently remove the space and its data.",  # noqa: E501
+        "The unique identifier for the space to delete in your ClickUp workspace. Provide the specific space ID to permanently remove the space and its data.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteSpace'."]:
     """Delete a space from your ClickUp workspace.
 
-    Use this tool to delete a specific space in your ClickUp workspace by providing the space ID. It permanently removes the space and all associated data."""  # noqa: E501
+    Use this tool to delete a specific space in your ClickUp workspace by providing the space ID. It permanently removes the space and all associated data."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3654,12 +3654,12 @@ async def get_space_tags(
     ],
     space_identifier: Annotated[
         int,
-        "An integer representing the ID of the space for which to retrieve task tags. This ID is required to specify the space.",  # noqa: E501
+        "An integer representing the ID of the space for which to retrieve task tags. This ID is required to specify the space.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetSpaceTags'."]:
     """Retrieve task tags for a specified space.
 
-    Use this tool to view the task tags available within a specific space. It helps in identifying and managing tags associated with tasks."""  # noqa: E501
+    Use this tool to view the task tags available within a specific space. It helps in identifying and managing tags associated with tasks."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3691,19 +3691,19 @@ async def add_space_task_tag(
     ],
     tag_background_color: Annotated[
         str,
-        "Hex code representing the background color for the tag. It should be a string in the format '#RRGGBB'.",  # noqa: E501
+        "Hex code representing the background color for the tag. It should be a string in the format '#RRGGBB'.",
     ],
     tag_foreground_color: Annotated[
         str, "Hex code for the tag's foreground color. It defines the text color of the tag."
     ],
     tag_name: Annotated[
         str,
-        "Name of the new tag to be added to the space. It should be a descriptive and concise identifier for categorizing tasks.",  # noqa: E501
+        "Name of the new tag to be added to the space. It should be a descriptive and concise identifier for categorizing tasks.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateSpaceTag'."]:
     """Add a new task tag to a specified space in ClickUp.
 
-    Use this tool to create a new tag for tasks within a specific space in ClickUp. It's useful for organizing tasks by category or priority."""  # noqa: E501
+    Use this tool to create a new tag for tasks within a specific space in ClickUp. It's useful for organizing tasks by category or priority."""
     request_data: Any = {
         "tag": {"name": tag_name, "tag_fg": tag_foreground_color, "tag_bg": tag_background_color}
     }
@@ -3733,18 +3733,18 @@ async def update_task_tag(
     context: ToolContext,
     background_color_of_tag: Annotated[
         str,
-        "The background color for the task tag. It should be a valid hex color code (e.g., #FFFFFF).",  # noqa: E501
+        "The background color for the task tag. It should be a valid hex color code (e.g., #FFFFFF).",
     ],
     current_tag_name: Annotated[
         str, "The current name of the tag to be updated in the ClickUp space."
     ],
     new_tag_name: Annotated[
         str,
-        "The new name for the task tag to be updated in the ClickUp space. It must be a string representing the desired tag name after the update.",  # noqa: E501
+        "The new name for the task tag to be updated in the ClickUp space. It must be a string representing the desired tag name after the update.",
     ],
     space_id: Annotated[
         int,
-        "The unique identifier of the ClickUp space where the tag will be updated. This is required to specify which space's tag needs modification.",  # noqa: E501
+        "The unique identifier of the ClickUp space where the tag will be updated. This is required to specify which space's tag needs modification.",
     ],
     tag_foreground_color: Annotated[
         str, "The foreground (text) color of the tag in a valid color format (e.g., HEX)."
@@ -3752,7 +3752,7 @@ async def update_task_tag(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'EditSpaceTag'."]:
     """Update a task tag in a ClickUp space.
 
-    Use this tool to update the details of a task tag within a specified ClickUp space. It is helpful for managing and organizing tasks by modifying existing tags."""  # noqa: E501
+    Use this tool to update the details of a task tag within a specified ClickUp space. It is helpful for managing and organizing tasks by modifying existing tags."""
     request_data: Any = {
         "tag": {
             "name": new_tag_name,
@@ -3793,11 +3793,11 @@ async def delete_space_tag(
     ],
     space_identifier: Annotated[
         int | None,
-        "The unique identifier of the space from which the tag will be deleted. This should be an integer value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The unique identifier of the space from which the tag will be deleted. This should be an integer value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     tag_name_to_delete: Annotated[
         str | None,
-        "The name of the tag to be deleted from the specified space. Ensure this tag name exists in the target space.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The name of the tag to be deleted from the specified space. Ensure this tag name exists in the target space.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -3820,7 +3820,7 @@ async def delete_space_tag(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["DELETESPACETAG"],
@@ -3915,23 +3915,23 @@ async def add_tag_to_task(
     ],
     tag_name: Annotated[
         str,
-        "The name of the tag to add to the task. This should be a string representing the desired tag.",  # noqa: E501
+        "The name of the tag to add to the task. This should be a string representing the desired tag.",
     ],
     task_identifier: Annotated[
         str,
-        "The unique identifier of the task to which the tag will be added. Can be a custom task ID if specified.",  # noqa: E501
+        "The unique identifier of the task to which the tag will be added. Can be a custom task ID if specified.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true if you want to reference a task using its custom task ID."
     ] = None,
     workspace_id_if_custom_task_ids: Annotated[
         int | None,
-        "Workspace ID required when referencing a task by its custom task ID. Only needed if `custom_task_ids=true`.",  # noqa: E501
+        "Workspace ID required when referencing a task by its custom task ID. Only needed if `custom_task_ids=true`.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'AddTagToTask'."]:
     """Add a tag to a specific task in ClickUp.
 
-    Use this tool to assign a tag to a task in ClickUp by specifying the task ID and tag name. It helps in organizing and categorizing tasks efficiently."""  # noqa: E501
+    Use this tool to assign a tag to a task in ClickUp by specifying the task ID and tag name. It helps in organizing and categorizing tasks efficiently."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -3968,7 +3968,7 @@ async def remove_tag_from_task(
     tag_name_to_remove: Annotated[str, "The name of the tag to remove from the specified task."],
     task_id: Annotated[
         str,
-        "The unique identifier of the task from which the tag will be removed. Use the task's regular ID unless custom task IDs are enabled.",  # noqa: E501
+        "The unique identifier of the task from which the tag will be removed. Use the task's regular ID unless custom task IDs are enabled.",
     ],
     use_custom_task_ids: Annotated[
         bool | None,
@@ -3976,12 +3976,12 @@ async def remove_tag_from_task(
     ] = None,
     workspace_id_for_custom_task: Annotated[
         int | None,
-        "The Workspace ID required when referencing a task by its custom ID (if custom_task_ids is true).",  # noqa: E501
+        "The Workspace ID required when referencing a task by its custom ID (if custom_task_ids is true).",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RemoveTagFromTask'."]:
     """Remove a tag from a specific task in ClickUp.
 
-    Use this tool to remove a specified tag from a task in ClickUp without deleting the tag from the space."""  # noqa: E501
+    Use this tool to remove a specified tag from a task in ClickUp without deleting the tag from the space."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4014,11 +4014,11 @@ async def get_list_tasks(
     context: ToolContext,
     list_identifier: Annotated[
         int,
-        "The unique identifier for the list. Find it by copying the link and extracting the number following /li in the URL.",  # noqa: E501
+        "The unique identifier for the list. Find it by copying the link and extracting the number following /li in the URL.",
     ],
     custom_task_type_filters: Annotated[
         list[float] | None,
-        "An array of numbers to filter tasks by custom types. Use 0 for tasks, 1 for Milestones, and other numbers for custom types defined in your Workspace.",  # noqa: E501
+        "An array of numbers to filter tasks by custom types. Use 0 for tasks, 1 for Milestones, and other numbers for custom types defined in your Workspace.",
     ] = None,
     date_created_less_than: Annotated[
         int | None, "Filter tasks created before the specified Unix timestamp in milliseconds."
@@ -4028,26 +4028,26 @@ async def get_list_tasks(
     ] = None,
     filter_by_assignees: Annotated[
         list[str] | None,
-        "Filter tasks by assignee IDs. Provide an array of assignee IDs to filter tasks assigned to specific users.",  # noqa: E501
+        "Filter tasks by assignee IDs. Provide an array of assignee IDs to filter tasks assigned to specific users.",
     ] = None,
     filter_by_custom_field: Annotated[
         list[str] | None,
-        "Include tasks with specific values in one Custom Field. This can be a Custom Relationship. Provide an array of strings representing the field values.",  # noqa: E501
+        "Include tasks with specific values in one Custom Field. This can be a Custom Relationship. Provide an array of strings representing the field values.",
     ] = None,
     filter_by_custom_fields: Annotated[
         list[str] | None,
-        "Include tasks with specific values in one or more Custom Fields. Use a JSON array of objects, where each object includes 'field_id', 'operator', and 'value'.",  # noqa: E501
+        "Include tasks with specific values in one or more Custom Fields. Use a JSON array of objects, where each object includes 'field_id', 'operator', and 'value'.",
     ] = None,
     filter_by_date_done_before: Annotated[
         int | None, "Filter tasks completed before a specified Unix time in milliseconds."
     ] = None,
     filter_by_statuses: Annotated[
         list[str] | None,
-        "Filter tasks by their statuses. Use an array of status strings, such as ['to do', 'in progress'].",  # noqa: E501
+        "Filter tasks by their statuses. Use an array of status strings, such as ['to do', 'in progress'].",
     ] = None,
     filter_by_tags: Annotated[
         list[str] | None,
-        "Filter tasks by a list of tags. Provide an array of strings representing the tags to filter by.",  # noqa: E501
+        "Filter tasks by a list of tags. Provide an array of strings representing the tags to filter by.",
     ] = None,
     filter_by_watchers: Annotated[
         list[str] | None,
@@ -4075,7 +4075,7 @@ async def get_list_tasks(
     ] = None,
     include_archived_tasks: Annotated[
         bool | None,
-        "Set to true to include archived tasks in the results. By default, archived tasks are excluded.",  # noqa: E501
+        "Set to true to include archived tasks in the results. By default, archived tasks are excluded.",
     ] = None,
     include_closed_tasks: Annotated[
         bool | None,
@@ -4089,11 +4089,11 @@ async def get_list_tasks(
     ] = None,
     include_tasks_in_multiple_lists: Annotated[
         bool | None,
-        "Set to true to include tasks that exist in multiple lists. By default, these tasks are excluded.",  # noqa: E501
+        "Set to true to include tasks that exist in multiple lists. By default, these tasks are excluded.",
     ] = None,
     order_by_field: Annotated[
         str | None,
-        "Specify the field to order tasks by. Options: 'id', 'created', 'updated', 'due_date'. Defaults to 'created'.",  # noqa: E501
+        "Specify the field to order tasks by. Options: 'id', 'created', 'updated', 'due_date'. Defaults to 'created'.",
     ] = None,
     page_number_to_fetch: Annotated[
         int | None, "Specify the page number to fetch tasks from, starting at 0."
@@ -4101,7 +4101,7 @@ async def get_list_tasks(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTasks'."]:
     """Retrieve tasks from a specific list in ClickUp.
 
-    This tool retrieves tasks from a specified list in ClickUp, limited to 100 tasks per page. It includes tasks where the specified list is their home, while also allowing inclusion of tasks from multiple lists by using the `include_timl` parameter. It provides details accessible to the user, including time spent on tasks with time entries."""  # noqa: E501
+    This tool retrieves tasks from a specified list in ClickUp, limited to 100 tasks per page. It includes tasks where the specified list is their home, while also allowing inclusion of tasks from multiple lists by using the `include_timl` parameter. It provides details accessible to the user, including time spent on tasks with time entries."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4157,7 +4157,7 @@ async def create_new_clickup_task(
     ],
     target_list_id: Annotated[
         int | None,
-        "The ID of the list where the new task will be created. This should be an integer identifying the list in ClickUp.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The ID of the list where the new task will be created. This should be an integer identifying the list in ClickUp.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -4180,7 +4180,7 @@ async def create_new_clickup_task(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["CREATENEWCLICKUPTASK"],
@@ -4271,7 +4271,7 @@ async def view_task_details(
     ],
     filter_custom_fields: Annotated[
         list[str] | None,
-        "Include tasks with specific values in one or more custom fields using the specified JSON format. Custom Relationships are supported.",  # noqa: E501
+        "Include tasks with specific values in one or more custom fields using the specified JSON format. Custom Relationships are supported.",
     ] = None,
     include_markdown_description: Annotated[
         bool | None, "Set to true to return task descriptions in Markdown format."
@@ -4284,12 +4284,12 @@ async def view_task_details(
     ] = None,
     workspace_id_for_custom_task: Annotated[
         int | None,
-        "Provide the Workspace ID when referencing a task by its custom task ID. Required if `custom_task_ids` is true.",  # noqa: E501
+        "Provide the Workspace ID when referencing a task by its custom task ID. Required if `custom_task_ids` is true.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTask'."]:
     """Retrieve detailed information about a specific task.
 
-    Use this tool to get detailed information on a task you have access to in ClickUp, including any attachments associated with the task."""  # noqa: E501
+    Use this tool to get detailed information on a task you have access to in ClickUp, including any attachments associated with the task."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4327,11 +4327,11 @@ async def update_task_in_clickup(
     ],
     task_identifier: Annotated[
         str | None,
-        "The ID of the task to be updated. Provide either the standard task ID or a custom task ID if 'custom_task_ids' is true.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The ID of the task to be updated. Provide either the standard task ID or a custom task ID if 'custom_task_ids' is true.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     workspace_id_for_custom_task: Annotated[
         int | None,
-        "Provide the Workspace ID when referencing a task by its custom task ID (requires `custom_task_ids` set to true).  Only used when mode is 'execute'.",  # noqa: E501
+        "Provide the Workspace ID when referencing a task by its custom task ID (requires `custom_task_ids` set to true).  Only used when mode is 'execute'.",
     ] = None,
     use_custom_task_ids: Annotated[
         bool | None,
@@ -4358,7 +4358,7 @@ async def update_task_in_clickup(
       JSON.\n      Note: You must also provide the required path, query parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATETASKINCLICKUP"],
@@ -4452,19 +4452,19 @@ async def delete_task(
     ],
     task_id: Annotated[
         str,
-        "The ID of the task to be deleted. This is mandatory and should be a valid task identifier.",  # noqa: E501
+        "The ID of the task to be deleted. This is mandatory and should be a valid task identifier.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true if referencing a task by custom task ID is required."
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "Provide the Workspace ID when referencing a task by its custom task ID. Required if `custom_task_ids` is true.",  # noqa: E501
+        "Provide the Workspace ID when referencing a task by its custom task ID. Required if `custom_task_ids` is true.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteTask'."]:
     """Delete a task from your ClickUp Workspace.
 
-    Use this tool to delete a specific task from your ClickUp Workspace by providing the task ID. It should be called when you want to permanently remove a task."""  # noqa: E501
+    Use this tool to delete a specific task from your ClickUp Workspace by providing the task ID. It should be called when you want to permanently remove a task."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4501,7 +4501,7 @@ async def get_filtered_team_tasks(
     ] = None,
     custom_task_type_filters: Annotated[
         list[float] | None,
-        "Filter tasks by custom task types. Use `0` for tasks, `1` for Milestones, and other numbers for Workspace-defined types.",  # noqa: E501
+        "Filter tasks by custom task types. Use `0` for tasks, `1` for Milestones, and other numbers for Workspace-defined types.",
     ] = None,
     display_tasks_in_reverse_order: Annotated[
         bool | None, "Set to true to display tasks in reverse order."
@@ -4516,7 +4516,7 @@ async def get_filtered_team_tasks(
     ] = None,
     filter_by_custom_fields: Annotated[
         list[str] | None,
-        "Include tasks with specific values in Custom Fields. Provide an array of objects with field_id, operator, and value keys.",  # noqa: E501
+        "Include tasks with specific values in Custom Fields. Provide an array of objects with field_id, operator, and value keys.",
     ] = None,
     filter_by_date_created_before: Annotated[
         int | None, "Filter tasks created before this date. Specify as Unix time in milliseconds."
@@ -4526,14 +4526,14 @@ async def get_filtered_team_tasks(
     ] = None,
     filter_by_done_date_before: Annotated[
         int | None,
-        "Filter tasks completed before a specific date. Provide the date in Unix time (milliseconds).",  # noqa: E501
+        "Filter tasks completed before a specific date. Provide the date in Unix time (milliseconds).",
     ] = None,
     filter_by_list_ids: Annotated[
         list[str] | None, 'An array of list IDs to filter tasks by. Example: ["1234", "6789"].'
     ] = None,
     filter_by_project_ids: Annotated[
         list[str] | None,
-        "An array of folder IDs to filter tasks by specific folders. For example, ['1234', '6789'].",  # noqa: E501
+        "An array of folder IDs to filter tasks by specific folders. For example, ['1234', '6789'].",
     ] = None,
     filter_by_space_ids: Annotated[
         list[str] | None,
@@ -4557,7 +4557,7 @@ async def get_filtered_team_tasks(
     ] = None,
     include_closed_tasks: Annotated[
         bool | None,
-        "Set to true to include closed tasks, false to exclude them. By default, closed tasks are excluded.",  # noqa: E501
+        "Set to true to include closed tasks, false to exclude them. By default, closed tasks are excluded.",
     ] = None,
     include_markdown_description: Annotated[
         bool | None, "Set to true to return task descriptions in Markdown format. Default is false."
@@ -4568,7 +4568,7 @@ async def get_filtered_team_tasks(
     ] = None,
     order_tasks_by: Annotated[
         str | None,
-        "Specify the field by which to order tasks. Options include: 'id', 'created', 'updated', 'due_date'. Defaults to 'created'.",  # noqa: E501
+        "Specify the field by which to order tasks. Options include: 'id', 'created', 'updated', 'due_date'. Defaults to 'created'.",
     ] = None,
     page_number_to_fetch: Annotated[
         int | None, "Page number to fetch, starting at 0, in the paginated list of tasks."
@@ -4578,12 +4578,12 @@ async def get_filtered_team_tasks(
     ] = None,
     status_filters: Annotated[
         list[str] | None,
-        "Filter tasks by their statuses. Use '%20' for spaces. Example: ['to%20do', 'in%20progress'].",  # noqa: E501
+        "Filter tasks by their statuses. Use '%20' for spaces. Example: ['to%20do', 'in%20progress'].",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetFilteredTeamTasks'."]:
     """Retrieve tasks from a workspace based on specified filters.
 
-    This tool retrieves tasks from a specified workspace that meet certain criteria. The response is limited to 100 tasks per page, and only tasks that the user has access to are returned. The tool is useful for viewing filtered task information from multiple lists, folders, or spaces."""  # noqa: E501
+    This tool retrieves tasks from a specified workspace that meet certain criteria. The response is limited to 100 tasks per page, and only tasks that the user has access to are returned. The tool is useful for viewing filtered task information from multiple lists, folders, or spaces."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4639,7 +4639,7 @@ async def merge_tasks_in_clickup(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'mergeTasks'."]:
     """Merge multiple tasks into a target task in ClickUp.
 
-    Use this tool to merge several tasks into a specified target task within ClickUp. The target task is identified by the task_id, with source tasks provided in the request. This is useful when consolidating tasks for better project management."""  # noqa: E501
+    Use this tool to merge several tasks into a specified target task within ClickUp. The target task is identified by the task_id, with source tasks provided in the request. This is useful when consolidating tasks for better project management."""
     request_data: Any = {"source_task_ids": source_task_ids_to_merge}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4670,19 +4670,19 @@ async def task_status_duration(
     ],
     task_identifier: Annotated[
         str,
-        "The unique identifier for the task you want to query. Use this to specify which task's status duration you are interested in.",  # noqa: E501
+        "The unique identifier for the task you want to query. Use this to specify which task's status duration you are interested in.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true to reference a task by its custom task ID."
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "The Workspace ID must be provided when referencing a task by its custom task ID and `custom_task_ids` is set to `true`.",  # noqa: E501
+        "The Workspace ID must be provided when referencing a task by its custom task ID and `custom_task_ids` is set to `true`.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTask'sTimeinStatus'."]:
     """Get the duration a task spends in each status.
 
-    Use this tool to find out how long a task has been in each status. Ensure that the 'Total time in Status' ClickApp is enabled by the Workspace owner or admin before using this tool."""  # noqa: E501
+    Use this tool to find out how long a task has been in each status. Ensure that the 'Total time in Status' ClickApp is enabled by the Workspace owner or admin before using this tool."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4718,19 +4718,19 @@ async def get_task_time_in_status(
     ],
     task_ids_list: Annotated[
         str,
-        "A list of up to 100 task IDs to check duration in status. Include each task ID separated by commas.",  # noqa: E501
+        "A list of up to 100 task IDs to check duration in status. Include each task ID separated by commas.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true to reference tasks by custom task IDs."
     ] = None,
     workspace_id_for_custom_task_ids: Annotated[
         int | None,
-        "Provide the Workspace ID if using custom task IDs. Required when `custom_task_ids` is `true`.",  # noqa: E501
+        "Provide the Workspace ID if using custom task IDs. Required when `custom_task_ids` is `true`.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetBulkTasks'TimeinStatus'."]:
     """Retrieve duration of tasks in various statuses.
 
-    Use this tool to find out how long multiple tasks have remained in each status. The Total Time in Status ClickApp must be enabled by the Workspace owner or an admin."""  # noqa: E501
+    Use this tool to find out how long multiple tasks have remained in each status. The Total Time in Status ClickApp must be enabled by the Workspace owner or an admin."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4766,12 +4766,12 @@ async def view_task_templates(
     page_number: Annotated[int, "The page number of results to retrieve. Used for pagination."],
     workspace_id: Annotated[
         int,
-        "The ID of the workspace for which to retrieve task templates. This is used to specify the target workspace in ClickUp.",  # noqa: E501
+        "The ID of the workspace for which to retrieve task templates. This is used to specify the target workspace in ClickUp.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTaskTemplates'."]:
     """View available task templates in a workspace.
 
-    Retrieve a list of task templates available for a specified workspace in ClickUp. Use this tool to explore task templates and plan tasks efficiently."""  # noqa: E501
+    Retrieve a list of task templates available for a specified workspace in ClickUp. Use this tool to explore task templates and plan tasks efficiently."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4801,17 +4801,17 @@ async def create_task_from_template(
     context: ToolContext,
     target_list_id: Annotated[
         int,
-        "The ID of the list where the task will be created. This should be an integer associated with the desired list in your workspace.",  # noqa: E501
+        "The ID of the list where the task will be created. This should be an integer associated with the desired list in your workspace.",
     ],
     task_name: Annotated[str, "The name of the task to be created using the template."],
     task_template_id: Annotated[
         str,
-        "A string representing the ID of the task template to be used for task creation. Ensure the template is added to your workspace.",  # noqa: E501
+        "A string representing the ID of the task template to be used for task creation. Ensure the template is added to your workspace.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateTaskFromTemplate'."]:
     """Create a task using an existing template.
 
-    This tool creates a new task in ClickUp using a specified task template from your workspace. Templates must be added to your Workspace before use. Ideal for automating the creation of standardized tasks."""  # noqa: E501
+    This tool creates a new task in ClickUp using a specified task template from your workspace. Templates must be added to your Workspace before use. Ideal for automating the creation of standardized tasks."""
     request_data: Any = {"name": task_name}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -4846,11 +4846,11 @@ async def create_list_from_folder_template(
     ],
     folder_identifier: Annotated[
         str | None,
-        "The ID of the folder where the new list will be created using the specified template.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The ID of the folder where the new list will be created using the specified template.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     template_id_for_list_creation: Annotated[
         str | None,
-        "ID of the template to use for creating a new list in the folder. Ensure the template is added to your Workspace library.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "ID of the template to use for creating a new list in the folder. Ensure the template is added to your Workspace library.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -4873,7 +4873,7 @@ async def create_list_from_folder_template(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["CREATELISTFROMFOLDERTEMPLATE"],
@@ -4974,11 +4974,11 @@ async def create_list_from_template(
     ],
     space_id_for_list_creation: Annotated[
         str | None,
-        "ID of the ClickUp Space where the new List will be created using the template.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "ID of the ClickUp Space where the new List will be created using the template.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     template_id: Annotated[
         str | None,
-        "ID of the template to use for creating the list in the specified ClickUp space. It must be accessible in your Workspace.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "ID of the template to use for creating the list in the specified ClickUp space. It must be accessible in your Workspace.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -5001,7 +5001,7 @@ async def create_list_from_template(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["CREATELISTFROMTEMPLATE"],
@@ -5097,7 +5097,7 @@ async def get_workspace_seat_details(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetWorkspaceseats'."]:
     """Retrieve seat details for a workspace.
 
-    Use this tool to view the used, total, and available member and guest seats for a specified workspace in ClickUp."""  # noqa: E501
+    Use this tool to view the used, total, and available member and guest seats for a specified workspace in ClickUp."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5128,7 +5128,7 @@ async def get_workspace_plan(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetWorkspaceplan'."]:
     """Retrieve the current subscription plan for a workspace.
 
-    Use this tool to get details about the current subscription plan for a specified workspace in ClickUp. It should be called when you need to view the plan or pricing details associated with a workspace."""  # noqa: E501
+    Use this tool to get details about the current subscription plan for a specified workspace in ClickUp. It should be called when you need to view the plan or pricing details associated with a workspace."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5155,23 +5155,23 @@ async def create_user_group(
     context: ToolContext,
     group_name: Annotated[
         str,
-        "The name of the user group to be created within the workspace. This should be a descriptive name to identify the group easily.",  # noqa: E501
+        "The name of the user group to be created within the workspace. This should be a descriptive name to identify the group easily.",
     ],
     user_group_members: Annotated[
         list[int],
-        "List of user IDs to include in the user group. Each ID should be an integer representing a user within the workspace.",  # noqa: E501
+        "List of user IDs to include in the user group. Each ID should be an integer representing a user within the workspace.",
     ],
     workspace_id: Annotated[
         int, "The unique ID of the ClickUp workspace where the user group will be created."
     ],
     group_handle: Annotated[
         str | None,
-        "A unique string identifier for the user group to be created. This will be used as the group's handle within the workspace.",  # noqa: E501
+        "A unique string identifier for the user group to be created. This will be used as the group's handle within the workspace.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateUserGroup'."]:
     """Create a user group within a ClickUp workspace.
 
-    Use this tool to organize and manage users by creating a user group within a specific ClickUp workspace. Note that adding a guest with view-only permissions converts them to a paid guest, potentially incurring additional costs."""  # noqa: E501
+    Use this tool to organize and manage users by creating a user group within a specific ClickUp workspace. Note that adding a guest with view-only permissions converts them to a paid guest, potentially incurring additional costs."""
     request_data: Any = {"name": group_name, "handle": group_handle, "members": user_group_members}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5201,7 +5201,7 @@ async def get_workspace_custom_task_types(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetCustomItems'."]:
     """Retrieve custom task types for a specific workspace.
 
-    Use this tool to view the custom task types available in a specified workspace. Ideal for gaining insight into workspace-specific configurations and custom workflows."""  # noqa: E501
+    Use this tool to view the custom task types available in a specified workspace. Ideal for gaining insight into workspace-specific configurations and custom workflows."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5230,7 +5230,7 @@ async def update_user_group(
     context: ToolContext,
     user_group_id: Annotated[
         str,
-        "The unique identifier of the User Group within the Workspace. This ID is required to specify which group to update.",  # noqa: E501
+        "The unique identifier of the User Group within the Workspace. This ID is required to specify which group to update.",
     ],
     add_member_ids: Annotated[
         list[int] | None,
@@ -5238,7 +5238,7 @@ async def update_user_group(
     ] = None,
     handle_identifier: Annotated[
         str | None,
-        "A unique identifier or handle for the User Group. This is used to reference the group within ClickUp.",  # noqa: E501
+        "A unique identifier or handle for the User Group. This is used to reference the group within ClickUp.",
     ] = None,
     remove_members_ids: Annotated[
         list[int] | None,
@@ -5246,12 +5246,12 @@ async def update_user_group(
     ] = None,
     user_group_name: Annotated[
         str | None,
-        "The new name for the User Group within the ClickUp Workspace. This should be a string representing the desired name.",  # noqa: E501
+        "The new name for the User Group within the ClickUp Workspace. This should be a string representing the desired name.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'UpdateTeam'."]:
     """Update and manage user groups within a ClickUp Workspace.
 
-    Use this tool to update user groups in your ClickUp Workspace. Useful for managing team membership, permissions, or configurations. Note that adding a guest with view-only permissions will incur additional charges as they convert to paid guests."""  # noqa: E501
+    Use this tool to update user groups in your ClickUp Workspace. Useful for managing team membership, permissions, or configurations. Note that adding a guest with view-only permissions will incur additional charges as they convert to paid guests."""
     request_data: Any = {
         "name": user_group_name,
         "handle": handle_identifier,
@@ -5315,12 +5315,12 @@ async def get_user_groups_in_workspace(
     workspace_id: Annotated[int, "The ID of the ClickUp workspace to retrieve user groups from."],
     user_group_ids: Annotated[
         str | None,
-        "List one or more User Group IDs to retrieve details about specific user groups in the workspace.",  # noqa: E501
+        "List one or more User Group IDs to retrieve details about specific user groups in the workspace.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTeams1'."]:
     """Retrieve user groups in a ClickUp workspace.
 
-    Use this tool to view the user groups within a specific ClickUp workspace. It's useful for managing and organizing user permissions and roles within a team environment."""  # noqa: E501
+    Use this tool to view the user groups within a specific ClickUp workspace. It's useful for managing and organizing user permissions and roles within a team environment."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5357,12 +5357,12 @@ async def get_tracked_time_for_task(
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "The ID of the Workspace to be provided when referencing a task by its custom task ID. Required if `custom_task_ids` is `true`.",  # noqa: E501
+        "The ID of the Workspace to be provided when referencing a task by its custom task ID. Required if `custom_task_ids` is `true`.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Gettrackedtime'."]:
     """Fetch tracked time for a specific task.
 
-    Use this tool to get the tracked time recorded for a specific task in ClickUp. It's useful for retrieving time spent details on tasks, though it doesn't handle new time entries."""  # noqa: E501
+    Use this tool to get the tracked time recorded for a specific task in ClickUp. It's useful for retrieving time spent details on tasks, though it doesn't handle new time entries."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5393,18 +5393,18 @@ async def clickup_legacy_time_tracking(
     context: ToolContext,
     clickup_task_id: Annotated[
         str,
-        "The unique identifier of the task for which time is being logged. This can refer to either the standard task ID or a custom task ID if specified.",  # noqa: E501
+        "The unique identifier of the task for which time is being logged. This can refer to either the standard task ID or a custom task ID if specified.",
     ],
     end_timestamp: Annotated[
         int, "Epoch timestamp indicating when the time tracking ended for the task."
     ],
     start_time_unix_epoch: Annotated[
         int,
-        "The start time of the time entry in Unix epoch format. This is required to log time for a task.",  # noqa: E501
+        "The start time of the time entry in Unix epoch format. This is required to log time for a task.",
     ],
     time_spent_seconds: Annotated[
         int,
-        "Duration of time spent on the task in seconds. This is the time you want to log for the specific task.",  # noqa: E501
+        "Duration of time spent on the task in seconds. This is the time you want to log for the specific task.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true to reference a task by its custom task ID."
@@ -5415,7 +5415,7 @@ async def clickup_legacy_time_tracking(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Tracktime'."]:
     """Log time entry for a ClickUp task using legacy endpoint.
 
-    This tool allows logging time entries for a specific ClickUp task using a legacy API endpoint. It should be called when you need to record time spent on tasks, although it's recommended to use the updated Time Tracking API for new implementations."""  # noqa: E501
+    This tool allows logging time entries for a specific ClickUp task using a legacy API endpoint. It should be called when you need to record time spent on tasks, although it's recommended to use the updated Time Tracking API for new implementations."""
     request_data: Any = {
         "start": start_time_unix_epoch,
         "end": end_timestamp,
@@ -5450,7 +5450,7 @@ async def edit_legacy_time_entry(
     context: ToolContext,
     end_time_epoch: Annotated[
         int,
-        "The end time of the tracked interval in Unix epoch format. It marks when the time entry should conclude.",  # noqa: E501
+        "The end time of the tracked interval in Unix epoch format. It marks when the time entry should conclude.",
     ],
     legacy_time_interval_id: Annotated[
         str, "The unique identifier for the time interval to be edited."
@@ -5460,23 +5460,23 @@ async def edit_legacy_time_entry(
     ],
     task_identifier: Annotated[
         str,
-        "The unique identifier of the task for which the legacy time entry is being edited. This is required to specify the task in ClickUp.",  # noqa: E501
+        "The unique identifier of the task for which the legacy time entry is being edited. This is required to specify the task in ClickUp.",
     ],
     time_duration_in_seconds: Annotated[
         int,
-        "The total time duration (in seconds) for the time entry to be updated. This modifies the tracked time for a specific task.",  # noqa: E501
+        "The total time duration (in seconds) for the time entry to be updated. This modifies the tracked time for a specific task.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true to reference a task by its custom task ID."
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "The Workspace ID required when custom task IDs are used. This must be set if `custom_task_ids` is `true`.",  # noqa: E501
+        "The Workspace ID required when custom task IDs are used. This must be set if `custom_task_ids` is `true`.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Edittimetracked'."]:
     """Edit a legacy time tracked entry for a task in ClickUp.
 
-    Use this tool to modify an existing time entry on a specific task using the legacy endpoint in ClickUp. It's recommended to use newer APIs for time tracking, but this can be used for older integrations."""  # noqa: E501
+    Use this tool to modify an existing time entry on a specific task using the legacy endpoint in ClickUp. It's recommended to use newer APIs for time tracking, but this can be used for older integrations."""
     request_data: Any = {
         "start": start_timestamp,
         "end": end_time_epoch,
@@ -5519,19 +5519,19 @@ async def remove_time_entry(
     ],
     task_identifier: Annotated[
         str,
-        "The identifier of the task from which to delete the time entry. This must match the task ID used in ClickUp.",  # noqa: E501
+        "The identifier of the task from which to delete the time entry. This must match the task ID used in ClickUp.",
     ],
     use_custom_task_ids: Annotated[
         bool | None, "Set to true to reference a task by its custom task ID."
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "Provide the Workspace ID when `use_custom_task_ids` is `true`. Required to identify the workspace in ClickUp.",  # noqa: E501
+        "Provide the Workspace ID when `use_custom_task_ids` is `true`. Required to identify the workspace in ClickUp.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Deletetimetracked'."]:
     """Delete a specific time entry from a task.
 
-    Use this tool to delete a specific time tracking entry from a task. It's useful for managing or correcting time logs by removing unwanted entries."""  # noqa: E501
+    Use this tool to delete a specific time tracking entry from a task. It's useful for managing or correcting time logs by removing unwanted entries."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5574,23 +5574,23 @@ async def get_time_entries_in_date_range(
     ] = None,
     filter_by_assignee: Annotated[
         float | None,
-        "Filter by user IDs. Use commas to separate multiple IDs (e.g., '1234,9876'). Only accessible to Workspace Owners/Admins.",  # noqa: E501
+        "Filter by user IDs. Use commas to separate multiple IDs (e.g., '1234,9876'). Only accessible to Workspace Owners/Admins.",
     ] = None,
     folder_id: Annotated[
         int | None,
-        "Include time entries for tasks in a specific folder by providing its ID. Only one location filter (space, folder, list, or task) can be used at a time.",  # noqa: E501
+        "Include time entries for tasks in a specific folder by providing its ID. Only one location filter (space, folder, list, or task) can be used at a time.",
     ] = None,
     include_approval_details: Annotated[
         bool | None,
-        "Include detailed approval information for each time entry, such as Approver ID, Approved Time, List of Approvers, and Approval Status.",  # noqa: E501
+        "Include detailed approval information for each time entry, such as Approver ID, Approved Time, List of Approvers, and Approval Status.",
     ] = None,
     include_approval_history: Annotated[
         bool | None,
-        "Set to true to include the approval history for each time entry, with status changes, notes, and approvers.",  # noqa: E501
+        "Set to true to include the approval history for each time entry, with status changes, notes, and approvers.",
     ] = None,
     include_location_names: Annotated[
         bool | None,
-        "Include the names of the List, Folder, and Space in the response along with their IDs when set to true.",  # noqa: E501
+        "Include the names of the List, Folder, and Space in the response along with their IDs when set to true.",
     ] = None,
     include_only_billable_entries: Annotated[
         bool | None,
@@ -5605,7 +5605,7 @@ async def get_time_entries_in_date_range(
     ] = None,
     specific_list_id: Annotated[
         int | None,
-        "Include only time entries associated with tasks in a specified List by providing the List ID.",  # noqa: E501
+        "Include only time entries associated with tasks in a specified List by providing the List ID.",
     ] = None,
     specific_task_id: Annotated[
         str | None, "Include only time entries associated with the specified task."
@@ -5619,12 +5619,12 @@ async def get_time_entries_in_date_range(
     ] = None,
     workspace_id_for_custom_task_ids: Annotated[
         int | None,
-        "Provide the Workspace ID when referencing a task by its custom task ID, and `custom_task_ids` is set to true.",  # noqa: E501
+        "Provide the Workspace ID when referencing a task by its custom task ID, and `custom_task_ids` is set to true.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Gettimeentrieswithinadaterange'."]:
     """Retrieve time entries within a specified date range.
 
-    Use this tool to view time entries filtered by start and end dates. By default, it returns entries from the last 30 days for the authenticated user. To access entries for other users, use the 'assignee' parameter. You may apply location filters with 'space_id', 'folder_id', 'list_id', or 'task_id', but only one at a time. Note: Negative duration entries indicate a running timer."""  # noqa: E501
+    Use this tool to view time entries filtered by start and end dates. By default, it returns entries from the last 30 days for the authenticated user. To access entries for other users, use the 'assignee' parameter. You may apply location filters with 'space_id', 'folder_id', 'list_id', or 'task_id', but only one at a time. Note: Negative duration entries indicate a running timer."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5674,11 +5674,11 @@ async def create_time_entry(
     ],
     team_id_numeric: Annotated[
         int | None,
-        "The numeric ID of the workspace. Required if referencing a task by custom task ID.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The numeric ID of the workspace. Required if referencing a task by custom task ID.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "Required if `custom_task_ids` is true. Provide the Workspace ID for the team.  Only used when mode is 'execute'.",  # noqa: E501
+        "Required if `custom_task_ids` is true. Provide the Workspace ID for the team.  Only used when mode is 'execute'.",
     ] = None,
     use_custom_task_ids: Annotated[
         bool | None,
@@ -5705,7 +5705,7 @@ async def create_time_entry(
       JSON.\n      Note: You must also provide the required path, query parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["CREATETIMEENTRY"],
@@ -5802,7 +5802,7 @@ async def view_time_entry(
     ],
     time_entry_id: Annotated[
         str,
-        "The ID of a specific time entry, which can be found using the Get Time Entries Within a Date Range endpoint.",  # noqa: E501
+        "The ID of a specific time entry, which can be found using the Get Time Entries Within a Date Range endpoint.",
     ],
     workspace_id: Annotated[int, "The ID of the workspace (team) to which the time entry belongs."],
     include_approval_details: Annotated[
@@ -5814,7 +5814,7 @@ async def view_time_entry(
     ] = None,
     include_location_names: Annotated[
         bool | None,
-        "Include names of the List, Folder, and Space in the response along with their respective IDs.",  # noqa: E501
+        "Include names of the List, Folder, and Space in the response along with their respective IDs.",
     ] = None,
     include_task_tags: Annotated[
         bool | None, "Set to true to include task tags in the response."
@@ -5822,7 +5822,7 @@ async def view_time_entry(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Getsingulartimeentry'."]:
     """Retrieve details of a specific time entry.
 
-    Use this tool to view information about a single time entry, including its duration. If the duration is negative, it indicates an active timer for the user."""  # noqa: E501
+    Use this tool to view information about a single time entry, including its duration. If the duration is negative, it indicates an active timer for the user."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5861,12 +5861,12 @@ async def delete_time_entry(
     timer_ids_to_delete: Annotated[int, "Comma-separated list of timer IDs to delete."],
     workspace_id: Annotated[
         int,
-        "The unique identifier for the ClickUp workspace from which you want to delete the time entry.",  # noqa: E501
+        "The unique identifier for the ClickUp workspace from which you want to delete the time entry.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteatimeEntry'."]:
     """Deletes a time entry from a ClickUp workspace.
 
-    Use this tool to delete a specific time entry from a ClickUp workspace. This should be called when you need to remove a recorded time entry by specifying the team and timer identifiers."""  # noqa: E501
+    Use this tool to delete a specific time entry from a ClickUp workspace. This should be called when you need to remove a recorded time entry by specifying the team and timer identifiers."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -5901,19 +5901,19 @@ async def update_time_entry(
     ],
     workspace_id: Annotated[
         int | None,
-        "The Workspace ID is required when referencing a task by its custom task ID. Provide it if `custom_task_ids` is set to `true`.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The Workspace ID is required when referencing a task by its custom task ID. Provide it if `custom_task_ids` is set to `true`.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     team_identifier: Annotated[
         int | None,
-        "The ID of the workspace (team) where the time entry is located. This is an integer value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The ID of the workspace (team) where the time entry is located. This is an integer value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     timer_id: Annotated[
         int | None,
-        "The unique identifier of the time entry to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The unique identifier of the time entry to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     use_custom_task_ids: Annotated[
         bool | None,
-        "Set to true to reference tasks by custom task IDs instead of standard IDs.  Only used when mode is 'execute'.",  # noqa: E501
+        "Set to true to reference tasks by custom task IDs instead of standard IDs.  Only used when mode is 'execute'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -5936,7 +5936,7 @@ async def update_time_entry(
       JSON.\n      Note: You must also provide the required path, query parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATETIMEENTRY"],
@@ -6035,13 +6035,13 @@ async def view_time_entry_changes(
     ],
     time_entry_id: Annotated[
         str,
-        "The ID of a time entry. This ID can be obtained using the Get Time Entries Within a Date Range endpoint.",  # noqa: E501
+        "The ID of a time entry. This ID can be obtained using the Get Time Entries Within a Date Range endpoint.",
     ],
     workspace_id: Annotated[int, "The ID of the workspace (team) where the time entry resides."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Gettimeentryhistory'."]:
     """View a list of changes made to a time entry.
 
-    Use this tool to access the history of modifications for a specific time entry within a team in ClickUp. It provides insights into various changes made on the entry, such as updates or edits."""  # noqa: E501
+    Use this tool to access the history of modifications for a specific time entry within a team in ClickUp. It provides insights into various changes made on the entry, such as updates or edits."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -6071,20 +6071,20 @@ async def get_current_running_time_entry(
     context: ToolContext,
     content_type_header: Annotated[
         str,
-        "The MIME type of the content, e.g., 'application/json'. Required for HTTP content negotiation.",  # noqa: E501
+        "The MIME type of the content, e.g., 'application/json'. Required for HTTP content negotiation.",
     ],
     workspace_id: Annotated[
         int,
-        "The ID of the workspace to retrieve the running time entry for. It identifies the specific workspace within ClickUp.",  # noqa: E501
+        "The ID of the workspace to retrieve the running time entry for. It identifies the specific workspace within ClickUp.",
     ],
     assignee_user_id: Annotated[
         float | None,
-        "The user ID of the time entry assignee for whom the current running timer is being retrieved. This identifies which user's timer is actively running.",  # noqa: E501
+        "The user ID of the time entry assignee for whom the current running timer is being retrieved. This identifies which user's timer is actively running.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Getrunningtimeentry'."]:
     """Retrieve the current running time entry for the user.
 
-    Use this tool to view the time entry that is currently tracking time for the authenticated user. It indicates which timer is actively running. A negative duration suggests an ongoing timer."""  # noqa: E501
+    Use this tool to view the time entry that is currently tracking time for the authenticated user. It indicates which timer is actively running. A negative duration suggests an ongoing timer."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -6119,7 +6119,7 @@ async def remove_tags_from_time_entries(
     ],
     workspace_id: Annotated[
         int | None,
-        "The unique ID of the Workspace from which to remove labels from time entries. Must be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The unique ID of the Workspace from which to remove labels from time entries. Must be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -6142,7 +6142,7 @@ async def remove_tags_from_time_entries(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["REMOVETAGSFROMTIMEENTRIES"],
@@ -6237,7 +6237,7 @@ async def get_time_entry_tags(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Getalltagsfromtimeentries'."]:
     """Retrieve all tags from time entries in a workspace.
 
-    Use this tool to view all labels that have been applied to time entries within a specified workspace."""  # noqa: E501
+    Use this tool to view all labels that have been applied to time entries within a specified workspace."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -6272,7 +6272,7 @@ async def add_tag_to_time_entry(
     ],
     workspace_id: Annotated[
         int | None,
-        "The ID of the workspace where the time entry is located. This is required to specify which team the tag should be added to.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The ID of the workspace where the time entry is located. This is required to specify which team the tag should be added to.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -6295,7 +6295,7 @@ async def add_tag_to_time_entry(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["ADDTAGTOTIMEENTRY"],
@@ -6397,12 +6397,12 @@ async def rename_time_entry_label(
     ],
     workspace_id: Annotated[
         int,
-        "The ID of the workspace where the label is located. This is required to specify the team in ClickUp whose label you want to rename.",  # noqa: E501
+        "The ID of the workspace where the label is located. This is required to specify the team in ClickUp whose label you want to rename.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'Changetagnamesfromtimeentries'."]:
     """Rename a time entry label in ClickUp.
 
-    Use this tool to change the name of a label associated with time entries for a specific team in ClickUp."""  # noqa: E501
+    Use this tool to change the name of a label associated with time entries for a specific team in ClickUp."""
     request_data: Any = {
         "name": current_label_name,
         "new_name": new_label_name,
@@ -6442,11 +6442,11 @@ async def start_timer_clickup(
     ],
     workspace_identifier: Annotated[
         int | None,
-        "The Workspace ID required when custom task IDs are used.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The Workspace ID required when custom task IDs are used.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     workspace_id: Annotated[
         int | None,
-        "Provide the Workspace ID when `custom_task_ids` is `true`. Required for task referencing.  Only used when mode is 'execute'.",  # noqa: E501
+        "Provide the Workspace ID when `custom_task_ids` is `true`. Required for task referencing.  Only used when mode is 'execute'.",
     ] = None,
     use_custom_task_ids: Annotated[
         bool | None,
@@ -6473,7 +6473,7 @@ async def start_timer_clickup(
       JSON.\n      Note: You must also provide the required path, query parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["STARTTIMERCLICKUP"],
@@ -6573,7 +6573,7 @@ async def stop_timer_entry(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'StopatimeEntry'."]:
     """Stops a running timer for the authenticated user.
 
-    Use this tool to stop a currently running timer for the authenticated user on ClickUp. This action is initiated for a specific team, requiring the team ID."""  # noqa: E501
+    Use this tool to stop a currently running timer for the authenticated user on ClickUp. This action is initiated for a specific team, requiring the team ID."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -6603,11 +6603,11 @@ async def invite_user_to_workspace(
     context: ToolContext,
     invite_as_admin: Annotated[
         bool,
-        "Indicate if the user should be invited as an admin. True for admin, False for regular member.",  # noqa: E501
+        "Indicate if the user should be invited as an admin. True for admin, False for regular member.",
     ],
     user_email: Annotated[
         str,
-        "The email address of the user to be invited to the Workspace. Must be a valid email format.",  # noqa: E501
+        "The email address of the user to be invited to the Workspace. Must be a valid email format.",
     ],
     workspace_id: Annotated[
         int, "The unique ID of the workspace to which the user is being invited."
@@ -6619,7 +6619,7 @@ async def invite_user_to_workspace(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'InviteUserToWorkspace'."]:
     """Invite a user to your ClickUp Workspace as a member.
 
-    Use this tool to invite someone to your ClickUp Workspace as a member. This is suitable for Workspaces on the Enterprise Plan. For inviting guests, use the appropriate tool instead."""  # noqa: E501
+    Use this tool to invite someone to your ClickUp Workspace as a member. This is suitable for Workspaces on the Enterprise Plan. For inviting guests, use the appropriate tool instead."""
     request_data: Any = {
         "email": user_email,
         "admin": invite_as_admin,
@@ -6651,11 +6651,11 @@ async def get_workspace_user_info(
     context: ToolContext,
     user_id: Annotated[
         int,
-        "The unique identifier of the user to retrieve information for. This is required to specify which user's information is being accessed in the workspace.",  # noqa: E501
+        "The unique identifier of the user to retrieve information for. This is required to specify which user's information is being accessed in the workspace.",
     ],
     workspace_id: Annotated[
         int,
-        "The unique ID of the Workspace. Used to specify which Workspace's user information is to be retrieved.",  # noqa: E501
+        "The unique ID of the Workspace. Used to specify which Workspace's user information is to be retrieved.",
     ],
     show_shared_items: Annotated[
         bool | None,
@@ -6664,7 +6664,7 @@ async def get_workspace_user_info(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetUser'."]:
     """Retrieve user information from a specified workspace.
 
-    Call this tool to get details about a user from a specific workspace on the ClickUp platform. This tool is applicable only to Workspaces that are on the Enterprise Plan."""  # noqa: E501
+    Call this tool to get details about a user from a specific workspace on the ClickUp platform. This tool is applicable only to Workspaces that are on the Enterprise Plan."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -6696,11 +6696,11 @@ async def update_user_workspace_details(
     ],
     custom_role_id: Annotated[
         int,
-        "An integer representing the custom role ID to assign to the user in the workspace. This is required for users with specific roles.",  # noqa: E501
+        "An integer representing the custom role ID to assign to the user in the workspace. This is required for users with specific roles.",
     ],
     user_identifier: Annotated[
         int,
-        "The unique identifier for the user within the workspace. This value is required to specify which user's details need updating.",  # noqa: E501
+        "The unique identifier for the user within the workspace. This value is required to specify which user's details need updating.",
     ],
     user_name: Annotated[
         str, "The new full name of the user to be updated in the ClickUp workspace."
@@ -6711,7 +6711,7 @@ async def update_user_workspace_details(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'EditUserOnWorkspace'."]:
     """Update a user's name and role in a ClickUp workspace.
 
-    This tool updates a user's name and role within a specific ClickUp workspace. It's only available to Workspaces on the Enterprise Plan. Use it to change user details in a team."""  # noqa: E501
+    This tool updates a user's name and role within a specific ClickUp workspace. It's only available to Workspaces on the Enterprise Plan. Use it to change user details in a team."""
     request_data: Any = {
         "username": user_name,
         "admin": assign_admin_role,
@@ -6750,7 +6750,7 @@ async def remove_user_from_workspace(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RemoveUserFromWorkspace'."]:
     """Remove a user from a ClickUp workspace.
 
-    Use this tool to deactivate a user from a ClickUp workspace, applicable for Workspaces on the Enterprise Plan."""  # noqa: E501
+    Use this tool to deactivate a user from a ClickUp workspace, applicable for Workspaces on the Enterprise Plan."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -6783,7 +6783,7 @@ async def get_team_views(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTeamViews'."]:
     """Retrieve task and page views at the workspace level.
 
-    Use this tool to view the task and page views available at the Everything Level of a specified workspace in ClickUp."""  # noqa: E501
+    Use this tool to view the task and page views available at the Everything Level of a specified workspace in ClickUp."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -6815,7 +6815,7 @@ async def create_team_view(
     ],
     workspace_id: Annotated[
         int | None,
-        "The unique identifier for the workspace where the view will be added. This corresponds to the team or workspace ID.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The unique identifier for the workspace where the view will be added. This corresponds to the team or workspace ID.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -6838,7 +6838,7 @@ async def create_team_view(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["CREATETEAMVIEW"],
@@ -6930,7 +6930,7 @@ async def get_space_views(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetSpaceViews'."]:
     """Retrieve the task and page views for a specified Space.
 
-    This tool is used to obtain the task and page views available within a specific Space in ClickUp. It should be called when you need to explore or list the views associated with a given space by providing the space ID."""  # noqa: E501
+    This tool is used to obtain the task and page views available within a specific Space in ClickUp. It should be called when you need to explore or list the views associated with a given space by providing the space ID."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -6964,7 +6964,7 @@ async def add_space_view(
     ],
     space_id: Annotated[
         int | None,
-        "The unique identifier of the ClickUp space where the view will be added. It should be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The unique identifier of the ClickUp space where the view will be added. It should be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -6987,7 +6987,7 @@ async def add_space_view(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["ADDSPACEVIEW"],
@@ -7109,7 +7109,7 @@ async def add_view_to_folder(
     ],
     folder_id: Annotated[
         int | None,
-        "The unique integer ID of the ClickUp folder where the view will be added. Required for specifying the target folder.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The unique integer ID of the ClickUp folder where the view will be added. Required for specifying the target folder.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -7132,7 +7132,7 @@ async def add_view_to_folder(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["ADDVIEWTOFOLDER"],
@@ -7224,7 +7224,7 @@ async def get_list_views(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetListViews'."]:
     """Retrieve available views for a specific list.
 
-    Use this tool to view the task and page views available for a specific list in ClickUp. It retrieves both regular and required views."""  # noqa: E501
+    Use this tool to view the task and page views available for a specific list in ClickUp. It retrieves both regular and required views."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -7256,7 +7256,7 @@ async def add_view_to_clickup_list(
     ],
     clickup_list_id: Annotated[
         int | None,
-        "An integer representing the ID of the ClickUp list to which the view will be added.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "An integer representing the ID of the ClickUp list to which the view will be added.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -7279,7 +7279,7 @@ async def add_view_to_clickup_list(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["ADDVIEWTOCLICKUPLIST"],
@@ -7367,12 +7367,12 @@ async def view_task_or_page_info(
     context: ToolContext,
     view_identifier: Annotated[
         str,
-        "A unique identifier for the specific task or page view in ClickUp to be retrieved. This is required to obtain the relevant information.",  # noqa: E501
+        "A unique identifier for the specific task or page view in ClickUp to be retrieved. This is required to obtain the relevant information.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetView'."]:
     """Retrieve details of a specific task or page view.
 
-    Use this tool to get detailed information about a specific task or page view in ClickUp using the view ID."""  # noqa: E501
+    Use this tool to get detailed information about a specific task or page view in ClickUp using the view ID."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -7404,7 +7404,7 @@ async def update_view_settings(
     ],
     view_identifier: Annotated[
         str | None,
-        "The unique identifier for the view to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The unique identifier for the view to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",
     ] = None,
     request_body: Annotated[
         str | None,
@@ -7427,7 +7427,7 @@ async def update_view_settings(
       JSON.\n      Note: You must also provide the required path parameters when executing.
 
     If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
+    """
     if mode == ToolMode.GET_REQUEST_SCHEMA:
         return {
             "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEVIEWSETTINGS"],
@@ -7519,7 +7519,7 @@ async def delete_view(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteView'."]:
     """Delete a specified view from ClickUp.
 
-    Use this tool to delete a specific view in ClickUp by providing the view ID. Useful for managing and organizing views by removing those that are no longer needed."""  # noqa: E501
+    Use this tool to delete a specific view in ClickUp by providing the view ID. Useful for managing and organizing views by removing those that are no longer needed."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -7546,7 +7546,7 @@ async def get_visible_tasks_in_view(
     context: ToolContext,
     pagination_page_number: Annotated[
         int,
-        "The specific page number of tasks to retrieve. Used for pagination in task lists, starting at 1.",  # noqa: E501
+        "The specific page number of tasks to retrieve. Used for pagination in task lists, starting at 1.",
     ],
     view_identifier: Annotated[
         str, "The ID of the ClickUp view from which to retrieve visible tasks. Must be a string."
@@ -7554,7 +7554,7 @@ async def get_visible_tasks_in_view(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetViewTasks'."]:
     """Retrieve all visible tasks from a ClickUp view.
 
-    Use this tool to obtain a list of all tasks that are visible in a specific view within ClickUp. It is useful for task management and organization within the platform."""  # noqa: E501
+    Use this tool to obtain a list of all tasks that are visible in a specific view within ClickUp. It is useful for task management and organization within the platform."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -7583,7 +7583,7 @@ async def get_workspace_webhooks(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetWebhooks'."]:
     """Retrieve webhooks for a workspace.
 
-    Use this tool to view the webhooks created via the API for a specific Workspace. It returns webhooks created by the authenticated user."""  # noqa: E501
+    Use this tool to view the webhooks created via the API for a specific Workspace. It returns webhooks created by the authenticated user."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
@@ -7610,19 +7610,19 @@ async def setup_clickup_webhook(
     context: ToolContext,
     event_types: Annotated[
         list[str],
-        "An array of event types to subscribe to, or use `*` to subscribe to all events. Refer to ClickUp documentation for available options.",  # noqa: E501
+        "An array of event types to subscribe to, or use `*` to subscribe to all events. Refer to ClickUp documentation for available options.",
     ],
     webhook_url: Annotated[
         str,
-        "The URL where the webhook will send POST requests. Must be reachable to receive event data.",  # noqa: E501
+        "The URL where the webhook will send POST requests. Must be reachable to receive event data.",
     ],
     workspace_id: Annotated[
         int,
-        "The ID of the workspace where the webhook will be set up. Use this to specify the team context for monitoring.",  # noqa: E501
+        "The ID of the workspace where the webhook will be set up. Use this to specify the team context for monitoring.",
     ],
     folder_id: Annotated[
         int | None,
-        "Specify the folder ID in ClickUp for which the webhook is to be created. It should be an integer value representing the folder.",  # noqa: E501
+        "Specify the folder ID in ClickUp for which the webhook is to be created. It should be an integer value representing the folder.",
     ] = None,
     space_identifier: Annotated[
         int | None,
@@ -7630,7 +7630,7 @@ async def setup_clickup_webhook(
     ] = None,
     specific_task_id: Annotated[
         str | None,
-        "Unique identifier for a specific task to monitor. Leave empty if not targeting a specific task.",  # noqa: E501
+        "Unique identifier for a specific task to monitor. Leave empty if not targeting a specific task.",
     ] = None,
     target_list_id: Annotated[
         int | None, "The ID of the list in ClickUp for which you want to set up a webhook."
@@ -7638,7 +7638,7 @@ async def setup_clickup_webhook(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CreateWebhook'."]:
     """Set up a ClickUp webhook to monitor events.
 
-    Use this tool to create a webhook in ClickUp, enabling monitoring of events for a specific team. Useful for triggering actions or notifications based on certain events within a ClickUp team."""  # noqa: E501
+    Use this tool to create a webhook in ClickUp, enabling monitoring of events for a specific team. Useful for triggering actions or notifications based on certain events within a ClickUp team."""
     request_data: Any = {
         "endpoint": webhook_url,
         "events": event_types,
@@ -7673,23 +7673,23 @@ async def update_clickup_webhook_events(
     context: ToolContext,
     monitored_events: Annotated[
         str,
-        "A comma-separated list of events for the webhook to monitor. Use valid event names as per ClickUp webhook documentation.",  # noqa: E501
+        "A comma-separated list of events for the webhook to monitor. Use valid event names as per ClickUp webhook documentation.",
     ],
     webhook_endpoint_url: Annotated[
         str,
-        "The URL where the webhook should send POST requests for the events. Must be a valid and accessible URL.",  # noqa: E501
+        "The URL where the webhook should send POST requests for the events. Must be a valid and accessible URL.",
     ],
     webhook_identifier: Annotated[
         str, "The unique identifier for the webhook to be updated, formatted as a UUID."
     ],
     webhook_status: Annotated[
         str,
-        "Specify the new status of the webhook. Use 'active' to enable or 'inactive' to disable it.",  # noqa: E501
+        "Specify the new status of the webhook. Use 'active' to enable or 'inactive' to disable it.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'UpdateWebhook'."]:
     """Update a ClickUp webhook to modify monitored events.
 
-    Use this tool to update the events a ClickUp webhook monitors, allowing for changes to event tracking as needed."""  # noqa: E501
+    Use this tool to update the events a ClickUp webhook monitors, allowing for changes to event tracking as needed."""
     request_data: Any = {
         "endpoint": webhook_endpoint_url,
         "events": monitored_events,
@@ -7727,7 +7727,7 @@ async def delete_webhook(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteWebhook'."]:
     """Delete a webhook to stop event monitoring.
 
-    Use this tool to delete a webhook, which will stop monitoring events and locations associated with it. Useful for managing and updating your event tracking preferences."""  # noqa: E501
+    Use this tool to delete a webhook, which will stop monitoring events and locations associated with it. Useful for managing and updating your event tracking preferences."""
     request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
