@@ -1,18 +1,18 @@
 {
   "name": "RetrieveLegalHolds",
-  "fully_qualified_name": "MiroApi.RetrieveLegalHolds@0.1.0",
-  "description": "Retrieve all legal holds for a case in an organization.\n\nThis tool retrieves the list of all legal holds within a specified case for an organization. It is intended for Miro Enterprise plan users with the Enterprise Guard add-on, requiring Company Admin and eDiscovery Admin roles.",
+  "fully_qualified_name": "MiroApi.RetrieveLegalHolds@2.0.0",
+  "description": "Retrieve all legal holds for an organization's case.\n\nThis tool retrieves the list of all legal holds within a specified case for an organization. It is intended for Enterprise plan users with the Enterprise Guard add-on, requiring Company Admin and eDiscovery Admin roles.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "maximum_items_in_result_list",
+        "name": "maximum_items_in_result",
         "required": true,
-        "description": "Specifies the maximum number of items to be included in the retrieved list of legal holds.",
+        "description": "Specify the maximum number of items to return in the result list.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "organization_id",
         "required": true,
-        "description": "The ID of the organization for which to retrieve the list of legal holds within a case.",
+        "description": "The ID of the organization to retrieve the list of legal holds for a specific case. Required for identifying the organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "case_id",
         "required": true,
-        "description": "The unique ID of the case for which to retrieve the list of legal holds.",
+        "description": "The ID of the case for which you want to retrieve the list of legal holds. Ensure it is a valid string identifying the case.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "case_id"
       },
       {
-        "name": "page_cursor",
+        "name": "pagination_cursor",
         "required": false,
-        "description": "An indicator for paginating results. Leave empty for the first page or use the previous request's cursor for subsequent pages.",
+        "description": "An indicator of the result page position. Leave empty for the first page, or use the previous request's cursor value for subsequent pages.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,13 +100,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/cases/{case_id}/legal-holds",
@@ -115,7 +115,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "maximum_items_in_result_list",
+        "tool_parameter_name": "maximum_items_in_result",
         "description": "The maximum number of items in the result list.",
         "value_schema": {
           "val_type": "integer",
@@ -128,11 +128,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": 100,
         "documentation_urls": []
       },
       {
         "name": "cursor",
-        "tool_parameter_name": "page_cursor",
+        "tool_parameter_name": "pagination_cursor",
         "description": "An indicator of the position of a page in the full set of results. To obtain the first page leave it empty. To obtain subsequent pages set it to the value returned in the cursor field of the previous request.\n",
         "value_schema": {
           "val_type": "string",
@@ -145,6 +146,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -162,6 +164,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -179,6 +182,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -192,6 +196,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

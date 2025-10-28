@@ -1,0 +1,364 @@
+{
+  "name": "SearchTerminalActions",
+  "fully_qualified_name": "SquareupApi.SearchTerminalActions@2.0.0",
+  "description": "Retrieve a filtered list of terminal action requests.\n\nUse this tool to get a list of terminal action requests created by your account. Terminal actions are accessible for 30 days.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "device_id_filter",
+        "required": false,
+        "description": "Filter TerminalActions by a specific device ID. Leave blank to include all devices.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`TerminalAction`s associated with a specific device. If no device is specified then all\n`TerminalAction`s for the merchant will be displayed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.device_id"
+      },
+      {
+        "name": "start_time_rfc3339",
+        "required": false,
+        "description": "The start datetime in RFC 3339 format for filtering terminal actions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.created_at.start_at"
+      },
+      {
+        "name": "end_time_rfc3339",
+        "required": false,
+        "description": "A datetime in RFC 3339 format indicating the end of the time range.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.created_at.end_at"
+      },
+      {
+        "name": "filter_terminal_action_status",
+        "required": false,
+        "description": "Filter results by the status of the TerminalAction (e.g., `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, `COMPLETED`).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results with the desired status of the `TerminalAction`\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, `COMPLETED`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.status"
+      },
+      {
+        "name": "terminal_action_type",
+        "required": false,
+        "description": "Specify the type of terminal action, such as 'QR_CODE', 'PING', etc. This helps filter actions by their purpose.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "QR_CODE",
+            "PING",
+            "SAVE_CARD",
+            "SIGNATURE",
+            "CONFIRMATION",
+            "RECEIPT",
+            "DATA_COLLECTION",
+            "SELECT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Describes the type of this unit and indicates which field contains the unit information. This is an \u2018open\u2019 enum."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.type"
+      },
+      {
+        "name": "result_sort_order",
+        "required": false,
+        "description": "Defines the order ('DESC' or 'ASC') for sorting the terminal action requests.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.sort.sort_order"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A pagination cursor from a previous response to retrieve the next set of results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this to retrieve the next set of results for the original query.\nSee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination) for more\ninformation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "Limit the number of results returned for a single request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit the number of results returned for a single request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchTerminalActions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "PAYMENTS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/terminals/actions/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "query.filter.device_id",
+        "tool_parameter_name": "device_id_filter",
+        "description": "`TerminalAction`s associated with a specific device. If no device is specified then all\n`TerminalAction`s for the merchant will be displayed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`TerminalAction`s associated with a specific device. If no device is specified then all\n`TerminalAction`s for the merchant will be displayed."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.created_at.start_at",
+        "tool_parameter_name": "start_time_rfc3339",
+        "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.created_at.end_at",
+        "tool_parameter_name": "end_time_rfc3339",
+        "description": "A datetime value in RFC 3339 format indicating when the time range\nends.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.status",
+        "tool_parameter_name": "filter_terminal_action_status",
+        "description": "Filter results with the desired status of the `TerminalAction`\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, `COMPLETED`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results with the desired status of the `TerminalAction`\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, `COMPLETED`"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.type",
+        "tool_parameter_name": "terminal_action_type",
+        "description": "Describes the type of this unit and indicates which field contains the unit information. This is an \u2018open\u2019 enum.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "QR_CODE",
+            "PING",
+            "SAVE_CARD",
+            "SIGNATURE",
+            "CONFIRMATION",
+            "RECEIPT",
+            "DATA_COLLECTION",
+            "SELECT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Describes the type of this unit and indicates which field contains the unit information. This is an \u2018open\u2019 enum."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.sort.sort_order",
+        "tool_parameter_name": "result_sort_order",
+        "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this to retrieve the next set of results for the original query.\nSee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination) for more\ninformation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this to retrieve the next set of results for the original query.\nSee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination) for more\ninformation."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "Limit the number of results returned for a single request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit the number of results returned for a single request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"BETA\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"x-release-status\": \"BETA\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"device_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"`TerminalAction`s associated with a specific device. If no device is specified then all\\n`TerminalAction`s for the merchant will be displayed.\",\n                    \"nullable\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"object\",\n                    \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"start_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                        \"nullable\": true\n                      },\n                      \"end_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"description\": \"Filter results with the desired status of the `TerminalAction`\\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, `COMPLETED`\",\n                    \"nullable\": true\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"QR_CODE\",\n                      \"PING\",\n                      \"SAVE_CARD\",\n                      \"SIGNATURE\",\n                      \"CONFIRMATION\",\n                      \"RECEIPT\",\n                      \"DATA_COLLECTION\",\n                      \"SELECT\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"QR_CODE\",\n                        \"description\": \"The action represents a request to display a QR code. Details are contained in\\nthe `qr_code_options` object.\"\n                      },\n                      {\n                        \"name\": \"PING\",\n                        \"description\": \"The action represents a request to check if the specific device is\\nonline or currently active with the merchant in question. Does not require an action options value.\"\n                      },\n                      {\n                        \"name\": \"SAVE_CARD\",\n                        \"description\": \"Represents a request to save a card for future card-on-file use. Details are contained\\nin the `save_card_options` object.\"\n                      },\n                      {\n                        \"name\": \"SIGNATURE\",\n                        \"description\": \"The action represents a request to capture a buyer's signature. Details are contained\\nin the `signature_options` object.\"\n                      },\n                      {\n                        \"name\": \"CONFIRMATION\",\n                        \"description\": \"The action represents a request to collect a buyer's confirmation decision to the\\ndisplayed terms. Details are contained in the `confirmation_options` object.\"\n                      },\n                      {\n                        \"name\": \"RECEIPT\",\n                        \"description\": \"The action represents a request to display the receipt screen options. Details are\\ncontained in the `receipt_options` object.\"\n                      },\n                      {\n                        \"name\": \"DATA_COLLECTION\",\n                        \"description\": \"The action represents a request to collect a buyer's text data. Details\\nare contained in the `data_collection_options` object.\"\n                      },\n                      {\n                        \"name\": \"SELECT\",\n                        \"description\": \"The action represents a request to allow the buyer to select from provided options.\\nDetails are contained in the `select_options` object.\"\n                      }\n                    ],\n                    \"description\": \"Describes the type of this unit and indicates which field contains the unit information. This is an \\u2018open\\u2019 enum.\",\n                    \"x-release-status\": \"BETA\"\n                  }\n                }\n              },\n              \"sort\": {\n                \"type\": \"object\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"sort_order\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"DESC\",\n                      \"ASC\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"DESC\",\n                        \"description\": \"The results are returned in descending (e.g., newest-first or Z-A) order.\"\n                      },\n                      {\n                        \"name\": \"ASC\",\n                        \"description\": \"The results are returned in ascending (e.g., oldest-first or A-Z) order.\"\n                      }\n                    ],\n                    \"description\": \"The order (e.g., chronological or alphabetical) in which results from a request are returned.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  }\n                }\n              }\n            },\n            \"example\": {\n              \"include\": [\n                \"CUSTOMER\"\n              ],\n              \"limit\": 2,\n              \"query\": {\n                \"filter\": {\n                  \"status\": \"COMPLETED\"\n                }\n              }\n            }\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"A pagination cursor returned by a previous call to this endpoint.\\nProvide this to retrieve the next set of results for the original query.\\nSee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination) for more\\ninformation.\"\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"Limit the number of results returned for a single request.\",\n            \"minimum\": 1,\n            \"maximum\": 100\n          }\n        },\n        \"example\": {\n          \"limit\": 2,\n          \"query\": {\n            \"filter\": {\n              \"created_at\": {\n                \"start_at\": \"2022-04-01T00:00:00.000Z\"\n              }\n            },\n            \"sort\": {\n              \"sort_order\": \"DESC\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

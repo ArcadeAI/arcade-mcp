@@ -1,0 +1,138 @@
+{
+  "name": "MergeTasksInClickup",
+  "fully_qualified_name": "ClickupApi.MergeTasksInClickup@0.1.0",
+  "description": "Merge multiple tasks into a target task in ClickUp.\n\nUse this tool to merge several tasks into a specified target task within ClickUp. The target task is identified by the task_id, with source tasks provided in the request. This is useful when consolidating tasks for better project management.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_task_id",
+        "required": true,
+        "description": "ID of the target task into which other tasks will be merged.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the target task that other tasks will be merged into."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_id"
+      },
+      {
+        "name": "source_task_ids_to_merge",
+        "required": true,
+        "description": "Array of task IDs to merge into the target task in ClickUp.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of task IDs to merge into the target task."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "source_task_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'mergeTasks'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/task/{task_id}/merge",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "task_id",
+        "tool_parameter_name": "target_task_id",
+        "description": "ID of the target task that other tasks will be merged into.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the target task that other tasks will be merged into."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "source_task_ids",
+        "tool_parameter_name": "source_task_ids_to_merge",
+        "description": "Array of task IDs to merge into the target task.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of task IDs to merge into the target task."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"source_task_ids\"\n        ],\n        \"properties\": {\n          \"source_task_ids\": {\n            \"type\": \"array\",\n            \"description\": \"Array of task IDs to merge into the target task.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"examples\": [\n              [\n                \"abc123\",\n                \"def456\"\n              ]\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "name": "UpdateMaintenanceWindow",
+  "fully_qualified_name": "PagerdutyApi.UpdateMaintenanceWindow@2.0.0",
+  "description": "Update an existing maintenance window for services.\n\nUse this tool to modify an existing maintenance window, temporarily disabling specified services for a defined period. Ideal for scheduling downtime updates or adjustments.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier for the maintenance window to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "The `Accept` header for API versioning. Specify the version of the API to be used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_for_request",
+        "required": true,
+        "description": "Specify the format of the request. Use \"application/json\" for this operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "maintenance_window_details",
+        "required": false,
+        "description": "JSON object detailing the maintenance window to be updated, including start, end, and service IDs.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "maintenance_window": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The maintenance window to be updated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateMaintenanceWindow'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/maintenance_windows/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_for_request",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "maintenance_window_details",
+        "description": "The maintenance window to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "maintenance_window": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The maintenance window to be updated."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"maintenance_window\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"The type of object being created.\",\n                    \"default\": \"maintenance_window\",\n                    \"enum\": [\n                      \"maintenance_window\"\n                    ]\n                  },\n                  \"sequence_number\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true,\n                    \"description\": \"The order in which the maintenance window was created.\"\n                  },\n                  \"start_time\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"description\": \"This maintenance window's start time. This is when the services will stop creating incidents. If this date is in the past, it will be updated to be the current time.\"\n                  },\n                  \"end_time\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"description\": \"This maintenance window's end time. This is when the services will start creating incidents again. This date must be in the future and after the `start_time`.\"\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"description\": \"A description for this maintenance window.\"\n                  },\n                  \"created_by\": {\n                    \"allOf\": [\n                      {\n                        \"allOf\": [\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"id\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true\n                              },\n                              \"summary\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                              },\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true,\n                                \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                              },\n                              \"self\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"the API show URL at which the object is accessible\"\n                              },\n                              \"html_url\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                              }\n                            }\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"required\": [\n                              \"type\",\n                              \"id\"\n                            ]\n                          }\n                        ]\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                              \"user_reference\"\n                            ]\n                          }\n                        }\n                      }\n                    ]\n                  },\n                  \"services\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"service_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  },\n                  \"teams\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"team_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"start_time\",\n                  \"end_time\",\n                  \"services\",\n                  \"type\"\n                ],\n                \"example\": {\n                  \"id\": \"PIJ89JD\",\n                  \"type\": \"maintenance_window\",\n                  \"start_time\": \"2015-11-09T20:00:00-05:00\",\n                  \"end_time\": \"2015-11-09T22:00:00-05:00\",\n                  \"description\": \"Immanentizing the eschaton\",\n                  \"services\": [\n                    {\n                      \"id\": \"PIJ90N7\",\n                      \"type\": \"service_reference\"\n                    }\n                  ]\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"maintenance_window\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"maintenance_window\": {\n              \"type\": \"maintenance_window\",\n              \"start_time\": \"2015-11-09T20:00:00-05:00\",\n              \"end_time\": \"2015-11-09T22:00:00-05:00\",\n              \"description\": \"Immanentizing the eschaton\",\n              \"services\": [\n                {\n                  \"id\": \"PIJ90N7\",\n                  \"type\": \"service_reference\"\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The maintenance window to be updated.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

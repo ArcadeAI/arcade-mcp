@@ -1,0 +1,247 @@
+{
+  "name": "SearchTeamMembers",
+  "fully_qualified_name": "SquareupApi.SearchTeamMembers@2.0.0",
+  "description": "Retrieve a filtered list of team members for a business.\n\nThis tool retrieves a paginated list of `TeamMember` objects associated with a business. It allows filtering by location IDs, status (`ACTIVE` or `INACTIVE`), or whether the team member is the Square account owner. Use this to manage or view team member details based on specific criteria.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_location_ids",
+        "required": false,
+        "description": "Filter team members by specified location IDs. If empty, includes all locations.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When present, filters by team members assigned to the specified locations.\nWhen empty, includes team members assigned to any location."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.location_ids"
+      },
+      {
+        "name": "team_member_status",
+        "required": false,
+        "description": "Filter team members by their status: 'ACTIVE' or 'INACTIVE'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ACTIVE",
+            "INACTIVE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enumerates the possible statuses the team member can have within a business."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.status"
+      },
+      {
+        "name": "maximum_team_members_per_page",
+        "required": false,
+        "description": "Specify the maximum number of team members to return per page, default is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of `TeamMember` objects in a page (100 by default)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "The cursor used to retrieve the next page of results in a paginated list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The opaque cursor for fetching the next page. For more information, see\n[pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "return_account_owner_only",
+        "required": false,
+        "description": "Set to true to return only the team member who is the Square account owner.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When present and set to true, returns the team member who is the owner of the Square account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.is_owner"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchTeamMembers'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "EMPLOYEES_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/team-members/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "query.filter.location_ids",
+        "tool_parameter_name": "filter_by_location_ids",
+        "description": "When present, filters by team members assigned to the specified locations.\nWhen empty, includes team members assigned to any location.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When present, filters by team members assigned to the specified locations.\nWhen empty, includes team members assigned to any location."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.status",
+        "tool_parameter_name": "team_member_status",
+        "description": "Enumerates the possible statuses the team member can have within a business.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ACTIVE",
+            "INACTIVE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enumerates the possible statuses the team member can have within a business."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.is_owner",
+        "tool_parameter_name": "return_account_owner_only",
+        "description": "When present and set to true, returns the team member who is the owner of the Square account.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When present and set to true, returns the team member who is the owner of the Square account."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_team_members_per_page",
+        "description": "The maximum number of `TeamMember` objects in a page (100 by default).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of `TeamMember` objects in a page (100 by default)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "The opaque cursor for fetching the next page. For more information, see\n[pagination](https://developer.squareup.com/docs/working-with-apis/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The opaque cursor for fetching the next page. For more information, see\n[pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents a search request for a filtered list of `TeamMember` objects.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"Represents the parameters in a search for `TeamMember` objects.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"Represents a filter used in a search for `TeamMember` objects. `AND` logic is applied\\nbetween the individual fields, and `OR` logic is applied within list-based fields.\\nFor example, setting this filter value:\\n```\\nfilter = (locations_ids = [\\\"A\\\", \\\"B\\\"], status = ACTIVE)\\n```\\nreturns only active team members assigned to either location \\\"A\\\" or \\\"B\\\".\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"location_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"When present, filters by team members assigned to the specified locations.\\nWhen empty, includes team members assigned to any location.\",\n                    \"nullable\": true\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"ACTIVE\",\n                      \"INACTIVE\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"ACTIVE\",\n                        \"description\": \"The team member can sign in to Point of Sale and the Seller Dashboard.\"\n                      },\n                      {\n                        \"name\": \"INACTIVE\",\n                        \"description\": \"The team member can no longer sign in to Point of Sale or the Seller Dashboard,\\nbut the team member's sales reports remain available.\"\n                      }\n                    ],\n                    \"description\": \"Enumerates the possible statuses the team member can have within a business.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  },\n                  \"is_owner\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"When present and set to true, returns the team member who is the owner of the Square account.\",\n                    \"nullable\": true\n                  }\n                }\n              }\n            }\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The maximum number of `TeamMember` objects in a page (100 by default).\",\n            \"minimum\": 1,\n            \"maximum\": 200\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"The opaque cursor for fetching the next page. For more information, see\\n[pagination](https://developer.squareup.com/docs/working-with-apis/pagination).\"\n          }\n        },\n        \"example\": {\n          \"limit\": 10,\n          \"query\": {\n            \"filter\": {\n              \"location_ids\": [\n                \"0G5P3VGACMMQZ\"\n              ],\n              \"status\": \"ACTIVE\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

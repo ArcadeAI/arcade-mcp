@@ -1,0 +1,303 @@
+{
+  "name": "SetupClickupWebhook",
+  "fully_qualified_name": "ClickupApi.SetupClickupWebhook@0.1.0",
+  "description": "Set up a ClickUp webhook to monitor events.\n\nUse this tool to create a webhook in ClickUp, enabling monitoring of events for a specific team. Useful for triggering actions or notifications based on certain events within a ClickUp team.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The ID of the workspace where the webhook will be set up. Use this to specify the team context for monitoring.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "webhook_url",
+        "required": true,
+        "description": "The URL where the webhook will send POST requests. Must be reachable to receive event data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "endpoint"
+      },
+      {
+        "name": "event_types",
+        "required": true,
+        "description": "An array of event types to subscribe to, or use `*` to subscribe to all events. Refer to ClickUp documentation for available options.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "See [documentation](doc:webhooks#task-webhooks) for available event options. Use `*` to subscribe to all events."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "events"
+      },
+      {
+        "name": "space_identifier",
+        "required": false,
+        "description": "The numeric ID of the space within a ClickUp workspace for which the webhook is set up.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "space_id"
+      },
+      {
+        "name": "folder_id",
+        "required": false,
+        "description": "Specify the folder ID in ClickUp for which the webhook is to be created. It should be an integer value representing the folder.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folder_id"
+      },
+      {
+        "name": "target_list_id",
+        "required": false,
+        "description": "The ID of the list in ClickUp for which you want to set up a webhook.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_id"
+      },
+      {
+        "name": "specific_task_id",
+        "required": false,
+        "description": "Unique identifier for a specific task to monitor. Leave empty if not targeting a specific task.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateWebhook'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/webhook",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "endpoint",
+        "tool_parameter_name": "webhook_url",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "events",
+        "tool_parameter_name": "event_types",
+        "description": "See [documentation](doc:webhooks#task-webhooks) for available event options. Use `*` to subscribe to all events.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "See [documentation](doc:webhooks#task-webhooks) for available event options. Use `*` to subscribe to all events."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "space_id",
+        "tool_parameter_name": "space_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "folder_id",
+        "tool_parameter_name": "folder_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "list_id",
+        "tool_parameter_name": "target_list_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_id",
+        "tool_parameter_name": "specific_task_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"You can subscribe to specific events, and one specific location per webhook. [Learn more](doc:webhooks).\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateWebhookrequest\",\n        \"required\": [\n          \"endpoint\",\n          \"events\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"endpoint\": {\n            \"type\": \"string\"\n          },\n          \"events\": {\n            \"type\": \"array\",\n            \"description\": \"See [documentation](doc:webhooks#task-webhooks) for available event options. Use `*` to subscribe to all events.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"space_id\": {\n            \"type\": \"integer\"\n          },\n          \"folder_id\": {\n            \"type\": \"integer\"\n          },\n          \"list_id\": {\n            \"type\": \"integer\"\n          },\n          \"task_id\": {\n            \"type\": \"string\"\n          }\n        },\n        \"examples\": [\n          {\n            \"endpoint\": \"https://yourdomain.com/webhook\",\n            \"events\": [\n              \"taskCreated\",\n              \"taskUpdated\",\n              \"taskDeleted\",\n              \"taskPriorityUpdated\",\n              \"taskStatusUpdated\",\n              \"taskAssigneeUpdated\",\n              \"taskDueDateUpdated\",\n              \"taskTagUpdated\",\n              \"taskMoved\",\n              \"taskCommentPosted\",\n              \"taskCommentUpdated\",\n              \"taskTimeEstimateUpdated\",\n              \"taskTimeTrackedUpdated\",\n              \"listCreated\",\n              \"listUpdated\",\n              \"listDeleted\",\n              \"folderCreated\",\n              \"folderUpdated\",\n              \"folderDeleted\",\n              \"spaceCreated\",\n              \"spaceUpdated\",\n              \"spaceDeleted\",\n              \"goalCreated\",\n              \"goalUpdated\",\n              \"goalDeleted\",\n              \"keyResultCreated\",\n              \"keyResultUpdated\",\n              \"keyResultDeleted\"\n            ],\n            \"space_id\": 1234,\n            \"folder_id\": 5678,\n            \"list_id\": 9876,\n            \"task_id\": \"abc1234\"\n          }\n        ]\n      },\n      \"example\": {\n        \"endpoint\": \"https://yourdomain.com/webhook\",\n        \"events\": [\n          \"taskCreated\",\n          \"taskUpdated\",\n          \"taskDeleted\",\n          \"taskPriorityUpdated\",\n          \"taskStatusUpdated\",\n          \"taskAssigneeUpdated\",\n          \"taskDueDateUpdated\",\n          \"taskTagUpdated\",\n          \"taskMoved\",\n          \"taskCommentPosted\",\n          \"taskCommentUpdated\",\n          \"taskTimeEstimateUpdated\",\n          \"taskTimeTrackedUpdated\",\n          \"listCreated\",\n          \"listUpdated\",\n          \"listDeleted\",\n          \"folderCreated\",\n          \"folderUpdated\",\n          \"folderDeleted\",\n          \"spaceCreated\",\n          \"spaceUpdated\",\n          \"spaceDeleted\",\n          \"goalCreated\",\n          \"goalUpdated\",\n          \"goalDeleted\",\n          \"keyResultCreated\",\n          \"keyResultUpdated\",\n          \"keyResultDeleted\"\n        ],\n        \"space_id\": 1234,\n        \"folder_id\": 5678,\n        \"list_id\": 9876,\n        \"task_id\": \"abc1234\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

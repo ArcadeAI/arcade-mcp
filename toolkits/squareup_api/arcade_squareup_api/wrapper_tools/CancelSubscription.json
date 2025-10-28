@@ -1,18 +1,18 @@
 {
   "name": "CancelSubscription",
-  "fully_qualified_name": "SquareupApi.CancelSubscription@0.1.0",
-  "description": "Schedule cancellation of an active subscription.\n\nUse this tool to schedule a cancellation for an active subscription. The subscription will remain active until the end of the current billing period, after which it will be marked as canceled.",
+  "fully_qualified_name": "SquareupApi.CancelSubscription@2.0.0",
+  "description": "Cancel an active subscription at the end of the billing period.\n\nThis tool schedules a cancellation for an active subscription, setting the cancellation date to the end of the current billing cycle. After this date, the subscription changes from ACTIVE to CANCELED.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "subscription_identifier",
+        "name": "subscription_id",
         "required": true,
-        "description": "The unique identifier of the subscription to be canceled. Required to schedule the cancellation.",
+        "description": "The unique ID of the subscription to be canceled. Required for scheduling the cancellation action.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/subscriptions/{subscription_id}/cancel",
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "subscription_id",
-        "tool_parameter_name": "subscription_identifier",
+        "tool_parameter_name": "subscription_id",
         "description": "The ID of the subscription to cancel.",
         "value_schema": {
           "val_type": "string",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

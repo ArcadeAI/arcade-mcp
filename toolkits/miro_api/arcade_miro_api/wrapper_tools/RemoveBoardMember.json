@@ -1,18 +1,18 @@
 {
   "name": "RemoveBoardMember",
-  "fully_qualified_name": "MiroApi.RemoveBoardMember@0.1.0",
-  "description": "Remove a member from a Miro board.\n\nUse this tool to remove a specific member from a Miro board. Requires the board ID and member ID. Ensure you have the 'boards:write' scope.",
+  "fully_qualified_name": "MiroApi.RemoveBoardMember@2.0.0",
+  "description": "Remove a member from a Miro board.\n\nUse this tool to remove a specific member from a Miro board. This action requires 'boards:write' scope. Useful for managing board access and maintaining privacy.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "board_identifier",
+        "name": "board_unique_id",
         "required": true,
-        "description": "Unique identifier of the board from which you want to remove a member.",
+        "description": "Unique identifier of the board from which the member will be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "board_member_id",
         "required": true,
-        "description": "Unique identifier of the board member to remove.",
+        "description": "Unique identifier of the board member to be removed from the board.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/boards/{board_id}/members/{board_member_id}",
@@ -85,7 +85,7 @@
     "parameters": [
       {
         "name": "board_id",
-        "tool_parameter_name": "board_identifier",
+        "tool_parameter_name": "board_unique_id",
         "description": "Unique identifier (ID) of the board from which you want to delete an item.",
         "value_schema": {
           "val_type": "string",
@@ -98,6 +98,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -115,6 +116,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -128,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

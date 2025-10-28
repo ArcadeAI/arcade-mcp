@@ -1,0 +1,319 @@
+{
+  "name": "CreatePersistedFolder",
+  "fully_qualified_name": "PosthogApi.CreatePersistedFolder@0.1.0",
+  "description": "Create a persisted folder in a Datadog environment.\n\nUse this tool to create a persistent storage folder within a specified Datadog project environment.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The ID of the Datadog project for accessing a specific environment. Obtain this by calling /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "folder_id",
+        "required": true,
+        "description": "A unique identifier for the persisted folder to be created in the environment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "folder_type",
+        "required": true,
+        "description": "Specifies the type of the folder to create. Acceptable values are 'home' for Home directory and 'pinned' for Pinned directory.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "home",
+            "pinned"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "* `home` - Home\n* `pinned` - Pinned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "folder_creation_timestamp",
+        "required": true,
+        "description": "Timestamp indicating when the folder was created. It should be in ISO 8601 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at"
+      },
+      {
+        "name": "folder_updated_at",
+        "required": true,
+        "description": "Timestamp indicating when the folder was last updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_at"
+      },
+      {
+        "name": "folder_protocol",
+        "required": false,
+        "description": "Specify the protocol for the persisted folder, typically as a string indicator.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "protocol"
+      },
+      {
+        "name": "persisted_folder_path",
+        "required": false,
+        "description": "Specify the path for the persisted folder in the Datadog environment. This should be a valid directory path within the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "path"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'environments_persisted_folder_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/environments/{project_id}/persisted_folder/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "folder_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "folder_type",
+        "description": "* `home` - Home\n* `pinned` - Pinned",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "home",
+            "pinned"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "* `home` - Home\n* `pinned` - Pinned"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "protocol",
+        "tool_parameter_name": "folder_protocol",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "path",
+        "tool_parameter_name": "persisted_folder_path",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at",
+        "tool_parameter_name": "folder_creation_timestamp",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_at",
+        "tool_parameter_name": "folder_updated_at",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"enum\": [\n              \"home\",\n              \"pinned\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `home` - Home\\n* `pinned` - Pinned\"\n          },\n          \"protocol\": {\n            \"type\": \"string\",\n            \"maxLength\": 64\n          },\n          \"path\": {\n            \"type\": \"string\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"id\",\n          \"type\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"enum\": [\n              \"home\",\n              \"pinned\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `home` - Home\\n* `pinned` - Pinned\"\n          },\n          \"protocol\": {\n            \"type\": \"string\",\n            \"maxLength\": 64\n          },\n          \"path\": {\n            \"type\": \"string\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"id\",\n          \"type\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"enum\": [\n              \"home\",\n              \"pinned\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `home` - Home\\n* `pinned` - Pinned\"\n          },\n          \"protocol\": {\n            \"type\": \"string\",\n            \"maxLength\": 64\n          },\n          \"path\": {\n            \"type\": \"string\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"id\",\n          \"type\",\n          \"updated_at\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

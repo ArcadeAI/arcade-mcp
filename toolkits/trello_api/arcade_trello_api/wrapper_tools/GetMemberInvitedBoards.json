@@ -1,16 +1,16 @@
 {
   "name": "GetMemberInvitedBoards",
-  "fully_qualified_name": "TrelloApi.GetMemberInvitedBoards@0.1.0",
-  "description": "Retrieve the boards a Trello member has been invited to.\n\nUse this tool to get a list of Trello boards that a specific member has been invited to. Useful for tracking invitations and access permissions for members.",
+  "fully_qualified_name": "TrelloApi.GetMemberInvitedBoards@2.0.0",
+  "description": "Retrieve boards a member is invited to on Trello.\n\nThis tool fetches the list of boards that a specified member has been invited to on Trello. It should be called when you need to check which boards a member is invited to but has not yet joined.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "member_id_or_username",
+        "name": "member_identifier",
         "required": true,
         "description": "The ID or username of the Trello member to retrieve invited boards for.",
         "value_schema": {
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "included_board_fields",
+        "name": "board_fields_option",
         "required": false,
-        "description": "Specify 'all' or a list of board fields to retrieve, such as 'id,name,desc'.",
+        "description": "Specify 'all' or provide a comma-separated list of board fields to retrieve (e.g., 'id,name,desc').",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,13 +89,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/boardsInvited",
@@ -104,7 +104,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "included_board_fields",
+        "tool_parameter_name": "board_fields_option",
         "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -134,11 +134,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "member_id_or_username",
+        "tool_parameter_name": "member_identifier",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",
@@ -151,6 +152,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -172,6 +174,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

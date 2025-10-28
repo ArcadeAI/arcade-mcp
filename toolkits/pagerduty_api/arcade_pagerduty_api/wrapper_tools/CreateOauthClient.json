@@ -1,0 +1,344 @@
+{
+  "name": "CreateOauthClient",
+  "fully_qualified_name": "PagerdutyApi.CreateOauthClient@2.0.0",
+  "description": "Create a new OAuth client for webhook subscriptions.\n\nCreates an OAuth client for webhook subscriptions, with validation of client credentials. Requires admin or owner permissions and allows up to 10 clients per account.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "The `Accept` header used for versioning. Specify the API version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specify the content type header. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "oauth_client_name",
+        "required": true,
+        "description": "A human-readable name for the OAuth client. It is used to identify the client in a user-friendly manner.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A human-readable name for the OAuth client"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "oauth_client.name"
+      },
+      {
+        "name": "oauth_client_id",
+        "required": true,
+        "description": "The OAuth client ID provided by the OAuth server.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth client ID provided by the OAuth server"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "oauth_client.client_id"
+      },
+      {
+        "name": "oauth_client_secret",
+        "required": true,
+        "description": "The client secret provided by the OAuth server for the OAuth client.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth client secret provided by the OAuth server"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "oauth_client.client_secret"
+      },
+      {
+        "name": "oauth_token_endpoint_url",
+        "required": true,
+        "description": "The URL for the OAuth token endpoint required to obtain an access token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth token endpoint URL"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "oauth_client.token_url"
+      },
+      {
+        "name": "oauth_grant_type",
+        "required": true,
+        "description": "The OAuth grant type. Currently, only 'client_credentials' is supported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "client_credentials"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth grant type (currently only client_credentials is supported)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "oauth_client.grant_type"
+      },
+      {
+        "name": "oauth_scopes_requested",
+        "required": false,
+        "description": "The OAuth scopes requested for this client.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth scopes requested for this client"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "oauth_client.scope"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createOauthClient'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/webhook_subscriptions/oauth_clients",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "oauth_client.name",
+        "tool_parameter_name": "oauth_client_name",
+        "description": "A human-readable name for the OAuth client",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A human-readable name for the OAuth client"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "oauth_client.client_id",
+        "tool_parameter_name": "oauth_client_id",
+        "description": "The OAuth client ID provided by the OAuth server",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth client ID provided by the OAuth server"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "oauth_client.client_secret",
+        "tool_parameter_name": "oauth_client_secret",
+        "description": "The OAuth client secret provided by the OAuth server",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth client secret provided by the OAuth server"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "oauth_client.scope",
+        "tool_parameter_name": "oauth_scopes_requested",
+        "description": "The OAuth scopes requested for this client",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth scopes requested for this client"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "oauth_client.token_url",
+        "tool_parameter_name": "oauth_token_endpoint_url",
+        "description": "The OAuth token endpoint URL",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth token endpoint URL"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "oauth_client.grant_type",
+        "tool_parameter_name": "oauth_grant_type",
+        "description": "The OAuth grant type (currently only client_credentials is supported)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "client_credentials"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OAuth grant type (currently only client_credentials is supported)"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"oauth_client\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"name\": {\n                \"type\": \"string\",\n                \"description\": \"A human-readable name for the OAuth client\",\n                \"example\": \"PagerDuty Webhook Integration\",\n                \"maxLength\": 255\n              },\n              \"client_id\": {\n                \"type\": \"string\",\n                \"description\": \"The OAuth client ID provided by the OAuth server\",\n                \"example\": \"oauth-client-id\",\n                \"maxLength\": 255\n              },\n              \"client_secret\": {\n                \"type\": \"string\",\n                \"description\": \"The OAuth client secret provided by the OAuth server\",\n                \"example\": \"oauth-secret-id\",\n                \"maxLength\": 255\n              },\n              \"scope\": {\n                \"type\": \"string\",\n                \"description\": \"The OAuth scopes requested for this client\",\n                \"example\": \"read write\",\n                \"maxLength\": 255\n              },\n              \"token_url\": {\n                \"type\": \"string\",\n                \"format\": \"uri\",\n                \"description\": \"The OAuth token endpoint URL\",\n                \"example\": \"https://foo.oauth-server.com/oauth_token.do\",\n                \"maxLength\": 255\n              },\n              \"grant_type\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"client_credentials\"\n                ],\n                \"description\": \"The OAuth grant type (currently only client_credentials is supported)\",\n                \"example\": \"client_credentials\"\n              }\n            },\n            \"required\": [\n              \"name\",\n              \"client_id\",\n              \"client_secret\",\n              \"token_url\",\n              \"grant_type\"\n            ]\n          }\n        },\n        \"required\": [\n          \"oauth_client\"\n        ]\n      },\n      \"examples\": {\n        \"default\": {\n          \"$ref\": \"#/components/examples/CreateOAuthClientExample\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

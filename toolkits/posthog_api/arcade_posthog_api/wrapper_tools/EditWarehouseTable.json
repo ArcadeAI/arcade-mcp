@@ -1,0 +1,455 @@
+{
+  "name": "EditWarehouseTable",
+  "fully_qualified_name": "PosthogApi.EditWarehouseTable@0.1.0",
+  "description": "Updates information for a specific warehouse table.\n\nUse this tool to update details of a specific warehouse table within a project. Suitable for modifying table configurations or data schema.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "warehouse_table_id",
+        "required": true,
+        "description": "A UUID string identifying the data warehouse table to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this data warehouse table."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The ID of the project you want to access. Obtainable via a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "warehouse_table_update_details",
+        "required": true,
+        "description": "JSON object containing details to update the warehouse table, such as ID, name, format, credentials, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "format": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "CSV",
+                "CSVWithNames",
+                "Parquet",
+                "JSONEachRow",
+                "Delta",
+                "DeltaS3Wrapper"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `CSV` - CSV\n* `CSVWithNames` - CSVWithNames\n* `Parquet` - Parquet\n* `JSONEachRow` - JSON\n* `Delta` - Delta\n* `DeltaS3Wrapper` - DeltaS3Wrapper"
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "url_pattern": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "credential": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "created_by": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "access_key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "access_secret": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "columns": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "external_data_source": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "external_schema": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'warehouse_tables_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/warehouse_tables/{id}/",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "warehouse_table_id",
+        "description": "A UUID string identifying this data warehouse table.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this data warehouse table."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "warehouse_table_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "format": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "CSV",
+                "CSVWithNames",
+                "Parquet",
+                "JSONEachRow",
+                "Delta",
+                "DeltaS3Wrapper"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `CSV` - CSV\n* `CSVWithNames` - CSVWithNames\n* `Parquet` - Parquet\n* `JSONEachRow` - JSON\n* `Delta` - Delta\n* `DeltaS3Wrapper` - DeltaS3Wrapper"
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "url_pattern": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "credential": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "created_by": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "access_key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "access_secret": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "columns": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "external_data_source": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "external_schema": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 128\n          },\n          \"format\": {\n            \"enum\": [\n              \"CSV\",\n              \"CSVWithNames\",\n              \"Parquet\",\n              \"JSONEachRow\",\n              \"Delta\",\n              \"DeltaS3Wrapper\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `CSV` - CSV\\n* `CSVWithNames` - CSVWithNames\\n* `Parquet` - Parquet\\n* `JSONEachRow` - JSON\\n* `Delta` - Delta\\n* `DeltaS3Wrapper` - DeltaS3Wrapper\"\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"url_pattern\": {\n            \"type\": \"string\",\n            \"maxLength\": 500\n          },\n          \"credential\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"format\": \"uuid\",\n                \"readOnly\": true\n              },\n              \"created_by\": {\n                \"allOf\": [\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"id\": {\n                        \"type\": \"integer\",\n                        \"readOnly\": true\n                      },\n                      \"uuid\": {\n                        \"type\": \"string\",\n                        \"format\": \"uuid\",\n                        \"readOnly\": true\n                      },\n                      \"distinct_id\": {\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"maxLength\": 200\n                      },\n                      \"first_name\": {\n                        \"type\": \"string\",\n                        \"maxLength\": 150\n                      },\n                      \"last_name\": {\n                        \"type\": \"string\",\n                        \"maxLength\": 150\n                      },\n                      \"email\": {\n                        \"type\": \"string\",\n                        \"format\": \"email\",\n                        \"title\": \"Email address\",\n                        \"maxLength\": 254\n                      },\n                      \"is_email_verified\": {\n                        \"type\": \"boolean\",\n                        \"nullable\": true\n                      },\n                      \"hedgehog_config\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {},\n                        \"nullable\": true,\n                        \"readOnly\": true\n                      },\n                      \"role_at_organization\": {\n                        \"nullable\": true,\n                        \"oneOf\": [\n                          {\n                            \"enum\": [\n                              \"engineering\",\n                              \"data\",\n                              \"product\",\n                              \"founder\",\n                              \"leadership\",\n                              \"marketing\",\n                              \"sales\",\n                              \"other\"\n                            ],\n                            \"type\": \"string\",\n                            \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                          },\n                          {\n                            \"enum\": [\n                              \"\"\n                            ]\n                          },\n                          {\n                            \"enum\": [\n                              null\n                            ]\n                          }\n                        ]\n                      }\n                    },\n                    \"required\": [\n                      \"email\",\n                      \"hedgehog_config\",\n                      \"id\",\n                      \"uuid\"\n                    ]\n                  }\n                ],\n                \"readOnly\": true\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"readOnly\": true\n              },\n              \"access_key\": {\n                \"type\": \"string\",\n                \"writeOnly\": true,\n                \"maxLength\": 500\n              },\n              \"access_secret\": {\n                \"type\": \"string\",\n                \"writeOnly\": true,\n                \"maxLength\": 500\n              }\n            },\n            \"required\": [\n              \"access_key\",\n              \"access_secret\",\n              \"created_at\",\n              \"created_by\",\n              \"id\"\n            ]\n          },\n          \"columns\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"external_data_source\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true\n                  },\n                  \"created_by\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true,\n                    \"nullable\": true\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"source_type\": {\n                    \"allOf\": [\n                      {\n                        \"enum\": [\n                          \"Stripe\",\n                          \"Hubspot\",\n                          \"Postgres\",\n                          \"Zendesk\",\n                          \"Snowflake\",\n                          \"Salesforce\",\n                          \"MySQL\",\n                          \"MongoDB\",\n                          \"MSSQL\",\n                          \"Vitally\",\n                          \"BigQuery\",\n                          \"Chargebee\",\n                          \"GoogleAds\",\n                          \"TemporalIO\",\n                          \"DoIt\",\n                          \"GoogleSheets\",\n                          \"MetaAds\",\n                          \"Klaviyo\",\n                          \"Mailchimp\",\n                          \"Braze\",\n                          \"Mailjet\",\n                          \"Redshift\",\n                          \"Polar\",\n                          \"RevenueCat\",\n                          \"LinkedinAds\",\n                          \"RedditAds\",\n                          \"TikTokAds\",\n                          \"Shopify\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `Stripe` - Stripe\\n* `Hubspot` - Hubspot\\n* `Postgres` - Postgres\\n* `Zendesk` - Zendesk\\n* `Snowflake` - Snowflake\\n* `Salesforce` - Salesforce\\n* `MySQL` - MySQL\\n* `MongoDB` - MongoDB\\n* `MSSQL` - MSSQL\\n* `Vitally` - Vitally\\n* `BigQuery` - BigQuery\\n* `Chargebee` - Chargebee\\n* `GoogleAds` - GoogleAds\\n* `TemporalIO` - TemporalIO\\n* `DoIt` - DoIt\\n* `GoogleSheets` - GoogleSheets\\n* `MetaAds` - MetaAds\\n* `Klaviyo` - Klaviyo\\n* `Mailchimp` - Mailchimp\\n* `Braze` - Braze\\n* `Mailjet` - Mailjet\\n* `Redshift` - Redshift\\n* `Polar` - Polar\\n* `RevenueCat` - RevenueCat\\n* `LinkedinAds` - LinkedinAds\\n* `RedditAds` - RedditAds\\n* `TikTokAds` - TikTokAds\\n* `Shopify` - Shopify\"\n                      }\n                    ],\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"created_at\",\n                  \"created_by\",\n                  \"id\",\n                  \"source_type\",\n                  \"status\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"external_schema\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"columns\",\n          \"created_at\",\n          \"created_by\",\n          \"credential\",\n          \"external_data_source\",\n          \"external_schema\",\n          \"format\",\n          \"id\",\n          \"name\",\n          \"url_pattern\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 128\n          },\n          \"format\": {\n            \"enum\": [\n              \"CSV\",\n              \"CSVWithNames\",\n              \"Parquet\",\n              \"JSONEachRow\",\n              \"Delta\",\n              \"DeltaS3Wrapper\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `CSV` - CSV\\n* `CSVWithNames` - CSVWithNames\\n* `Parquet` - Parquet\\n* `JSONEachRow` - JSON\\n* `Delta` - Delta\\n* `DeltaS3Wrapper` - DeltaS3Wrapper\"\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"url_pattern\": {\n            \"type\": \"string\",\n            \"maxLength\": 500\n          },\n          \"credential\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"format\": \"uuid\",\n                \"readOnly\": true\n              },\n              \"created_by\": {\n                \"allOf\": [\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"id\": {\n                        \"type\": \"integer\",\n                        \"readOnly\": true\n                      },\n                      \"uuid\": {\n                        \"type\": \"string\",\n                        \"format\": \"uuid\",\n                        \"readOnly\": true\n                      },\n                      \"distinct_id\": {\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"maxLength\": 200\n                      },\n                      \"first_name\": {\n                        \"type\": \"string\",\n                        \"maxLength\": 150\n                      },\n                      \"last_name\": {\n                        \"type\": \"string\",\n                        \"maxLength\": 150\n                      },\n                      \"email\": {\n                        \"type\": \"string\",\n                        \"format\": \"email\",\n                        \"title\": \"Email address\",\n                        \"maxLength\": 254\n                      },\n                      \"is_email_verified\": {\n                        \"type\": \"boolean\",\n                        \"nullable\": true\n                      },\n                      \"hedgehog_config\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {},\n                        \"nullable\": true,\n                        \"readOnly\": true\n                      },\n                      \"role_at_organization\": {\n                        \"nullable\": true,\n                        \"oneOf\": [\n                          {\n                            \"enum\": [\n                              \"engineering\",\n                              \"data\",\n                              \"product\",\n                              \"founder\",\n                              \"leadership\",\n                              \"marketing\",\n                              \"sales\",\n                              \"other\"\n                            ],\n                            \"type\": \"string\",\n                            \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                          },\n                          {\n                            \"enum\": [\n                              \"\"\n                            ]\n                          },\n                          {\n                            \"enum\": [\n                              null\n                            ]\n                          }\n                        ]\n                      }\n                    },\n                    \"required\": [\n                      \"email\",\n                      \"hedgehog_config\",\n                      \"id\",\n                      \"uuid\"\n                    ]\n                  }\n                ],\n                \"readOnly\": true\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"readOnly\": true\n              },\n              \"access_key\": {\n                \"type\": \"string\",\n                \"writeOnly\": true,\n                \"maxLength\": 500\n              },\n              \"access_secret\": {\n                \"type\": \"string\",\n                \"writeOnly\": true,\n                \"maxLength\": 500\n              }\n            },\n            \"required\": [\n              \"access_key\",\n              \"access_secret\",\n              \"created_at\",\n              \"created_by\",\n              \"id\"\n            ]\n          },\n          \"columns\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"external_data_source\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true\n                  },\n                  \"created_by\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true,\n                    \"nullable\": true\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"source_type\": {\n                    \"allOf\": [\n                      {\n                        \"enum\": [\n                          \"Stripe\",\n                          \"Hubspot\",\n                          \"Postgres\",\n                          \"Zendesk\",\n                          \"Snowflake\",\n                          \"Salesforce\",\n                          \"MySQL\",\n                          \"MongoDB\",\n                          \"MSSQL\",\n                          \"Vitally\",\n                          \"BigQuery\",\n                          \"Chargebee\",\n                          \"GoogleAds\",\n                          \"TemporalIO\",\n                          \"DoIt\",\n                          \"GoogleSheets\",\n                          \"MetaAds\",\n                          \"Klaviyo\",\n                          \"Mailchimp\",\n                          \"Braze\",\n                          \"Mailjet\",\n                          \"Redshift\",\n                          \"Polar\",\n                          \"RevenueCat\",\n                          \"LinkedinAds\",\n                          \"RedditAds\",\n                          \"TikTokAds\",\n                          \"Shopify\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `Stripe` - Stripe\\n* `Hubspot` - Hubspot\\n* `Postgres` - Postgres\\n* `Zendesk` - Zendesk\\n* `Snowflake` - Snowflake\\n* `Salesforce` - Salesforce\\n* `MySQL` - MySQL\\n* `MongoDB` - MongoDB\\n* `MSSQL` - MSSQL\\n* `Vitally` - Vitally\\n* `BigQuery` - BigQuery\\n* `Chargebee` - Chargebee\\n* `GoogleAds` - GoogleAds\\n* `TemporalIO` - TemporalIO\\n* `DoIt` - DoIt\\n* `GoogleSheets` - GoogleSheets\\n* `MetaAds` - MetaAds\\n* `Klaviyo` - Klaviyo\\n* `Mailchimp` - Mailchimp\\n* `Braze` - Braze\\n* `Mailjet` - Mailjet\\n* `Redshift` - Redshift\\n* `Polar` - Polar\\n* `RevenueCat` - RevenueCat\\n* `LinkedinAds` - LinkedinAds\\n* `RedditAds` - RedditAds\\n* `TikTokAds` - TikTokAds\\n* `Shopify` - Shopify\"\n                      }\n                    ],\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"created_at\",\n                  \"created_by\",\n                  \"id\",\n                  \"source_type\",\n                  \"status\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"external_schema\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"columns\",\n          \"created_at\",\n          \"created_by\",\n          \"credential\",\n          \"external_data_source\",\n          \"external_schema\",\n          \"format\",\n          \"id\",\n          \"name\",\n          \"url_pattern\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 128\n          },\n          \"format\": {\n            \"enum\": [\n              \"CSV\",\n              \"CSVWithNames\",\n              \"Parquet\",\n              \"JSONEachRow\",\n              \"Delta\",\n              \"DeltaS3Wrapper\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `CSV` - CSV\\n* `CSVWithNames` - CSVWithNames\\n* `Parquet` - Parquet\\n* `JSONEachRow` - JSON\\n* `Delta` - Delta\\n* `DeltaS3Wrapper` - DeltaS3Wrapper\"\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"url_pattern\": {\n            \"type\": \"string\",\n            \"maxLength\": 500\n          },\n          \"credential\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"format\": \"uuid\",\n                \"readOnly\": true\n              },\n              \"created_by\": {\n                \"allOf\": [\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"id\": {\n                        \"type\": \"integer\",\n                        \"readOnly\": true\n                      },\n                      \"uuid\": {\n                        \"type\": \"string\",\n                        \"format\": \"uuid\",\n                        \"readOnly\": true\n                      },\n                      \"distinct_id\": {\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"maxLength\": 200\n                      },\n                      \"first_name\": {\n                        \"type\": \"string\",\n                        \"maxLength\": 150\n                      },\n                      \"last_name\": {\n                        \"type\": \"string\",\n                        \"maxLength\": 150\n                      },\n                      \"email\": {\n                        \"type\": \"string\",\n                        \"format\": \"email\",\n                        \"title\": \"Email address\",\n                        \"maxLength\": 254\n                      },\n                      \"is_email_verified\": {\n                        \"type\": \"boolean\",\n                        \"nullable\": true\n                      },\n                      \"hedgehog_config\": {\n                        \"type\": \"object\",\n                        \"additionalProperties\": {},\n                        \"nullable\": true,\n                        \"readOnly\": true\n                      },\n                      \"role_at_organization\": {\n                        \"nullable\": true,\n                        \"oneOf\": [\n                          {\n                            \"enum\": [\n                              \"engineering\",\n                              \"data\",\n                              \"product\",\n                              \"founder\",\n                              \"leadership\",\n                              \"marketing\",\n                              \"sales\",\n                              \"other\"\n                            ],\n                            \"type\": \"string\",\n                            \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                          },\n                          {\n                            \"enum\": [\n                              \"\"\n                            ]\n                          },\n                          {\n                            \"enum\": [\n                              null\n                            ]\n                          }\n                        ]\n                      }\n                    },\n                    \"required\": [\n                      \"email\",\n                      \"hedgehog_config\",\n                      \"id\",\n                      \"uuid\"\n                    ]\n                  }\n                ],\n                \"readOnly\": true\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"readOnly\": true\n              },\n              \"access_key\": {\n                \"type\": \"string\",\n                \"writeOnly\": true,\n                \"maxLength\": 500\n              },\n              \"access_secret\": {\n                \"type\": \"string\",\n                \"writeOnly\": true,\n                \"maxLength\": 500\n              }\n            },\n            \"required\": [\n              \"access_key\",\n              \"access_secret\",\n              \"created_at\",\n              \"created_by\",\n              \"id\"\n            ]\n          },\n          \"columns\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"external_data_source\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true\n                  },\n                  \"created_by\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true,\n                    \"nullable\": true\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"source_type\": {\n                    \"allOf\": [\n                      {\n                        \"enum\": [\n                          \"Stripe\",\n                          \"Hubspot\",\n                          \"Postgres\",\n                          \"Zendesk\",\n                          \"Snowflake\",\n                          \"Salesforce\",\n                          \"MySQL\",\n                          \"MongoDB\",\n                          \"MSSQL\",\n                          \"Vitally\",\n                          \"BigQuery\",\n                          \"Chargebee\",\n                          \"GoogleAds\",\n                          \"TemporalIO\",\n                          \"DoIt\",\n                          \"GoogleSheets\",\n                          \"MetaAds\",\n                          \"Klaviyo\",\n                          \"Mailchimp\",\n                          \"Braze\",\n                          \"Mailjet\",\n                          \"Redshift\",\n                          \"Polar\",\n                          \"RevenueCat\",\n                          \"LinkedinAds\",\n                          \"RedditAds\",\n                          \"TikTokAds\",\n                          \"Shopify\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `Stripe` - Stripe\\n* `Hubspot` - Hubspot\\n* `Postgres` - Postgres\\n* `Zendesk` - Zendesk\\n* `Snowflake` - Snowflake\\n* `Salesforce` - Salesforce\\n* `MySQL` - MySQL\\n* `MongoDB` - MongoDB\\n* `MSSQL` - MSSQL\\n* `Vitally` - Vitally\\n* `BigQuery` - BigQuery\\n* `Chargebee` - Chargebee\\n* `GoogleAds` - GoogleAds\\n* `TemporalIO` - TemporalIO\\n* `DoIt` - DoIt\\n* `GoogleSheets` - GoogleSheets\\n* `MetaAds` - MetaAds\\n* `Klaviyo` - Klaviyo\\n* `Mailchimp` - Mailchimp\\n* `Braze` - Braze\\n* `Mailjet` - Mailjet\\n* `Redshift` - Redshift\\n* `Polar` - Polar\\n* `RevenueCat` - RevenueCat\\n* `LinkedinAds` - LinkedinAds\\n* `RedditAds` - RedditAds\\n* `TikTokAds` - TikTokAds\\n* `Shopify` - Shopify\"\n                      }\n                    ],\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"created_at\",\n                  \"created_by\",\n                  \"id\",\n                  \"source_type\",\n                  \"status\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"external_schema\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"columns\",\n          \"created_at\",\n          \"created_by\",\n          \"credential\",\n          \"external_data_source\",\n          \"external_schema\",\n          \"format\",\n          \"id\",\n          \"name\",\n          \"url_pattern\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

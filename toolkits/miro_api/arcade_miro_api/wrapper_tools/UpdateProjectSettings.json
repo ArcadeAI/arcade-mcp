@@ -1,0 +1,210 @@
+{
+  "name": "UpdateProjectSettings",
+  "fully_qualified_name": "MiroApi.UpdateProjectSettings@2.0.0",
+  "description": "Update settings for an enterprise-level project.\n\nThis tool updates the settings of a specified project within an organization's team, available only for Enterprise plan users with Company Admin roles.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The ID of the organization to which the project belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the organization to which the project belongs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "team_id",
+        "required": true,
+        "description": "The unique identifier of the team associated with the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the team to which the project belongs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The unique ID of the project whose settings need updating.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the project whose settings you want to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "team_access_level",
+        "required": false,
+        "description": "Specifies the access level for the team. Use \"private\" to restrict access to project members only and \"view\" to allow team-wide viewing.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "private",
+            "view"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team access\n* \"private\": Only the members of the project can access the information within the project.\n* \"view\":    Anyone in the team can view the information in within the project.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sharingPolicySettings.teamAccess"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-update-project-settings'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/projects/{project_id}/settings",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "The ID of the organization to which the project belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the organization to which the project belongs."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_id",
+        "description": "The ID of the team to which the project belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the team to which the project belongs."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "The ID of the project whose settings you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the project whose settings you want to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sharingPolicySettings.teamAccess",
+        "tool_parameter_name": "team_access_level",
+        "description": "Team access\n* \"private\": Only the members of the project can access the information within the project.\n* \"view\":    Anyone in the team can view the information in within the project.\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "private",
+            "view"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team access\n* \"private\": Only the members of the project can access the information within the project.\n* \"view\":    Anyone in the team can view the information in within the project.\n"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "private",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"sharingPolicySettings\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"teamAccess\": {\n                \"type\": \"string\",\n                \"description\": \"Team access\\n* \\\"private\\\": Only the members of the project can access the information within the project.\\n* \\\"view\\\":    Anyone in the team can view the information in within the project.\\n\",\n                \"enum\": [\n                  \"private\",\n                  \"view\"\n                ],\n                \"default\": \"private\",\n                \"example\": \"private\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

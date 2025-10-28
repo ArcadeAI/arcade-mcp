@@ -1,0 +1,764 @@
+{
+  "name": "UpdateViewSettings",
+  "fully_qualified_name": "ClickupApi.UpdateViewSettings@0.1.0",
+  "description": "Update the settings and configuration of a view.\n\nRename, regroup, sort, filter, and modify columns and settings of a view when needing to adjust its configuration.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "view_identifier",
+        "required": true,
+        "description": "The unique identifier for the view to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "view_id"
+      },
+      {
+        "name": "view_configuration_details",
+        "required": true,
+        "description": "JSON object detailing the view's name, type, location, grouping, sorting, filters, columns, team sidebar, and other settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "parent": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the Workspace, Space, Folder, or List where the view is located."
+                },
+                "type": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of the Hierarchy where the view is created. \\\n \\\nOptions include: \\\n \\\nWorkspace (Everything Level): `7` \\\n \\\nSpace: `4` \\\n \\\nFolder: `5` \\\n \\\nList: `6`"
+                }
+              },
+              "inner_properties": null,
+              "description": "The parent parameter specifies where the view is located in the ClickUp Hierarchy. Both `id` and `type` are required. \\\n \\\nThe `id` is the id of the Workspace, Space, Folder, or List where the view is located. \\\n \\\nThe `type` value indciates the level of the Hierarchy where the view is located."
+            },
+            "grouping": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set the field to group by.\\\n \\\nOptions include: `none`, `status`, `priority`, `assignee`, `tag`, or `dueDate`."
+                },
+                "dir": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set a group sort order using `1` or `-1`.\\\n \\\nFor example, use `1`show tasks with urgent priority at the top of your view, and tasks with no priority at the bottom.\\\n \\\nUse `-1` to reverse the order to show tasks with no priority at the top of your view."
+                },
+                "collapsed": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "ignore": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "divide": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "dir": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "collapsed": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "sorting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "fields": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Include an array of fields to sort by.\\\n \\\n You can sort by the same fields available when [filtering a view](doc:filter-views)."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "op": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The available operator (`op``) values are `AND`` and `OR``."
+                },
+                "fields": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "View the list of [fields available](doc:filter-views) to filter by."
+                },
+                "search": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_closed": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "columns": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "fields": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Custom Fields require the `cf_` prefix and must be formatted as a JSON object. Example: `cf_eb1234567890-c676-4c10-9012-345678901234`"
+                }
+              },
+              "inner_properties": null,
+              "description": "Custom Fields added to a view at the Everything level will be added to all tasks in your Workspace. Once Custom Fields are added to one of these views, you cannot move it to another level of the Hierarchy."
+            },
+            "team_sidebar": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "assignees": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "assigned_comments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "unassigned_tasks": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "settings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "show_task_locations": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_subtasks": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Acceptable values are `1`, `2`, or `3`, which show subtasks separate, expanded, or collapsed."
+                },
+                "show_subtask_parent_names": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_closed_subtasks": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_assignees": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_images": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "collapse_empty_columns": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "me_comments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "me_subtasks": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "me_checklists": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateView'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/view/{view_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "view_id",
+        "tool_parameter_name": "view_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "view_configuration_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "parent": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the Workspace, Space, Folder, or List where the view is located."
+                },
+                "type": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of the Hierarchy where the view is created. \\\n \\\nOptions include: \\\n \\\nWorkspace (Everything Level): `7` \\\n \\\nSpace: `4` \\\n \\\nFolder: `5` \\\n \\\nList: `6`"
+                }
+              },
+              "inner_properties": null,
+              "description": "The parent parameter specifies where the view is located in the ClickUp Hierarchy. Both `id` and `type` are required. \\\n \\\nThe `id` is the id of the Workspace, Space, Folder, or List where the view is located. \\\n \\\nThe `type` value indciates the level of the Hierarchy where the view is located."
+            },
+            "grouping": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set the field to group by.\\\n \\\nOptions include: `none`, `status`, `priority`, `assignee`, `tag`, or `dueDate`."
+                },
+                "dir": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set a group sort order using `1` or `-1`.\\\n \\\nFor example, use `1`show tasks with urgent priority at the top of your view, and tasks with no priority at the bottom.\\\n \\\nUse `-1` to reverse the order to show tasks with no priority at the top of your view."
+                },
+                "collapsed": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "ignore": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "divide": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "dir": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "collapsed": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "sorting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "fields": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Include an array of fields to sort by.\\\n \\\n You can sort by the same fields available when [filtering a view](doc:filter-views)."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "op": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The available operator (`op``) values are `AND`` and `OR``."
+                },
+                "fields": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "View the list of [fields available](doc:filter-views) to filter by."
+                },
+                "search": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_closed": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "columns": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "fields": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Custom Fields require the `cf_` prefix and must be formatted as a JSON object. Example: `cf_eb1234567890-c676-4c10-9012-345678901234`"
+                }
+              },
+              "inner_properties": null,
+              "description": "Custom Fields added to a view at the Everything level will be added to all tasks in your Workspace. Once Custom Fields are added to one of these views, you cannot move it to another level of the Hierarchy."
+            },
+            "team_sidebar": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "assignees": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "assigned_comments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "unassigned_tasks": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "settings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "show_task_locations": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_subtasks": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Acceptable values are `1`, `2`, or `3`, which show subtasks separate, expanded, or collapsed."
+                },
+                "show_subtask_parent_names": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_closed_subtasks": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_assignees": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "show_images": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "collapse_empty_columns": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "me_comments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "me_subtasks": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "me_checklists": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"UpdateViewrequest\",\n        \"required\": [\n          \"name\",\n          \"type\",\n          \"parent\",\n          \"grouping\",\n          \"divide\",\n          \"sorting\",\n          \"filters\",\n          \"columns\",\n          \"team_sidebar\",\n          \"settings\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"type\": {\n            \"type\": \"string\"\n          },\n          \"parent\": {\n            \"title\": \"Parent\",\n            \"description\": \"The parent parameter specifies where the view is located in the ClickUp Hierarchy. Both `id` and `type` are required. \\\\\\n \\\\\\nThe `id` is the id of the Workspace, Space, Folder, or List where the view is located. \\\\\\n \\\\\\nThe `type` value indciates the level of the Hierarchy where the view is located.\",\n            \"required\": [\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"The id of the Workspace, Space, Folder, or List where the view is located.\"\n              },\n              \"type\": {\n                \"type\": \"integer\",\n                \"description\": \"The level of the Hierarchy where the view is created. \\\\\\n \\\\\\nOptions include: \\\\\\n \\\\\\nWorkspace (Everything Level): `7` \\\\\\n \\\\\\nSpace: `4` \\\\\\n \\\\\\nFolder: `5` \\\\\\n \\\\\\nList: `6`\",\n                \"contentEncoding\": \"int32\"\n              }\n            },\n            \"examples\": [\n              {\n                \"id\": \"512\",\n                \"type\": 7\n              }\n            ]\n          },\n          \"grouping\": {\n            \"title\": \"Grouping\",\n            \"required\": [\n              \"field\",\n              \"dir\",\n              \"collapsed\",\n              \"ignore\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"field\": {\n                \"type\": \"string\",\n                \"description\": \"Set the field to group by.\\\\\\n \\\\\\nOptions include: `none`, `status`, `priority`, `assignee`, `tag`, or `dueDate`.\"\n              },\n              \"dir\": {\n                \"description\": \"Set a group sort order using `1` or `-1`.\\\\\\n \\\\\\nFor example, use `1`show tasks with urgent priority at the top of your view, and tasks with no priority at the bottom.\\\\\\n \\\\\\nUse `-1` to reverse the order to show tasks with no priority at the top of your view.\",\n                \"type\": \"integer\",\n                \"contentEncoding\": \"int32\"\n              },\n              \"collapsed\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"\"\n              },\n              \"ignore\": {\n                \"type\": \"boolean\"\n              }\n            },\n            \"examples\": [\n              {\n                \"field\": \"status\",\n                \"dir\": 1,\n                \"collapsed\": [],\n                \"ignore\": false\n              }\n            ]\n          },\n          \"divide\": {\n            \"title\": \"Divide\",\n            \"required\": [\n              \"collapsed\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"field\": {\n                \"type\": [\n                  \"null\"\n                ]\n              },\n              \"dir\": {\n                \"type\": [\n                  \"null\"\n                ]\n              },\n              \"collapsed\": {\n                \"type\": [\n                  \"boolean\"\n                ]\n              }\n            },\n            \"examples\": [\n              {\n                \"field\": null,\n                \"dir\": null,\n                \"collapsed\": []\n              }\n            ]\n          },\n          \"sorting\": {\n            \"title\": \"Sorting\",\n            \"required\": [\n              \"fields\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"fields\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"Include an array of fields to sort by.\\\\\\n \\\\\\n You can sort by the same fields available when [filtering a view](doc:filter-views).\"\n              }\n            },\n            \"examples\": [\n              {\n                \"fields\": [\n                  {\n                    \"field\": \"cf_624a423a-c1d1-4467-99e2-63e225658cb2\",\n                    \"dir\": -1,\n                    \"idx\": 0\n                  }\n                ]\n              }\n            ]\n          },\n          \"filters\": {\n            \"title\": \"Filters\",\n            \"required\": [\n              \"op\",\n              \"fields\",\n              \"search\",\n              \"show_closed\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"op\": {\n                \"type\": \"string\",\n                \"description\": \"The available operator (`op``) values are `AND`` and `OR``.\"\n              },\n              \"fields\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"View the list of [fields available](doc:filter-views) to filter by.\"\n              },\n              \"search\": {\n                \"type\": \"string\"\n              },\n              \"show_closed\": {\n                \"type\": \"boolean\"\n              }\n            },\n            \"examples\": [\n              {\n                \"op\": \"AND\",\n                \"fields\": [],\n                \"search\": \"\",\n                \"show_closed\": false\n              }\n            ]\n          },\n          \"columns\": {\n            \"title\": \"Columns\",\n            \"description\": \"Custom Fields added to a view at the Everything level will be added to all tasks in your Workspace. Once Custom Fields are added to one of these views, you cannot move it to another level of the Hierarchy.\",\n            \"required\": [\n              \"fields\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"fields\": {\n                \"description\": \"Custom Fields require the `cf_` prefix and must be formatted as a JSON object. Example: `cf_eb1234567890-c676-4c10-9012-345678901234`\",\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              }\n            },\n            \"examples\": [\n              {\n                \"fields\": []\n              }\n            ]\n          },\n          \"team_sidebar\": {\n            \"title\": \"TeamSidebar\",\n            \"required\": [\n              \"assignees\",\n              \"assigned_comments\",\n              \"unassigned_tasks\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"assignees\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"\"\n              },\n              \"assigned_comments\": {\n                \"type\": \"boolean\"\n              },\n              \"unassigned_tasks\": {\n                \"type\": \"boolean\"\n              }\n            },\n            \"examples\": [\n              {\n                \"assignees\": [],\n                \"assigned_comments\": false,\n                \"unassigned_tasks\": false\n              }\n            ]\n          },\n          \"settings\": {\n            \"title\": \"Settings\",\n            \"required\": [\n              \"show_task_locations\",\n              \"show_subtasks\",\n              \"show_subtask_parent_names\",\n              \"show_closed_subtasks\",\n              \"show_assignees\",\n              \"show_images\",\n              \"collapse_empty_columns\",\n              \"me_comments\",\n              \"me_subtasks\",\n              \"me_checklists\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"show_task_locations\": {\n                \"type\": \"boolean\"\n              },\n              \"show_subtasks\": {\n                \"description\": \"Acceptable values are `1`, `2`, or `3`, which show subtasks separate, expanded, or collapsed.\",\n                \"type\": \"integer\",\n                \"contentEncoding\": \"int32\"\n              },\n              \"show_subtask_parent_names\": {\n                \"type\": \"boolean\"\n              },\n              \"show_closed_subtasks\": {\n                \"type\": \"boolean\"\n              },\n              \"show_assignees\": {\n                \"type\": \"boolean\"\n              },\n              \"show_images\": {\n                \"type\": \"boolean\"\n              },\n              \"collapse_empty_columns\": {\n                \"type\": [\n                  \"string\",\n                  \"null\"\n                ]\n              },\n              \"me_comments\": {\n                \"type\": \"boolean\"\n              },\n              \"me_subtasks\": {\n                \"type\": \"boolean\"\n              },\n              \"me_checklists\": {\n                \"type\": \"boolean\"\n              }\n            },\n            \"examples\": [\n              {\n                \"show_task_locations\": false,\n                \"show_subtasks\": 3,\n                \"show_subtask_parent_names\": false,\n                \"show_closed_subtasks\": false,\n                \"show_assignees\": true,\n                \"show_images\": true,\n                \"collapse_empty_columns\": null,\n                \"me_comments\": true,\n                \"me_subtasks\": true,\n                \"me_checklists\": true\n              }\n            ]\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"New View Name\",\n            \"type\": \"list\",\n            \"parent\": {\n              \"id\": \"512\",\n              \"type\": 7\n            },\n            \"grouping\": {\n              \"field\": \"status\",\n              \"dir\": 1,\n              \"collapsed\": [],\n              \"ignore\": false\n            },\n            \"divide\": {\n              \"field\": null,\n              \"dir\": null,\n              \"collapsed\": []\n            },\n            \"sorting\": {\n              \"fields\": []\n            },\n            \"filters\": {\n              \"op\": \"AND\",\n              \"fields\": [],\n              \"search\": \"\",\n              \"show_closed\": false\n            },\n            \"columns\": {\n              \"fields\": []\n            },\n            \"team_sidebar\": {\n              \"assignees\": [],\n              \"assigned_comments\": false,\n              \"unassigned_tasks\": false\n            },\n            \"settings\": {\n              \"show_task_locations\": false,\n              \"show_subtasks\": 3,\n              \"show_subtask_parent_names\": false,\n              \"show_closed_subtasks\": false,\n              \"show_assignees\": true,\n              \"show_images\": true,\n              \"collapse_empty_columns\": null,\n              \"me_comments\": true,\n              \"me_subtasks\": true,\n              \"me_checklists\": true\n            }\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"New View Name\",\n        \"type\": \"list\",\n        \"parent\": {\n          \"id\": \"512\",\n          \"type\": 7\n        },\n        \"grouping\": {\n          \"field\": \"status\",\n          \"dir\": 1,\n          \"collapsed\": [],\n          \"ignore\": false\n        },\n        \"divide\": {\n          \"field\": null,\n          \"dir\": null,\n          \"collapsed\": []\n        },\n        \"sorting\": {\n          \"fields\": [\n            {\n              \"field\": \"cf_624a423a-c1d1-4467-99e2-63e225658cb2\",\n              \"dir\": -1,\n              \"idx\": 0\n            }\n          ]\n        },\n        \"filters\": {\n          \"op\": \"AND\",\n          \"fields\": [\n            {\n              \"field\": \"cf_624a423a-c1d1-4467-99e2-63e225658cb2\",\n              \"op\": \"EQ\",\n              \"determinor\": null,\n              \"idx\": 0,\n              \"values\": \"123\"\n            }\n          ],\n          \"search\": \"\",\n          \"show_closed\": false\n        },\n        \"columns\": {\n          \"fields\": [\n            {\n              \"field\": \"assignee\",\n              \"idx\": 0,\n              \"width\": 160,\n              \"hidden\": true,\n              \"name\": null,\n              \"display\": null\n            }\n          ]\n        },\n        \"team_sidebar\": {\n          \"assignees\": [],\n          \"assigned_comments\": false,\n          \"unassigned_tasks\": false\n        },\n        \"settings\": {\n          \"show_task_locations\": false,\n          \"show_subtasks\": 3,\n          \"show_subtask_parent_names\": false,\n          \"show_closed_subtasks\": false,\n          \"show_assignees\": true,\n          \"show_images\": true,\n          \"collapse_empty_columns\": null,\n          \"me_comments\": true,\n          \"me_subtasks\": true,\n          \"me_checklists\": true\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

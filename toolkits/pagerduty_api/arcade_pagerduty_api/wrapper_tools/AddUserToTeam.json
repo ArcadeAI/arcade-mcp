@@ -1,0 +1,249 @@
+{
+  "name": "AddUserToTeam",
+  "fully_qualified_name": "PagerdutyApi.AddUserToTeam@2.0.0",
+  "description": "Add a user to a specified team on PagerDuty.\n\nThis tool adds a user to a specified team using PagerDuty. It should be called when you need to integrate a user within a team structure in an organization. Note that attempting to add a user with a 'read_only_user' role will result in an error. OAuth scope 'teams.write' is required.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_id",
+        "required": true,
+        "description": "The ID of the team to which the user will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "The unique identifier for the user to be added to the team. This ID should match a user already present in the system.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The user ID on the team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_id"
+      },
+      {
+        "name": "accept_header_version",
+        "required": true,
+        "description": "Specify the version of the API to use with the `Accept` header for versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the resource. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "user_role_on_team",
+        "required": false,
+        "description": "Specify the role of the user on the team. Allowed values are 'observer', 'responder', or 'manager'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "observer",
+            "responder",
+            "manager"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The role of the user on the team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "role"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateTeamUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/teams/{id}/users/{user_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "team_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_id",
+        "tool_parameter_name": "user_id",
+        "description": "The user ID on the team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The user ID on the team."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "role",
+        "tool_parameter_name": "user_role_on_team",
+        "description": "The role of the user on the team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "observer",
+            "responder",
+            "manager"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The role of the user on the team."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"role\": {\n            \"type\": \"string\",\n            \"description\": \"The role of the user on the team.\",\n            \"enum\": [\n              \"observer\",\n              \"responder\",\n              \"manager\"\n            ]\n          }\n        }\n      },\n      \"examples\": {\n        \"role\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"role\": \"observer\"\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The role of the user on the team.\"\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

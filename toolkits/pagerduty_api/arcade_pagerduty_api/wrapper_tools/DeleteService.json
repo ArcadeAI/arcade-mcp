@@ -1,11 +1,11 @@
 {
   "name": "DeleteService",
-  "fully_qualified_name": "PagerdutyApi.DeleteService@0.1.0",
-  "description": "Delete an existing service in Pagerduty.\n\nUse this tool to delete an existing service from Pagerduty. Once deleted, the service cannot be accessed through the web UI, and new incidents cannot be created for it. This is typically used for applications, components, or teams that no longer need incident tracking.",
+  "fully_qualified_name": "PagerdutyApi.DeleteService@2.0.0",
+  "description": "Remove a service to prevent new incident creation.\n\nUse this tool to delete an existing service from PagerDuty. Once deleted, the service will no longer be accessible via the web UI, and new incidents cannot be created for it. Typically used for applications, components, or teams no longer needing incident management.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify the version of the API to use via the `Accept` header.",
+        "description": "The versioning header used to specify the API version for the request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "The MIME type of the request body, must be 'application/json'.",
+        "description": "Specifies the content type of the request, typically 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/services/{id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

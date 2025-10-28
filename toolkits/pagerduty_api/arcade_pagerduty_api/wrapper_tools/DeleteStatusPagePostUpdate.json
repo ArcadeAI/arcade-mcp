@@ -1,18 +1,18 @@
 {
   "name": "DeleteStatusPagePostUpdate",
-  "fully_qualified_name": "PagerdutyApi.DeleteStatusPagePostUpdate@0.1.0",
-  "description": "Deletes a specific post update from a status page.\n\nUse this tool to delete a specific post update from a status page by providing the relevant IDs. This action requires appropriate permissions (`status_pages.write`).",
+  "fully_qualified_name": "PagerdutyApi.DeleteStatusPagePostUpdate@2.0.0",
+  "description": "Delete a specific post update on PagerDuty.\n\nUse this tool to delete a post update for a specific post on PagerDuty's status page by providing the post ID and post update ID. Requires appropriate OAuth permissions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier for the resource to be deleted.",
+        "description": "The unique ID of the resource to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "status_page_post_id",
         "required": true,
-        "description": "The ID of the Status Page Post to identify which post's update will be deleted.",
+        "description": "The ID of the Status Page Post to identify the specific post.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "status_page_post_update_id",
         "required": true,
-        "description": "The ID of the specific Status Page Post Update to be deleted.",
+        "description": "The unique ID of the status page post update to delete.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "post_update_id"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "Specifies the version of the API to accept. Typically a string like 'application/vnd.pagerduty+json;version=2'.",
+        "description": "Specify the version using the Accept header for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,13 +100,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/posts/{post_id}/post_updates/{post_update_id}",
@@ -169,7 +169,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -196,6 +196,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

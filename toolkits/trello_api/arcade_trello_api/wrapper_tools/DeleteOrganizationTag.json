@@ -1,16 +1,16 @@
 {
   "name": "DeleteOrganizationTag",
-  "fully_qualified_name": "TrelloApi.DeleteOrganizationTag@0.1.0",
-  "description": "Delete a tag from an organization in Trello.\n\nUse this tool to remove a specific tag from an organization in Trello, identified by the organization ID and tag ID.",
+  "fully_qualified_name": "TrelloApi.DeleteOrganizationTag@2.0.0",
+  "description": "Delete a specified tag from an organization.\n\nUse this tool to remove a tag from a specified organization in Trello by providing the organization ID and tag ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "organization_identifier",
+        "name": "organization_id_or_name",
         "required": true,
         "description": "The ID or name of the organization from which to delete the tag.",
         "value_schema": {
@@ -27,7 +27,7 @@
       {
         "name": "tag_id_to_delete",
         "required": true,
-        "description": "The identifier for the tag that needs to be deleted from the organization in Trello.",
+        "description": "The ID of the tag to be removed from the organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/organizations/{id}/tags/{idTag}",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "organization_identifier",
+        "tool_parameter_name": "organization_id_or_name",
         "description": "The ID or name of the organization",
         "value_schema": {
           "val_type": "string",
@@ -100,6 +100,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

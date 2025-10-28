@@ -1,0 +1,741 @@
+{
+  "name": "UnpauseBatchExport",
+  "fully_qualified_name": "PosthogApi.UnpauseBatchExport@0.1.0",
+  "description": "Unpause a paused BatchExport to resume data export.\n\nUse this tool to unpause a paused BatchExport, allowing data export to continue. Ideal for resuming exports that were previously halted.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "batch_export_id",
+        "required": true,
+        "description": "A UUID string identifying the batch export to unpause.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this batch export."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The ID of the project to access. Retrieve using a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "batch_export_details",
+        "required": true,
+        "description": "JSON object defining BatchExport details like ID, team ID, destination, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "team_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The team this belongs to."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A human-readable name for this BatchExport."
+            },
+            "model": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Which model this BatchExport is exporting.\n\n* `events` - Events\n* `persons` - Persons\n* `sessions` - Sessions"
+            },
+            "destination": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A choice of supported BatchExportDestination types.\n\n* `S3` - S3\n* `Snowflake` - Snowflake\n* `Postgres` - Postgres\n* `Redshift` - Redshift\n* `BigQuery` - Bigquery\n* `Databricks` - Databricks\n* `HTTP` - Http\n* `NoOp` - Noop"
+                },
+                "config": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A JSON field to store all configuration parameters required to access a BatchExportDestination."
+                },
+                "integration": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The integration for this destination."
+                },
+                "integration_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Serializer for an BatchExportDestination model."
+            },
+            "interval": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "hour",
+                "day",
+                "week",
+                "every 5 minutes"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `hour` - hour\n* `day` - day\n* `week` - week\n* `every 5 minutes` - every 5 minutes"
+            },
+            "paused": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether this BatchExport is paused or not."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExport was created."
+            },
+            "last_updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExport was last updated."
+            },
+            "last_paused_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExport was last paused."
+            },
+            "start_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time before which any Batch Export runs won't be triggered."
+            },
+            "end_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time after which any Batch Export runs won't be triggered."
+            },
+            "latest_runs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "status": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The status of this run.\n\n* `Cancelled` - Cancelled\n* `Completed` - Completed\n* `ContinuedAsNew` - Continued As New\n* `Failed` - Failed\n* `FailedRetryable` - Failed Retryable\n* `FailedBilling` - Failed Billing\n* `Terminated` - Terminated\n* `TimedOut` - Timedout\n* `Running` - Running\n* `Starting` - Starting"
+                },
+                "records_completed": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The number of records that have been exported."
+                },
+                "latest_error": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The latest error that occurred during this run."
+                },
+                "data_interval_start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The start of the data interval."
+                },
+                "data_interval_end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The end of the data interval."
+                },
+                "cursor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An opaque cursor that may be used to resume."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp at which this BatchExportRun was created."
+                },
+                "finished_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp at which this BatchExportRun finished, successfully or not."
+                },
+                "last_updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp at which this BatchExportRun was last updated."
+                },
+                "records_total_count": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The total count of records that should be exported in this BatchExportRun."
+                },
+                "bytes_exported": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The number of bytes that have been exported in this BatchExportRun."
+                },
+                "batch_export": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The BatchExport this run belongs to."
+                },
+                "backfill": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The backfill this run belongs to."
+                }
+              },
+              "description": null
+            },
+            "hogql_query": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "schema": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A schema of custom fields to select when exporting data."
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'environments_batch_exports_unpause_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/environments/{project_id}/batch_exports/{id}/unpause/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "batch_export_id",
+        "description": "A UUID string identifying this batch export.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this batch export."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "batch_export_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "team_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The team this belongs to."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A human-readable name for this BatchExport."
+            },
+            "model": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Which model this BatchExport is exporting.\n\n* `events` - Events\n* `persons` - Persons\n* `sessions` - Sessions"
+            },
+            "destination": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A choice of supported BatchExportDestination types.\n\n* `S3` - S3\n* `Snowflake` - Snowflake\n* `Postgres` - Postgres\n* `Redshift` - Redshift\n* `BigQuery` - Bigquery\n* `Databricks` - Databricks\n* `HTTP` - Http\n* `NoOp` - Noop"
+                },
+                "config": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A JSON field to store all configuration parameters required to access a BatchExportDestination."
+                },
+                "integration": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The integration for this destination."
+                },
+                "integration_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Serializer for an BatchExportDestination model."
+            },
+            "interval": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "hour",
+                "day",
+                "week",
+                "every 5 minutes"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `hour` - hour\n* `day` - day\n* `week` - week\n* `every 5 minutes` - every 5 minutes"
+            },
+            "paused": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether this BatchExport is paused or not."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExport was created."
+            },
+            "last_updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExport was last updated."
+            },
+            "last_paused_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExport was last paused."
+            },
+            "start_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time before which any Batch Export runs won't be triggered."
+            },
+            "end_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time after which any Batch Export runs won't be triggered."
+            },
+            "latest_runs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "status": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The status of this run.\n\n* `Cancelled` - Cancelled\n* `Completed` - Completed\n* `ContinuedAsNew` - Continued As New\n* `Failed` - Failed\n* `FailedRetryable` - Failed Retryable\n* `FailedBilling` - Failed Billing\n* `Terminated` - Terminated\n* `TimedOut` - Timedout\n* `Running` - Running\n* `Starting` - Starting"
+                },
+                "records_completed": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The number of records that have been exported."
+                },
+                "latest_error": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The latest error that occurred during this run."
+                },
+                "data_interval_start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The start of the data interval."
+                },
+                "data_interval_end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The end of the data interval."
+                },
+                "cursor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An opaque cursor that may be used to resume."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp at which this BatchExportRun was created."
+                },
+                "finished_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp at which this BatchExportRun finished, successfully or not."
+                },
+                "last_updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp at which this BatchExportRun was last updated."
+                },
+                "records_total_count": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The total count of records that should be exported in this BatchExportRun."
+                },
+                "bytes_exported": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The number of bytes that have been exported in this BatchExportRun."
+                },
+                "batch_export": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The BatchExport this run belongs to."
+                },
+                "backfill": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The backfill this run belongs to."
+                }
+              },
+              "description": null
+            },
+            "hogql_query": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "schema": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A schema of custom fields to select when exporting data."
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Serializer for a BatchExport model.\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"description\": \"The team this belongs to.\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"A human-readable name for this BatchExport.\"\n          },\n          \"model\": {\n            \"nullable\": true,\n            \"description\": \"Which model this BatchExport is exporting.\\n\\n* `events` - Events\\n* `persons` - Persons\\n* `sessions` - Sessions\",\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"events\",\n                  \"persons\",\n                  \"sessions\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `events` - Events\\n* `persons` - Persons\\n* `sessions` - Sessions\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"destination\": {\n            \"type\": \"object\",\n            \"description\": \"Serializer for an BatchExportDestination model.\",\n            \"properties\": {\n              \"type\": {\n                \"allOf\": [\n                  {\n                    \"enum\": [\n                      \"S3\",\n                      \"Snowflake\",\n                      \"Postgres\",\n                      \"Redshift\",\n                      \"BigQuery\",\n                      \"Databricks\",\n                      \"HTTP\",\n                      \"NoOp\"\n                    ],\n                    \"type\": \"string\",\n                    \"description\": \"* `S3` - S3\\n* `Snowflake` - Snowflake\\n* `Postgres` - Postgres\\n* `Redshift` - Redshift\\n* `BigQuery` - Bigquery\\n* `Databricks` - Databricks\\n* `HTTP` - Http\\n* `NoOp` - Noop\"\n                  }\n                ],\n                \"description\": \"A choice of supported BatchExportDestination types.\\n\\n* `S3` - S3\\n* `Snowflake` - Snowflake\\n* `Postgres` - Postgres\\n* `Redshift` - Redshift\\n* `BigQuery` - Bigquery\\n* `Databricks` - Databricks\\n* `HTTP` - Http\\n* `NoOp` - Noop\"\n              },\n              \"config\": {\n                \"description\": \"A JSON field to store all configuration parameters required to access a BatchExportDestination.\"\n              },\n              \"integration\": {\n                \"type\": \"integer\",\n                \"nullable\": true,\n                \"description\": \"The integration for this destination.\"\n              },\n              \"integration_id\": {\n                \"type\": \"integer\",\n                \"writeOnly\": true,\n                \"nullable\": true\n              }\n            },\n            \"required\": [\n              \"type\"\n            ]\n          },\n          \"interval\": {\n            \"enum\": [\n              \"hour\",\n              \"day\",\n              \"week\",\n              \"every 5 minutes\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `hour` - hour\\n* `day` - day\\n* `week` - week\\n* `every 5 minutes` - every 5 minutes\"\n          },\n          \"paused\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether this BatchExport is paused or not.\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExport was created.\"\n          },\n          \"last_updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExport was last updated.\"\n          },\n          \"last_paused_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The timestamp at which this BatchExport was last paused.\"\n          },\n          \"start_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"Time before which any Batch Export runs won't be triggered.\"\n          },\n          \"end_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"Time after which any Batch Export runs won't be triggered.\"\n          },\n          \"latest_runs\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"Serializer for a BatchExportRun model.\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\",\n                  \"format\": \"uuid\",\n                  \"readOnly\": true\n                },\n                \"status\": {\n                  \"allOf\": [\n                    {\n                      \"enum\": [\n                        \"Cancelled\",\n                        \"Completed\",\n                        \"ContinuedAsNew\",\n                        \"Failed\",\n                        \"FailedRetryable\",\n                        \"FailedBilling\",\n                        \"Terminated\",\n                        \"TimedOut\",\n                        \"Running\",\n                        \"Starting\"\n                      ],\n                      \"type\": \"string\",\n                      \"description\": \"* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `FailedBilling` - Failed Billing\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n                    }\n                  ],\n                  \"description\": \"The status of this run.\\n\\n* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `FailedBilling` - Failed Billing\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n                },\n                \"records_completed\": {\n                  \"type\": \"integer\",\n                  \"maximum\": 2147483647,\n                  \"minimum\": -2147483648,\n                  \"nullable\": true,\n                  \"description\": \"The number of records that have been exported.\"\n                },\n                \"latest_error\": {\n                  \"type\": \"string\",\n                  \"nullable\": true,\n                  \"description\": \"The latest error that occurred during this run.\"\n                },\n                \"data_interval_start\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"nullable\": true,\n                  \"description\": \"The start of the data interval.\"\n                },\n                \"data_interval_end\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"description\": \"The end of the data interval.\"\n                },\n                \"cursor\": {\n                  \"type\": \"string\",\n                  \"nullable\": true,\n                  \"description\": \"An opaque cursor that may be used to resume.\"\n                },\n                \"created_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true,\n                  \"description\": \"The timestamp at which this BatchExportRun was created.\"\n                },\n                \"finished_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"nullable\": true,\n                  \"description\": \"The timestamp at which this BatchExportRun finished, successfully or not.\"\n                },\n                \"last_updated_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true,\n                  \"description\": \"The timestamp at which this BatchExportRun was last updated.\"\n                },\n                \"records_total_count\": {\n                  \"type\": \"integer\",\n                  \"maximum\": 2147483647,\n                  \"minimum\": -2147483648,\n                  \"nullable\": true,\n                  \"description\": \"The total count of records that should be exported in this BatchExportRun.\"\n                },\n                \"bytes_exported\": {\n                  \"type\": \"integer\",\n                  \"maximum\": 9223372036854775807,\n                  \"minimum\": -9223372036854775808,\n                  \"format\": \"int64\",\n                  \"nullable\": true,\n                  \"description\": \"The number of bytes that have been exported in this BatchExportRun.\"\n                },\n                \"batch_export\": {\n                  \"type\": \"string\",\n                  \"format\": \"uuid\",\n                  \"readOnly\": true,\n                  \"description\": \"The BatchExport this run belongs to.\"\n                },\n                \"backfill\": {\n                  \"type\": \"string\",\n                  \"format\": \"uuid\",\n                  \"nullable\": true,\n                  \"description\": \"The backfill this run belongs to.\"\n                }\n              },\n              \"required\": [\n                \"batch_export\",\n                \"created_at\",\n                \"data_interval_end\",\n                \"id\",\n                \"last_updated_at\",\n                \"status\"\n              ]\n            },\n            \"readOnly\": true\n          },\n          \"hogql_query\": {\n            \"type\": \"string\"\n          },\n          \"schema\": {\n            \"readOnly\": true,\n            \"nullable\": true,\n            \"description\": \"A schema of custom fields to select when exporting data.\"\n          },\n          \"filters\": {\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"destination\",\n          \"id\",\n          \"interval\",\n          \"last_updated_at\",\n          \"latest_runs\",\n          \"name\",\n          \"schema\",\n          \"team_id\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Serializer for a BatchExport model.\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"description\": \"The team this belongs to.\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"A human-readable name for this BatchExport.\"\n          },\n          \"model\": {\n            \"nullable\": true,\n            \"description\": \"Which model this BatchExport is exporting.\\n\\n* `events` - Events\\n* `persons` - Persons\\n* `sessions` - Sessions\",\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"events\",\n                  \"persons\",\n                  \"sessions\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `events` - Events\\n* `persons` - Persons\\n* `sessions` - Sessions\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"destination\": {\n            \"type\": \"object\",\n            \"description\": \"Serializer for an BatchExportDestination model.\",\n            \"properties\": {\n              \"type\": {\n                \"allOf\": [\n                  {\n                    \"enum\": [\n                      \"S3\",\n                      \"Snowflake\",\n                      \"Postgres\",\n                      \"Redshift\",\n                      \"BigQuery\",\n                      \"Databricks\",\n                      \"HTTP\",\n                      \"NoOp\"\n                    ],\n                    \"type\": \"string\",\n                    \"description\": \"* `S3` - S3\\n* `Snowflake` - Snowflake\\n* `Postgres` - Postgres\\n* `Redshift` - Redshift\\n* `BigQuery` - Bigquery\\n* `Databricks` - Databricks\\n* `HTTP` - Http\\n* `NoOp` - Noop\"\n                  }\n                ],\n                \"description\": \"A choice of supported BatchExportDestination types.\\n\\n* `S3` - S3\\n* `Snowflake` - Snowflake\\n* `Postgres` - Postgres\\n* `Redshift` - Redshift\\n* `BigQuery` - Bigquery\\n* `Databricks` - Databricks\\n* `HTTP` - Http\\n* `NoOp` - Noop\"\n              },\n              \"config\": {\n                \"description\": \"A JSON field to store all configuration parameters required to access a BatchExportDestination.\"\n              },\n              \"integration\": {\n                \"type\": \"integer\",\n                \"nullable\": true,\n                \"description\": \"The integration for this destination.\"\n              },\n              \"integration_id\": {\n                \"type\": \"integer\",\n                \"writeOnly\": true,\n                \"nullable\": true\n              }\n            },\n            \"required\": [\n              \"type\"\n            ]\n          },\n          \"interval\": {\n            \"enum\": [\n              \"hour\",\n              \"day\",\n              \"week\",\n              \"every 5 minutes\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `hour` - hour\\n* `day` - day\\n* `week` - week\\n* `every 5 minutes` - every 5 minutes\"\n          },\n          \"paused\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether this BatchExport is paused or not.\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExport was created.\"\n          },\n          \"last_updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExport was last updated.\"\n          },\n          \"last_paused_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The timestamp at which this BatchExport was last paused.\"\n          },\n          \"start_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"Time before which any Batch Export runs won't be triggered.\"\n          },\n          \"end_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"Time after which any Batch Export runs won't be triggered.\"\n          },\n          \"latest_runs\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"Serializer for a BatchExportRun model.\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\",\n                  \"format\": \"uuid\",\n                  \"readOnly\": true\n                },\n                \"status\": {\n                  \"allOf\": [\n                    {\n                      \"enum\": [\n                        \"Cancelled\",\n                        \"Completed\",\n                        \"ContinuedAsNew\",\n                        \"Failed\",\n                        \"FailedRetryable\",\n                        \"FailedBilling\",\n                        \"Terminated\",\n                        \"TimedOut\",\n                        \"Running\",\n                        \"Starting\"\n                      ],\n                      \"type\": \"string\",\n                      \"description\": \"* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `FailedBilling` - Failed Billing\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n                    }\n                  ],\n                  \"description\": \"The status of this run.\\n\\n* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `FailedBilling` - Failed Billing\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n                },\n                \"records_completed\": {\n                  \"type\": \"integer\",\n                  \"maximum\": 2147483647,\n                  \"minimum\": -2147483648,\n                  \"nullable\": true,\n                  \"description\": \"The number of records that have been exported.\"\n                },\n                \"latest_error\": {\n                  \"type\": \"string\",\n                  \"nullable\": true,\n                  \"description\": \"The latest error that occurred during this run.\"\n                },\n                \"data_interval_start\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"nullable\": true,\n                  \"description\": \"The start of the data interval.\"\n                },\n                \"data_interval_end\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"description\": \"The end of the data interval.\"\n                },\n                \"cursor\": {\n                  \"type\": \"string\",\n                  \"nullable\": true,\n                  \"description\": \"An opaque cursor that may be used to resume.\"\n                },\n                \"created_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true,\n                  \"description\": \"The timestamp at which this BatchExportRun was created.\"\n                },\n                \"finished_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"nullable\": true,\n                  \"description\": \"The timestamp at which this BatchExportRun finished, successfully or not.\"\n                },\n                \"last_updated_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true,\n                  \"description\": \"The timestamp at which this BatchExportRun was last updated.\"\n                },\n                \"records_total_count\": {\n                  \"type\": \"integer\",\n                  \"maximum\": 2147483647,\n                  \"minimum\": -2147483648,\n                  \"nullable\": true,\n                  \"description\": \"The total count of records that should be exported in this BatchExportRun.\"\n                },\n                \"bytes_exported\": {\n                  \"type\": \"integer\",\n                  \"maximum\": 9223372036854775807,\n                  \"minimum\": -9223372036854775808,\n                  \"format\": \"int64\",\n                  \"nullable\": true,\n                  \"description\": \"The number of bytes that have been exported in this BatchExportRun.\"\n                },\n                \"batch_export\": {\n                  \"type\": \"string\",\n                  \"format\": \"uuid\",\n                  \"readOnly\": true,\n                  \"description\": \"The BatchExport this run belongs to.\"\n                },\n                \"backfill\": {\n                  \"type\": \"string\",\n                  \"format\": \"uuid\",\n                  \"nullable\": true,\n                  \"description\": \"The backfill this run belongs to.\"\n                }\n              },\n              \"required\": [\n                \"batch_export\",\n                \"created_at\",\n                \"data_interval_end\",\n                \"id\",\n                \"last_updated_at\",\n                \"status\"\n              ]\n            },\n            \"readOnly\": true\n          },\n          \"hogql_query\": {\n            \"type\": \"string\"\n          },\n          \"schema\": {\n            \"readOnly\": true,\n            \"nullable\": true,\n            \"description\": \"A schema of custom fields to select when exporting data.\"\n          },\n          \"filters\": {\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"destination\",\n          \"id\",\n          \"interval\",\n          \"last_updated_at\",\n          \"latest_runs\",\n          \"name\",\n          \"schema\",\n          \"team_id\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Serializer for a BatchExport model.\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"description\": \"The team this belongs to.\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"A human-readable name for this BatchExport.\"\n          },\n          \"model\": {\n            \"nullable\": true,\n            \"description\": \"Which model this BatchExport is exporting.\\n\\n* `events` - Events\\n* `persons` - Persons\\n* `sessions` - Sessions\",\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"events\",\n                  \"persons\",\n                  \"sessions\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `events` - Events\\n* `persons` - Persons\\n* `sessions` - Sessions\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"destination\": {\n            \"type\": \"object\",\n            \"description\": \"Serializer for an BatchExportDestination model.\",\n            \"properties\": {\n              \"type\": {\n                \"allOf\": [\n                  {\n                    \"enum\": [\n                      \"S3\",\n                      \"Snowflake\",\n                      \"Postgres\",\n                      \"Redshift\",\n                      \"BigQuery\",\n                      \"Databricks\",\n                      \"HTTP\",\n                      \"NoOp\"\n                    ],\n                    \"type\": \"string\",\n                    \"description\": \"* `S3` - S3\\n* `Snowflake` - Snowflake\\n* `Postgres` - Postgres\\n* `Redshift` - Redshift\\n* `BigQuery` - Bigquery\\n* `Databricks` - Databricks\\n* `HTTP` - Http\\n* `NoOp` - Noop\"\n                  }\n                ],\n                \"description\": \"A choice of supported BatchExportDestination types.\\n\\n* `S3` - S3\\n* `Snowflake` - Snowflake\\n* `Postgres` - Postgres\\n* `Redshift` - Redshift\\n* `BigQuery` - Bigquery\\n* `Databricks` - Databricks\\n* `HTTP` - Http\\n* `NoOp` - Noop\"\n              },\n              \"config\": {\n                \"description\": \"A JSON field to store all configuration parameters required to access a BatchExportDestination.\"\n              },\n              \"integration\": {\n                \"type\": \"integer\",\n                \"nullable\": true,\n                \"description\": \"The integration for this destination.\"\n              },\n              \"integration_id\": {\n                \"type\": \"integer\",\n                \"writeOnly\": true,\n                \"nullable\": true\n              }\n            },\n            \"required\": [\n              \"type\"\n            ]\n          },\n          \"interval\": {\n            \"enum\": [\n              \"hour\",\n              \"day\",\n              \"week\",\n              \"every 5 minutes\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `hour` - hour\\n* `day` - day\\n* `week` - week\\n* `every 5 minutes` - every 5 minutes\"\n          },\n          \"paused\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether this BatchExport is paused or not.\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExport was created.\"\n          },\n          \"last_updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExport was last updated.\"\n          },\n          \"last_paused_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The timestamp at which this BatchExport was last paused.\"\n          },\n          \"start_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"Time before which any Batch Export runs won't be triggered.\"\n          },\n          \"end_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"Time after which any Batch Export runs won't be triggered.\"\n          },\n          \"latest_runs\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"Serializer for a BatchExportRun model.\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\",\n                  \"format\": \"uuid\",\n                  \"readOnly\": true\n                },\n                \"status\": {\n                  \"allOf\": [\n                    {\n                      \"enum\": [\n                        \"Cancelled\",\n                        \"Completed\",\n                        \"ContinuedAsNew\",\n                        \"Failed\",\n                        \"FailedRetryable\",\n                        \"FailedBilling\",\n                        \"Terminated\",\n                        \"TimedOut\",\n                        \"Running\",\n                        \"Starting\"\n                      ],\n                      \"type\": \"string\",\n                      \"description\": \"* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `FailedBilling` - Failed Billing\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n                    }\n                  ],\n                  \"description\": \"The status of this run.\\n\\n* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `FailedBilling` - Failed Billing\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n                },\n                \"records_completed\": {\n                  \"type\": \"integer\",\n                  \"maximum\": 2147483647,\n                  \"minimum\": -2147483648,\n                  \"nullable\": true,\n                  \"description\": \"The number of records that have been exported.\"\n                },\n                \"latest_error\": {\n                  \"type\": \"string\",\n                  \"nullable\": true,\n                  \"description\": \"The latest error that occurred during this run.\"\n                },\n                \"data_interval_start\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"nullable\": true,\n                  \"description\": \"The start of the data interval.\"\n                },\n                \"data_interval_end\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"description\": \"The end of the data interval.\"\n                },\n                \"cursor\": {\n                  \"type\": \"string\",\n                  \"nullable\": true,\n                  \"description\": \"An opaque cursor that may be used to resume.\"\n                },\n                \"created_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true,\n                  \"description\": \"The timestamp at which this BatchExportRun was created.\"\n                },\n                \"finished_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"nullable\": true,\n                  \"description\": \"The timestamp at which this BatchExportRun finished, successfully or not.\"\n                },\n                \"last_updated_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true,\n                  \"description\": \"The timestamp at which this BatchExportRun was last updated.\"\n                },\n                \"records_total_count\": {\n                  \"type\": \"integer\",\n                  \"maximum\": 2147483647,\n                  \"minimum\": -2147483648,\n                  \"nullable\": true,\n                  \"description\": \"The total count of records that should be exported in this BatchExportRun.\"\n                },\n                \"bytes_exported\": {\n                  \"type\": \"integer\",\n                  \"maximum\": 9223372036854775807,\n                  \"minimum\": -9223372036854775808,\n                  \"format\": \"int64\",\n                  \"nullable\": true,\n                  \"description\": \"The number of bytes that have been exported in this BatchExportRun.\"\n                },\n                \"batch_export\": {\n                  \"type\": \"string\",\n                  \"format\": \"uuid\",\n                  \"readOnly\": true,\n                  \"description\": \"The BatchExport this run belongs to.\"\n                },\n                \"backfill\": {\n                  \"type\": \"string\",\n                  \"format\": \"uuid\",\n                  \"nullable\": true,\n                  \"description\": \"The backfill this run belongs to.\"\n                }\n              },\n              \"required\": [\n                \"batch_export\",\n                \"created_at\",\n                \"data_interval_end\",\n                \"id\",\n                \"last_updated_at\",\n                \"status\"\n              ]\n            },\n            \"readOnly\": true\n          },\n          \"hogql_query\": {\n            \"type\": \"string\"\n          },\n          \"schema\": {\n            \"readOnly\": true,\n            \"nullable\": true,\n            \"description\": \"A schema of custom fields to select when exporting data.\"\n          },\n          \"filters\": {\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"destination\",\n          \"id\",\n          \"interval\",\n          \"last_updated_at\",\n          \"latest_runs\",\n          \"name\",\n          \"schema\",\n          \"team_id\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "ListBankAccounts",
-  "fully_qualified_name": "SquareupApi.ListBankAccounts@0.1.0",
-  "description": "Fetch a list of bank accounts linked to a Square account.\n\nCall this tool to retrieve all bank accounts associated with a Square account. Useful for checking account details or managing linked bank accounts.",
+  "fully_qualified_name": "SquareupApi.ListBankAccounts@2.0.0",
+  "description": "Fetches bank accounts linked to a Square account.\n\nUse this tool to get a list of all bank accounts associated with a Square account. It retrieves relevant bank account details.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The pagination cursor from a previous call to fetch the next set of bank account results.",
+        "description": "The pagination cursor from a previous `ListBankAccounts` call to retrieve the next set of results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "max_bank_accounts_limit",
+        "name": "max_bank_accounts",
         "required": false,
-        "description": "Specify the maximum number of bank accounts to return. The largest supported limit is 1000.",
+        "description": "Specify the maximum number of bank accounts to return. The limit can be up to 1000, which is also the default.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "location_id_filter",
         "required": false,
-        "description": "Optional filter to retrieve bank accounts for a specified location ID only.",
+        "description": "Specify this optional filter to retrieve bank accounts linked to a specific location.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,13 +89,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/bank-accounts",
@@ -117,11 +117,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "max_bank_accounts_limit",
+        "tool_parameter_name": "max_bank_accounts",
         "description": "Upper limit on the number of bank accounts to return in the response. \nCurrently, 1000 is the largest supported limit. You can specify a limit \nof up to 1000 bank accounts. This is also the default limit.",
         "value_schema": {
           "val_type": "integer",
@@ -134,6 +135,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -151,6 +153,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -164,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

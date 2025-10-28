@@ -1,0 +1,417 @@
+{
+  "name": "SearchCatalogItems",
+  "fully_qualified_name": "SquareupApi.SearchCatalogItems@2.0.0",
+  "description": "Find catalog items or variations based on search filters.\n\nUse this tool to search for catalog items or item variations by matching supported search attributes and custom attribute values against specified query filters. This tool is specifically for searching items or item variations, unlike the broader SearchCatalogObjects endpoint.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "search_filters",
+        "required": true,
+        "description": "An object containing a variety of search criteria filters, such as text, category, stock levels, product types, and custom attribute filters, to find catalog items or variations.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "text_filter": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The text filter expression to return items or item variations containing specified text in\nthe `name`, `description`, or `abbreviation` attribute value of an item, or in\nthe `name`, `sku`, or `upc` attribute value of an item variation."
+            },
+            "category_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The category id query expression to return items containing the specified category IDs."
+            },
+            "stock_levels": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The stock-level query expression to return item variations with the specified stock levels.\nSee [SearchCatalogItemsRequestStockLevel](#type-searchcatalogitemsrequeststocklevel) for possible values"
+            },
+            "enabled_location_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The enabled-location query expression to return items and item variations having specified enabled locations."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The pagination token, returned in the previous response, used to fetch the next batch of pending results."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The maximum number of results to return per page. The default value is 100."
+            },
+            "sort_order": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "DESC",
+                "ASC"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+            },
+            "product_types": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The product types query expression to return items or item variations having the specified product types."
+            },
+            "custom_attribute_filters": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "custom_attribute_definition_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching their custom attributes'\n`custom_attribute_definition_id` property value against the the specified id.\nExactly one of `custom_attribute_definition_id` or `key` must be specified."
+                },
+                "key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching their custom attributes'\n`key` property value against the specified key.\nExactly one of `custom_attribute_definition_id` or `key` must be specified."
+                },
+                "string_filter": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching their custom attributes'\n`string_value`  property value against the specified text.\nExactly one of `string_filter`, `number_filter`, `selection_uids_filter`, or `bool_filter` must be specified."
+                },
+                "number_filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "min": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The lower bound of the number range. At least one of `min` or `max` must be specified.\nIf unspecified, the results will have no minimum value."
+                    },
+                    "max": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The upper bound of the number range. At least one of `min` or `max` must be specified.\nIf unspecified, the results will have no maximum value."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The range of a number value between the specified lower and upper bounds."
+                },
+                "selection_uids_filter": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching  their custom attributes'\n`selection_uid_values` values against the specified selection uids.\nExactly one of `string_filter`, `number_filter`, `selection_uids_filter`, or `bool_filter` must be specified."
+                },
+                "bool_filter": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching their custom attributes'\n`boolean_value` property values against the specified Boolean expression.\nExactly one of `string_filter`, `number_filter`, `selection_uids_filter`, or `bool_filter` must be specified."
+                }
+              },
+              "description": "The customer-attribute filter to return items or item variations matching the specified\ncustom attribute expressions. A maximum number of 10 custom attribute expressions are supported in\na single call to the [SearchCatalogItems](api-endpoint:Catalog-SearchCatalogItems) endpoint."
+            },
+            "archived_state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "ARCHIVED_STATE_NOT_ARCHIVED",
+                "ARCHIVED_STATE_ARCHIVED",
+                "ARCHIVED_STATE_ALL"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Defines the values for the `archived_state` query expression \nused in [SearchCatalogItems](api-endpoint:Catalog-SearchCatalogItems) \nto return the archived, not archived or either type of catalog items."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchCatalogItems'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ITEMS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/catalog/search-catalog-items",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "search_filters",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "text_filter": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The text filter expression to return items or item variations containing specified text in\nthe `name`, `description`, or `abbreviation` attribute value of an item, or in\nthe `name`, `sku`, or `upc` attribute value of an item variation."
+            },
+            "category_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The category id query expression to return items containing the specified category IDs."
+            },
+            "stock_levels": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The stock-level query expression to return item variations with the specified stock levels.\nSee [SearchCatalogItemsRequestStockLevel](#type-searchcatalogitemsrequeststocklevel) for possible values"
+            },
+            "enabled_location_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The enabled-location query expression to return items and item variations having specified enabled locations."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The pagination token, returned in the previous response, used to fetch the next batch of pending results."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The maximum number of results to return per page. The default value is 100."
+            },
+            "sort_order": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "DESC",
+                "ASC"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+            },
+            "product_types": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The product types query expression to return items or item variations having the specified product types."
+            },
+            "custom_attribute_filters": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "custom_attribute_definition_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching their custom attributes'\n`custom_attribute_definition_id` property value against the the specified id.\nExactly one of `custom_attribute_definition_id` or `key` must be specified."
+                },
+                "key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching their custom attributes'\n`key` property value against the specified key.\nExactly one of `custom_attribute_definition_id` or `key` must be specified."
+                },
+                "string_filter": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching their custom attributes'\n`string_value`  property value against the specified text.\nExactly one of `string_filter`, `number_filter`, `selection_uids_filter`, or `bool_filter` must be specified."
+                },
+                "number_filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "min": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The lower bound of the number range. At least one of `min` or `max` must be specified.\nIf unspecified, the results will have no minimum value."
+                    },
+                    "max": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The upper bound of the number range. At least one of `min` or `max` must be specified.\nIf unspecified, the results will have no maximum value."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The range of a number value between the specified lower and upper bounds."
+                },
+                "selection_uids_filter": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching  their custom attributes'\n`selection_uid_values` values against the specified selection uids.\nExactly one of `string_filter`, `number_filter`, `selection_uids_filter`, or `bool_filter` must be specified."
+                },
+                "bool_filter": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A query expression to filter items or item variations by matching their custom attributes'\n`boolean_value` property values against the specified Boolean expression.\nExactly one of `string_filter`, `number_filter`, `selection_uids_filter`, or `bool_filter` must be specified."
+                }
+              },
+              "description": "The customer-attribute filter to return items or item variations matching the specified\ncustom attribute expressions. A maximum number of 10 custom attribute expressions are supported in\na single call to the [SearchCatalogItems](api-endpoint:Catalog-SearchCatalogItems) endpoint."
+            },
+            "archived_state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "ARCHIVED_STATE_NOT_ARCHIVED",
+                "ARCHIVED_STATE_ARCHIVED",
+                "ARCHIVED_STATE_ALL"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Defines the values for the `archived_state` query expression \nused in [SearchCatalogItems](api-endpoint:Catalog-SearchCatalogItems) \nto return the archived, not archived or either type of catalog items."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines the request body for the [SearchCatalogItems](api-endpoint:Catalog-SearchCatalogItems) endpoint.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"text_filter\": {\n            \"type\": \"string\",\n            \"description\": \"The text filter expression to return items or item variations containing specified text in\\nthe `name`, `description`, or `abbreviation` attribute value of an item, or in\\nthe `name`, `sku`, or `upc` attribute value of an item variation.\"\n          },\n          \"category_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The category id query expression to return items containing the specified category IDs.\"\n          },\n          \"stock_levels\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"OUT\",\n                \"LOW\"\n              ],\n              \"x-enum-elements\": [\n                {\n                  \"name\": \"OUT\",\n                  \"description\": \"The item inventory is empty.\"\n                },\n                {\n                  \"name\": \"LOW\",\n                  \"description\": \"The item inventory is low.\"\n                }\n              ],\n              \"description\": \"Defines supported stock levels of the item inventory.\",\n              \"x-release-status\": \"PUBLIC\"\n            },\n            \"description\": \"The stock-level query expression to return item variations with the specified stock levels.\\nSee [SearchCatalogItemsRequestStockLevel](#type-searchcatalogitemsrequeststocklevel) for possible values\"\n          },\n          \"enabled_location_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The enabled-location query expression to return items and item variations having specified enabled locations.\"\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"The pagination token, returned in the previous response, used to fetch the next batch of pending results.\"\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The maximum number of results to return per page. The default value is 100.\",\n            \"maximum\": 100\n          },\n          \"sort_order\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"DESC\",\n              \"ASC\"\n            ],\n            \"x-enum-elements\": [\n              {\n                \"name\": \"DESC\",\n                \"description\": \"The results are returned in descending (e.g., newest-first or Z-A) order.\"\n              },\n              {\n                \"name\": \"ASC\",\n                \"description\": \"The results are returned in ascending (e.g., oldest-first or A-Z) order.\"\n              }\n            ],\n            \"description\": \"The order (e.g., chronological or alphabetical) in which results from a request are returned.\",\n            \"x-release-status\": \"PUBLIC\"\n          },\n          \"product_types\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"REGULAR\",\n                \"GIFT_CARD\",\n                \"APPOINTMENTS_SERVICE\",\n                \"FOOD_AND_BEV\",\n                \"EVENT\",\n                \"DIGITAL\",\n                \"DONATION\",\n                \"LEGACY_SQUARE_ONLINE_SERVICE\",\n                \"LEGACY_SQUARE_ONLINE_MEMBERSHIP\"\n              ],\n              \"x-enum-elements\": [\n                {\n                  \"name\": \"REGULAR\",\n                  \"description\": \"An ordinary item.\"\n                },\n                {\n                  \"name\": \"GIFT_CARD\",\n                  \"description\": \"A Square gift card.\"\n                },\n                {\n                  \"name\": \"APPOINTMENTS_SERVICE\",\n                  \"description\": \"A service that can be booked using the Square Appointments app.\"\n                },\n                {\n                  \"name\": \"FOOD_AND_BEV\",\n                  \"description\": \"A food or beverage item that can be sold by restaurants and other food venues.\"\n                },\n                {\n                  \"name\": \"EVENT\",\n                  \"description\": \"An event which tickets can be sold for, including location, address, and times.\"\n                },\n                {\n                  \"name\": \"DIGITAL\",\n                  \"description\": \"A digital item like an ebook or song.\"\n                },\n                {\n                  \"name\": \"DONATION\",\n                  \"description\": \"A donation which site visitors can send for any cause.\"\n                },\n                {\n                  \"name\": \"LEGACY_SQUARE_ONLINE_SERVICE\",\n                  \"description\": \"A legacy Square Online service that is manually fulfilled. This corresponds to the `Other` item type displayed in the Square Seller Dashboard and Square POS apps.\"\n                },\n                {\n                  \"name\": \"LEGACY_SQUARE_ONLINE_MEMBERSHIP\",\n                  \"description\": \"A legacy Square Online membership that is manually fulfilled. This corresponds to the `Membership` item type displayed in the Square Seller Dashboard and Square POS apps.\"\n                }\n              ],\n              \"description\": \"The type of a CatalogItem. Connect V2 only allows the creation of `REGULAR` or `APPOINTMENTS_SERVICE` items.\",\n              \"x-release-status\": \"PUBLIC\"\n            },\n            \"description\": \"The product types query expression to return items or item variations having the specified product types.\"\n          },\n          \"custom_attribute_filters\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"Supported custom attribute query expressions for calling the\\n[SearchCatalogItems](api-endpoint:Catalog-SearchCatalogItems)\\nendpoint to search for items or item variations.\",\n              \"x-release-status\": \"PUBLIC\",\n              \"properties\": {\n                \"custom_attribute_definition_id\": {\n                  \"type\": \"string\",\n                  \"description\": \"A query expression to filter items or item variations by matching their custom attributes'\\n`custom_attribute_definition_id` property value against the the specified id.\\nExactly one of `custom_attribute_definition_id` or `key` must be specified.\",\n                  \"nullable\": true\n                },\n                \"key\": {\n                  \"type\": \"string\",\n                  \"description\": \"A query expression to filter items or item variations by matching their custom attributes'\\n`key` property value against the specified key.\\nExactly one of `custom_attribute_definition_id` or `key` must be specified.\",\n                  \"nullable\": true\n                },\n                \"string_filter\": {\n                  \"type\": \"string\",\n                  \"description\": \"A query expression to filter items or item variations by matching their custom attributes'\\n`string_value`  property value against the specified text.\\nExactly one of `string_filter`, `number_filter`, `selection_uids_filter`, or `bool_filter` must be specified.\",\n                  \"nullable\": true\n                },\n                \"number_filter\": {\n                  \"type\": \"object\",\n                  \"description\": \"The range of a number value between the specified lower and upper bounds.\",\n                  \"x-release-status\": \"PUBLIC\",\n                  \"properties\": {\n                    \"min\": {\n                      \"type\": \"string\",\n                      \"description\": \"The lower bound of the number range. At least one of `min` or `max` must be specified.\\nIf unspecified, the results will have no minimum value.\",\n                      \"nullable\": true\n                    },\n                    \"max\": {\n                      \"type\": \"string\",\n                      \"description\": \"The upper bound of the number range. At least one of `min` or `max` must be specified.\\nIf unspecified, the results will have no maximum value.\",\n                      \"nullable\": true\n                    }\n                  }\n                },\n                \"selection_uids_filter\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  },\n                  \"description\": \"A query expression to filter items or item variations by matching  their custom attributes'\\n`selection_uid_values` values against the specified selection uids.\\nExactly one of `string_filter`, `number_filter`, `selection_uids_filter`, or `bool_filter` must be specified.\",\n                  \"nullable\": true\n                },\n                \"bool_filter\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"A query expression to filter items or item variations by matching their custom attributes'\\n`boolean_value` property values against the specified Boolean expression.\\nExactly one of `string_filter`, `number_filter`, `selection_uids_filter`, or `bool_filter` must be specified.\",\n                  \"nullable\": true\n                }\n              }\n            },\n            \"description\": \"The customer-attribute filter to return items or item variations matching the specified\\ncustom attribute expressions. A maximum number of 10 custom attribute expressions are supported in\\na single call to the [SearchCatalogItems](api-endpoint:Catalog-SearchCatalogItems) endpoint.\"\n          },\n          \"archived_state\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"ARCHIVED_STATE_NOT_ARCHIVED\",\n              \"ARCHIVED_STATE_ARCHIVED\",\n              \"ARCHIVED_STATE_ALL\"\n            ],\n            \"x-enum-elements\": [\n              {\n                \"name\": \"ARCHIVED_STATE_NOT_ARCHIVED\",\n                \"description\": \"Requested items are not archived with the `is_archived` attribute set to `false`.\"\n              },\n              {\n                \"name\": \"ARCHIVED_STATE_ARCHIVED\",\n                \"description\": \"Requested items are archived with the `is_archived` attribute set to `true`.\"\n              },\n              {\n                \"name\": \"ARCHIVED_STATE_ALL\",\n                \"description\": \"Requested items can be archived or not archived.\"\n              }\n            ],\n            \"description\": \"Defines the values for the `archived_state` query expression \\nused in [SearchCatalogItems](api-endpoint:Catalog-SearchCatalogItems) \\nto return the archived, not archived or either type of catalog items.\",\n            \"x-release-status\": \"PUBLIC\"\n          }\n        },\n        \"example\": {\n          \"category_ids\": [\n            \"WINE_CATEGORY_ID\"\n          ],\n          \"custom_attribute_filters\": [\n            {\n              \"bool_filter\": true,\n              \"custom_attribute_definition_id\": \"VEGAN_DEFINITION_ID\"\n            },\n            {\n              \"custom_attribute_definition_id\": \"BRAND_DEFINITION_ID\",\n              \"string_filter\": \"Dark Horse\"\n            },\n            {\n              \"key\": \"VINTAGE\",\n              \"number_filter\": {\n                \"max\": 2018,\n                \"min\": 2017\n              }\n            },\n            {\n              \"custom_attribute_definition_id\": \"VARIETAL_DEFINITION_ID\",\n              \"selection_ids_filter\": \"MERLOT_SELECTION_ID\"\n            }\n          ],\n          \"enabled_location_ids\": [\n            \"ATL_LOCATION_ID\"\n          ],\n          \"limit\": 100,\n          \"product_types\": [\n            \"REGULAR\"\n          ],\n          \"sort_order\": \"ASC\",\n          \"stock_levels\": [\n            \"OUT\",\n            \"LOW\"\n          ],\n          \"text_filter\": \"red\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

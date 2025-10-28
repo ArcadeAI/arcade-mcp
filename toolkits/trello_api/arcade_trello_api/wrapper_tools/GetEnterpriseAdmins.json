@@ -1,18 +1,18 @@
 {
   "name": "GetEnterpriseAdmins",
-  "fully_qualified_name": "TrelloApi.GetEnterpriseAdmins@0.1.0",
-  "description": "Retrieve admin members of a specified enterprise.\n\nUse this tool to obtain the list of admin members for a given enterprise, identified by its ID. This is helpful for managing or viewing enterprise administrative access.",
+  "fully_qualified_name": "TrelloApi.GetEnterpriseAdmins@2.0.0",
+  "description": "Retrieve admin members of an enterprise by ID.\n\nUse this tool to obtain a list of admin members associated with a specific enterprise, identified by its ID. The tool helps in managing and viewing enterprise-level administration settings on Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "The unique ID of the enterprise whose admin members you want to retrieve.",
+        "description": "The ID of the enterprise to retrieve admin members for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "member_fields",
+        "name": "admin_fields",
         "required": false,
-        "description": "Specify the fields to be included in the response for each admin member. These should match valid values that the nested member field resource accepts.",
+        "description": "Specify fields to retrieve for each admin member; valid values as per Trello's nested member field resource.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/enterprises/{id}/admins",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "member_fields",
+        "tool_parameter_name": "admin_fields",
         "description": "Any valid value that the [nested member field resource]() accepts.",
         "value_schema": {
           "val_type": "string",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "fullName, userName",
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

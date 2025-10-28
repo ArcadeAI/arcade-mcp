@@ -1,0 +1,553 @@
+{
+  "name": "CreateCustomShareLink",
+  "fully_qualified_name": "CalendlyApi.CreateCustomShareLink@2.0.0",
+  "description": "Create a shareable link for a customized event.\n\nUse this tool to generate a customized shareable link for one-on-one event types on Calendly. This tool should be called when you want to tailor event details for a specific invitee without creating a new event type. Note: Any details not specified will be inherited from the existing event.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_event_details",
+        "required": true,
+        "description": "A JSON object containing details such as event type, duration, location, and availability rules tailored for the specific invitee. This should be used to customize the event when creating a shareable link. If any detail is omitted, it will be inherited from the existing event.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "event_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "duration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Must be one of the provided duration options. If duration options aren't provided then duration must be one of the duration options inherited from the event type."
+            },
+            "duration_options": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A maximum of 4 unique options is allowed. Each option must be >= 1 and <= 720."
+            },
+            "period_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "available_moving",
+                "moving",
+                "fixed",
+                "unlimited"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "is required when `period_type` is 'fixed'\nFormat: `YYYY-MM-DD`"
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "is required when `period_type` is 'fixed'\nFormat: `YYYY-MM-DD`"
+            },
+            "max_booking_time": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "is required when `period_type` is 'moving' or 'available_moving'"
+            },
+            "hide_location": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "determines if a location is hidden until invitee books a spot, only respected when there is a single custom location configured"
+            },
+            "location_configurations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "location": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "is only supported when `kind` is 'physical', 'custom' or 'ask_invitee'"
+                },
+                "additional_info": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "is only supported when `kind` is 'physical' or 'inbound_call' "
+                },
+                "phone_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "is required when `kind` is 'inbound_call'"
+                },
+                "position": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "kind": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "physical",
+                    "ask_invitee",
+                    "custom",
+                    "outbound_call",
+                    "inbound_call",
+                    "google_conference",
+                    "gotomeeting_conference",
+                    "microsoft_teams_conference",
+                    "webex_conference",
+                    "zoom_conference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "availability_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "rules": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "wday",
+                        "date"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "wday": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "sunday",
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "is required when `type` is 'wday'"
+                    },
+                    "date": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "is required when `type` is 'date'\nFormat: `YYYY-MM-DD`"
+                    },
+                    "intervals": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "from": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Format: `\"hh:mm\"`"
+                        },
+                        "to": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Format: `\"hh:mm\"`"
+                        }
+                      },
+                      "description": null
+                    }
+                  },
+                  "description": "are required when an availability rule is provided"
+                },
+                "timezone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "is required when an availability rule is provided"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-share'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/shares",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_event_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "event_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "duration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Must be one of the provided duration options. If duration options aren't provided then duration must be one of the duration options inherited from the event type."
+            },
+            "duration_options": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A maximum of 4 unique options is allowed. Each option must be >= 1 and <= 720."
+            },
+            "period_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "available_moving",
+                "moving",
+                "fixed",
+                "unlimited"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "is required when `period_type` is 'fixed'\nFormat: `YYYY-MM-DD`"
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "is required when `period_type` is 'fixed'\nFormat: `YYYY-MM-DD`"
+            },
+            "max_booking_time": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "is required when `period_type` is 'moving' or 'available_moving'"
+            },
+            "hide_location": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "determines if a location is hidden until invitee books a spot, only respected when there is a single custom location configured"
+            },
+            "location_configurations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "location": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "is only supported when `kind` is 'physical', 'custom' or 'ask_invitee'"
+                },
+                "additional_info": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "is only supported when `kind` is 'physical' or 'inbound_call' "
+                },
+                "phone_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "is required when `kind` is 'inbound_call'"
+                },
+                "position": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "kind": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "physical",
+                    "ask_invitee",
+                    "custom",
+                    "outbound_call",
+                    "inbound_call",
+                    "google_conference",
+                    "gotomeeting_conference",
+                    "microsoft_teams_conference",
+                    "webex_conference",
+                    "zoom_conference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "availability_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "rules": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "wday",
+                        "date"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "wday": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "sunday",
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "is required when `type` is 'wday'"
+                    },
+                    "date": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "is required when `type` is 'date'\nFormat: `YYYY-MM-DD`"
+                    },
+                    "intervals": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "from": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Format: `\"hh:mm\"`"
+                        },
+                        "to": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Format: `\"hh:mm\"`"
+                        }
+                      },
+                      "description": null
+                    }
+                  },
+                  "description": "are required when an availability rule is provided"
+                },
+                "timezone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "is required when an availability rule is provided"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"event_type\": {\n            \"type\": \"string\",\n            \"format\": \"uri\",\n            \"example\": \"https://api.calendly.com/event_types/AAAAAAAAAAAAAAAA\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 55,\n            \"example\": \"15 Minute Meeting\"\n          },\n          \"duration\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"maximum\": 720,\n            \"example\": 15,\n            \"description\": \"Must be one of the provided duration options. If duration options aren't provided then duration must be one of the duration options inherited from the event type.\"\n          },\n          \"duration_options\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\"\n            },\n            \"example\": [\n              1,\n              13,\n              15,\n              720\n            ],\n            \"description\": \"A maximum of 4 unique options is allowed. Each option must be >= 1 and <= 720.\"\n          },\n          \"period_type\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"available_moving\",\n              \"moving\",\n              \"fixed\",\n              \"unlimited\"\n            ],\n            \"example\": \"fixed\"\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date\",\n            \"example\": \"2019-01-02\",\n            \"description\": \"is required when `period_type` is 'fixed'\\nFormat: `YYYY-MM-DD`\"\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"format\": \"date\",\n            \"example\": \"2019-01-03\",\n            \"description\": \"is required when `period_type` is 'fixed'\\nFormat: `YYYY-MM-DD`\"\n          },\n          \"max_booking_time\": {\n            \"type\": \"integer\",\n            \"example\": 300,\n            \"description\": \"is required when `period_type` is 'moving' or 'available_moving'\"\n          },\n          \"hide_location\": {\n            \"type\": \"boolean\",\n            \"description\": \"determines if a location is hidden until invitee books a spot, only respected when there is a single custom location configured\"\n          },\n          \"location_configurations\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"location\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 255,\n                  \"example\": \"123 Abc St.\",\n                  \"description\": \"is only supported when `kind` is 'physical', 'custom' or 'ask_invitee'\"\n                },\n                \"additional_info\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 255,\n                  \"example\": \"Example additional information\",\n                  \"description\": \"is only supported when `kind` is 'physical' or 'inbound_call' \"\n                },\n                \"phone_number\": {\n                  \"type\": \"string\",\n                  \"example\": \"+1 888-888-8888\",\n                  \"description\": \"is required when `kind` is 'inbound_call'\"\n                },\n                \"position\": {\n                  \"type\": \"integer\",\n                  \"example\": 0\n                },\n                \"kind\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"physical\",\n                    \"ask_invitee\",\n                    \"custom\",\n                    \"outbound_call\",\n                    \"inbound_call\",\n                    \"google_conference\",\n                    \"gotomeeting_conference\",\n                    \"microsoft_teams_conference\",\n                    \"webex_conference\",\n                    \"zoom_conference\"\n                  ],\n                  \"example\": \"physical\"\n                }\n              }\n            }\n          },\n          \"availability_rule\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"rules\": {\n                \"type\": \"array\",\n                \"description\": \"are required when an availability rule is provided\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"type\": {\n                      \"type\": \"string\",\n                      \"enum\": [\n                        \"wday\",\n                        \"date\"\n                      ],\n                      \"example\": \"wday\"\n                    },\n                    \"wday\": {\n                      \"type\": \"string\",\n                      \"enum\": [\n                        \"sunday\",\n                        \"monday\",\n                        \"tuesday\",\n                        \"wednesday\",\n                        \"thursday\",\n                        \"friday\",\n                        \"saturday\"\n                      ],\n                      \"example\": \"friday\",\n                      \"description\": \"is required when `type` is 'wday'\"\n                    },\n                    \"date\": {\n                      \"type\": \"string\",\n                      \"format\": \"date\",\n                      \"example\": \"2019-01-02\",\n                      \"description\": \"is required when `type` is 'date'\\nFormat: `YYYY-MM-DD`\"\n                    },\n                    \"intervals\": {\n                      \"type\": \"array\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"from\": {\n                            \"type\": \"string\",\n                            \"pattern\": \"(\\\\d\\\\d):(\\\\d\\\\d)\",\n                            \"example\": \"07:00\",\n                            \"description\": \"Format: `\\\"hh:mm\\\"`\"\n                          },\n                          \"to\": {\n                            \"type\": \"string\",\n                            \"example\": \"11:00\",\n                            \"description\": \"Format: `\\\"hh:mm\\\"`\",\n                            \"pattern\": \"(\\\\d\\\\d):(\\\\d\\\\d)\"\n                          }\n                        }\n                      }\n                    }\n                  }\n                }\n              },\n              \"timezone\": {\n                \"type\": \"string\",\n                \"example\": \"America/New_York\",\n                \"description\": \"is required when an availability rule is provided\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"event_type\"\n        ]\n      },\n      \"examples\": {\n        \"example-1\": {\n          \"value\": {\n            \"event_type\": \"https://api.calendly.com/event_types/AAAAAAAAAAAAAAAA\",\n            \"name\": \"15 Minute Meeting\",\n            \"duration\": 15,\n            \"duration_options\": [\n              1,\n              13,\n              15,\n              720\n            ],\n            \"period_type\": \"available_moving\",\n            \"start_date\": \"2019-01-02\",\n            \"end_date\": \"2019-01-03\",\n            \"max_booking_time\": 300,\n            \"hide_location\": true,\n            \"location_configurations\": [\n              {\n                \"location\": \"123 Abc St.\",\n                \"additional_info\": \"Example additional information\",\n                \"position\": 0,\n                \"kind\": \"physical\"\n              }\n            ],\n            \"availability_rule\": {\n              \"rules\": [\n                {\n                  \"type\": \"wday\",\n                  \"wday\": \"sunday\",\n                  \"date\": \"2019-01-02\",\n                  \"intervals\": [\n                    {\n                      \"from\": \"07:00\",\n                      \"to\": \"11:00\"\n                    }\n                  ]\n                }\n              ],\n              \"timezone\": \"America/New_York\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

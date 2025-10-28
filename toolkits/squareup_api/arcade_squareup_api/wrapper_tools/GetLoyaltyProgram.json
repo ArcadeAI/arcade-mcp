@@ -1,0 +1,109 @@
+{
+  "name": "GetLoyaltyProgram",
+  "fully_qualified_name": "SquareupApi.GetLoyaltyProgram@2.0.0",
+  "description": "Retrieve the loyalty program details for a seller.\n\nUse this tool to get information about the loyalty program in a seller's account. You can specify the program by its ID or use the keyword 'main' to access the primary program. This is useful for understanding how buyers earn points and redeem rewards in the loyalty program.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "loyalty_program_identifier",
+        "required": true,
+        "description": "The ID of the loyalty program or the keyword 'main'. Use to retrieve the loyalty program of a seller.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the loyalty program or the keyword `main`. Either value can be used to retrieve the single loyalty program that belongs to the seller."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "program_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'RetrieveLoyaltyProgram'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/programs/{program_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "program_id",
+        "tool_parameter_name": "loyalty_program_identifier",
+        "description": "The ID of the loyalty program or the keyword `main`. Either value can be used to retrieve the single loyalty program that belongs to the seller.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the loyalty program or the keyword `main`. Either value can be used to retrieve the single loyalty program that belongs to the seller."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

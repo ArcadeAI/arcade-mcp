@@ -1,0 +1,376 @@
+{
+  "name": "UpdateTask",
+  "fully_qualified_name": "PylonApi.UpdateTask@0.1.0",
+  "description": "Update the details of an existing task.\n\nUse this tool to modify the information of a specific task by providing its ID. Ideal for updating any details like status, description, or due date.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_id",
+        "required": true,
+        "description": "The unique ID of the task you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the task to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "assignee_id",
+        "required": false,
+        "description": "The ID of the person assigned to this task. It should be a string representing a valid user ID within the system.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Assignee ID for this task"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignee_id"
+      },
+      {
+        "name": "task_body_html",
+        "required": false,
+        "description": "HTML content for the task's body. This defines the main description or details of the task.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Body HTML for this task"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body_html"
+      },
+      {
+        "name": "task_due_date",
+        "required": false,
+        "description": "Due date for the task in RFC 3339 format, e.g., '2023-12-31T23:59:59Z'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Due date for this task, in RFC 3339 format"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date"
+      },
+      {
+        "name": "milestone_identifier",
+        "required": false,
+        "description": "Specify the Milestone ID associated with the task to update its milestone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Milestone ID for this task"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "milestone_id"
+      },
+      {
+        "name": "project_id",
+        "required": false,
+        "description": "The unique identifier of the project associated with this task. Required to specify which project's task is being updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID for this task"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "task_status",
+        "required": false,
+        "description": "Specify the task status: `not_started`, `in_progress`, or `completed`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "not_started",
+            "in_progress",
+            "completed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Status for this task\n\n* not_started TaskStatusNotStarted\n\n* in_progress TaskStatusInProgress\n\n* completed TaskStatusCompleted"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "task_title",
+        "required": false,
+        "description": "The new title for the task. Provide a clear and concise title for better understanding.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Title for this task"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "title"
+      },
+      {
+        "name": "customer_portal_visible",
+        "required": false,
+        "description": "Set to true to make the task visible on the customer portal. Accepts a boolean.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Customer portal visible for this task"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_portal_visible"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateTask'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/tasks/{id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "task_id",
+        "description": "The ID of the task to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the task to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assignee_id",
+        "tool_parameter_name": "assignee_id",
+        "description": "Assignee ID for this task",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Assignee ID for this task"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body_html",
+        "tool_parameter_name": "task_body_html",
+        "description": "Body HTML for this task",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Body HTML for this task"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_portal_visible",
+        "tool_parameter_name": "customer_portal_visible",
+        "description": "Customer portal visible for this task",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Customer portal visible for this task"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date",
+        "tool_parameter_name": "task_due_date",
+        "description": "Due date for this task, in RFC 3339 format",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Due date for this task, in RFC 3339 format"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "milestone_id",
+        "tool_parameter_name": "milestone_identifier",
+        "description": "Milestone ID for this task",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Milestone ID for this task"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID for this task",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID for this task"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "task_status",
+        "description": "Status for this task\n\n* not_started TaskStatusNotStarted\n\n* in_progress TaskStatusInProgress\n\n* completed TaskStatusCompleted",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "not_started",
+            "in_progress",
+            "completed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Status for this task\n\n* not_started TaskStatusNotStarted\n\n* in_progress TaskStatusInProgress\n\n* completed TaskStatusCompleted"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "title",
+        "tool_parameter_name": "task_title",
+        "description": "Title for this task",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Title for this task"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"assignee_id\": {\n            \"description\": \"Assignee ID for this task\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AssigneeID\"\n          },\n          \"body_html\": {\n            \"description\": \"Body HTML for this task\",\n            \"type\": \"string\",\n            \"x-go-name\": \"BodyHTML\"\n          },\n          \"customer_portal_visible\": {\n            \"description\": \"Customer portal visible for this task\",\n            \"type\": \"boolean\",\n            \"x-go-name\": \"CustomerPortalVisible\"\n          },\n          \"due_date\": {\n            \"description\": \"Due date for this task, in RFC 3339 format\",\n            \"type\": \"string\",\n            \"x-go-name\": \"DueDate\"\n          },\n          \"milestone_id\": {\n            \"description\": \"Milestone ID for this task\",\n            \"type\": \"string\",\n            \"x-go-name\": \"MilestoneID\"\n          },\n          \"project_id\": {\n            \"description\": \"Project ID for this task\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ProjectID\"\n          },\n          \"status\": {\n            \"description\": \"Status for this task\\n\\n* not_started TaskStatusNotStarted\\n\\n* in_progress TaskStatusInProgress\\n\\n* completed TaskStatusCompleted\",\n            \"enum\": [\n              \"not_started\",\n              \"in_progress\",\n              \"completed\"\n            ],\n            \"type\": \"string\",\n            \"x-go-enum-desc\": \"not_started TaskStatusNotStarted\\nin_progress TaskStatusInProgress\\ncompleted TaskStatusCompleted\",\n            \"x-go-name\": \"Status\"\n          },\n          \"title\": {\n            \"description\": \"Title for this task\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Title\"\n          }\n        },\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

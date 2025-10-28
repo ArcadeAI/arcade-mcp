@@ -1,18 +1,18 @@
 {
   "name": "GetPluginMemberPrivacyCompliance",
-  "fully_qualified_name": "TrelloApi.GetPluginMemberPrivacyCompliance@0.1.0",
-  "description": "Retrieve member privacy compliance for a specific plugin.\n\nThis tool retrieves the member privacy compliance details for a specific plugin on Trello. Use this when you need to assess the privacy compliance status of a plugin regarding member information.",
+  "fully_qualified_name": "TrelloApi.GetPluginMemberPrivacyCompliance@2.0.0",
+  "description": "Retrieve a plugin's member privacy compliance status.\n\nUse this tool to get information about the privacy compliance of a specific plugin's members in Trello. It is used when there is a need to verify the compliance status related to member privacy of a plugin by its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "power_up_id",
         "required": true,
-        "description": "The unique identifier for the Power-Up to retrieve its member privacy compliance details.",
+        "description": "The unique identifier of the Power-Up to check member privacy compliance.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/plugins/{id}/compliance/memberPrivacy",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

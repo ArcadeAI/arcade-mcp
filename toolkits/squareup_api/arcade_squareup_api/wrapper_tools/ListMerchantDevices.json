@@ -1,18 +1,18 @@
 {
   "name": "ListMerchantDevices",
-  "fully_qualified_name": "SquareupApi.ListMerchantDevices@0.1.0",
-  "description": "Retrieve a list of merchant's connected devices.\n\nCall this tool to obtain a list of devices associated with a merchant, specifically Terminal API devices, using the Squareup service.",
+  "fully_qualified_name": "SquareupApi.ListMerchantDevices@2.0.0",
+  "description": "Retrieve a list of devices for a merchant's terminal API.\n\nThis tool is used to list all devices associated with a merchant, specifically for the Terminal API. It is helpful for businesses needing an overview of their registered devices.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A pagination cursor from a previous call to retrieve the next set of results.",
+        "description": "A string used to fetch the next set of device results. Obtained from a prior API call, it facilitates pagination.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "result_sort_order",
+        "name": "device_listing_order",
         "required": false,
-        "description": "Specifies whether to list results from oldest to newest ('ASC') or newest to oldest ('DESC'). Default is 'DESC'.",
+        "description": "Specifies whether to list devices from oldest to newest ('ASC') or newest to oldest ('DESC').",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,9 +43,9 @@
         "http_endpoint_parameter_name": "sort_order"
       },
       {
-        "name": "results_per_page",
+        "name": "results_page_limit",
         "required": false,
-        "description": "The number of device results to return in a single API call.",
+        "description": "The number of results to return in a single page. Use this to control pagination of the device list.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -60,7 +60,7 @@
       {
         "name": "filter_by_location_id",
         "required": false,
-        "description": "Return devices only at the specified location.",
+        "description": "Return devices only at the specified location ID, if provided.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -107,13 +107,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/devices",
@@ -135,11 +135,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "sort_order",
-        "tool_parameter_name": "result_sort_order",
+        "tool_parameter_name": "device_listing_order",
         "description": "The order in which results are listed.\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default).",
         "value_schema": {
           "val_type": "string",
@@ -155,11 +156,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "results_per_page",
+        "tool_parameter_name": "results_page_limit",
         "description": "The number of results to return in a single page.",
         "value_schema": {
           "val_type": "integer",
@@ -172,6 +174,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -189,6 +192,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -202,6 +206,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

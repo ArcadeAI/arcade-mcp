@@ -1,18 +1,18 @@
 {
   "name": "GetMaintenanceWindow",
-  "fully_qualified_name": "PagerdutyApi.GetMaintenanceWindow@0.1.0",
-  "description": "Retrieve details of a specific maintenance window.\n\nUse this tool to obtain information about an existing maintenance window, which temporarily disables services for a defined period. Scoped OAuth with 'services.read' is required.",
+  "fully_qualified_name": "PagerdutyApi.GetMaintenanceWindow@2.0.0",
+  "description": "Retrieve details of an existing maintenance window in PagerDuty.\n\nUse this tool to get information about a specific maintenance window, which temporarily disables one or more services during a set period.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "maintenance_window_id",
         "required": true,
-        "description": "The ID of the maintenance window you want to retrieve details for.",
+        "description": "The unique identifier of the maintenance window to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_version_header",
+        "name": "response_version_header",
         "required": true,
-        "description": "Specifies the versioning header using the `Accept` header format.",
+        "description": "The versioning header to specify the API response format. Accepts a string value.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "set_content_type",
+        "name": "content_type",
         "required": true,
-        "description": "Sets the content type for the request. Typically 'application/json'.",
+        "description": "Set this to 'application/json' to specify the response format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "include_models",
         "required": false,
-        "description": "Specify additional models to include in the response. Options: 'teams', 'services', 'users'. Accepts an array of strings.",
+        "description": "Array of additional models to include in the response. Options are 'teams', 'services', or 'users'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -106,13 +106,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/maintenance_windows/{id}",
@@ -161,7 +161,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "response_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -179,7 +179,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "set_content_type",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -208,6 +208,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

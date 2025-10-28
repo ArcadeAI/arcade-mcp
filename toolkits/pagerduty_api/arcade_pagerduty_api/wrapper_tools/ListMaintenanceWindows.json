@@ -1,18 +1,18 @@
 {
   "name": "ListMaintenanceWindows",
-  "fully_qualified_name": "PagerdutyApi.ListMaintenanceWindows@0.1.0",
-  "description": "Retrieve existing maintenance windows with optional filters.\n\nUse this tool to list maintenance windows, which temporarily disable services for specific periods. You can filter the results by service, team, or by time (past, present, future).",
+  "fully_qualified_name": "PagerdutyApi.ListMaintenanceWindows@2.0.0",
+  "description": "Retrieve maintenance windows with optional filters for service or team.\n\nThis tool retrieves a list of existing maintenance windows, allowing optional filtering by service and/or team. It can specify windows from the past, present, or future. A maintenance window is used to disable services temporarily for a set period. Scoped OAuth requires: `services.read`.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_header_version",
+        "name": "accept_header_versioning",
         "required": true,
-        "description": "Use the 'Accept' header to specify the API versioning for the request.",
+        "description": "Specifies the versioning for the API response using the Accept header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the media type of the request body. Use 'application/json'.",
+        "description": "Specifies the media type for the request body. Typically set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,9 +42,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "name_filter_query",
+        "name": "filter_by_name",
         "required": false,
-        "description": "Filter results to show only maintenance windows whose name matches this query.",
+        "description": "Filter maintenance windows to show only those with names matching the query.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "The number of maintenance window results returned per page.",
+        "description": "The number of maintenance window results to display per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "Specifies the starting point for pagination in search results.",
+        "description": "Offset to start the pagination of search results. Use to skip a number of results.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -87,9 +87,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "team_ids",
+        "name": "filter_by_team_ids",
         "required": false,
-        "description": "An array of team IDs to filter maintenance windows. Requires the 'teams' ability.",
+        "description": "Array of team IDs to filter results. Requires 'teams' ability.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "team_ids[]"
       },
       {
-        "name": "service_ids",
+        "name": "filter_by_service_ids",
         "required": false,
-        "description": "An array of service IDs to filter results. Only maintenance windows related to these services will be included.",
+        "description": "An array of service IDs to filter maintenance windows. Only results related to these services will be returned.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -117,9 +117,9 @@
         "http_endpoint_parameter_name": "service_ids[]"
       },
       {
-        "name": "include_additional_models",
+        "name": "include_models",
         "required": false,
-        "description": "Specify additional models to include in the response. Options are 'teams', 'services', or 'users'.",
+        "description": "Specify models to include in the response, such as 'teams', 'services', or 'users'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -136,9 +136,9 @@
         "http_endpoint_parameter_name": "include[]"
       },
       {
-        "name": "maintenance_window_state_filter",
+        "name": "maintenance_window_state",
         "required": false,
-        "description": "Filter maintenance windows by state: past, future, ongoing, open, or all.",
+        "description": "Specify the state of maintenance windows to return: 'past', 'future', 'ongoing', 'open', or 'all'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -157,9 +157,9 @@
         "http_endpoint_parameter_name": "filter"
       },
       {
-        "name": "include_total_count",
+        "name": "include_total_in_response",
         "required": false,
-        "description": "Set to true to include the total count of maintenance windows in the response, which may slow down response times.",
+        "description": "Set to true to populate the `total` field in pagination responses and get the total count of records.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -202,13 +202,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/maintenance_windows",
@@ -217,7 +217,7 @@
     "parameters": [
       {
         "name": "query",
-        "tool_parameter_name": "name_filter_query",
+        "tool_parameter_name": "filter_by_name",
         "description": "Filters the result, showing only the records whose name matches the query.",
         "value_schema": {
           "val_type": "string",
@@ -271,7 +271,7 @@
       },
       {
         "name": "total",
-        "tool_parameter_name": "include_total_count",
+        "tool_parameter_name": "include_total_in_response",
         "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -284,12 +284,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "team_ids[]",
-        "tool_parameter_name": "team_ids",
+        "tool_parameter_name": "filter_by_team_ids",
         "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the `teams` ability to use this parameter.",
         "value_schema": {
           "val_type": "array",
@@ -307,7 +307,7 @@
       },
       {
         "name": "service_ids[]",
-        "tool_parameter_name": "service_ids",
+        "tool_parameter_name": "filter_by_service_ids",
         "description": "An array of service IDs. Only results related to these services will be returned.",
         "value_schema": {
           "val_type": "array",
@@ -325,7 +325,7 @@
       },
       {
         "name": "include[]",
-        "tool_parameter_name": "include_additional_models",
+        "tool_parameter_name": "include_models",
         "description": "Array of additional Models to include in response.",
         "value_schema": {
           "val_type": "string",
@@ -347,7 +347,7 @@
       },
       {
         "name": "filter",
-        "tool_parameter_name": "maintenance_window_state_filter",
+        "tool_parameter_name": "maintenance_window_state",
         "description": "Only return maintenance windows in a given state.",
         "value_schema": {
           "val_type": "string",
@@ -371,7 +371,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_header_versioning",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -389,7 +389,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -418,6 +418,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

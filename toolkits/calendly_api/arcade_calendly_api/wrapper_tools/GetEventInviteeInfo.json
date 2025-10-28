@@ -1,18 +1,18 @@
 {
   "name": "GetEventInviteeInfo",
-  "fully_qualified_name": "CalendlyApi.GetEventInviteeInfo@0.1.0",
-  "description": "Retrieve information about a specific event invitee.\n\nUse this tool to get detailed information about a specified invitee for an event, including their attendance status and personal details.",
+  "fully_qualified_name": "CalendlyApi.GetEventInviteeInfo@2.0.0",
+  "description": "Fetch information about a specific event invitee.\n\nUse this tool to obtain detailed information about an invitee for a particular scheduled event on Calendly. Call this when you need specifics about a person invited to an event, identified by event and invitee UUIDs.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "event_unique_identifier",
         "required": true,
-        "description": "A unique string identifier for the event to identify which event's invitee information to retrieve.",
+        "description": "The unique identifier for the specific Calendly event. Use this to specify which event's invitee details to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "invitee_unique_identifier",
         "required": true,
-        "description": "The unique identifier for the invitee of a specific event. Required to retrieve invitee details.",
+        "description": "The unique identifier of the invitee for a specific event.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/scheduled_events/{event_uuid}/invitees/{invitee_uuid}",
@@ -98,6 +98,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -115,6 +116,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -128,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

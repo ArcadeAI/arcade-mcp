@@ -1,0 +1,138 @@
+{
+  "name": "InviteUserToOrganization",
+  "fully_qualified_name": "CalendlyApi.InviteUserToOrganization@2.0.0",
+  "description": "Invite a user to join an organization.\n\nThis tool sends an invitation to a user to join a specific organization on Calendly. Use it when you need to add a new member to an organization by sending them an invitation.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_unique_identifier",
+        "required": true,
+        "description": "The unique identifier for the organization to which the user is being invited.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization's unique identifier"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "uuid"
+      },
+      {
+        "name": "user_email",
+        "required": true,
+        "description": "The email address of the user to be invited to the organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email of the user being invited"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-organization-invitation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/organizations/{uuid}/invitations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "uuid",
+        "tool_parameter_name": "organization_unique_identifier",
+        "description": "The organization's unique identifier",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization's unique identifier"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "user_email",
+        "description": "The email of the user being invited",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email of the user being invited"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"email\": {\n            \"type\": \"string\",\n            \"description\": \"The email of the user being invited\",\n            \"format\": \"email\",\n            \"example\": \"alice@example.com\"\n          }\n        },\n        \"required\": [\n          \"email\"\n        ]\n      },\n      \"examples\": {\n        \"Example\": {\n          \"value\": {\n            \"email\": \"alice@example.com\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

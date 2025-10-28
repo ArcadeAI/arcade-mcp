@@ -1,0 +1,270 @@
+{
+  "name": "UpdateChecklistItem",
+  "fully_qualified_name": "ClickupApi.UpdateChecklistItem@0.1.0",
+  "description": "Modify or update a specific task checklist item.\n\nThis tool updates an individual line item in a task checklist. It can rename the item, set the assignee, mark it as resolved, or nest it under another item.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "checklist_unique_identifier",
+        "required": true,
+        "description": "The UUID of the checklist to update. Example: b8a8-48d8-a0c6-b4200788a683.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checklist_id"
+      },
+      {
+        "name": "checklist_item_uuid",
+        "required": true,
+        "description": "The UUID for the specific checklist item to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e491-47f5-9fd8-d1dc4cedcc6f (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checklist_item_id"
+      },
+      {
+        "name": "checklist_item_name",
+        "required": false,
+        "description": "The new name for the checklist item. Provide a string to rename the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "assign_item_to_user",
+        "required": false,
+        "description": "The user ID to which the checklist item will be assigned. This should be a string representing a valid user identifier in ClickUp.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignee"
+      },
+      {
+        "name": "parent_checklist_item_id",
+        "required": false,
+        "description": "Include another item's `checklist_item_id` to nest this item under it.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To nest a checklist item under another checklist item, include the other item's `checklist_item_id`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parent"
+      },
+      {
+        "name": "mark_as_resolved",
+        "required": false,
+        "description": "Boolean to mark the checklist item as resolved (true) or unresolved (false).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "resolved"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'EditChecklistItem'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/checklist/{checklist_id}/checklist_item/{checklist_item_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "checklist_id",
+        "tool_parameter_name": "checklist_unique_identifier",
+        "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "checklist_item_id",
+        "tool_parameter_name": "checklist_item_uuid",
+        "description": "e491-47f5-9fd8-d1dc4cedcc6f (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e491-47f5-9fd8-d1dc4cedcc6f (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "checklist_item_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assignee",
+        "tool_parameter_name": "assign_item_to_user",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "resolved",
+        "tool_parameter_name": "mark_as_resolved",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "parent",
+        "tool_parameter_name": "parent_checklist_item_id",
+        "description": "To nest a checklist item under another checklist item, include the other item's `checklist_item_id`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To nest a checklist item under another checklist item, include the other item's `checklist_item_id`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"EditChecklistItemrequest\",\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"assignee\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"resolved\": {\n            \"type\": \"boolean\"\n          },\n          \"parent\": {\n            \"description\": \"To nest a checklist item under another checklist item, include the other item's `checklist_item_id`.\",\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"Updated Checklist Item\",\n            \"assignee\": null,\n            \"resolved\": true,\n            \"parent\": null\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"Updated Checklist Item\",\n        \"assignee\": null,\n        \"resolved\": true,\n        \"parent\": null\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

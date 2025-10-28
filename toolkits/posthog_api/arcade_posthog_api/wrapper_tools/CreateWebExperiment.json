@@ -1,0 +1,280 @@
+{
+  "name": "CreateWebExperiment",
+  "fully_qualified_name": "PosthogApi.CreateWebExperiment@0.1.0",
+  "description": "Create a web experiment for a project.\n\nUse this tool to create a new web experiment within a specified project on Datadog. Each invocation logs the creation of a new experiment.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "ID of the project for the web experiment. Obtain it via /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "experiment_id",
+        "required": true,
+        "description": "Unique integer ID for the web experiment. Required for identifying the experiment within the project.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "experiment_name",
+        "required": true,
+        "description": "The name for the web experiment you want to create in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "feature_flag_key",
+        "required": true,
+        "description": "Unique identifier for the feature flag associated with the web experiment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "feature_flag_key"
+      },
+      {
+        "name": "web_experiment_variants",
+        "required": true,
+        "description": "JSON string defining the variants for the web experiment, including transforms, conditions, and rollout percentages.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Variants for the web experiment. Example:\n\n        {\n            \"control\": {\n                \"transforms\": [\n                    {\n                        \"text\": \"Here comes Superman!\",\n                        \"html\": \"\",\n                        \"selector\": \"#page > #body > .header h1\"\n                    }\n                ],\n                \"conditions\": \"None\",\n                \"rollout_percentage\": 50\n            },\n        }"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "variants"
+      },
+      {
+        "name": "experiment_creation_date",
+        "required": false,
+        "description": "The timestamp when the web experiment was created, in ISO 8601 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'web_experiments_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/web_experiments/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "experiment_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "experiment_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at",
+        "tool_parameter_name": "experiment_creation_date",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "feature_flag_key",
+        "tool_parameter_name": "feature_flag_key",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "variants",
+        "tool_parameter_name": "web_experiment_variants",
+        "description": "Variants for the web experiment. Example:\n\n        {\n            \"control\": {\n                \"transforms\": [\n                    {\n                        \"text\": \"Here comes Superman!\",\n                        \"html\": \"\",\n                        \"selector\": \"#page > #body > .header h1\"\n                    }\n                ],\n                \"conditions\": \"None\",\n                \"rollout_percentage\": 50\n            },\n        }",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Variants for the web experiment. Example:\n\n        {\n            \"control\": {\n                \"transforms\": [\n                    {\n                        \"text\": \"Here comes Superman!\",\n                        \"html\": \"\",\n                        \"selector\": \"#page > #body > .header h1\"\n                    }\n                ],\n                \"conditions\": \"None\",\n                \"rollout_percentage\": 50\n            },\n        }"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Serializer for the exposed /api/web_experiments endpoint, to be used in posthog-js and for headless APIs.\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"feature_flag_key\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"variants\": {\n            \"description\": \"Variants for the web experiment. Example:\\n\\n        {\\n            \\\"control\\\": {\\n                \\\"transforms\\\": [\\n                    {\\n                        \\\"text\\\": \\\"Here comes Superman!\\\",\\n                        \\\"html\\\": \\\"\\\",\\n                        \\\"selector\\\": \\\"#page > #body > .header h1\\\"\\n                    }\\n                ],\\n                \\\"conditions\\\": \\\"None\\\",\\n                \\\"rollout_percentage\\\": 50\\n            },\\n        }\"\n          }\n        },\n        \"required\": [\n          \"feature_flag_key\",\n          \"id\",\n          \"name\",\n          \"variants\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Serializer for the exposed /api/web_experiments endpoint, to be used in posthog-js and for headless APIs.\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"feature_flag_key\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"variants\": {\n            \"description\": \"Variants for the web experiment. Example:\\n\\n        {\\n            \\\"control\\\": {\\n                \\\"transforms\\\": [\\n                    {\\n                        \\\"text\\\": \\\"Here comes Superman!\\\",\\n                        \\\"html\\\": \\\"\\\",\\n                        \\\"selector\\\": \\\"#page > #body > .header h1\\\"\\n                    }\\n                ],\\n                \\\"conditions\\\": \\\"None\\\",\\n                \\\"rollout_percentage\\\": 50\\n            },\\n        }\"\n          }\n        },\n        \"required\": [\n          \"feature_flag_key\",\n          \"id\",\n          \"name\",\n          \"variants\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Serializer for the exposed /api/web_experiments endpoint, to be used in posthog-js and for headless APIs.\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"feature_flag_key\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"variants\": {\n            \"description\": \"Variants for the web experiment. Example:\\n\\n        {\\n            \\\"control\\\": {\\n                \\\"transforms\\\": [\\n                    {\\n                        \\\"text\\\": \\\"Here comes Superman!\\\",\\n                        \\\"html\\\": \\\"\\\",\\n                        \\\"selector\\\": \\\"#page > #body > .header h1\\\"\\n                    }\\n                ],\\n                \\\"conditions\\\": \\\"None\\\",\\n                \\\"rollout_percentage\\\": 50\\n            },\\n        }\"\n          }\n        },\n        \"required\": [\n          \"feature_flag_key\",\n          \"id\",\n          \"name\",\n          \"variants\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

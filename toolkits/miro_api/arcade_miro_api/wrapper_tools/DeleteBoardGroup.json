@@ -1,0 +1,171 @@
+{
+  "name": "DeleteBoardGroup",
+  "fully_qualified_name": "MiroApi.DeleteBoardGroup@2.0.0",
+  "description": "Delete a group and its items from a Miro board.\n\nThis tool removes a specified group and all its contained items from a Miro board. Use it when you need to clean up or reorganize board content by deleting groups. Ensure you have the necessary permissions to modify the board.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "Unique identifier of the board from which the group will be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "group_id",
+        "required": true,
+        "description": "Unique identifier (ID) of the group to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_id"
+      },
+      {
+        "name": "delete_items_with_group",
+        "required": true,
+        "description": "Set to true to delete items within the group when deleting the group from the board.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the items should be removed. Set to `true` to delete items in the group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "delete_items"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteGroup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/groups/{group_id}?",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "delete_items",
+        "tool_parameter_name": "delete_items_with_group",
+        "description": "Indicates whether the items should be removed. Set to `true` to delete items in the group.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the items should be removed. Set to `true` to delete items in the group."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_id",
+        "description": "Unique identifier (ID) of the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_id",
+        "tool_parameter_name": "group_id",
+        "description": "Unique identifier (ID) of the group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the group."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

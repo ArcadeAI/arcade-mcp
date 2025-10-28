@@ -1,18 +1,18 @@
 {
   "name": "RetrieveTeamMemberWageSetting",
-  "fully_qualified_name": "SquareupApi.RetrieveTeamMemberWageSetting@0.1.0",
-  "description": "Retrieve wage setting details for a specific team member.\n\nThis tool retrieves the wage setting for a team member based on their ID. Use this when you need to access detailed wage information about a specific member. It is recommended to use RetrieveTeamMember or SearchTeamMembers for related queries.",
+  "fully_qualified_name": "SquareupApi.RetrieveTeamMemberWageSetting@2.0.0",
+  "description": "Retrieve wage settings for a specified team member.\n\nThis tool retrieves the wage settings of a team member using their TeamMember ID. It's useful for accessing specific wage details related to a team member. If troubleshooting is needed, refer to the linked Square documentation.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "team_member_id",
         "required": true,
-        "description": "The unique identifier for the team member whose wage setting is to be retrieved.",
+        "description": "The unique identifier for the team member whose wage setting needs to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/team-members/{team_member_id}/wage-setting",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

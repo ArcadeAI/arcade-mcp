@@ -1,0 +1,177 @@
+{
+  "name": "BulkSwapSubscriptionPlan",
+  "fully_qualified_name": "SquareupApi.BulkSwapSubscriptionPlan@2.0.0",
+  "description": "Schedule a plan variation swap for multiple subscriptions.\n\nThis tool schedules a swap of plan variations for all active subscriptions under a specified plan variation. It is used when there is a need to change the plan variation for multiple subscriptions simultaneously.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "new_plan_variation_id",
+        "required": true,
+        "description": "The ID of the new subscription plan variation for the swap. This field is required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the new subscription plan variation.\n\nThis field is required."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "new_plan_variation_id"
+      },
+      {
+        "name": "old_plan_variation_id",
+        "required": true,
+        "description": "The ID of the current plan variation to swap. Active subscriptions using this plan will switch to the new variation on their next billing day.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the plan variation whose subscriptions should be swapped. Active subscriptions\nusing this plan variation will be subscribed to the new plan variation on their next billing\nday."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "old_plan_variation_id"
+      },
+      {
+        "name": "location_id_association",
+        "required": true,
+        "description": "The ID of the location to associate with the swapped subscriptions. This specifies where the subscription changes are applied.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the location to associate with the swapped subscriptions."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BulkSwapPlan'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "SUBSCRIPTIONS_READ",
+          "ITEMS_READ",
+          "SUBSCRIPTIONS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/subscriptions/bulk-swap-plan",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "new_plan_variation_id",
+        "tool_parameter_name": "new_plan_variation_id",
+        "description": "The ID of the new subscription plan variation.\n\nThis field is required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the new subscription plan variation.\n\nThis field is required."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "old_plan_variation_id",
+        "tool_parameter_name": "old_plan_variation_id",
+        "description": "The ID of the plan variation whose subscriptions should be swapped. Active subscriptions\nusing this plan variation will be subscribed to the new plan variation on their next billing\nday.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the plan variation whose subscriptions should be swapped. Active subscriptions\nusing this plan variation will be subscribed to the new plan variation on their next billing\nday."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_id",
+        "tool_parameter_name": "location_id_association",
+        "description": "The ID of the location to associate with the swapped subscriptions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the location to associate with the swapped subscriptions."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines input parameters in a call to the\\n[BulkSwapPlan](api-endpoint:Subscriptions-BulkSwapPlan) endpoint.\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"new_plan_variation_id\",\n          \"old_plan_variation_id\",\n          \"location_id\"\n        ],\n        \"properties\": {\n          \"new_plan_variation_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the new subscription plan variation.\\n\\nThis field is required.\",\n            \"minLength\": 1\n          },\n          \"old_plan_variation_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the plan variation whose subscriptions should be swapped. Active subscriptions\\nusing this plan variation will be subscribed to the new plan variation on their next billing\\nday.\",\n            \"minLength\": 1\n          },\n          \"location_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the location to associate with the swapped subscriptions.\",\n            \"minLength\": 1\n          }\n        },\n        \"example\": {\n          \"location_id\": \"S8GWD5R9QB376\",\n          \"new_plan_variation_id\": \"FQ7CDXXWSLUJRPM3GFJSJGZ7\",\n          \"old_plan_variation_id\": \"6JHXF3B2CW3YKHDV4XEM674H\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

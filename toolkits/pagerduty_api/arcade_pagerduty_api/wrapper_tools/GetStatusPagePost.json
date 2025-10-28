@@ -1,18 +1,18 @@
 {
   "name": "GetStatusPagePost",
-  "fully_qualified_name": "PagerdutyApi.GetStatusPagePost@0.1.0",
-  "description": "Retrieve a post from a status page using page and post IDs.\n\nCall this tool to get information about a specific post on a status page using the status page ID and the post ID. Useful for obtaining updates or details about incidents or announcements.",
+  "fully_qualified_name": "PagerdutyApi.GetStatusPagePost@2.0.0",
+  "description": "Retrieve a post from a specific status page.\n\nUse this tool to fetch detailed information about a specific post on a status page using the status page ID and post ID.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "status_page_id",
         "required": true,
-        "description": "The unique identifier of the status page to retrieve the post from.",
+        "description": "The ID of the status page resource to retrieve the post from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "status_page_post_id",
         "required": true,
-        "description": "The unique identifier for the specific status page post to retrieve.",
+        "description": "The unique identifier for the Status Page Post to retrieve details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "post_id"
       },
       {
-        "name": "versioning_header_accept",
+        "name": "accept_versioning_header",
         "required": true,
-        "description": "Specify the version of the API to use with the `Accept` header for versioning.",
+        "description": "Specify the version of the API response using the Accept header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "include_models",
         "required": false,
-        "description": "Array of additional models to include in the response. Add model names as needed.",
+        "description": "Array of model names to include in the response for additional detail.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -100,13 +100,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/posts/{post_id}",
@@ -169,7 +169,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header_accept",
+        "tool_parameter_name": "accept_versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -196,6 +196,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,193 @@
+{
+  "name": "AddCollaboratorToAirtableInterface",
+  "fully_qualified_name": "AirtableApi.AddCollaboratorToAirtableInterface@2.0.0",
+  "description": "Add a collaborator to an Airtable interface.\n\nThis tool is used to add a new collaborator to a specific interface in Airtable. Call this when you need to give a user access to an interface within a particular base.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "airtable_base_id",
+        "required": true,
+        "description": "The unique identifier for the Airtable base where the interface is located. This helps specify which base the collaborator will be added to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "baseId"
+      },
+      {
+        "name": "page_bundle_id",
+        "required": true,
+        "description": "The unique identifier for the specific interface page bundle where the collaborator will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pageBundleId"
+      },
+      {
+        "name": "collaborator_details",
+        "required": false,
+        "description": "JSON object detailing the collaborator to add. Include type (individual or group) and relevant details. Only one collaborator can be added at a time.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "collaborators": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "This endpoint accepts two types of collaborators: **individual user** and **group**. This route currently supports adding only one collaborator at a time."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'add-interface-collaborator'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "workspacesAndBases:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/bases/{baseId}/interfaces/{pageBundleId}/collaborators",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "baseId",
+        "tool_parameter_name": "airtable_base_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "pageBundleId",
+        "tool_parameter_name": "page_bundle_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "collaborator_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "collaborators": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "This endpoint accepts two types of collaborators: **individual user** and **group**. This route currently supports adding only one collaborator at a time."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"collaborators\": {\n            \"description\": \"This endpoint accepts two types of collaborators: **individual user** and **group**. This route currently supports adding only one collaborator at a time.\",\n            \"items\": {\n              \"anyOf\": [\n                {\n                  \"properties\": {\n                    \"group\": {\n                      \"not\": {}\n                    },\n                    \"permissionLevel\": {\n                      \"enum\": [\n                        \"read\",\n                        \"comment\",\n                        \"edit\"\n                      ],\n                      \"type\": \"string\"\n                    },\n                    \"user\": {\n                      \"properties\": {\n                        \"id\": {\n                          \"description\": \"A user ID\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"id\"\n                      ],\n                      \"type\": \"object\"\n                    }\n                  },\n                  \"required\": [\n                    \"permissionLevel\",\n                    \"user\"\n                  ],\n                  \"type\": \"object\"\n                },\n                {\n                  \"properties\": {\n                    \"group\": {\n                      \"properties\": {\n                        \"id\": {\n                          \"description\": \"A user group ID\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"id\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"permissionLevel\": {\n                      \"enum\": [\n                        \"read\",\n                        \"comment\",\n                        \"edit\"\n                      ],\n                      \"type\": \"string\"\n                    },\n                    \"user\": {\n                      \"not\": {}\n                    }\n                  },\n                  \"required\": [\n                    \"group\",\n                    \"permissionLevel\"\n                  ],\n                  \"type\": \"object\"\n                }\n              ]\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"collaborators\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

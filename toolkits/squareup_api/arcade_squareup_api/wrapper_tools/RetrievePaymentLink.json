@@ -1,18 +1,18 @@
 {
   "name": "RetrievePaymentLink",
-  "fully_qualified_name": "SquareupApi.RetrievePaymentLink@0.1.0",
-  "description": "Retrieve details of a specified payment link.\n\nUse this tool to get details about a specific payment link by providing its unique ID. Ideal for retrieving information about payment transactions handled via Squareup.",
+  "fully_qualified_name": "SquareupApi.RetrievePaymentLink@2.0.0",
+  "description": "Retrieve a payment link using its ID.\n\nThis tool retrieves details of a payment link by its unique ID. It's useful for getting information about a specific payment link set up in your Square account.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "payment_link_id",
         "required": true,
-        "description": "The unique ID of the payment link to retrieve details for.",
+        "description": "The unique ID of the payment link to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/online-checkout/payment-links/{id}",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

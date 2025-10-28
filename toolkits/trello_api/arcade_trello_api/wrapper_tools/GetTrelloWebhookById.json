@@ -1,18 +1,18 @@
 {
   "name": "GetTrelloWebhookById",
-  "fully_qualified_name": "TrelloApi.GetTrelloWebhookById@0.1.0",
-  "description": "Retrieve details of a Trello webhook by its ID.\n\nThis tool fetches the details of a Trello webhook using its ID. Ensure to include the token used to create the webhook to avoid authorization errors.",
+  "fully_qualified_name": "TrelloApi.GetTrelloWebhookById@2.0.0",
+  "description": "Retrieve details of a Trello webhook by its ID.\n\nUse this tool to get detailed information about a specific Trello webhook by providing its ID. Ensure the correct token is used to avoid errors.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "webhook_id",
         "required": true,
-        "description": "The unique identifier of the Trello webhook to retrieve.",
+        "description": "The unique identifier for the Trello webhook to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/webhooks/{id}",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

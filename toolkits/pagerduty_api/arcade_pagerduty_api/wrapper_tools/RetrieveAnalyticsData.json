@@ -1,0 +1,367 @@
+{
+  "name": "RetrieveAnalyticsData",
+  "fully_qualified_name": "PagerdutyApi.RetrieveAnalyticsData@2.0.0",
+  "description": "Provides aggregated incident metrics for selected responders.\n\nThis tool retrieves aggregated metrics such as Seconds to Resolve, Seconds to Engage, and Sleep Hour Interruptions for all selected responders. It is called to analyze responder performance and incident handling efficiency. Note that the analytics data may take up to 24 hours to update.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "Specify the version of the API to use for the request, using the 'Accept' header as a versioning indicator.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Specifies the media type of the request, typically 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "analytics_parameters",
+        "required": false,
+        "description": "JSON object specifying filters like date range, urgency, team and responder IDs, priority, and order parameters to refine the analytics dataset.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "date_range_start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Accepts an ISO8601 DateTime string. Any incidents with a created_at less than this value will be omitted from the results. The maximum supported time range in conjunction with date_range_end is one year."
+                },
+                "date_range_end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Accepts an ISO8601 DateTime string. Any incidents with a created_at greater than or equal to this value will be omitted from the results. The maximum supported time range in conjunction with date_range_start is one year."
+                },
+                "urgency": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "high",
+                    "low"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Any incidents whose urgency does not match the provided string will be omitted from the results."
+                },
+                "team_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of team IDs. Only incidents related to these teams will be included in the results. If omitted, all teams the requestor has access to will be included in the results."
+                },
+                "responder_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of responder IDs. Only incidents related to these responders will be included in the results. If omitted, all responders the requestor has access to will be included in the results."
+                },
+                "priority_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of priority IDs. Only incidents with these priorities will be included in the results. If omitted, all priorities will be included in the results."
+                },
+                "priority_names": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of user-defined priority names. Only incidents with these priorities will be included in the results. If omitted, all priorities will be included in the results."
+                }
+              },
+              "inner_properties": null,
+              "description": "Accepts a set of filters to apply to the Incidents before aggregating.  Any incidents that do not match the included filters will be omitted from the results"
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time zone to use for the results and grouping."
+            },
+            "order": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order in which the results were sorted; asc for ascending, desc for descending."
+            },
+            "order_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The column that was used for ordering the results."
+            }
+          },
+          "inner_properties": null,
+          "description": "Parameters and filters to apply to the dataset."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getAnalyticsMetricsRespondersAll'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/analytics/metrics/responders/all",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "analytics_parameters",
+        "description": "Parameters and filters to apply to the dataset.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "date_range_start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Accepts an ISO8601 DateTime string. Any incidents with a created_at less than this value will be omitted from the results. The maximum supported time range in conjunction with date_range_end is one year."
+                },
+                "date_range_end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Accepts an ISO8601 DateTime string. Any incidents with a created_at greater than or equal to this value will be omitted from the results. The maximum supported time range in conjunction with date_range_start is one year."
+                },
+                "urgency": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "high",
+                    "low"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Any incidents whose urgency does not match the provided string will be omitted from the results."
+                },
+                "team_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of team IDs. Only incidents related to these teams will be included in the results. If omitted, all teams the requestor has access to will be included in the results."
+                },
+                "responder_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of responder IDs. Only incidents related to these responders will be included in the results. If omitted, all responders the requestor has access to will be included in the results."
+                },
+                "priority_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of priority IDs. Only incidents with these priorities will be included in the results. If omitted, all priorities will be included in the results."
+                },
+                "priority_names": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of user-defined priority names. Only incidents with these priorities will be included in the results. If omitted, all priorities will be included in the results."
+                }
+              },
+              "inner_properties": null,
+              "description": "Accepts a set of filters to apply to the Incidents before aggregating.  Any incidents that do not match the included filters will be omitted from the results"
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time zone to use for the results and grouping."
+            },
+            "order": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order in which the results were sorted; asc for ascending, desc for descending."
+            },
+            "order_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The column that was used for ordering the results."
+            }
+          },
+          "inner_properties": null,
+          "description": "Parameters and filters to apply to the dataset."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"filters\": {\n            \"type\": \"object\",\n            \"description\": \"Accepts a set of filters to apply to the Incidents before aggregating.  Any incidents that do not match the included filters will be omitted from the results\",\n            \"properties\": {\n              \"date_range_start\": {\n                \"type\": \"string\",\n                \"description\": \"Accepts an ISO8601 DateTime string. Any incidents with a created_at less than this value will be omitted from the results. The maximum supported time range in conjunction with date_range_end is one year.\",\n                \"example\": \"2023-10-01T00:00:00+05:00\"\n              },\n              \"date_range_end\": {\n                \"type\": \"string\",\n                \"description\": \"Accepts an ISO8601 DateTime string. Any incidents with a created_at greater than or equal to this value will be omitted from the results. The maximum supported time range in conjunction with date_range_start is one year.\",\n                \"example\": \"2023-10-01T00:00:00Z\"\n              },\n              \"urgency\": {\n                \"type\": \"string\",\n                \"description\": \"Any incidents whose urgency does not match the provided string will be omitted from the results.\",\n                \"example\": \"high\",\n                \"enum\": [\n                  \"high\",\n                  \"low\"\n                ]\n              },\n              \"team_ids\": {\n                \"type\": \"array\",\n                \"description\": \"An array of team IDs. Only incidents related to these teams will be included in the results. If omitted, all teams the requestor has access to will be included in the results.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"example\": [\n                  \"P373JQQ\",\n                  \"PAECHJV\",\n                  \"P7SYGW6\"\n                ]\n              },\n              \"responder_ids\": {\n                \"type\": \"array\",\n                \"description\": \"An array of responder IDs. Only incidents related to these responders will be included in the results. If omitted, all responders the requestor has access to will be included in the results.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"example\": [\n                  \"PDJXDF3\",\n                  \"PG4EHNS\"\n                ]\n              },\n              \"priority_ids\": {\n                \"type\": \"array\",\n                \"description\": \"An array of priority IDs. Only incidents with these priorities will be included in the results. If omitted, all priorities will be included in the results.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"example\": [\n                  \"PC8O0L3\",\n                  \"PX01HJD\",\n                  \"P5FK83M\"\n                ]\n              },\n              \"priority_names\": {\n                \"type\": \"array\",\n                \"description\": \"An array of user-defined priority names. Only incidents with these priorities will be included in the results. If omitted, all priorities will be included in the results.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"example\": [\n                  \"P1\",\n                  \"P2\",\n                  \"P3\"\n                ]\n              }\n            }\n          },\n          \"time_zone\": {\n            \"type\": \"string\",\n            \"description\": \"The time zone to use for the results and grouping.\",\n            \"example\": \"Etc/UTC\"\n          },\n          \"order\": {\n            \"type\": \"string\",\n            \"description\": \"The order in which the results were sorted; asc for ascending, desc for descending.\",\n            \"enum\": [\n              \"asc\",\n              \"desc\"\n            ]\n          },\n          \"order_by\": {\n            \"type\": \"string\",\n            \"description\": \"The column that was used for ordering the results.\",\n            \"example\": \"user_id\"\n          }\n        }\n      },\n      \"examples\": {\n        \"Example Request\": {\n          \"value\": {\n            \"filters\": {\n              \"date_range_start\": \"2023-06-10T00:00:00-07:00\",\n              \"date_range_end\": \"2023-06-11T23:59:59-07:00\",\n              \"urgency\": \"high\",\n              \"responder_ids\": [\n                \"PDUSER1\",\n                \"PDUSER2\"\n              ]\n            },\n            \"time_zone\": \"Etc/UTC\"\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"Parameters and filters to apply to the dataset.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

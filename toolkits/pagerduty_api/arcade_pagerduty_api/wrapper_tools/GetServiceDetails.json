@@ -1,18 +1,18 @@
 {
   "name": "GetServiceDetails",
-  "fully_qualified_name": "PagerdutyApi.GetServiceDetails@0.1.0",
-  "description": "Retrieve details about a Pagerduty service.\n\nUse this tool to get information about an existing Pagerduty service, which may represent an application, component, or team. This is useful for understanding the entities you may wish to open incidents against.",
+  "fully_qualified_name": "PagerdutyApi.GetServiceDetails@2.0.0",
+  "description": "Retrieve details about an existing service.\n\nFetch detailed information about a service, which may represent an application, component, or team for incident management. Useful for accessing specific service data when managing incidents.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "service_id",
         "required": true,
-        "description": "The unique identifier of the Pagerduty service to retrieve details for.",
+        "description": "The unique identifier of the service to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_versioning_header",
+        "name": "versioning_accept_header",
         "required": true,
-        "description": "Specify the versioning for the API response using the `Accept` header value.",
+        "description": "Specifies the versioning for the API request, using the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specifies the media type of the request payload. Typically set to 'application/json'.",
+        "description": "Specify the content type for the request. The default is 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,9 +57,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "include_additional_details",
+        "name": "additional_details_to_include",
         "required": false,
-        "description": "Specify which additional details to include, such as escalation policies, teams, integrations, and auto pause notifications parameters.",
+        "description": "Array of additional details to include, such as escalation policies, teams, auto pause notifications parameters, or integrations.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -107,13 +107,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/services/{id}",
@@ -122,7 +122,7 @@
     "parameters": [
       {
         "name": "include[]",
-        "tool_parameter_name": "include_additional_details",
+        "tool_parameter_name": "additional_details_to_include",
         "description": "Array of additional details to include.",
         "value_schema": {
           "val_type": "string",
@@ -163,7 +163,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_versioning_header",
+        "tool_parameter_name": "versioning_accept_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -181,7 +181,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -210,6 +210,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

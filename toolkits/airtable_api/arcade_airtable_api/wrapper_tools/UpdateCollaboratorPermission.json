@@ -1,0 +1,203 @@
+{
+  "name": "UpdateCollaboratorPermission",
+  "fully_qualified_name": "AirtableApi.UpdateCollaboratorPermission@2.0.0",
+  "description": "Update a collaborator's permission level on a base.\n\nUse this tool to modify the permission level of a specific collaborator on a designated base. Ideal for managing user access and ensuring appropriate permissions.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "base_identifier",
+        "required": true,
+        "description": "The unique identifier for the base to update permission. Required as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "baseId"
+      },
+      {
+        "name": "collaborator_id",
+        "required": true,
+        "description": "The unique identifier for the user or group whose permission level is being updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userOrGroupId"
+      },
+      {
+        "name": "new_permission_level",
+        "required": false,
+        "description": "JSON object specifying the new permission level for the collaborator. Should include a 'permissionLevel' key with values such as 'read', 'comment', 'edit', or 'create'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "permissionLevel": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "read",
+                "comment",
+                "edit",
+                "create"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-collaborator-base-permission'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "workspacesAndBases:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/bases/{baseId}/collaborators/{userOrGroupId}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "baseId",
+        "tool_parameter_name": "base_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "userOrGroupId",
+        "tool_parameter_name": "collaborator_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_permission_level",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "permissionLevel": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "read",
+                "comment",
+                "edit",
+                "create"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Example Request\": {\n          \"description\": \"Example Request\",\n          \"summary\": \"Example Request\",\n          \"value\": {\n            \"permissionLevel\": \"read\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"permissionLevel\": {\n            \"enum\": [\n              \"read\",\n              \"comment\",\n              \"edit\",\n              \"create\"\n            ],\n            \"type\": \"string\",\n            \"x-airtable-name\": \"Application Permission Levels\",\n            \"x-airtable-tag\": \"collaborators\"\n          }\n        },\n        \"required\": [\n          \"permissionLevel\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

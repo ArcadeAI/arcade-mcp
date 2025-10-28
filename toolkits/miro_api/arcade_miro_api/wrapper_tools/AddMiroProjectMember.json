@@ -1,0 +1,249 @@
+{
+  "name": "AddMiroProjectMember",
+  "fully_qualified_name": "MiroApi.AddMiroProjectMember@2.0.0",
+  "description": "Add a user to an Enterprise Miro project.\n\nUse this tool to add a Miro user to a project under the Enterprise plan. Requires 'projects:write' scope and Company Admin role.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The ID of the organization to which the project belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the organization to which the project belongs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "team_id",
+        "required": true,
+        "description": "The ID of the team to which the project belongs. Used to identify the specific team for project member addition.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the team to which the project belongs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The unique ID of the Miro project to which a user will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the project to which you want to add a user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "user_email_id",
+        "required": true,
+        "description": "The email address of the user to be added as a project member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email ID of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "project_member_role",
+        "required": true,
+        "description": "Role of the user to be assigned in the Miro project. Possible values: owner, editor, viewer, commentator, coowner.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "owner",
+            "editor",
+            "viewer",
+            "commentator",
+            "coowner"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Role of the project member."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "role"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-add-project-member'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/projects/{project_id}/members",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "The ID of the organization to which the project belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the organization to which the project belongs."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_id",
+        "description": "The ID of the team to which the project belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the team to which the project belongs."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "The ID of the project to which you want to add a user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the project to which you want to add a user."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "user_email_id",
+        "description": "Email ID of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email ID of the user."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "role",
+        "tool_parameter_name": "project_member_role",
+        "description": "Role of the project member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "owner",
+            "editor",
+            "viewer",
+            "commentator",
+            "coowner"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Role of the project member."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"email\",\n          \"role\"\n        ],\n        \"properties\": {\n          \"email\": {\n            \"type\": \"string\",\n            \"description\": \"Email ID of the user.\",\n            \"example\": \"someone@domain.com\"\n          },\n          \"role\": {\n            \"type\": \"string\",\n            \"description\": \"Role of the project member.\",\n            \"enum\": [\n              \"owner\",\n              \"editor\",\n              \"viewer\",\n              \"commentator\",\n              \"coowner\"\n            ],\n            \"example\": \"viewer\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

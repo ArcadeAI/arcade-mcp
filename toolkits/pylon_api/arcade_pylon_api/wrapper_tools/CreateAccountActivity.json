@@ -1,0 +1,251 @@
+{
+  "name": "CreateAccountActivity",
+  "fully_qualified_name": "PylonApi.CreateAccountActivity@0.1.0",
+  "description": "Creates a new activity for a specified account.\n\nUse this tool to add a new activity to an account by providing the account's internal or external ID. It will confirm the creation of the activity.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "account_id_for_activity",
+        "required": true,
+        "description": "The internal or external ID of the account to create the activity for. Accepts a UUID or any string format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or external ID of the account to create the activity for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "activity_details",
+        "required": false,
+        "description": "JSON object containing details about the activity, including optional fields like body_html, contact_id, happened_at, link, link_text, slug, and user_id.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional HTML content to display in the activity."
+            },
+            "contact_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional contact ID of the actor of the activity."
+            },
+            "happened_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp (RFC3339) of when the activity happened. Defaults to the current time if empty."
+            },
+            "link": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional link to add to the activity."
+            },
+            "link_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional link text to display on the activity. Defaults to \"Open link\" if not provided. Applies only if a link is provided."
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The slug of the activity to create."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional user ID of the actor of the activity."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateActivity'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/accounts/{id}/activities",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "account_id_for_activity",
+        "description": "The ID or external ID of the account to create the activity for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or external ID of the account to create the activity for."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "activity_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional HTML content to display in the activity."
+            },
+            "contact_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional contact ID of the actor of the activity."
+            },
+            "happened_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp (RFC3339) of when the activity happened. Defaults to the current time if empty."
+            },
+            "link": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional link to add to the activity."
+            },
+            "link_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional link text to display on the activity. Defaults to \"Open link\" if not provided. Applies only if a link is provided."
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The slug of the activity to create."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional user ID of the actor of the activity."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"body_html\": {\n            \"description\": \"Optional HTML content to display in the activity.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"BodyHTML\"\n          },\n          \"contact_id\": {\n            \"description\": \"Optional contact ID of the actor of the activity.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ContactID\"\n          },\n          \"happened_at\": {\n            \"description\": \"Timestamp (RFC3339) of when the activity happened. Defaults to the current time if empty.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"HappenedAt\"\n          },\n          \"link\": {\n            \"description\": \"Optional link to add to the activity.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Link\"\n          },\n          \"link_text\": {\n            \"description\": \"Optional link text to display on the activity. Defaults to \\\"Open link\\\" if not provided. Applies only if a link is provided.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"LinkText\"\n          },\n          \"slug\": {\n            \"description\": \"The slug of the activity to create.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Slug\"\n          },\n          \"user_id\": {\n            \"description\": \"Optional user ID of the actor of the activity.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"UserID\"\n          }\n        },\n        \"required\": [\n          \"slug\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "name": "UpdateWebhookSignatureKey",
+  "fully_qualified_name": "SquareupApi.UpdateWebhookSignatureKey@2.0.0",
+  "description": "Update a webhook subscription's signature key.\n\nUse this tool to replace the existing signature key for a webhook subscription with a new one. This is specifically for managing webhook security by updating the signature key.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_subscription_id",
+        "required": true,
+        "description": "The ID of the Webhook Subscription to update. This is a required field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "[REQUIRED] The ID of the [Subscription](entity:WebhookSubscription) to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription_id"
+      },
+      {
+        "name": "unique_request_identifier",
+        "required": false,
+        "description": "A unique string to identify the UpdateWebhookSubscriptionSignatureKey request, ensuring idempotency.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies the [UpdateWebhookSubscriptionSignatureKey](api-endpoint:WebhookSubscriptions-UpdateWebhookSubscriptionSignatureKey) request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateWebhookSubscriptionSignatureKey'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/webhooks/subscriptions/{subscription_id}/signature-key",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "tool_parameter_name": "webhook_subscription_id",
+        "description": "[REQUIRED] The ID of the [Subscription](entity:WebhookSubscription) to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "[REQUIRED] The ID of the [Subscription](entity:WebhookSubscription) to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_request_identifier",
+        "description": "A unique string that identifies the [UpdateWebhookSubscriptionSignatureKey](api-endpoint:WebhookSubscriptions-UpdateWebhookSubscriptionSignatureKey) request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies the [UpdateWebhookSubscriptionSignatureKey](api-endpoint:WebhookSubscriptions-UpdateWebhookSubscriptionSignatureKey) request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Updates a [Subscription](entity:WebhookSubscription) by replacing the existing signature key with a new one.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies the [UpdateWebhookSubscriptionSignatureKey](api-endpoint:WebhookSubscriptions-UpdateWebhookSubscriptionSignatureKey) request.\",\n            \"maxLength\": 45,\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"ed80ae6b-0654-473b-bbab-a39aee89a60d\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

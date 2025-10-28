@@ -1,0 +1,171 @@
+{
+  "name": "CreateAiResponseForIssue",
+  "fully_qualified_name": "PylonApi.CreateAiResponseForIssue@0.1.0",
+  "description": "Generate an AI response for a specific issue.\n\nThis tool creates an AI-generated response for a given issue by specifying the issue ID. It should be called when an automated response is required for issue resolution or documentation.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_id",
+        "required": true,
+        "description": "The unique ID or number of the issue for which an AI response is required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or number of the issue to create an AI response for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "ai_response_request_body",
+        "required": false,
+        "description": "JSON object containing the AI agent ID and a flag to post the response as an internal note. Includes `ai_agent_id` (string) and `post_as_internal_note` (boolean).",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "ai_agent_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the AI agent to use to create the AI response."
+            },
+            "post_as_internal_note": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to post the AI response as an internal note on the issue."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateIssueAIResponse'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/issues/{id}/ai-response",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "issue_id",
+        "description": "The ID or number of the issue to create an AI response for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or number of the issue to create an AI response for."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "ai_response_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "ai_agent_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the AI agent to use to create the AI response."
+            },
+            "post_as_internal_note": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to post the AI response as an internal note on the issue."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"ai_agent_id\": {\n            \"description\": \"The ID of the AI agent to use to create the AI response.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AIAgentID\"\n          },\n          \"post_as_internal_note\": {\n            \"description\": \"Whether to post the AI response as an internal note on the issue.\",\n            \"type\": \"boolean\",\n            \"x-go-name\": \"PostAsInternalNote\"\n          }\n        },\n        \"required\": [\n          \"ai_agent_id\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

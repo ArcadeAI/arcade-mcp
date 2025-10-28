@@ -1,18 +1,18 @@
 {
   "name": "RenameTrelloList",
-  "fully_qualified_name": "TrelloApi.RenameTrelloList@0.1.0",
-  "description": "Rename a list on Trello using its ID and field.\n\nUse this tool to rename a list on Trello by specifying the list ID and desired field name.",
+  "fully_qualified_name": "TrelloApi.RenameTrelloList@2.0.0",
+  "description": "Renames a Trello list by its ID.\n\nUse this tool to update the name of a specific Trello list. Call this when you need to change a list's title by specifying its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "list_id",
+        "name": "trello_list_id",
         "required": true,
-        "description": "The unique identifier of the Trello list to be renamed.",
+        "description": "The unique identifier for the Trello list you want to rename.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "list_field_to_update",
         "required": true,
-        "description": "Specify the list field to update, e.g., 'name', 'pos', or 'subscribed'.",
+        "description": "Specifies the list field to update, such as 'name', 'pos', or 'subscribed'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -46,7 +46,7 @@
       {
         "name": "new_list_name",
         "required": false,
-        "description": "The new name for the Trello list you want to apply.",
+        "description": "The new name for the Trello list. Provide a descriptive and clear title to easily identify the list.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -91,13 +91,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/lists/{id}/{field}",
@@ -119,11 +119,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "list_id",
+        "tool_parameter_name": "trello_list_id",
         "description": "The ID of the list",
         "value_schema": {
           "val_type": "string",
@@ -136,6 +137,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -157,6 +159,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -178,6 +181,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

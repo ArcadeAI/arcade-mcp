@@ -1,0 +1,170 @@
+{
+  "name": "UpdateMilestone",
+  "fully_qualified_name": "PylonApi.UpdateMilestone@0.1.0",
+  "description": "Updates the details of a specific milestone.\n\nThis tool is used to update information for a specific milestone in a project, identified by its ID.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "milestone_id",
+        "required": true,
+        "description": "The unique ID of the milestone to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the milestone to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "milestone_due_date",
+        "required": false,
+        "description": "The due date for the milestone in RFC 3339 format (e.g., 2023-10-21T00:00:00Z).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Due date for this milestone, in RFC 3339 format"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date"
+      },
+      {
+        "name": "milestone_name",
+        "required": false,
+        "description": "The new name for the milestone you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for this milestone"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateMilestone'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/milestones/{id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "milestone_id",
+        "description": "The ID of the milestone to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the milestone to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date",
+        "tool_parameter_name": "milestone_due_date",
+        "description": "Due date for this milestone, in RFC 3339 format",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Due date for this milestone, in RFC 3339 format"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "milestone_name",
+        "description": "Name for this milestone",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for this milestone"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"due_date\": {\n            \"description\": \"Due date for this milestone, in RFC 3339 format\",\n            \"type\": \"string\",\n            \"x-go-name\": \"DueDate\"\n          },\n          \"name\": {\n            \"description\": \"Name for this milestone\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Name\"\n          }\n        },\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

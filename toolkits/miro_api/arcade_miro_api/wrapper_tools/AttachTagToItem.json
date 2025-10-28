@@ -1,18 +1,18 @@
 {
   "name": "AttachTagToItem",
-  "fully_qualified_name": "MiroApi.AttachTagToItem@0.1.0",
-  "description": "Attach an existing tag to a specified board item in Miro.\n\nUse this tool to attach an existing tag to a card or sticky note item on a Miro board. Note that updates made via this tool will not be reflected on the board in real-time; you need to refresh the board to see changes. Suitable for up to 8 tags per item.",
+  "fully_qualified_name": "MiroApi.AttachTagToItem@2.0.0",
+  "description": "Attach a tag to a specific item on a Miro board.\n\nUse this tool to attach an existing tag to a specified item, such as a card or sticky note, on a Miro board. Note that updates to tags via the API will require a board refresh to be visible.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "tag_identifier",
+        "name": "tag_id",
         "required": true,
-        "description": "The unique ID of the tag to attach to the specified item on Miro.",
+        "description": "Unique identifier of the tag to attach to the item.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "board_id",
         "required": true,
-        "description": "Unique identifier (ID) of the board containing the item to which you want to add a tag.",
+        "description": "Unique ID of the board where the item to tag is located.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "board_id_PlatformTags"
       },
       {
-        "name": "item_id",
+        "name": "item_identifier",
         "required": true,
-        "description": "Unique identifier of the item to which you want to attach a tag on the Miro board.",
+        "description": "Unique identifier of the item to which you want to add a tag on the Miro board.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/boards/{board_id_PlatformTags}/items/{item_id}",
@@ -100,7 +100,7 @@
     "parameters": [
       {
         "name": "tag_id",
-        "tool_parameter_name": "tag_identifier",
+        "tool_parameter_name": "tag_id",
         "description": "Unique identifier (ID) of the tag you want to add to the item.",
         "value_schema": {
           "val_type": "string",
@@ -113,6 +113,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -130,11 +131,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "item_id",
-        "tool_parameter_name": "item_id",
+        "tool_parameter_name": "item_identifier",
         "description": "Unique identifier (ID) of the item to which you want to add a tag.",
         "value_schema": {
           "val_type": "string",
@@ -147,6 +149,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -160,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

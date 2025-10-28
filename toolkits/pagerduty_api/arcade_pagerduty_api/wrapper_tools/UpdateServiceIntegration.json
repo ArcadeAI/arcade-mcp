@@ -1,0 +1,259 @@
+{
+  "name": "UpdateServiceIntegration",
+  "fully_qualified_name": "PagerdutyApi.UpdateServiceIntegration@2.0.0",
+  "description": "Update an integration for a specific service.\n\nUse this tool to update an integration that belongs to a specific service in PagerDuty. Services represent applications, components, or teams for incident management. Appropriate for when you need to modify integration settings or details.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier of the resource to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "service_integration_id",
+        "required": true,
+        "description": "The unique identifier for the integration associated with the service to update. This ID specifies which integration to modify.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The integration ID on the service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "integration_id"
+      },
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "The `Accept` header for versioning the API response format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "The media type for the request body. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "integration_update_details",
+        "required": false,
+        "description": "JSON object containing the details of the integration to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "integration": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The integration to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateServiceIntegration'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/services/{id}/integrations/{integration_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "integration_id",
+        "tool_parameter_name": "service_integration_id",
+        "description": "The integration ID on the service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The integration ID on the service."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "integration_update_details",
+        "description": "The integration to be updated",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "integration": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The integration to be updated"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"integration\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"aws_cloudwatch_inbound_integration\",\n                      \"cloudkick_inbound_integration\",\n                      \"event_transformer_api_inbound_integration\",\n                      \"generic_email_inbound_integration\",\n                      \"generic_events_api_inbound_integration\",\n                      \"keynote_inbound_integration\",\n                      \"nagios_inbound_integration\",\n                      \"pingdom_inbound_integration\",\n                      \"sql_monitor_inbound_integration\",\n                      \"events_api_v2_inbound_integration\"\n                    ]\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of this integration.\"\n                  },\n                  \"service\": {\n                    \"allOf\": [\n                      {\n                        \"allOf\": [\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"id\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true\n                              },\n                              \"summary\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                              },\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true,\n                                \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                              },\n                              \"self\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"the API show URL at which the object is accessible\"\n                              },\n                              \"html_url\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                              }\n                            }\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"required\": [\n                              \"type\",\n                              \"id\"\n                            ]\n                          }\n                        ]\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                              \"service_reference\"\n                            ]\n                          }\n                        }\n                      }\n                    ]\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"description\": \"The date/time when this integration was created.\",\n                    \"readOnly\": true\n                  },\n                  \"vendor\": {\n                    \"allOf\": [\n                      {\n                        \"allOf\": [\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"id\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true\n                              },\n                              \"summary\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                              },\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true,\n                                \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                              },\n                              \"self\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"the API show URL at which the object is accessible\"\n                              },\n                              \"html_url\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                              }\n                            }\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"required\": [\n                              \"type\",\n                              \"id\"\n                            ]\n                          }\n                        ]\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                              \"vendor_reference\"\n                            ]\n                          }\n                        }\n                      }\n                    ]\n                  },\n                  \"integration_email\": {\n                    \"type\": \"string\",\n                    \"description\": \"Specify for generic_email_inbound_integration. Must be set to an email address @your-subdomain.pagerduty.com\"\n                  },\n                  \"email_incident_creation\": {\n                    \"type\": \"string\",\n                    \"description\": \"Specify for generic_email_inbound_integration\",\n                    \"enum\": [\n                      \"on_new_email\",\n                      \"on_new_email_subject\",\n                      \"only_if_no_open_incidents\",\n                      \"use_rules\"\n                    ]\n                  },\n                  \"email_filter_mode\": {\n                    \"type\": \"string\",\n                    \"description\": \"Specify for generic_email_inbound_integration. May override email_incident_creation\",\n                    \"enum\": [\n                      \"all-email\",\n                      \"or-rules-email\",\n                      \"and-rules-email\"\n                    ]\n                  },\n                  \"email_parsers\": {\n                    \"type\": \"array\",\n                    \"description\": \"Specify for generic_email_inbound_integration.\",\n                    \"uniqueItems\": true,\n                    \"minItems\": 1,\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"action\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"trigger\",\n                            \"resolve\"\n                          ]\n                        },\n                        \"match_predicate\": {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"all\",\n                                \"any\",\n                                \"not\",\n                                \"contains\",\n                                \"exactly\",\n                                \"regex\"\n                              ]\n                            },\n                            \"matcher\": {\n                              \"type\": \"string\",\n                              \"description\": \"Required if the type is `contains`, `exactly` or `regex`.\",\n                              \"minLength\": 1\n                            },\n                            \"part\": {\n                              \"type\": \"string\",\n                              \"description\": \"The email field that will attempt to use the matcher expression. Required if the type is `contains`, `exactly` or `regex`.\",\n                              \"enum\": [\n                                \"body\",\n                                \"subject\",\n                                \"from_addresses\"\n                              ]\n                            },\n                            \"children\": {\n                              \"type\": \"array\",\n                              \"description\": \"Additional matchers to be run. Must be not empty if the type is `all`, `any`, or `not`.\",\n                              \"items\": {\n                                \"$ref\": \"#/components/schemas/MatchPredicate\",\n                                \"has_circular_reference\": true\n                              }\n                            }\n                          },\n                          \"required\": [\n                            \"type\",\n                            \"part\",\n                            \"children\"\n                          ]\n                        },\n                        \"value_extractors\": {\n                          \"type\": \"array\",\n                          \"description\": \"Additional values that will be pulled in to the Incident object. Exactly one value extractor must have a `value_name` of `incident_key`.\",\n                          \"uniqueItems\": true,\n                          \"minItems\": 1,\n                          \"items\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"entire\",\n                                  \"regex\",\n                                  \"between\"\n                                ]\n                              },\n                              \"part\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"body\",\n                                  \"subject\",\n                                  \"from_addresses\"\n                                ]\n                              },\n                              \"value_name\": {\n                                \"type\": \"string\",\n                                \"minLength\": 1,\n                                \"description\": \"The field name to set in the Incident object. Exactly one must use the `value_name` of `incident_key`\"\n                              },\n                              \"regex\": {\n                                \"type\": \"string\"\n                              },\n                              \"starts_after\": {\n                                \"type\": \"string\"\n                              },\n                              \"ends_with\": {\n                                \"type\": \"string\"\n                              }\n                            },\n                            \"required\": [\n                              \"type\",\n                              \"part\",\n                              \"value_name\"\n                            ]\n                          }\n                        }\n                      },\n                      \"required\": [\n                        \"action\",\n                        \"match_predicate\"\n                      ]\n                    }\n                  },\n                  \"email_parsing_fallback\": {\n                    \"type\": \"string\",\n                    \"description\": \"Specify for generic_email_inbound_integration.\",\n                    \"enum\": [\n                      \"open_new_incident\",\n                      \"discard\"\n                    ]\n                  },\n                  \"email_filters\": {\n                    \"type\": \"array\",\n                    \"description\": \"Specify for generic_email_inbound_integration.\",\n                    \"uniqueItems\": true,\n                    \"minItems\": 1,\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"subject_mode\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"match\",\n                            \"no-match\",\n                            \"always\"\n                          ]\n                        },\n                        \"subject_regex\": {\n                          \"type\": \"string\",\n                          \"description\": \"Specify if subject_mode is set to match or no-match\"\n                        },\n                        \"body_mode\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"match\",\n                            \"no-match\",\n                            \"always\"\n                          ]\n                        },\n                        \"body_regex\": {\n                          \"type\": \"string\",\n                          \"description\": \"Specify if body_mode is set to match or no-match\"\n                        },\n                        \"from_email_mode\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"match\",\n                            \"no-match\",\n                            \"always\"\n                          ]\n                        },\n                        \"from_email_regex\": {\n                          \"type\": \"string\",\n                          \"description\": \"Specify if from_email_mode is set to match or no-match\"\n                        }\n                      },\n                      \"required\": [\n                        \"subject_mode\",\n                        \"body_mode\",\n                        \"from_email_mode\"\n                      ]\n                    },\n                    \"required\": [\n                      \"type\",\n                      \"name\"\n                    ]\n                  }\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"integration\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"integration\": {\n              \"type\": \"generic_email_inbound_integration\",\n              \"name\": \"Email\",\n              \"service\": {\n                \"id\": \"PQL78HM\",\n                \"type\": \"service_reference\",\n                \"summary\": \"My Email-Based Integration\",\n                \"self\": \"https://api.pagerduty.com/services/PQL78HM\",\n                \"html_url\": \"https://subdomain.pagerduty.com/service-directory/PQL78HM\"\n              },\n              \"integration_email\": \"my-email-based-integration@subdomain.pagerduty.com\",\n              \"vendor\": {\n                \"type\": \"vendor_reference\",\n                \"id\": \"PZD94QK\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The integration to be updated\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": false
+  }
+}

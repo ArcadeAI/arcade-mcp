@@ -1,18 +1,18 @@
 {
   "name": "GetAirtableBaseSchema",
-  "fully_qualified_name": "AirtableApi.GetAirtableBaseSchema@0.1.0",
-  "description": "Retrieve the schema of tables in a specified Airtable base.\n\nUse this tool to get detailed information about the structure of tables within a specific Airtable base by providing the base ID.",
+  "fully_qualified_name": "AirtableApi.GetAirtableBaseSchema@2.0.0",
+  "description": "Retrieve the schema of tables in an Airtable base.\n\nUse this tool to get the schema details of all tables within a specific Airtable base. It is useful for understanding the structure and fields of the tables in the specified base.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "airtable_base_id",
         "required": true,
-        "description": "The unique identifier for the Airtable base for which you want to retrieve the schema.",
+        "description": "The unique identifier for the Airtable base whose schema is being requested. This ID can be found in the URL of the base when accessed in Airtable.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "fields_to_include",
         "required": false,
-        "description": "Specifies which fields of the tables to include in the schema response. Provide an array of field names as strings.",
+        "description": "A list of specific fields to include in the schema response. Each field should be a string representing the field name.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/bases/{baseId}/tables",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

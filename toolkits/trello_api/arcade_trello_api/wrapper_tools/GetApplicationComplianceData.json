@@ -1,18 +1,18 @@
 {
   "name": "GetApplicationComplianceData",
-  "fully_qualified_name": "TrelloApi.GetApplicationComplianceData@0.1.0",
-  "description": "Retrieve an application's compliance data from Trello.\n\nUse this tool to get compliance information for a specific application by its key in Trello.",
+  "fully_qualified_name": "TrelloApi.GetApplicationComplianceData@2.0.0",
+  "description": "Retrieve compliance data for a specified application.\n\nFetches compliance information related to a specific application's key. Useful for checking compliance status and details.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "application_key",
         "required": true,
-        "description": "The unique key associated with the application to retrieve its compliance data.",
+        "description": "The unique key for the application to retrieve its compliance data. This is required to access the specific compliance details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/applications/{key}/compliance",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,138 @@
+{
+  "name": "DeleteTaskChecklistItem",
+  "fully_qualified_name": "ClickupApi.DeleteTaskChecklistItem@0.1.0",
+  "description": "Delete an item from a task checklist in ClickUp.\n\nUse this tool to delete a specific line item from a checklist associated with a task. Ideal for managing and updating task checklists by removing unnecessary or completed items.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "checklist_identifier",
+        "required": true,
+        "description": "The unique identifier (UUID) for the checklist. Used to specify the checklist from which the item will be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checklist_id"
+      },
+      {
+        "name": "checklist_item_uuid",
+        "required": true,
+        "description": "The unique identifier (UUID) of the checklist item to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e491-47f5-9fd8-d1dc4cedcc6f (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checklist_item_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteChecklistItem'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/checklist/{checklist_id}/checklist_item/{checklist_item_id}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "checklist_id",
+        "tool_parameter_name": "checklist_identifier",
+        "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "checklist_item_id",
+        "tool_parameter_name": "checklist_item_uuid",
+        "description": "e491-47f5-9fd8-d1dc4cedcc6f (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e491-47f5-9fd8-d1dc4cedcc6f (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

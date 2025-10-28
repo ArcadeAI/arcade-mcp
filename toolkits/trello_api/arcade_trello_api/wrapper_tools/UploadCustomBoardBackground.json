@@ -1,18 +1,18 @@
 {
   "name": "UploadCustomBoardBackground",
-  "fully_qualified_name": "TrelloApi.UploadCustomBoardBackground@0.1.0",
-  "description": "Upload a new custom board background for a Trello board.\n\nThis tool uploads a custom background image to a Trello board. Use it when you want to add a personalized background to enhance a board's appearance.",
+  "fully_qualified_name": "TrelloApi.UploadCustomBoardBackground@2.0.0",
+  "description": "Upload a new custom board background to Trello.\n\nUse this tool to upload a new custom board background for a specific Trello member. Call this tool when you want to personalize a Trello board's appearance by adding a unique background.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "background_image_file",
+        "name": "background_file_upload",
         "required": true,
-        "description": "Path to the image file to be uploaded as a custom board background. Ensure the file format is compatible with Trello.",
+        "description": "The file path or URL of the custom board background to upload. It should specify the location of the image file you want to use as the board background.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member to whom the custom board background will be uploaded.",
+        "description": "The ID or username of the Trello member for whom the background is being uploaded.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/customBoardBackgrounds",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "file",
-        "tool_parameter_name": "background_image_file",
+        "tool_parameter_name": "background_file_upload",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,335 @@
+{
+  "name": "CreateSquareTerminalDeviceCode",
+  "fully_qualified_name": "SquareupApi.CreateSquareTerminalDeviceCode@2.0.0",
+  "description": "Generate a DeviceCode for Square Terminal login.\n\nCreates a code for logging into a Square Terminal device in connected terminal mode. Useful for setting up devices for point-of-sale operations.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "device_code_request",
+        "required": true,
+        "description": "A JSON object containing the fields for creating a DeviceCode, including idempotency key and device details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this CreateDeviceCode request. Keys can\nbe any valid string but must be unique for every CreateDeviceCode request.\n\nSee [Idempotency keys](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency) for more information."
+            },
+            "device_code": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique id for this device code."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An optional user-defined name for the device code."
+                },
+                "code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique code that can be used to login."
+                },
+                "device_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique id of the device that used this code. Populated when the device is paired up."
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "TERMINAL_API"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The location assigned to this code."
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "UNKNOWN",
+                    "UNPAIRED",
+                    "PAIRED",
+                    "EXPIRED"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "DeviceCode.Status enum."
+                },
+                "pair_by": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When this DeviceCode will expire and no longer login. Timestamp in RFC 3339 format."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When this DeviceCode was created. Timestamp in RFC 3339 format."
+                },
+                "status_changed_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When this DeviceCode's status was last changed. Timestamp in RFC 3339 format."
+                },
+                "paired_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When this DeviceCode was paired. Timestamp in RFC 3339 format."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateDeviceCode'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "DEVICE_CREDENTIAL_MANAGEMENT"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/devices/codes",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "device_code_request",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this CreateDeviceCode request. Keys can\nbe any valid string but must be unique for every CreateDeviceCode request.\n\nSee [Idempotency keys](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency) for more information."
+            },
+            "device_code": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique id for this device code."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An optional user-defined name for the device code."
+                },
+                "code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique code that can be used to login."
+                },
+                "device_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique id of the device that used this code. Populated when the device is paired up."
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "TERMINAL_API"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The location assigned to this code."
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "UNKNOWN",
+                    "UNPAIRED",
+                    "PAIRED",
+                    "EXPIRED"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "DeviceCode.Status enum."
+                },
+                "pair_by": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When this DeviceCode will expire and no longer login. Timestamp in RFC 3339 format."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When this DeviceCode was created. Timestamp in RFC 3339 format."
+                },
+                "status_changed_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When this DeviceCode's status was last changed. Timestamp in RFC 3339 format."
+                },
+                "paired_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When this DeviceCode was paired. Timestamp in RFC 3339 format."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"idempotency_key\",\n          \"device_code\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this CreateDeviceCode request. Keys can\\nbe any valid string but must be unique for every CreateDeviceCode request.\\n\\nSee [Idempotency keys](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency) for more information.\",\n            \"minLength\": 1,\n            \"maxLength\": 128\n          },\n          \"device_code\": {\n            \"type\": \"object\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"product_type\"\n            ],\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"The unique id for this device code.\",\n                \"readOnly\": true\n              },\n              \"name\": {\n                \"type\": \"string\",\n                \"description\": \"An optional user-defined name for the device code.\",\n                \"maxLength\": 128,\n                \"nullable\": true\n              },\n              \"code\": {\n                \"type\": \"string\",\n                \"description\": \"The unique code that can be used to login.\",\n                \"readOnly\": true\n              },\n              \"device_id\": {\n                \"type\": \"string\",\n                \"description\": \"The unique id of the device that used this code. Populated when the device is paired up.\",\n                \"readOnly\": true\n              },\n              \"product_type\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"TERMINAL_API\"\n                ],\n                \"x-enum-elements\": [\n                  {\n                    \"name\": \"TERMINAL_API\",\n                    \"description\": \"\"\n                  }\n                ],\n                \"x-release-status\": \"PUBLIC\"\n              },\n              \"location_id\": {\n                \"type\": \"string\",\n                \"description\": \"The location assigned to this code.\",\n                \"maxLength\": 50,\n                \"nullable\": true\n              },\n              \"status\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"UNKNOWN\",\n                  \"UNPAIRED\",\n                  \"PAIRED\",\n                  \"EXPIRED\"\n                ],\n                \"x-enum-elements\": [\n                  {\n                    \"name\": \"UNKNOWN\",\n                    \"description\": \"The status cannot be determined or does not exist.\"\n                  },\n                  {\n                    \"name\": \"UNPAIRED\",\n                    \"description\": \"The device code is just created and unpaired.\"\n                  },\n                  {\n                    \"name\": \"PAIRED\",\n                    \"description\": \"The device code has been signed in and paired to a device.\"\n                  },\n                  {\n                    \"name\": \"EXPIRED\",\n                    \"description\": \"The device code was unpaired and expired before it was paired.\"\n                  }\n                ],\n                \"description\": \"DeviceCode.Status enum.\",\n                \"x-release-status\": \"PUBLIC\"\n              },\n              \"pair_by\": {\n                \"type\": \"string\",\n                \"description\": \"When this DeviceCode will expire and no longer login. Timestamp in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"When this DeviceCode was created. Timestamp in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"status_changed_at\": {\n                \"type\": \"string\",\n                \"description\": \"When this DeviceCode's status was last changed. Timestamp in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"paired_at\": {\n                \"type\": \"string\",\n                \"description\": \"When this DeviceCode was paired. Timestamp in RFC 3339 format.\",\n                \"readOnly\": true\n              }\n            }\n          }\n        },\n        \"example\": {\n          \"device_code\": {\n            \"location_id\": \"B5E4484SHHNYH\",\n            \"name\": \"Counter 1\",\n            \"product_type\": \"TERMINAL_API\"\n          },\n          \"idempotency_key\": \"01bb00a6-0c86-4770-94ed-f5fca973cd56\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

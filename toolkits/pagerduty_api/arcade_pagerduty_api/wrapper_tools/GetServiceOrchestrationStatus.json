@@ -1,18 +1,18 @@
 {
   "name": "GetServiceOrchestrationStatus",
-  "fully_qualified_name": "PagerdutyApi.GetServiceOrchestrationStatus@0.1.0",
-  "description": "Retrieve a service orchestration's active status.\n\nUse this tool to determine if a service orchestration is currently active, indicating if an event will be evaluated against a service orchestration path or ruleset. Useful for monitoring and managing service workflows.",
+  "fully_qualified_name": "PagerdutyApi.GetServiceOrchestrationStatus@2.0.0",
+  "description": "Retrieve the active status of a Service Orchestration.\n\nThis tool is used to get the active status of a Service Orchestration, determining if the event evaluation is against a service orchestration path or service ruleset. Applicable for managing service paths and rulesets.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "service_id",
         "required": true,
-        "description": "The unique identifier for the service you want to query.",
+        "description": "The unique identifier for the service to check its orchestration status.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "service_id"
       },
       {
-        "name": "api_version_accept_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "The `Accept` header to specify the API version for the request.",
+        "description": "Specifies the API version for the request using the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specify the content type for the request. Use 'application/json'.",
+        "description": "Specifies the media type of the request body, typically 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/event_orchestrations/services/{service_id}/active",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "api_version_accept_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

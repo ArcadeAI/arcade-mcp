@@ -1,18 +1,18 @@
 {
   "name": "LogoutEnterpriseUser",
-  "fully_qualified_name": "AirtableApi.LogoutEnterpriseUser@0.1.0",
-  "description": "Log out an enterprise account user.\n\nThis tool logs out a user from an enterprise account, specifically for ELA and FLA enterprise accounts or managed claiming users. It should be used when there's a need to terminate an active session for such users.",
+  "fully_qualified_name": "AirtableApi.LogoutEnterpriseUser@2.0.0",
+  "description": "Logs out an enterprise account user from the system.\n\nThis tool logs out a user from an enterprise account, available only for ELA and FLA internal enterprise account users and managed enterprise users.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_account_id",
         "required": true,
-        "description": "The unique identifier for the enterprise account. Required for logging out the user.",
+        "description": "The ID of the enterprise account to log the user out from. Required for enterprise-level logout.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "enterpriseAccountId"
       },
       {
-        "name": "user_id",
+        "name": "enterprise_user_id",
         "required": true,
-        "description": "The unique identifier for the user to be logged out. This value is required to terminate their session.",
+        "description": "The unique identifier of the enterprise user to log out.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "logout_request_body",
         "required": false,
-        "description": "JSON object containing the logout details for the user session.",
+        "description": "A JSON object containing necessary details to process the logout request.",
         "value_schema": {
           "val_type": "json",
           "inner_val_type": null,
@@ -89,13 +89,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}/logout",
@@ -122,7 +122,7 @@
       },
       {
         "name": "userId",
-        "tool_parameter_name": "user_id",
+        "tool_parameter_name": "enterprise_user_id",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {},\n        \"required\": [],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "DeleteEnterpriseUser",
-  "fully_qualified_name": "AirtableApi.DeleteEnterpriseUser@0.1.0",
-  "description": "Deletes an enterprise account user by ID.\n\nUse this tool to delete ELA enterprise account users or managed users by specifying their enterprise account ID and user ID. It should be called when you need to remove a user from an enterprise account in Airtable.",
+  "fully_qualified_name": "AirtableApi.DeleteEnterpriseUser@2.0.0",
+  "description": "Deletes an enterprise user by ID.\n\nUse this tool to delete users from an enterprise account, including both internal and managed users. Provide the specific enterprise account ID and user ID for successful deletion.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_account_id",
         "required": true,
-        "description": "The ID of the enterprise account from which the user will be deleted. This is required to identify the specific account.",
+        "description": "The unique identifier for the enterprise account containing the user to be deleted. This is required for specifying the account context of the user.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "user_id",
         "required": true,
-        "description": "The unique identifier for the user to be deleted from the enterprise account. This should be a string value that corresponds to the user's ID in Airtable.",
+        "description": "The unique identifier of the user to be deleted from the enterprise account.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "ListCardAttachments",
-  "fully_qualified_name": "TrelloApi.ListCardAttachments@0.1.0",
-  "description": "Retrieve attachments from a Trello card.\n\nUse this tool to get the list of all attachments associated with a specific Trello card. This is helpful when you need to manage or review files attached to your Trello tasks.",
+  "fully_qualified_name": "TrelloApi.ListCardAttachments@2.0.0",
+  "description": "Retrieve all attachments from a specified Trello card.\n\nUse this tool to get a list of attachments associated with a specific Trello card. It is useful when you need to access or display all files attached to a card in Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique ID of the Trello card to retrieve attachments from.",
+        "description": "The unique identifier of the Trello card to retrieve attachments from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "attachment_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of attachment fields to retrieve. Determines which attachment details are returned for the card.",
+        "description": "Specify 'all' for all fields or a comma-separated list of attachment fields to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "restrict_to_cover_attachment",
         "required": false,
-        "description": "Specify 'cover' to limit results to only the cover attachment of the Trello card.",
+        "description": "Set to 'cover' to retrieve only the cover attachment of the card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}/attachments",
@@ -115,6 +115,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -132,6 +133,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "false",
         "documentation_urls": []
       },
       {
@@ -149,6 +151,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -170,6 +173,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "DeleteEnterpriseTeam",
-  "fully_qualified_name": "MiroApi.DeleteEnterpriseTeam@0.1.0",
-  "description": "Delete a team in an enterprise Miro account.\n\nUse this tool to delete an existing team in an Enterprise Miro account. This action is only available to Company Admins and requires the 'organizations:teams:write' scope. Ensure you have access to Enterprise APIs before proceeding.",
+  "fully_qualified_name": "MiroApi.DeleteEnterpriseTeam@2.0.0",
+  "description": "Deletes an existing team for enterprise users.\n\nThis tool deletes a specific team within an enterprise organization, available only to users with Enterprise plans and a Company Admin role. It should be used when there's a need to remove an entire team from an organization's Miro account.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id",
         "required": true,
-        "description": "The unique identifier of the Organization for which the team is to be deleted.",
+        "description": "The unique identifier for the organization. Required to specify which organization's team is to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "team_id",
         "required": true,
-        "description": "The unique identifier of the team to be deleted.",
+        "description": "The unique identifier for the team to be deleted within the organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}",
@@ -98,6 +98,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -115,6 +116,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -128,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

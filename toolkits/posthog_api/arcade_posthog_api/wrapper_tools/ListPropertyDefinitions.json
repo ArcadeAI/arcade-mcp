@@ -1,0 +1,554 @@
+{
+  "name": "ListPropertyDefinitions",
+  "fully_qualified_name": "PosthogApi.ListPropertyDefinitions@0.1.0",
+  "description": "Retrieve a list of property definitions for a specific project.\n\nUse this tool to fetch property definitions from a specified project by providing the project ID. It returns the available property definitions related to that project.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "ID of the project you're accessing. Use /api/projects/ to find it.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "event_names_json",
+        "required": false,
+        "description": "A JSON-encoded string of event names to populate `is_seen_on_filtered_events` in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If sent, response value will have `is_seen_on_filtered_events` populated. JSON-encoded"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "event_names"
+      },
+      {
+        "name": "excluded_properties_list",
+        "required": false,
+        "description": "A JSON-encoded list of property names to exclude from the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "JSON-encoded list of excluded properties"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "excluded_properties"
+      },
+      {
+        "name": "group_type_index_for_group_properties",
+        "required": false,
+        "description": "Provide the group type index specifically for properties of type 'group'. This should only be set if the type is set to 'group'.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "What group type is the property for. Only should be set if `type=group`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_type_index"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specify the number of results to return per page when retrieving property definitions.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "result_start_index",
+        "required": false,
+        "description": "The initial index from which to return the results. Use this to paginate through results starting from a specific index.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The initial index from which to return the results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "filter_properties_list",
+        "required": false,
+        "description": "Comma-separated list of properties to filter the results by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of properties to filter"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "properties"
+      },
+      {
+        "name": "search_query",
+        "required": false,
+        "description": "Keyword to search properties by name in the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches properties by name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search"
+      },
+      {
+        "name": "property_definition_type",
+        "required": false,
+        "description": "Specify which type of property definitions to return: 'event', 'person', 'group', or 'session'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "event",
+            "person",
+            "group",
+            "session"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "What property definitions to return\n\n* `event` - event\n* `person` - person\n* `group` - group\n* `session` - session"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "exclude_core_properties",
+        "required": false,
+        "description": "Set to true to exclude core properties from the response; false to include them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to exclude core properties"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_core_properties"
+      },
+      {
+        "name": "exclude_hidden_properties",
+        "required": false,
+        "description": "Set to true to exclude properties marked as hidden from the results.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to exclude properties marked as hidden"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_hidden"
+      },
+      {
+        "name": "filter_properties_by_event_names",
+        "required": false,
+        "description": "Set to true to return only properties for events specified in `event_names`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only properties for events in `event_names`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by_event_names"
+      },
+      {
+        "name": "filter_feature_flag_properties",
+        "required": false,
+        "description": "Set to true to include only feature flag properties, false to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only (or excluding) feature flag properties"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_feature_flag"
+      },
+      {
+        "name": "include_only_numerical_properties",
+        "required": false,
+        "description": "Set to true to return only numerical property definitions, false to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only (or excluding) numerical property definitions"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_numerical"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'property_definitions_list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/property_definitions/",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "event_names",
+        "tool_parameter_name": "event_names_json",
+        "description": "If sent, response value will have `is_seen_on_filtered_events` populated. JSON-encoded",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If sent, response value will have `is_seen_on_filtered_events` populated. JSON-encoded"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_core_properties",
+        "tool_parameter_name": "exclude_core_properties",
+        "description": "Whether to exclude core properties",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to exclude core properties"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_hidden",
+        "tool_parameter_name": "exclude_hidden_properties",
+        "description": "Whether to exclude properties marked as hidden",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to exclude properties marked as hidden"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "excluded_properties",
+        "tool_parameter_name": "excluded_properties_list",
+        "description": "JSON-encoded list of excluded properties",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "JSON-encoded list of excluded properties"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by_event_names",
+        "tool_parameter_name": "filter_properties_by_event_names",
+        "description": "Whether to return only properties for events in `event_names`",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only properties for events in `event_names`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_type_index",
+        "tool_parameter_name": "group_type_index_for_group_properties",
+        "description": "What group type is the property for. Only should be set if `type=group`",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "What group type is the property for. Only should be set if `type=group`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_feature_flag",
+        "tool_parameter_name": "filter_feature_flag_properties",
+        "description": "Whether to return only (or excluding) feature flag properties",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only (or excluding) feature flag properties"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_numerical",
+        "tool_parameter_name": "include_only_numerical_properties",
+        "description": "Whether to return only (or excluding) numerical property definitions",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only (or excluding) numerical property definitions"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "Number of results to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "result_start_index",
+        "description": "The initial index from which to return the results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The initial index from which to return the results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "properties",
+        "tool_parameter_name": "filter_properties_list",
+        "description": "Comma-separated list of properties to filter",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of properties to filter"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search",
+        "tool_parameter_name": "search_query",
+        "description": "Searches properties by name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches properties by name"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "property_definition_type",
+        "description": "What property definitions to return\n\n* `event` - event\n* `person` - person\n* `group` - group\n* `session` - session",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "event",
+            "person",
+            "group",
+            "session"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "What property definitions to return\n\n* `event` - event\n* `person` - person\n* `group` - group\n* `session` - session"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "event",
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

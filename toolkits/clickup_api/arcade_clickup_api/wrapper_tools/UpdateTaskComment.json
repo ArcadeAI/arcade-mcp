@@ -1,0 +1,237 @@
+{
+  "name": "UpdateTaskComment",
+  "fully_qualified_name": "ClickupApi.UpdateTaskComment@0.1.0",
+  "description": "Update a task comment in ClickUp.\n\nUse this tool to replace a task comment's content, assign it, or mark it as resolved in ClickUp.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "comment_identifier",
+        "required": true,
+        "description": "The unique identifier of the comment to update. It must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "comment_id"
+      },
+      {
+        "name": "new_comment_content",
+        "required": true,
+        "description": "The new content for the task comment. This will replace the existing comment text.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "comment_text"
+      },
+      {
+        "name": "assignee_user_id",
+        "required": true,
+        "description": "The ID of the user to assign the comment to. This should be a numeric user ID in ClickUp.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignee"
+      },
+      {
+        "name": "mark_comment_as_resolved",
+        "required": true,
+        "description": "Set to true to mark the comment as resolved; false to leave it unresolved. Accepts a boolean value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "resolved"
+      },
+      {
+        "name": "assign_to_group",
+        "required": false,
+        "description": "Assign the comment to a group by providing the group's ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_assignee"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateComment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/comment/{comment_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "comment_id",
+        "tool_parameter_name": "comment_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "comment_text",
+        "tool_parameter_name": "new_comment_content",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assignee",
+        "tool_parameter_name": "assignee_user_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_assignee",
+        "tool_parameter_name": "assign_to_group",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "resolved",
+        "tool_parameter_name": "mark_comment_as_resolved",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"UpdateCommentrequest\",\n        \"required\": [\n          \"comment_text\",\n          \"assignee\",\n          \"resolved\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"comment_text\": {\n            \"type\": \"string\"\n          },\n          \"assignee\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          },\n          \"group_assignee\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\",\n            \"description\": \"\"\n          },\n          \"resolved\": {\n            \"description\": \"\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"examples\": [\n          {\n            \"comment_text\": \"Updated comment content\",\n            \"assignee\": 183,\n            \"resolved\": true\n          }\n        ]\n      },\n      \"example\": {\n        \"comment_text\": \"Updated comment content\",\n        \"assignee\": 183,\n        \"group_assignee\": \"dd01f92f-48ca-446d-88a1-0beb0e8f5f14\",\n        \"resolved\": true\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

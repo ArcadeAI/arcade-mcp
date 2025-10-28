@@ -1,0 +1,127 @@
+{
+  "name": "BulkDeleteBookingCustomAttributes",
+  "fully_qualified_name": "SquareupApi.BulkDeleteBookingCustomAttributes@2.0.0",
+  "description": "Bulk delete custom attributes for bookings.\n\nUse this tool to delete multiple custom attributes associated with bookings in bulk. Ensure the proper OAuth permissions are set: 'APPOINTMENTS_WRITE' for buyer-level and both 'APPOINTMENTS_ALL_WRITE' and 'APPOINTMENTS_WRITE' for seller-level. Requires an active subscription to 'Appointments Plus' or 'Appointments Premium' for seller-level actions.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "booking_custom_attributes_to_delete",
+        "required": true,
+        "description": "A JSON object containing 1 to 25 Delete requests. Each request should include a unique ID and the necessary details to delete a custom attribute.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "values": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A map containing 1 to 25 individual Delete requests. For each request, provide an\narbitrary ID that is unique for this `BulkDeleteBookingCustomAttributes` request and the\ninformation needed to delete a custom attribute."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BulkDeleteBookingCustomAttributes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "APPOINTMENTS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/bookings/custom-attributes/bulk-delete",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "booking_custom_attributes_to_delete",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "values": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A map containing 1 to 25 individual Delete requests. For each request, provide an\narbitrary ID that is unique for this `BulkDeleteBookingCustomAttributes` request and the\ninformation needed to delete a custom attribute."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents a [BulkDeleteBookingCustomAttributes](api-endpoint:BookingCustomAttributes-BulkDeleteBookingCustomAttributes) request.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"values\"\n        ],\n        \"properties\": {\n          \"values\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"description\": \"Represents an individual delete request in a [BulkDeleteBookingCustomAttributes](api-endpoint:BookingCustomAttributes-BulkDeleteBookingCustomAttributes)\\nrequest. An individual request contains a booking ID, the custom attribute to delete, and an optional idempotency key.\",\n              \"x-release-status\": \"PUBLIC\",\n              \"required\": [\n                \"booking_id\",\n                \"key\"\n              ],\n              \"properties\": {\n                \"booking_id\": {\n                  \"type\": \"string\",\n                  \"description\": \"The ID of the target [booking](entity:Booking).\",\n                  \"minLength\": 1,\n                  \"maxLength\": 36\n                },\n                \"key\": {\n                  \"type\": \"string\",\n                  \"description\": \"The key of the custom attribute to delete. This key must match the `key` of a\\ncustom attribute definition in the Square seller account. If the requesting application is not\\nthe definition owner, you must use the qualified key.\",\n                  \"minLength\": 1\n                }\n              }\n            },\n            \"description\": \"A map containing 1 to 25 individual Delete requests. For each request, provide an\\narbitrary ID that is unique for this `BulkDeleteBookingCustomAttributes` request and the\\ninformation needed to delete a custom attribute.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

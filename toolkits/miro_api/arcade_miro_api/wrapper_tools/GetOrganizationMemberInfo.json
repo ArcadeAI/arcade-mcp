@@ -1,18 +1,18 @@
 {
   "name": "GetOrganizationMemberInfo",
-  "fully_qualified_name": "MiroApi.GetOrganizationMemberInfo@0.1.0",
-  "description": "Retrieve member information of an organization in Miro Enterprise.\n\nUse this tool to obtain information about a member of an organization within the Miro Enterprise plan. This is exclusive to users with Company Admin roles, requiring the 'organizations:read' scope.",
+  "fully_qualified_name": "MiroApi.GetOrganizationMemberInfo@2.0.0",
+  "description": "Retrieve details about a specific organization member.\n\nThis tool retrieves information about a member of an organization within Miro. It's designed for use by users on the Enterprise plan with the role of Company Admin. Useful for obtaining member-specific information for administrative tasks.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id",
         "required": true,
-        "description": "The unique identifier of the organization whose member information is being retrieved. This ID is necessary to specify which organization's data to access.",
+        "description": "The unique identifier for the organization whose member info is being retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/members/{member_id}",
@@ -98,6 +98,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -115,6 +116,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -128,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

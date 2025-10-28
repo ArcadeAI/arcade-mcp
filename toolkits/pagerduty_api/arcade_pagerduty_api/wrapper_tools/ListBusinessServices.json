@@ -1,18 +1,18 @@
 {
   "name": "ListBusinessServices",
-  "fully_qualified_name": "PagerdutyApi.ListBusinessServices@0.1.0",
-  "description": "Retrieve a list of existing business services.\n\nUse this tool to retrieve information about business services that span multiple technical services and may involve various teams. Useful for gaining insights into cross-functional capabilities. Requires 'services.read' OAuth scope.",
+  "fully_qualified_name": "PagerdutyApi.ListBusinessServices@2.0.0",
+  "description": "Retrieve a list of existing business services.\n\nUse this tool to obtain a comprehensive list of business services, which model capabilities spanning multiple technical services and are often owned by different teams. Beneficial for understanding service inventory and management.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "accept_header_version",
         "required": true,
-        "description": "Specifies the versioning header for the 'Accept' field to determine API response format.",
+        "description": "Specifies the versioning for the API request using the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specify the content type for the request. Must be 'application/json'.",
+        "description": "Specifies the content type of the request. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "The maximum number of results to return per page.",
+        "description": "Specify the number of results to display on each page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "Offset to start pagination for search results, useful for navigating through large sets of data.",
+        "description": "Offset to start pagination of the search results. Use this to skip a set number of entries.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "include_total_in_pagination",
+        "name": "include_total_count",
         "required": false,
-        "description": "Include the total count in pagination responses for detailed data, set to true for inclusion.",
+        "description": "Set to true to include the total count of results in the pagination response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -117,13 +117,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/business_services",
@@ -168,7 +168,7 @@
       },
       {
         "name": "total",
-        "tool_parameter_name": "include_total_in_pagination",
+        "tool_parameter_name": "include_total_count",
         "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -181,7 +181,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -233,6 +233,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

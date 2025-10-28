@@ -1,18 +1,18 @@
 {
   "name": "GetClaimableWorkspaces",
-  "fully_qualified_name": "TrelloApi.GetClaimableWorkspaces@0.1.0",
-  "description": "Retrieve claimable workspaces for an enterprise by ID.\n\nUse this tool to get the list of workspaces that can be claimed by a specific enterprise, optionally filtering by active or inactive status.",
+  "fully_qualified_name": "TrelloApi.GetClaimableWorkspaces@2.0.0",
+  "description": "Retrieve claimable workspaces for an enterprise by ID.\n\nUse this tool to get a list of workspaces that can be claimed by the specified enterprise. Optionally, filter workspaces by their activity status.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "enterprise_id",
+        "name": "enterprise_id_to_retrieve_workspaces",
         "required": true,
-        "description": "ID of the enterprise to retrieve claimable workspaces for.",
+        "description": "The unique ID of the enterprise to retrieve claimable workspaces for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "workspace_limit",
+        "name": "maximum_workspaces",
         "required": false,
-        "description": "Limits the number of workspaces returned in the query. Use an integer value to specify the maximum number.",
+        "description": "Sets the maximum number of workspaces to retrieve and sort. Use an integer to specify the limit.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "sort_order_cursor",
         "required": false,
-        "description": "Specifies the sort order for returning matching documents by setting a cursor position.",
+        "description": "Specifies the sorting cursor for the order in which matching workspaces are returned. Use this to paginate results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "enterprise_name",
         "required": false,
-        "description": "Name of the enterprise to retrieve claimable workspaces for.",
+        "description": "The name of the enterprise for which to retrieve claimable workspaces.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "active_since_date",
         "required": false,
-        "description": "Date in YYYY-MM-DD format to search up to for active workspaces.",
+        "description": "Specify the date in YYYY-MM-DD format to filter workspaces active up to this date.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,7 +87,7 @@
       {
         "name": "inactive_since_date",
         "required": false,
-        "description": "Date in YYYY-MM-DD format for filtering workspaces inactive up to this date.",
+        "description": "Date in YYYY-MM-DD format to search for workspace inactiveness.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -132,13 +132,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/enterprises/{id}/claimableOrganizations",
@@ -147,7 +147,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "workspace_limit",
+        "tool_parameter_name": "maximum_workspaces",
         "description": "Limits the number of workspaces to be sorted",
         "value_schema": {
           "val_type": "integer",
@@ -160,6 +160,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -177,6 +178,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -194,6 +196,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -211,6 +214,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -228,11 +232,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "enterprise_id",
+        "tool_parameter_name": "enterprise_id_to_retrieve_workspaces",
         "description": "ID of the enterprise to retrieve",
         "value_schema": {
           "val_type": "string",
@@ -245,6 +250,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -266,6 +272,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

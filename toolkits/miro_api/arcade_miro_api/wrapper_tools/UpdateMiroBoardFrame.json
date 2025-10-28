@@ -1,0 +1,397 @@
+{
+  "name": "UpdateMiroBoardFrame",
+  "fully_qualified_name": "MiroApi.UpdateMiroBoardFrame@2.0.0",
+  "description": "Update a frame on a Miro board with new properties.\n\nThis tool updates a specific frame on a Miro board. It should be called when you want to modify a frame's data, style, or geometry. Ensure you have the required 'boards:write' scope. Rate limiting is Level 2.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "Unique identifier (ID) of the board where the frame needs to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to update the frame."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "frame_id",
+        "required": true,
+        "description": "Unique identifier of the frame to update on the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the frame that you want to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "frame_update_request_body",
+        "required": true,
+        "description": "JSON object containing frame properties such as data, style, position, and geometry. Include fields like title, type, fillColor, coordinates, and dimensions.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "format": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Only custom frames are supported at the moment."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Title of the frame. This title appears at the top of the frame."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "freeform"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Only free form frames are supported at the moment."
+                },
+                "showContent": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hide or reveal the content inside a frame (Enterprise plan only)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains frame item data, such as the title, frame type, or frame format."
+            },
+            "style": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "fillColor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fill color for the frame.\nHex values: `#f5f6f8` `#d5f692` `#d0e17a` `#93d275` `#67c6c0` `#23bfe7` `#a6ccf5` `#7b92ff` `#fff9b1` `#f5d128` `#ff9d48` `#f16c7f` `#ea94bb` `#ffcee0` `#b384bb` `#000000`"
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the style of a frame item, such as the fill color."
+            },
+            "position": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "x": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                },
+                "y": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates."
+            },
+            "geometry": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "height": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Height of the item, in pixels."
+                },
+                "width": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Width of the item, in pixels."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains geometrical information about the item, such as its width or height."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-frame-item'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/frames/{item_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_id",
+        "description": "Unique identifier (ID) of the board where you want to update the frame.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to update the frame."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "frame_id",
+        "description": "Unique identifier (ID) of the frame that you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the frame that you want to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "frame_update_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "format": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Only custom frames are supported at the moment."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Title of the frame. This title appears at the top of the frame."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "freeform"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Only free form frames are supported at the moment."
+                },
+                "showContent": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hide or reveal the content inside a frame (Enterprise plan only)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains frame item data, such as the title, frame type, or frame format."
+            },
+            "style": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "fillColor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fill color for the frame.\nHex values: `#f5f6f8` `#d5f692` `#d0e17a` `#93d275` `#67c6c0` `#23bfe7` `#a6ccf5` `#7b92ff` `#fff9b1` `#f5d128` `#ff9d48` `#f16c7f` `#ea94bb` `#ffcee0` `#b384bb` `#000000`"
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the style of a frame item, such as the fill color."
+            },
+            "position": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "x": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                },
+                "y": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates."
+            },
+            "geometry": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "height": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Height of the item, in pixels."
+                },
+                "width": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Width of the item, in pixels."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains geometrical information about the item, such as its width or height."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"description\": \"Contains frame item data, such as the title, frame type, or frame format.\",\n            \"properties\": {\n              \"format\": {\n                \"type\": \"string\",\n                \"default\": \"custom\",\n                \"description\": \"Only custom frames are supported at the moment.\",\n                \"enum\": [\n                  \"custom\"\n                ]\n              },\n              \"title\": {\n                \"type\": \"string\",\n                \"default\": \"Sample frame title\",\n                \"description\": \"Title of the frame. This title appears at the top of the frame.\"\n              },\n              \"type\": {\n                \"type\": \"string\",\n                \"default\": \"freeform\",\n                \"description\": \"Only free form frames are supported at the moment.\",\n                \"enum\": [\n                  \"freeform\"\n                ]\n              },\n              \"showContent\": {\n                \"type\": \"boolean\",\n                \"default\": true,\n                \"description\": \"Hide or reveal the content inside a frame (Enterprise plan only).\"\n              }\n            }\n          },\n          \"style\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the style of a frame item, such as the fill color.\",\n            \"properties\": {\n              \"fillColor\": {\n                \"type\": \"string\",\n                \"description\": \"Fill color for the frame.\\nHex values: `#f5f6f8` `#d5f692` `#d0e17a` `#93d275` `#67c6c0` `#23bfe7` `#a6ccf5` `#7b92ff` `#fff9b1` `#f5d128` `#ff9d48` `#f16c7f` `#ea94bb` `#ffcee0` `#b384bb` `#000000`\",\n                \"example\": \"#ffffffff\"\n              }\n            }\n          },\n          \"position\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates.\",\n            \"properties\": {\n              \"x\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"X-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              },\n              \"y\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Y-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              }\n            }\n          },\n          \"geometry\": {\n            \"type\": \"object\",\n            \"description\": \"Contains geometrical information about the item, such as its width or height.\",\n            \"properties\": {\n              \"height\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Height of the item, in pixels.\"\n              },\n              \"width\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Width of the item, in pixels.\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

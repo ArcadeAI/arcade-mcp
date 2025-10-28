@@ -1,18 +1,18 @@
 {
   "name": "GetIntegrationDetails",
-  "fully_qualified_name": "PagerdutyApi.GetIntegrationDetails@0.1.0",
-  "description": "Retrieve integration details for event orchestrations.\n\nThis tool fetches details of a specific integration associated with event orchestrations in PagerDuty using the routing key. Ideal for obtaining integration information to facilitate event handling. Requires appropriate OAuth scope for access.",
+  "fully_qualified_name": "PagerdutyApi.GetIntegrationDetails@2.0.0",
+  "description": "Retrieve details of an orchestration integration.\n\nUse this tool to obtain details about a specific integration associated with event orchestrations in PagerDuty. This can help in managing event routing using the provided integration's routing key. Requires 'event_orchestrations.read' OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "event_orchestration_id",
         "required": true,
-        "description": "The ID of an Event Orchestration to retrieve its integration details.",
+        "description": "The ID of the Event Orchestration to retrieve integration details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "integration_id",
         "required": true,
-        "description": "The unique identifier for the specific integration to retrieve details from.",
+        "description": "The ID of the integration to retrieve details for within an event orchestration in PagerDuty.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "integration_id"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "The versioning header to specify the API response format. Use correct API versioning as required.",
+        "description": "The version header to specify the desired API response format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Specify the content type for the request headers. Only 'application/json' is accepted.",
+        "description": "The HTTP `Content-Type` header for the request, specifying the media type. Use `application/json`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/event_orchestrations/{id}/integrations/{integration_id}",
@@ -153,7 +153,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "GetReactionInfo",
-  "fully_qualified_name": "TrelloApi.GetReactionInfo@0.1.0",
-  "description": "Retrieve details of a specific Trello reaction.\n\nUse this tool to get detailed information about a specific reaction on a Trello action. It is helpful for understanding how users are interacting with a card action.",
+  "fully_qualified_name": "TrelloApi.GetReactionInfo@2.0.0",
+  "description": "Get detailed information about a specific Trello reaction.\n\nThis tool retrieves details about a specific reaction associated with a Trello action. Call this tool when you need to access metadata or information related to a particular reaction within an action on Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "action_id",
         "required": true,
-        "description": "The unique identifier for the Trello action related to the reaction.",
+        "description": "The ID of the Trello Action to retrieve reaction information for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "reaction_id",
         "required": true,
-        "description": "The ID of the reaction to fetch details for.",
+        "description": "The unique identifier for the specific reaction to retrieve details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "include_member_as_nested_resource",
         "required": false,
-        "description": "Set to true to load the member as a nested resource. Refer to Members Nested Resource documentation for more details.",
+        "description": "Include the member as a nested resource in the reaction details. Refer to the Members Nested Resource guide.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "member"
       },
       {
-        "name": "load_emoji_as_nested_resource",
+        "name": "include_emoji_as_nested_resource",
         "required": false,
-        "description": "Specify whether to load the emoji as a nested resource when retrieving reaction information. Set to true to include emoji details.",
+        "description": "Set to true to load emoji as a nested resource.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/actions/{idAction}/reactions/{id}",
@@ -130,11 +130,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
         "name": "emoji",
-        "tool_parameter_name": "load_emoji_as_nested_resource",
+        "tool_parameter_name": "include_emoji_as_nested_resource",
         "description": "Whether to load the emoji as a nested resource.",
         "value_schema": {
           "val_type": "boolean",
@@ -147,6 +148,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
@@ -164,6 +166,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -181,6 +184,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -202,6 +206,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

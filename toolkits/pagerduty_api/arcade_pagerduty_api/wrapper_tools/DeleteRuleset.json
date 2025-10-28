@@ -1,18 +1,18 @@
 {
   "name": "DeleteRuleset",
-  "fully_qualified_name": "PagerdutyApi.DeleteRuleset@0.1.0",
-  "description": "Delete a ruleset from Pagerduty.\n\nUse this tool to delete a specific ruleset from Pagerduty. This action will remove the ruleset, which is used to route events and apply event rules. It's recommended to migrate to Event Orchestration for enhanced functionality.",
+  "fully_qualified_name": "PagerdutyApi.DeleteRuleset@2.0.0",
+  "description": "Delete an existing ruleset in PagerDuty.\n\nUse this tool to delete a specified ruleset in PagerDuty. Note that rulesets and event rules are nearing end-of-life, and it's recommended to migrate to Event Orchestration for enhanced features. Ensure you have the appropriate OAuth scope: 'event_rules.write'.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "ruleset_id",
         "required": true,
-        "description": "The unique identifier for the ruleset to be deleted.",
+        "description": "The unique identifier of the ruleset to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "use_versioning_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify the `Accept` versioning header to determine the API version.",
+        "description": "Specify the versioning header using the 'Accept' parameter for the request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Specify the content type for the request, typically 'application/json'.",
+        "description": "Specifies the Content-Type header for the request, typically 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/rulesets/{id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "use_versioning_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

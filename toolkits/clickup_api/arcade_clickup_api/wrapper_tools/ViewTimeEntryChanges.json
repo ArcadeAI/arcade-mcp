@@ -1,0 +1,171 @@
+{
+  "name": "ViewTimeEntryChanges",
+  "fully_qualified_name": "ClickupApi.ViewTimeEntryChanges@0.1.0",
+  "description": "View a list of changes made to a time entry.\n\nUse this tool to access the history of modifications for a specific time entry within a team in ClickUp. It provides insights into various changes made on the entry, such as updates or edits.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The ID of the workspace (team) where the time entry resides.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "time_entry_id",
+        "required": true,
+        "description": "The ID of a time entry. This ID can be obtained using the Get Time Entries Within a Date Range endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a time entry. \\\n \\\nThis can be found using the [Get Time Entries Within a Date Range](ref:gettimeentrieswithinadaterange) endpoint."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "timer_id"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "The media type for the request, typically 'application/json'. Required for HTTP headers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'Gettimeentryhistory'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/time_entries/{timer_id}/history",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "timer_id",
+        "tool_parameter_name": "time_entry_id",
+        "description": "The ID of a time entry. \\\n \\\nThis can be found using the [Get Time Entries Within a Date Range](ref:gettimeentrieswithinadaterange) endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a time entry. \\\n \\\nThis can be found using the [Get Time Entries Within a Date Range](ref:gettimeentrieswithinadaterange) endpoint."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

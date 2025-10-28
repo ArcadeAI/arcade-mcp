@@ -1,18 +1,18 @@
 {
   "name": "GetTrelloNotification",
-  "fully_qualified_name": "TrelloApi.GetTrelloNotification@0.1.0",
-  "description": "Retrieve a specific Trello notification by its ID.\n\nUse this tool to get the details of a specific notification on Trello by providing the notification ID.",
+  "fully_qualified_name": "TrelloApi.GetTrelloNotification@2.0.0",
+  "description": "Retrieve detailed Trello notification information by ID.\n\nUse this tool to obtain information about a specific Trello notification. Call this tool when you need to retrieve detailed data for a notification using its unique identifier.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "notification_id",
         "required": true,
-        "description": "The unique identifier for the specific Trello notification to retrieve.",
+        "description": "The unique identifier for the Trello notification you want to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "board_fields_to_include",
+        "name": "board_fields_list",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of board fields (e.g., `id,name,desc`) to retrieve.",
+        "description": "Specify 'all' or a comma-separated list of board fields to include.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "card_fields_to_include",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of card fields to include in the response. Valid options: id, address, badges, checkItemStates, closed, coordinates, creationMethod, dueComplete, dateLastActivity, desc, descData, due, dueReminder, idBoard, idChecklists, idLabels, idList, idMembers, idMembersVoted, idShort, idAttachmentCover, labels, limits, locationName, manualCoverAttachment, name, pos, shortLink, shortUrl, subscribed, url, cover, isTemplate.",
+        "description": "Specify `all` or a comma-separated list of card fields to include, such as `id`, `name`, or `due`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -106,9 +106,9 @@
         "http_endpoint_parameter_name": "card_fields"
       },
       {
-        "name": "notification_fields",
+        "name": "include_notification_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of notification fields like `id`, `unread`, `type`, etc.",
+        "description": "Specify 'all' or a comma-separated list of notification fields to include, such as 'id', 'unread', or 'type'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -133,7 +133,7 @@
         "http_endpoint_parameter_name": "fields"
       },
       {
-        "name": "member_fields_inclusion",
+        "name": "include_member_fields",
         "required": false,
         "description": "Specify 'all' or a comma-separated list of member fields to include in the response.",
         "value_schema": {
@@ -150,9 +150,9 @@
         "http_endpoint_parameter_name": "member_fields"
       },
       {
-        "name": "include_member_creator_fields",
+        "name": "member_creator_fields",
         "required": false,
-        "description": "`all` or a comma-separated list of member fields to include for the member creator.",
+        "description": "Specify 'all' or a comma-separated list of member fields to include the member object of the creator.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -167,9 +167,9 @@
         "http_endpoint_parameter_name": "memberCreator_fields"
       },
       {
-        "name": "organization_field_selection",
+        "name": "organization_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of organization fields like `id,name` to include in the result.",
+        "description": "Specify `all` or a comma-separated list of organization fields (e.g., `id`, `name`) to include in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -187,7 +187,7 @@
       {
         "name": "include_board_object",
         "required": false,
-        "description": "Set to true to include the board object in the notification details.",
+        "description": "Include the board object in the response if true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -202,7 +202,7 @@
       {
         "name": "include_card",
         "required": false,
-        "description": "Set to true to include the card object in the notification response.",
+        "description": "Specify True to include the card object.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -215,9 +215,9 @@
         "http_endpoint_parameter_name": "card"
       },
       {
-        "name": "include_display",
+        "name": "include_display_object",
         "required": false,
-        "description": "Set to true to include the display object in the results.",
+        "description": "Set to true to include the display object with the results.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -230,9 +230,9 @@
         "http_endpoint_parameter_name": "display"
       },
       {
-        "name": "include_entities",
+        "name": "include_entities_object",
         "required": false,
-        "description": "Set to true to include the entities object in the results.",
+        "description": "Include the entities object in the notification results. Set to true to include, false to exclude.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -247,7 +247,7 @@
       {
         "name": "include_list_object",
         "required": false,
-        "description": "Include the list object in the notification details when true.",
+        "description": "Include the list object in the notification data if set to true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -260,9 +260,9 @@
         "http_endpoint_parameter_name": "list"
       },
       {
-        "name": "include_member",
+        "name": "include_member_object",
         "required": false,
-        "description": "Include the member object in the response when true; exclude it when false.",
+        "description": "Include the member object in the notification details if set to true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -275,9 +275,9 @@
         "http_endpoint_parameter_name": "member"
       },
       {
-        "name": "include_member_creator_object",
+        "name": "include_creator_member",
         "required": false,
-        "description": "Set to true to include the member object of the creator in the notification details.",
+        "description": "Set to true to include the member object of the creator in the response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -292,7 +292,7 @@
       {
         "name": "include_organization",
         "required": false,
-        "description": "Set to true to include the organization object in the notification details.",
+        "description": "Set to true to include the organization object in the response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -337,13 +337,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/notifications/{id}",
@@ -365,11 +365,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "board_fields",
-        "tool_parameter_name": "board_fields_to_include",
+        "tool_parameter_name": "board_fields_list",
         "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -399,6 +400,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -416,6 +418,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -467,11 +470,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "display",
-        "tool_parameter_name": "include_display",
+        "tool_parameter_name": "include_display_object",
         "description": "Whether to include the display object with the results",
         "value_schema": {
           "val_type": "boolean",
@@ -484,11 +488,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "entities",
-        "tool_parameter_name": "include_entities",
+        "tool_parameter_name": "include_entities_object",
         "description": "Whether to include the entities object with the results",
         "value_schema": {
           "val_type": "boolean",
@@ -501,11 +506,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "fields",
-        "tool_parameter_name": "notification_fields",
+        "tool_parameter_name": "include_notification_fields",
         "description": "`all` or a comma-separated list of notification [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -530,6 +536,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -547,11 +554,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "member",
-        "tool_parameter_name": "include_member",
+        "tool_parameter_name": "include_member_object",
         "description": "Whether to include the member object",
         "value_schema": {
           "val_type": "boolean",
@@ -564,11 +572,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
         "name": "member_fields",
-        "tool_parameter_name": "member_fields_inclusion",
+        "tool_parameter_name": "include_member_fields",
         "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -583,11 +592,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "memberCreator",
-        "tool_parameter_name": "include_member_creator_object",
+        "tool_parameter_name": "include_creator_member",
         "description": "Whether to include the member object of the creator",
         "value_schema": {
           "val_type": "boolean",
@@ -600,11 +610,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
         "name": "memberCreator_fields",
-        "tool_parameter_name": "include_member_creator_fields",
+        "tool_parameter_name": "member_creator_fields",
         "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -619,6 +630,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -636,11 +648,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "organization_fields",
-        "tool_parameter_name": "organization_field_selection",
+        "tool_parameter_name": "organization_fields",
         "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -656,6 +669,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -673,6 +687,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -694,6 +709,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,228 @@
+{
+  "name": "UpdateIncidentServiceImpact",
+  "fully_qualified_name": "PagerdutyApi.UpdateIncidentServiceImpact@2.0.0",
+  "description": "Update the impact of an incident on a business service.\n\nUse this tool to change the impact level of a specific incident on a specified business service. Useful for managing and communicating the effects of incidents within an organization. Requires appropriate OAuth permissions.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier for the incident resource to update impact.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "business_service_id",
+        "required": true,
+        "description": "The ID of the specific business service affected by the incident.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The business service ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "business_service_id"
+      },
+      {
+        "name": "accept_versioning_header",
+        "required": true,
+        "description": "Specify the API version in the `Accept` header for versioning purposes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "impact_relation",
+        "required": false,
+        "description": "Indicate if the business service is 'impacted' or 'not_impacted' by the incident. This changes the impact propagation to other services.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "relation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "impacted",
+                "not_impacted"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The `impacted` relation will cause the Business Service and any Services that it supports to become impacted by this incident.\n\nThe `not_impacted` relation will remove the Incident's Impact from the specified Business Service.\n\nThe effect of adding or removing Impact to a Business Service in this way will also change the propagation of Impact to other Services supported by that Business Service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'putIncidentManualBusinessServiceAssociation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents/{id}/business_services/{business_service_id}/impacts",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "business_service_id",
+        "tool_parameter_name": "business_service_id",
+        "description": "The business service ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The business service ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "impact_relation",
+        "description": "The `impacted` relation will cause the Business Service and any Services that it supports to become impacted by this incident.\n\nThe `not_impacted` relation will remove the Incident's Impact from the specified Business Service.\n\nThe effect of adding or removing Impact to a Business Service in this way will also change the propagation of Impact to other Services supported by that Business Service.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "relation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "impacted",
+                "not_impacted"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The `impacted` relation will cause the Business Service and any Services that it supports to become impacted by this incident.\n\nThe `not_impacted` relation will remove the Incident's Impact from the specified Business Service.\n\nThe effect of adding or removing Impact to a Business Service in this way will also change the propagation of Impact to other Services supported by that Business Service."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"\",\n        \"type\": \"object\",\n        \"properties\": {\n          \"relation\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"impacted\",\n              \"not_impacted\"\n            ]\n          }\n        },\n        \"required\": [\n          \"relation\"\n        ]\n      }\n    }\n  },\n  \"description\": \"The `impacted` relation will cause the Business Service and any Services that it supports to become impacted by this incident.\\n\\nThe `not_impacted` relation will remove the Incident's Impact from the specified Business Service.\\n\\nThe effect of adding or removing Impact to a Business Service in this way will also change the propagation of Impact to other Services supported by that Business Service.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

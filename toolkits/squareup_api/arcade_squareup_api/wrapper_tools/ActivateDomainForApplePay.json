@@ -1,0 +1,105 @@
+{
+  "name": "ActivateDomainForApplePay",
+  "fully_qualified_name": "SquareupApi.ActivateDomainForApplePay@2.0.0",
+  "description": "Activates a domain for use with Apple Pay and Square.\n\nUse this tool to activate a domain for Apple Pay on the Web with Square. It performs a validation to ensure the domain is Apple Pay enabled, allowing platforms to bulk activate Apple Pay for their merchants. Ensure a valid domain verification file is hosted as per the guidelines.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "apple_pay_domain_name",
+        "required": true,
+        "description": "Enter the domain name, as per RFC-1034, to register it with Apple Pay.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A domain name as described in RFC-1034 that will be registered with ApplePay."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "domain_name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'RegisterDomain'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/apple-pay/domains",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "domain_name",
+        "tool_parameter_name": "apple_pay_domain_name",
+        "description": "A domain name as described in RFC-1034 that will be registered with ApplePay.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A domain name as described in RFC-1034 that will be registered with ApplePay."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines the parameters that can be included in the body of\\na request to the [RegisterDomain](api-endpoint:ApplePay-RegisterDomain) endpoint.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"domain_name\"\n        ],\n        \"properties\": {\n          \"domain_name\": {\n            \"type\": \"string\",\n            \"description\": \"A domain name as described in RFC-1034 that will be registered with ApplePay.\",\n            \"minLength\": 1,\n            \"maxLength\": 255\n          }\n        },\n        \"example\": {\n          \"domain_name\": \"example.com\"\n        },\n        \"x-sq-sdk-sample-code\": {\n          \"csharp\": \"/sdk_samples/ApplePay/RegisterDomain/RegisterDomainRequest.csharp\",\n          \"java\": \"/sdk_samples/ApplePay/RegisterDomain/RegisterDomainRequest.java\",\n          \"javascript\": \"/sdk_samples/ApplePay/RegisterDomain/RegisterDomainRequest.javascript\",\n          \"php\": \"/sdk_samples/ApplePay/RegisterDomain/RegisterDomainRequest.php\",\n          \"python\": \"/sdk_samples/ApplePay/RegisterDomain/RegisterDomainRequest.python\",\n          \"ruby\": \"/sdk_samples/ApplePay/RegisterDomain/RegisterDomainRequest.ruby\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

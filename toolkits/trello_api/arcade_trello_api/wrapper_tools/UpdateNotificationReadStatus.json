@@ -1,18 +1,18 @@
 {
   "name": "UpdateNotificationReadStatus",
-  "fully_qualified_name": "TrelloApi.UpdateNotificationReadStatus@0.1.0",
-  "description": "Update the read status of a Trello notification.\n\nThis tool updates the read status of a specific Trello notification by marking it as read or unread.",
+  "fully_qualified_name": "TrelloApi.UpdateNotificationReadStatus@2.0.0",
+  "description": "Update the read status of a Trello notification.\n\nUse this tool to change the read status of a specific Trello notification by providing its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "notification_id",
         "required": true,
-        "description": "The unique identifier of the Trello notification to update the read status for.",
+        "description": "The unique identifier for the Trello notification to update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,24 +25,24 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "notification_unread_status",
+        "name": "mark_as_unread",
         "required": false,
-        "description": "Specify 'true' to mark the notification as unread, 'false' to mark it as read.",
+        "description": "Set to false to mark the notification as read, or true to mark as unread.",
         "value_schema": {
-          "val_type": "string",
+          "val_type": "boolean",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": ""
+          "description": "Whether the notification should be marked as read or not"
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "value"
+        "http_endpoint_parameter_name": "unread"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'put-notifications-id-unread'.",
+    "description": "Response from the API endpoint 'put-notifications-id'.",
     "available_modes": [
       "value",
       "error",
@@ -72,34 +72,35 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
-    "url": "https://api.trello.com/1/notifications/{id}/unread",
+    "url": "https://api.trello.com/1/notifications/{id}",
     "http_method": "PUT",
     "headers": {},
     "parameters": [
       {
-        "name": "value",
-        "tool_parameter_name": "notification_unread_status",
-        "description": "",
+        "name": "unread",
+        "tool_parameter_name": "mark_as_unread",
+        "description": "Whether the notification should be marked as read or not",
         "value_schema": {
-          "val_type": "string",
+          "val_type": "boolean",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": ""
+          "description": "Whether the notification should be marked as read or not"
         },
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

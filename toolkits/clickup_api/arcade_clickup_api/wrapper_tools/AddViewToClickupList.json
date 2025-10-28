@@ -1,0 +1,284 @@
+{
+  "name": "AddViewToClickupList",
+  "fully_qualified_name": "ClickupApi.AddViewToClickupList@0.1.0",
+  "description": "Add various views to a ClickUp list.\n\nUse this tool to add different types of views (List, Board, Calendar, etc.) to a specific ClickUp list using the list ID.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "clickup_list_id",
+        "required": true,
+        "description": "An integer representing the ID of the ClickUp list to which the view will be added.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_id"
+      },
+      {
+        "name": "view_configuration",
+        "required": true,
+        "description": "Configuration settings for the view, including 'name', 'type', 'grouping', 'divide', 'sorting', 'filters', 'columns', 'team_sidebar', and 'settings'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of view to create. Options include: `list`, `board`, `calendar`, `table`, `timeline`, `workload`, `activity`, `map`, `conversation`, or `gantt`."
+            },
+            "grouping": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/grouping"
+            },
+            "divide": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/divide"
+            },
+            "sorting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/sorting"
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/filters"
+            },
+            "columns": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/columns"
+            },
+            "team_sidebar": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/team_sidebar"
+            },
+            "settings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/settings"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateListView'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/list/{list_id}/view",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "list_id",
+        "tool_parameter_name": "clickup_list_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "view_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of view to create. Options include: `list`, `board`, `calendar`, `table`, `timeline`, `workload`, `activity`, `map`, `conversation`, or `gantt`."
+            },
+            "grouping": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/grouping"
+            },
+            "divide": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/divide"
+            },
+            "sorting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/sorting"
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/filters"
+            },
+            "columns": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/columns"
+            },
+            "team_sidebar": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/team_sidebar"
+            },
+            "settings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/settings"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateListViewrequest\",\n        \"required\": [\n          \"name\",\n          \"type\",\n          \"grouping\",\n          \"divide\",\n          \"sorting\",\n          \"filters\",\n          \"columns\",\n          \"team_sidebar\",\n          \"settings\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"description\": \"The type of view to create. Options include: `list`, `board`, `calendar`, `table`, `timeline`, `workload`, `activity`, `map`, `conversation`, or `gantt`.\"\n          },\n          \"grouping\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/grouping\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/grouping\"\n          },\n          \"divide\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/divide\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/divide\"\n          },\n          \"sorting\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/sorting\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/sorting\"\n          },\n          \"filters\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/filters\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/filters\"\n          },\n          \"columns\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/columns\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/columns\"\n          },\n          \"team_sidebar\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/team_sidebar\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/team_sidebar\"\n          },\n          \"settings\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/settings\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1view~1%7Bview_id%7D/put/requestBody/content/application~1json/schema/properties/settings\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"New List View Name\",\n            \"type\": \"list\",\n            \"grouping\": {\n              \"field\": \"status\",\n              \"dir\": 1,\n              \"collapsed\": [],\n              \"ignore\": false\n            },\n            \"divide\": {\n              \"field\": null,\n              \"dir\": null,\n              \"collapsed\": []\n            },\n            \"sorting\": {\n              \"fields\": []\n            },\n            \"filters\": {\n              \"op\": \"AND\",\n              \"fields\": [],\n              \"search\": \"\",\n              \"show_closed\": false\n            },\n            \"columns\": {\n              \"fields\": []\n            },\n            \"team_sidebar\": {\n              \"assignees\": [],\n              \"assigned_comments\": false,\n              \"unassigned_tasks\": false\n            },\n            \"settings\": {\n              \"show_task_locations\": false,\n              \"show_subtasks\": 3,\n              \"show_subtask_parent_names\": false,\n              \"show_closed_subtasks\": false,\n              \"show_assignees\": true,\n              \"show_images\": true,\n              \"collapse_empty_columns\": null,\n              \"me_comments\": true,\n              \"me_subtasks\": true,\n              \"me_checklists\": true\n            }\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"New List View Name\",\n        \"type\": \"list\",\n        \"grouping\": {\n          \"field\": \"status\",\n          \"dir\": 1,\n          \"collapsed\": [],\n          \"ignore\": false\n        },\n        \"divide\": {\n          \"field\": null,\n          \"dir\": null,\n          \"collapsed\": []\n        },\n        \"sorting\": {\n          \"fields\": [\n            {\n              \"field\": \"cf_624a423a-c1d1-4467-99e2-63e225658cb2\",\n              \"dir\": -1,\n              \"idx\": 0\n            }\n          ]\n        },\n        \"filters\": {\n          \"op\": \"AND\",\n          \"fields\": [\n            {\n              \"field\": \"cf_624a423a-c1d1-4467-99e2-63e225658cb2\",\n              \"op\": \"EQ\",\n              \"determinor\": null,\n              \"idx\": 0,\n              \"values\": \"123\"\n            }\n          ],\n          \"search\": \"\",\n          \"show_closed\": false\n        },\n        \"columns\": {\n          \"fields\": [\n            {\n              \"field\": \"assignee\",\n              \"idx\": 0,\n              \"width\": 160,\n              \"hidden\": true,\n              \"name\": null,\n              \"display\": null\n            }\n          ]\n        },\n        \"team_sidebar\": {\n          \"assignees\": [],\n          \"assigned_comments\": false,\n          \"unassigned_tasks\": false\n        },\n        \"settings\": {\n          \"show_task_locations\": false,\n          \"show_subtasks\": 3,\n          \"show_subtask_parent_names\": false,\n          \"show_closed_subtasks\": false,\n          \"show_assignees\": true,\n          \"show_images\": true,\n          \"collapse_empty_columns\": null,\n          \"me_comments\": true,\n          \"me_subtasks\": true,\n          \"me_checklists\": true\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

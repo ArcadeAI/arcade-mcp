@@ -1,0 +1,193 @@
+{
+  "name": "CreateAutomationAction",
+  "fully_qualified_name": "PagerdutyApi.CreateAutomationAction@2.0.0",
+  "description": "Create a script, process, or runbook automation action.\n\nThis tool creates an automation action such as a script, process automation, or runbook automation action in PagerDuty. Call this when you need to automate or manage workflows.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "api_version_header",
+        "required": true,
+        "description": "Specify the API version using the Accept header for versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_json",
+        "required": true,
+        "description": "Specifies that the request body is in JSON format. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "automation_action_request_body",
+        "required": true,
+        "description": "JSON object containing details to create the automation action, such as action type and parameters.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "action": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createAutomationAction'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/automation_actions/actions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "Accept",
+        "tool_parameter_name": "api_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_json",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "automation_action_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "action": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"action\": {\n            \"oneOf\": [\n              {\n                \"allOf\": [\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"name\": {\n                        \"type\": \"string\",\n                        \"example\": \"Restart apache\",\n                        \"maxLength\": 255\n                      },\n                      \"description\": {\n                        \"type\": \"string\",\n                        \"example\": \"Restarts apache on the us-west-2-shopping-cart host\",\n                        \"maxLength\": 1024\n                      },\n                      \"action_classification\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"diagnostic\",\n                          \"remediation\"\n                        ],\n                        \"nullable\": true\n                      },\n                      \"action_type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"script\",\n                          \"process_automation\"\n                        ],\n                        \"example\": \"process_automation\"\n                      },\n                      \"runner\": {\n                        \"type\": \"string\",\n                        \"example\": \"1a6763bd-b1ad-458f-a347-6c8a9bea2d70\",\n                        \"maxLength\": 36\n                      },\n                      \"services\": {\n                        \"nullable\": false,\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"allOf\": [\n                            {\n                              \"allOf\": [\n                                {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"id\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true\n                                    },\n                                    \"summary\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                    },\n                                    \"type\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true,\n                                      \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                    },\n                                    \"self\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"the API show URL at which the object is accessible\"\n                                    },\n                                    \"html_url\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                    }\n                                  }\n                                },\n                                {\n                                  \"type\": \"object\",\n                                  \"required\": [\n                                    \"type\",\n                                    \"id\"\n                                  ]\n                                }\n                              ]\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"enum\": [\n                                    \"service_reference\"\n                                  ]\n                                }\n                              }\n                            }\n                          ]\n                        }\n                      },\n                      \"teams\": {\n                        \"nullable\": false,\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"allOf\": [\n                            {\n                              \"allOf\": [\n                                {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"id\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true\n                                    },\n                                    \"summary\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                    },\n                                    \"type\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true,\n                                      \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                    },\n                                    \"self\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"the API show URL at which the object is accessible\"\n                                    },\n                                    \"html_url\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                    }\n                                  }\n                                },\n                                {\n                                  \"type\": \"object\",\n                                  \"required\": [\n                                    \"type\",\n                                    \"id\"\n                                  ]\n                                }\n                              ]\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"enum\": [\n                                    \"team_reference\"\n                                  ]\n                                }\n                              }\n                            }\n                          ]\n                        }\n                      },\n                      \"only_invocable_on_unresolved_incidents\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, the action can only be invoked against an unresolved incident.\",\n                        \"default\": false,\n                        \"example\": false\n                      },\n                      \"allow_invocation_manually\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, the action can only be invoked manually by a user.\",\n                        \"default\": true,\n                        \"example\": true\n                      },\n                      \"allow_invocation_from_event_orchestration\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, the action can only be invoked automatically by an Event Orchestration.\",\n                        \"default\": true,\n                        \"example\": true\n                      },\n                      \"map_to_all_services\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, the action will be associated with every service.\",\n                        \"default\": false,\n                        \"example\": false\n                      }\n                    },\n                    \"required\": [\n                      \"name\",\n                      \"description\",\n                      \"action_type\"\n                    ]\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"action_data_reference\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"script\": {\n                            \"type\": \"string\",\n                            \"description\": \"Body of the script to be executed on the Runner. To execute it, the Runner will write the content of the property into a temp file, make the file executable and execute it. It is assumed that the Runner has a properly configured environment to run the script as an executable file. This behaviour can be altered by providing the `invocation_command` property. The maxLength value is specified in bytes.\",\n                            \"example\": \"print(\\\"Hello from a Python script!\\\")\",\n                            \"maxLength\": 16777215\n                          },\n                          \"invocation_command\": {\n                            \"type\": \"string\",\n                            \"description\": \"The command to executed a script with. With the body of the script written into a temp file, the Runner will execute the `<invocation_command> <temp_file>` command. The maxLength value is specified in bytes.\",\n                            \"example\": \"/usr/local/bin/python3\",\n                            \"maxLength\": 65535\n                          }\n                        },\n                        \"required\": [\n                          \"script\"\n                        ]\n                      }\n                    },\n                    \"required\": [\n                      \"action_data_reference\"\n                    ]\n                  }\n                ]\n              },\n              {\n                \"allOf\": [\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"name\": {\n                        \"type\": \"string\",\n                        \"example\": \"Restart apache\",\n                        \"maxLength\": 255\n                      },\n                      \"description\": {\n                        \"type\": \"string\",\n                        \"example\": \"Restarts apache on the us-west-2-shopping-cart host\",\n                        \"maxLength\": 1024\n                      },\n                      \"action_classification\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"diagnostic\",\n                          \"remediation\"\n                        ],\n                        \"nullable\": true\n                      },\n                      \"action_type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"script\",\n                          \"process_automation\"\n                        ],\n                        \"example\": \"process_automation\"\n                      },\n                      \"runner\": {\n                        \"type\": \"string\",\n                        \"example\": \"1a6763bd-b1ad-458f-a347-6c8a9bea2d70\",\n                        \"maxLength\": 36\n                      },\n                      \"services\": {\n                        \"nullable\": false,\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"allOf\": [\n                            {\n                              \"allOf\": [\n                                {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"id\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true\n                                    },\n                                    \"summary\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                    },\n                                    \"type\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true,\n                                      \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                    },\n                                    \"self\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"the API show URL at which the object is accessible\"\n                                    },\n                                    \"html_url\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                    }\n                                  }\n                                },\n                                {\n                                  \"type\": \"object\",\n                                  \"required\": [\n                                    \"type\",\n                                    \"id\"\n                                  ]\n                                }\n                              ]\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"enum\": [\n                                    \"service_reference\"\n                                  ]\n                                }\n                              }\n                            }\n                          ]\n                        }\n                      },\n                      \"teams\": {\n                        \"nullable\": false,\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"allOf\": [\n                            {\n                              \"allOf\": [\n                                {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"id\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true\n                                    },\n                                    \"summary\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                    },\n                                    \"type\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true,\n                                      \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                    },\n                                    \"self\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"the API show URL at which the object is accessible\"\n                                    },\n                                    \"html_url\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                    }\n                                  }\n                                },\n                                {\n                                  \"type\": \"object\",\n                                  \"required\": [\n                                    \"type\",\n                                    \"id\"\n                                  ]\n                                }\n                              ]\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"enum\": [\n                                    \"team_reference\"\n                                  ]\n                                }\n                              }\n                            }\n                          ]\n                        }\n                      },\n                      \"only_invocable_on_unresolved_incidents\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, the action can only be invoked against an unresolved incident.\",\n                        \"default\": false,\n                        \"example\": false\n                      },\n                      \"allow_invocation_manually\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, the action can only be invoked manually by a user.\",\n                        \"default\": true,\n                        \"example\": true\n                      },\n                      \"allow_invocation_from_event_orchestration\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, the action can only be invoked automatically by an Event Orchestration.\",\n                        \"default\": true,\n                        \"example\": true\n                      },\n                      \"map_to_all_services\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, the action will be associated with every service.\",\n                        \"default\": false,\n                        \"example\": false\n                      }\n                    },\n                    \"required\": [\n                      \"name\",\n                      \"description\",\n                      \"action_type\"\n                    ]\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"action_data_reference\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"process_automation_job_id\": {\n                            \"type\": \"string\",\n                            \"example\": \"79c199bba1aff6e519f198457f5ec0fc\",\n                            \"maxLength\": 36\n                          },\n                          \"process_automation_job_arguments\": {\n                            \"type\": \"string\",\n                            \"description\": \"Arguments to pass to the Process Automation job. The maxLength value is specified in bytes.\",\n                            \"example\": \"-env production\",\n                            \"maxLength\": 1024\n                          },\n                          \"process_automation_node_filter\": {\n                            \"type\": \"string\",\n                            \"description\": \"Node filter for the Process Automation job. The maxLength value is specified in bytes. Filter syntax: https://docs.rundeck.com/docs/manual/11-node-filters.html#node-filter-syntax\",\n                            \"example\": \"mynode1 !nodename: mynode2\",\n                            \"maxLength\": 1024\n                          }\n                        },\n                        \"required\": [\n                          \"process_automation_job_id\"\n                        ]\n                      }\n                    },\n                    \"required\": [\n                      \"action_data_reference\"\n                    ]\n                  }\n                ]\n              }\n            ],\n            \"discriminator\": {\n              \"propertyName\": \"action_type\",\n              \"mapping\": {\n                \"script\": \"#/components/schemas/AutomationActionsScriptActionPostBody\",\n                \"process_automation\": \"#/components/schemas/AutomationActionsProcessAutomationJobActionPostBody\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"action\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"value\": {\n            \"action\": {\n              \"name\": \"Restart apache\",\n              \"description\": \"Restarts apache on the us-west-2-shopping-cart host\",\n              \"action_type\": \"script\",\n              \"action_data_reference\": {\n                \"script\": \"java --version\"\n              },\n              \"teams\": [\n                {\n                  \"id\": \"PQ9K7I8\",\n                  \"type\": \"team_reference\"\n                }\n              ],\n              \"services\": [\n                {\n                  \"id\": \"PRDRWUJ\",\n                  \"type\": \"service_reference\"\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

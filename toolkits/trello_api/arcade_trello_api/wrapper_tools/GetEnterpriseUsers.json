@@ -1,18 +1,18 @@
 {
   "name": "GetEnterpriseUsers",
-  "fully_qualified_name": "TrelloApi.GetEnterpriseUsers@0.1.0",
-  "description": "Retrieve users from a Trello enterprise, with optional filters.\n\nUse this tool to get information about users in a Trello enterprise, such as licensed members or board guests. The response is paginated, providing up to 100 users per request.",
+  "fully_qualified_name": "TrelloApi.GetEnterpriseUsers@2.0.0",
+  "description": "Fetch users from a Trello enterprise.\n\nRetrieve the users of a specified Trello enterprise, including licensed members and board guests. The response is paginated, returning 100 users per call.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "The unique identifier of the Trello enterprise to retrieve users from.",
+        "description": "ID of the Trello enterprise to retrieve users from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "active_since_date",
         "required": false,
-        "description": "Return only users active since this date (inclusive). Format: YYYY-MM-DD.",
+        "description": "Filter users active since this date (inclusive). Use YYYY-MM-DD format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,7 +40,7 @@
         "http_endpoint_parameter_name": "activeSince"
       },
       {
-        "name": "inactive_since_date",
+        "name": "active_date_filter",
         "required": false,
         "description": "Returns only Trello users active since this date (inclusive). Provide the date in YYYY-MM-DD format.",
         "value_schema": {
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "inactiveSince"
       },
       {
-        "name": "search_value_filter",
+        "name": "search_query",
         "required": false,
-        "description": "Filter users by email address or full name starting with this value.",
+        "description": "String to search for members by email or full name starting with this value.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Cursor for returning the next set of results in a paginated response. Use the cursor from the response to fetch subsequent batches.",
+        "description": "Cursor value to fetch the next set of user results. Use the cursor received from a previous response to continue fetching more users.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,7 +87,7 @@
       {
         "name": "licensed_members_only",
         "required": false,
-        "description": "If true, return only members with a Trello license. If false, return only those without a license. If omitted, return both.",
+        "description": "Set to true to retrieve only members with a license for the Trello Enterprise; false for only unlicensed members. Leave unspecified to include both licensed and unlicensed members.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -100,9 +100,9 @@
         "http_endpoint_parameter_name": "licensed"
       },
       {
-        "name": "return_deactivated_members",
+        "name": "fetch_deactivated_members",
         "required": false,
-        "description": "Return deactivated members when true; active members when false. Unspecified returns all members.",
+        "description": "When true, returns members who have been deactivated; when false, returns members who have not. Both active and deactivated members are returned if unspecified.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -115,9 +115,9 @@
         "http_endpoint_parameter_name": "deactivated"
       },
       {
-        "name": "include_collaborators",
+        "name": "return_board_guests",
         "required": false,
-        "description": "Set to true to include members who are board guests (without a license). False excludes them. If unspecified, both are returned.",
+        "description": "Set to true to return members who are guests on boards; false to return only non-guests. If not set, both are included.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -130,9 +130,9 @@
         "http_endpoint_parameter_name": "collaborator"
       },
       {
-        "name": "return_managed_members",
+        "name": "return_managed_members_only",
         "required": false,
-        "description": "Set to true to return only members managed by the Trello Enterprise, false to exclude managed members. If not set, both are returned.",
+        "description": "Specify true to return only managed members, false for only unmanaged, or omit for both.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -145,9 +145,9 @@
         "http_endpoint_parameter_name": "managed"
       },
       {
-        "name": "include_administrators_only",
+        "name": "only_admin_members",
         "required": false,
-        "description": "If true, returns only administrators of the Trello Enterprise. If false, returns only non-administrators. If unspecified, returns both.",
+        "description": "Set to True to return only administrators of the Trello Enterprise. If False, return non-admins. Unspecified returns both.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -192,13 +192,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/enterprises/{id}/members/query",
@@ -220,11 +220,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "deactivated",
-        "tool_parameter_name": "return_deactivated_members",
+        "tool_parameter_name": "fetch_deactivated_members",
         "description": "When true, returns members who have been deactivated for the corresponding Trello Enterprise; when false, returns members who have not. If unspecified, both active and deactivated members will be returned.",
         "value_schema": {
           "val_type": "boolean",
@@ -237,11 +238,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "collaborator",
-        "tool_parameter_name": "include_collaborators",
+        "tool_parameter_name": "return_board_guests",
         "description": "When true, returns members who are guests on one or more boards in the corresponding Trello Enterprise (but do not possess a license); when false, returns members who are not. If unspecified, both guests and non-guests will be returned.",
         "value_schema": {
           "val_type": "boolean",
@@ -254,11 +256,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "managed",
-        "tool_parameter_name": "return_managed_members",
+        "tool_parameter_name": "return_managed_members_only",
         "description": "When true, returns members who are managed by the corresponding Trello Enterprise; when false, returns members who are not. If unspecified, both managed and unmanaged members will be returned.",
         "value_schema": {
           "val_type": "boolean",
@@ -271,11 +274,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
         "name": "admin",
-        "tool_parameter_name": "include_administrators_only",
+        "tool_parameter_name": "only_admin_members",
         "description": "When true, returns members who are administrators of the corresponding Trello Enterprise; when false, returns members who are not. If unspecified, both admin and non-admin members will be returned.",
         "value_schema": {
           "val_type": "boolean",
@@ -288,6 +292,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -305,11 +310,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
         "name": "inactiveSince",
-        "tool_parameter_name": "inactive_since_date",
+        "tool_parameter_name": "active_date_filter",
         "description": "Returns only Trello users active since this date (inclusive).",
         "value_schema": {
           "val_type": "string",
@@ -322,11 +328,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
         "name": "search",
-        "tool_parameter_name": "search_value_filter",
+        "tool_parameter_name": "search_query",
         "description": "Returns members with email address or full name that start with the search value.",
         "value_schema": {
           "val_type": "string",
@@ -339,6 +346,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
@@ -356,6 +364,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
@@ -373,6 +382,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -394,6 +404,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

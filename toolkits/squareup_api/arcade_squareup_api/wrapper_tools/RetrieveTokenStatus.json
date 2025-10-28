@@ -1,11 +1,11 @@
 {
   "name": "RetrieveTokenStatus",
-  "fully_qualified_name": "SquareupApi.RetrieveTokenStatus@0.1.0",
-  "description": "Retrieve the status of an OAuth or personal access token.\n\nThis tool checks the status of a Square OAuth access token or a personal access token. It should be called to verify if a token is active or expired. Ensure the token is included in the Authorization header as 'Bearer ACCESS_TOKEN'.",
+  "fully_qualified_name": "SquareupApi.RetrieveTokenStatus@2.0.0",
+  "description": "Retrieve the status of an OAuth or personal access token.\n\nUse this tool to get information on the validity and status of an OAuth access token or a personal access token. Call this tool to check if a token is expired or unauthorized.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": []
@@ -39,13 +39,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/oauth2/token/status",
@@ -62,6 +62,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

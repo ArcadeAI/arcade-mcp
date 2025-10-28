@@ -1,18 +1,18 @@
 {
   "name": "GetTeamSettings",
-  "fully_qualified_name": "MiroApi.GetTeamSettings@0.1.0",
-  "description": "Retrieve team settings in an enterprise Miro account.\n\nThis tool retrieves the settings for a specific team within an enterprise Miro account. It is intended for users with the Company Admin role and requires access to the Enterprise plan. Use this when you need to access or verify the settings of a team in your organization's Miro account.",
+  "fully_qualified_name": "MiroApi.GetTeamSettings@2.0.0",
+  "description": "Fetches settings for a specific team in an organization.\n\nThis tool retrieves team settings for a specified team within an organization in Miro. It is applicable only to users with the Enterprise plan who have the role of a Company Admin. Use this when you need detailed configuration information about a team.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id",
         "required": true,
-        "description": "The unique identifier for the organization in Miro.",
+        "description": "The unique identifier for the organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "org_id"
       },
       {
-        "name": "team_identifier",
+        "name": "team_id",
         "required": true,
-        "description": "The unique identifier for the team whose settings are to be retrieved.",
+        "description": "The unique identifier for the team whose settings you want to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/settings",
@@ -98,11 +98,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "team_id",
-        "tool_parameter_name": "team_identifier",
+        "tool_parameter_name": "team_id",
         "description": "The id of the Team.",
         "value_schema": {
           "val_type": "string",
@@ -115,6 +116,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -128,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

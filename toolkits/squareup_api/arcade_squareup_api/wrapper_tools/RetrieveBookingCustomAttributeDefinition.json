@@ -1,18 +1,18 @@
 {
   "name": "RetrieveBookingCustomAttributeDefinition",
-  "fully_qualified_name": "SquareupApi.RetrieveBookingCustomAttributeDefinition@0.1.0",
-  "description": "Retrieve a booking's custom attribute definition.\n\nUse this tool to obtain the definition of a custom attribute for bookings. Appropriate OAuth scope permissions are required, either buyer-level (`APPOINTMENTS_READ`) or seller-level (`APPOINTMENTS_ALL_READ` and `APPOINTMENTS_READ`).",
+  "fully_qualified_name": "SquareupApi.RetrieveBookingCustomAttributeDefinition@2.0.0",
+  "description": "Retrieve a booking's custom attribute definition.\n\nUse this tool to retrieve detailed information about a specific booking's custom attribute definition. Ensure proper OAuth scope: `APPOINTMENTS_READ` for buyer-level or `APPOINTMENTS_ALL_READ` and `APPOINTMENTS_READ` for seller-level permissions.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute definition to retrieve. If not the definition owner, use the qualified key.",
+        "description": "The key for the custom attribute definition to retrieve. Use a qualified key if not the definition owner.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "key"
       },
       {
-        "name": "custom_attribute_version",
+        "name": "current_version_of_custom_attribute_definition",
         "required": false,
-        "description": "The version of the custom attribute definition for consistent reads. If the version is too high, a `BAD_REQUEST` error occurs.",
+        "description": "The current version of the custom attribute definition for consistent reads. Provides the specified version or higher if available. Returns `BAD_REQUEST` if the version is higher than current.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/bookings/custom-attribute-definitions/{key}",
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "version",
-        "tool_parameter_name": "custom_attribute_version",
+        "tool_parameter_name": "current_version_of_custom_attribute_definition",
         "description": "The current version of the custom attribute definition, which is used for strongly consistent\nreads to guarantee that you receive the most up-to-date data. When included in the request,\nSquare returns the specified version or a higher version if one exists. If the specified version\nis higher than the current version, Square returns a `BAD_REQUEST` error.",
         "value_schema": {
           "val_type": "integer",
@@ -102,6 +102,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -119,6 +120,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

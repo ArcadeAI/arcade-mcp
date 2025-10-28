@@ -1,0 +1,219 @@
+{
+  "name": "CreateIssueNote",
+  "fully_qualified_name": "PylonApi.CreateIssueNote@0.1.0",
+  "description": "Creates a note on an issue to track additional details.\n\nThis tool should be called when there's a need to add a note or comment to an existing issue to provide further information or updates.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_id",
+        "required": true,
+        "description": "The unique identifier of the issue to which the note will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the issue."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "note_details_json",
+        "required": false,
+        "description": "The JSON object containing note details like body_html, attachment_urls, message_id, thread_id, and user_id.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "attachment_urls": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of attachment URLs to attach to this issue."
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The body of the message in HTML."
+            },
+            "message_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the message to reply to. This message must be an internal note. You can find this from the GET /issues/{id}/messages endpoint. Either this or thread_id must be provided."
+            },
+            "thread_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the thread to post the note to. You can find this from the GET /issues/{id}/threads endpoint. Either this or message_id must be provided."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional user ID to post the message as. If not provided, the API token user will be used."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateIssueNote'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/issues/{id}/note",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "issue_id",
+        "description": "The ID of the issue.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the issue."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "note_details_json",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "attachment_urls": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of attachment URLs to attach to this issue."
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The body of the message in HTML."
+            },
+            "message_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the message to reply to. This message must be an internal note. You can find this from the GET /issues/{id}/messages endpoint. Either this or thread_id must be provided."
+            },
+            "thread_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the thread to post the note to. You can find this from the GET /issues/{id}/threads endpoint. Either this or message_id must be provided."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional user ID to post the message as. If not provided, the API token user will be used."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"attachment_urls\": {\n            \"description\": \"An array of attachment URLs to attach to this issue.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"AttachmentURLs\"\n          },\n          \"body_html\": {\n            \"description\": \"The body of the message in HTML.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"BodyHTML\"\n          },\n          \"message_id\": {\n            \"description\": \"The ID of the message to reply to. This message must be an internal note. You can find this from the GET /issues/{id}/messages endpoint. Either this or thread_id must be provided.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"MessageID\"\n          },\n          \"thread_id\": {\n            \"description\": \"The ID of the thread to post the note to. You can find this from the GET /issues/{id}/threads endpoint. Either this or message_id must be provided.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ThreadID\"\n          },\n          \"user_id\": {\n            \"description\": \"Optional user ID to post the message as. If not provided, the API token user will be used.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"UserID\"\n          }\n        },\n        \"required\": [\n          \"body_html\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

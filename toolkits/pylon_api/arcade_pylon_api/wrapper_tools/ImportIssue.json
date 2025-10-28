@@ -1,0 +1,578 @@
+{
+  "name": "ImportIssue",
+  "fully_qualified_name": "PylonApi.ImportIssue@0.1.0",
+  "description": "Import an issue into the system.\n\nThis tool is used to import an issue into the Pylon system. Use it when you need to add new issues by importing them through a specified format or integration.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_import_request",
+        "required": false,
+        "description": "A JSON object with details for the issue import, including account ID, assignee, attachments, created time, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "AccountID that the issue should belong to."
+            },
+            "assignee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "UserID that the issue should be assigned to."
+            },
+            "attachment_urls": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of attachment URLs to attach to this issue."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "CreatedAt is the time the issue was created (RFC3339)."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be used on this issue."
+            },
+            "external_issues": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "external_issue_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the external issue in the source system."
+                },
+                "source": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The source system of the external issue (e.g., \"linear\", \"asana\", \"jira\", \"github\")."
+                }
+              },
+              "description": "External issues to link to this issue."
+            },
+            "external_refs": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "intercom_conversation_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Intercom conversation ID associated with this issue, if any."
+                },
+                "zendesk_ticket_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Zendesk ticket ID associated with this issue, if any."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "first_response_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "FirstResponseTime is the time the issue was first responded to (RFC3339)."
+            },
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "attachment_urls": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of attachment URLs to attach to this message."
+                },
+                "body_html": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The HTML content of the message."
+                },
+                "contact_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The contact that sent the message. Only one of user_id or contact_id can be specified."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "CreatedAt is the time the message was created (RFC3339)."
+                },
+                "is_private": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the message is private."
+                },
+                "user_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The user that sent the message. Only one of user_id or contact_id can be specified."
+                }
+              },
+              "description": "Messages to be imported for this issue. At least one message is required."
+            },
+            "requester_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ContactID that the issue should be on behalf of."
+            },
+            "resolution_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ResolutionTime is the time the issue was resolved (RFC3339)."
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The state of the issue. Can be one of new, waiting_on_you, waiting_on_customer, on_hold, closed, or a custom status."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of strings to use as tags on this issue."
+            },
+            "team_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "TeamID that the issue should be assigned to."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of the issue."
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "UpdatedAt is the time the issue was last updated (RFC3339)."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ImportIssue'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/import/issues",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "issue_import_request",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "AccountID that the issue should belong to."
+            },
+            "assignee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "UserID that the issue should be assigned to."
+            },
+            "attachment_urls": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of attachment URLs to attach to this issue."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "CreatedAt is the time the issue was created (RFC3339)."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be used on this issue."
+            },
+            "external_issues": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "external_issue_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the external issue in the source system."
+                },
+                "source": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The source system of the external issue (e.g., \"linear\", \"asana\", \"jira\", \"github\")."
+                }
+              },
+              "description": "External issues to link to this issue."
+            },
+            "external_refs": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "intercom_conversation_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Intercom conversation ID associated with this issue, if any."
+                },
+                "zendesk_ticket_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Zendesk ticket ID associated with this issue, if any."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "first_response_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "FirstResponseTime is the time the issue was first responded to (RFC3339)."
+            },
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "attachment_urls": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of attachment URLs to attach to this message."
+                },
+                "body_html": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The HTML content of the message."
+                },
+                "contact_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The contact that sent the message. Only one of user_id or contact_id can be specified."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "CreatedAt is the time the message was created (RFC3339)."
+                },
+                "is_private": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the message is private."
+                },
+                "user_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The user that sent the message. Only one of user_id or contact_id can be specified."
+                }
+              },
+              "description": "Messages to be imported for this issue. At least one message is required."
+            },
+            "requester_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ContactID that the issue should be on behalf of."
+            },
+            "resolution_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ResolutionTime is the time the issue was resolved (RFC3339)."
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The state of the issue. Can be one of new, waiting_on_you, waiting_on_customer, on_hold, closed, or a custom status."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of strings to use as tags on this issue."
+            },
+            "team_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "TeamID that the issue should be assigned to."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of the issue."
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "UpdatedAt is the time the issue was last updated (RFC3339)."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"account_id\": {\n            \"description\": \"AccountID that the issue should belong to.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AccountID\"\n          },\n          \"assignee_id\": {\n            \"description\": \"UserID that the issue should be assigned to.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AssigneeID\"\n          },\n          \"attachment_urls\": {\n            \"description\": \"An array of attachment URLs to attach to this issue.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"AttachmentURLs\"\n          },\n          \"created_at\": {\n            \"description\": \"CreatedAt is the time the issue was created (RFC3339).\",\n            \"type\": \"string\",\n            \"x-go-name\": \"CreatedAt\"\n          },\n          \"custom_fields\": {\n            \"description\": \"An array of custom fields to be used on this issue.\",\n            \"items\": {\n              \"properties\": {\n                \"slug\": {\n                  \"description\": \"The slug of the custom field.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Slug\"\n                },\n                \"value\": {\n                  \"description\": \"The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Value\"\n                },\n                \"values\": {\n                  \"description\": \"The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": \"array\",\n                  \"x-go-name\": \"Values\"\n                }\n              },\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"CustomFields\"\n          },\n          \"external_issues\": {\n            \"description\": \"External issues to link to this issue.\",\n            \"items\": {\n              \"properties\": {\n                \"external_issue_id\": {\n                  \"description\": \"The ID of the external issue in the source system.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"ExternalIssueID\"\n                },\n                \"source\": {\n                  \"description\": \"The source system of the external issue (e.g., \\\"linear\\\", \\\"asana\\\", \\\"jira\\\", \\\"github\\\").\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Source\"\n                }\n              },\n              \"required\": [\n                \"external_issue_id\",\n                \"source\"\n              ],\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"ExternalIssues\"\n          },\n          \"external_refs\": {\n            \"properties\": {\n              \"intercom_conversation_id\": {\n                \"description\": \"The Intercom conversation ID associated with this issue, if any.\",\n                \"type\": \"string\",\n                \"x-go-name\": \"IntercomConversationID\"\n              },\n              \"zendesk_ticket_id\": {\n                \"description\": \"The Zendesk ticket ID associated with this issue, if any.\",\n                \"type\": \"string\",\n                \"x-go-name\": \"ZendeskTicketID\"\n              }\n            },\n            \"type\": \"object\",\n            \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n          },\n          \"first_response_time\": {\n            \"description\": \"FirstResponseTime is the time the issue was first responded to (RFC3339).\",\n            \"type\": \"string\",\n            \"x-go-name\": \"FirstResponseTime\"\n          },\n          \"messages\": {\n            \"description\": \"Messages to be imported for this issue. At least one message is required.\",\n            \"items\": {\n              \"properties\": {\n                \"attachment_urls\": {\n                  \"description\": \"An array of attachment URLs to attach to this message.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": \"array\",\n                  \"x-go-name\": \"AttachmentURLs\"\n                },\n                \"body_html\": {\n                  \"description\": \"The HTML content of the message.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"BodyHTML\"\n                },\n                \"contact_id\": {\n                  \"description\": \"The contact that sent the message. Only one of user_id or contact_id can be specified.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"ContactID\"\n                },\n                \"created_at\": {\n                  \"description\": \"CreatedAt is the time the message was created (RFC3339).\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"CreatedAt\"\n                },\n                \"is_private\": {\n                  \"description\": \"Whether the message is private.\",\n                  \"type\": \"boolean\",\n                  \"x-go-name\": \"IsPrivate\"\n                },\n                \"user_id\": {\n                  \"description\": \"The user that sent the message. Only one of user_id or contact_id can be specified.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"UserID\"\n                }\n              },\n              \"required\": [\n                \"body_html\",\n                \"is_private\"\n              ],\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Messages\"\n          },\n          \"requester_id\": {\n            \"description\": \"ContactID that the issue should be on behalf of.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"RequesterID\"\n          },\n          \"resolution_time\": {\n            \"description\": \"ResolutionTime is the time the issue was resolved (RFC3339).\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ResolutionTime\"\n          },\n          \"state\": {\n            \"description\": \"The state of the issue. Can be one of new, waiting_on_you, waiting_on_customer, on_hold, closed, or a custom status.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"State\"\n          },\n          \"tags\": {\n            \"description\": \"An array of strings to use as tags on this issue.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Tags\"\n          },\n          \"team_id\": {\n            \"description\": \"TeamID that the issue should be assigned to.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"TeamID\"\n          },\n          \"title\": {\n            \"description\": \"The title of the issue.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Title\"\n          },\n          \"updated_at\": {\n            \"description\": \"UpdatedAt is the time the issue was last updated (RFC3339).\",\n            \"type\": \"string\",\n            \"x-go-name\": \"UpdatedAt\"\n          }\n        },\n        \"required\": [\n          \"messages\",\n          \"state\",\n          \"title\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

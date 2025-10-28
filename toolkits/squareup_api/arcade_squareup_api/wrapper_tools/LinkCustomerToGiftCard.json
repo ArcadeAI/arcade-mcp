@@ -1,0 +1,142 @@
+{
+  "name": "LinkCustomerToGiftCard",
+  "fully_qualified_name": "SquareupApi.LinkCustomerToGiftCard@2.0.0",
+  "description": "Link a customer to a gift card for future use.\n\nThis tool is used to link a specific customer to a gift card, which allows storing the card on file for the customer. Use it when you want to associate a gift card with a customer for tracking and usage purposes.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "gift_card_identifier",
+        "required": true,
+        "description": "The unique ID of the gift card to link to the customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the gift card to be linked."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "gift_card_id"
+      },
+      {
+        "name": "customer_id",
+        "required": true,
+        "description": "The ID of the customer to link to the gift card. This should be a unique identifier representing the customer in the system.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the customer to link to the gift card."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'LinkCustomerToGiftCard'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "GIFTCARDS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/gift-cards/{gift_card_id}/link-customer",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "gift_card_id",
+        "tool_parameter_name": "gift_card_identifier",
+        "description": "The ID of the gift card to be linked.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the gift card to be linked."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "customer_id",
+        "description": "The ID of the customer to link to the gift card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the customer to link to the gift card."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to link a customer to a gift card.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"x-params-example\": \"?gift_card_id=gftc:71ea002277a34f8a945e284b04822edb\",\n        \"required\": [\n          \"customer_id\"\n        ],\n        \"properties\": {\n          \"customer_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the customer to link to the gift card.\",\n            \"minLength\": 1,\n            \"maxLength\": 191\n          }\n        },\n        \"example\": {\n          \"customer_id\": \"GKY0FZ3V717AH8Q2D821PNT2ZW\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

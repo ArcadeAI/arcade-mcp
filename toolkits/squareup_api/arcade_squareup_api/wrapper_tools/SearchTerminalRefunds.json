@@ -1,0 +1,307 @@
+{
+  "name": "SearchTerminalRefunds",
+  "fully_qualified_name": "SquareupApi.SearchTerminalRefunds@2.0.0",
+  "description": "Retrieve a filtered list of Interac Terminal refund requests.\n\nUse this tool to get Interac Terminal refund requests created by the seller, available for up to 30 days. Ideal for managing recent refund activities or auditing transactions.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "device_id_filter",
+        "required": false,
+        "description": "`TerminalRefund` objects associated with a specific device. If not provided, all refunds for the account are displayed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`TerminalRefund` objects associated with a specific device. If no device is specified, then all\n`TerminalRefund` objects for the signed-in account are displayed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.device_id"
+      },
+      {
+        "name": "start_datetime",
+        "required": false,
+        "description": "A datetime in RFC 3339 format. Indicates when the time range starts for filtering terminal refunds.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.created_at.start_at"
+      },
+      {
+        "name": "end_time_range",
+        "required": false,
+        "description": "A datetime value in RFC 3339 format indicating the end of the time range for filtering terminal refund requests.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.created_at.end_at"
+      },
+      {
+        "name": "filter_terminal_refund_status",
+        "required": false,
+        "description": "Filter terminal refunds by status. Options: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, or `COMPLETED`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filtered results with the desired status of the `TerminalRefund`.\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, or `COMPLETED`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.status"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "The order in which terminal refund results are listed. Use 'ASC' for oldest to newest or 'DESC' for newest to oldest (default).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which results are listed.\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.sort.sort_order"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A cursor to paginate results, used to retrieve the next set from a previous query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "Specifies the maximum number of refund results to retrieve in a single request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limits the number of results returned for a single request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchTerminalRefunds'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "PAYMENTS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/terminals/refunds/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "query.filter.device_id",
+        "tool_parameter_name": "device_id_filter",
+        "description": "`TerminalRefund` objects associated with a specific device. If no device is specified, then all\n`TerminalRefund` objects for the signed-in account are displayed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`TerminalRefund` objects associated with a specific device. If no device is specified, then all\n`TerminalRefund` objects for the signed-in account are displayed."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.created_at.start_at",
+        "tool_parameter_name": "start_datetime",
+        "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.created_at.end_at",
+        "tool_parameter_name": "end_time_range",
+        "description": "A datetime value in RFC 3339 format indicating when the time range\nends.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.status",
+        "tool_parameter_name": "filter_terminal_refund_status",
+        "description": "Filtered results with the desired status of the `TerminalRefund`.\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, or `COMPLETED`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filtered results with the desired status of the `TerminalRefund`.\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, or `COMPLETED`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.sort.sort_order",
+        "tool_parameter_name": "sort_order",
+        "description": "The order in which results are listed.\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which results are listed.\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "Limits the number of results returned for a single request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limits the number of results returned for a single request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"device_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"`TerminalRefund` objects associated with a specific device. If no device is specified, then all\\n`TerminalRefund` objects for the signed-in account are displayed.\",\n                    \"nullable\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"object\",\n                    \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"start_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                        \"nullable\": true\n                      },\n                      \"end_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"description\": \"Filtered results with the desired status of the `TerminalRefund`.\\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, or `COMPLETED`.\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"sort\": {\n                \"type\": \"object\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"sort_order\": {\n                    \"type\": \"string\",\n                    \"description\": \"The order in which results are listed.\\n- `ASC` - Oldest to newest.\\n- `DESC` - Newest to oldest (default).\",\n                    \"nullable\": true\n                  }\n                }\n              }\n            }\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"A pagination cursor returned by a previous call to this endpoint.\\nProvide this cursor to retrieve the next set of results for the original query.\"\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"Limits the number of results returned for a single request.\",\n            \"minimum\": 1,\n            \"maximum\": 100\n          }\n        },\n        \"example\": {\n          \"limit\": 1,\n          \"query\": {\n            \"filter\": {\n              \"status\": \"COMPLETED\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

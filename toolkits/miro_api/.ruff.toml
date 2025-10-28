@@ -38,6 +38,8 @@ select = [
 
 [lint.per-file-ignores]
 "**/tests/*" = ["S101"]
+"test_parameter_building.py" = ["C901"]
+"test_with_your_data.py" = ["C901", "E501"]
 
 [format]
 preview = true

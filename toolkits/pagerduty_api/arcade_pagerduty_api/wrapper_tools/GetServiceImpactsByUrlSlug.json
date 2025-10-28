@@ -1,18 +1,18 @@
 {
   "name": "GetServiceImpactsByUrlSlug",
-  "fully_qualified_name": "PagerdutyApi.GetServiceImpactsByUrlSlug@0.1.0",
-  "description": "Retrieve impacted business services by dashboard URL slug.\n\nFetches the most impacted business services based on a given status dashboard `url_slug`, providing insights up to a limit of 200.",
+  "fully_qualified_name": "PagerdutyApi.GetServiceImpactsByUrlSlug@2.0.0",
+  "description": "Retrieve impacted business services from a status dashboard.\n\nUse this tool to obtain business service impact details for status dashboards using a specific `url_slug`. It returns a sorted list of the most impacted services, limited to 200 entries.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "status_dashboard_url_slug",
         "required": true,
-        "description": "The URL slug for the status dashboard to identify and retrieve impacted business services.",
+        "description": "The URL slug for the specific status dashboard to retrieve service impacts from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "url_slug"
       },
       {
-        "name": "response_versioning_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specifies the API version for the request using the Accept header.",
+        "description": "Specify the API version using the `Accept` header. This helps ensure compatibility with the correct API version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "include_additional_fields",
         "required": false,
-        "description": "Specify additional fields like highest impacting priority or total impacted count for business services.",
+        "description": "Specify whether to include additional fields such as highest impacting priority and total impacted count. Choose from 'services.highest_impacting_priority' or 'total_impacted_count'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -88,13 +88,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_dashboards/url_slugs/{url_slug}/service_impacts",
@@ -142,7 +142,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "response_versioning_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -169,6 +169,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

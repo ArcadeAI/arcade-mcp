@@ -1,0 +1,175 @@
+{
+  "name": "RetrieveAuditLogRequests",
+  "fully_qualified_name": "AirtableApi.RetrieveAuditLogRequests@2.0.0",
+  "description": "Retrieve all audit log requests for an enterprise account.\n\nThis tool retrieves all the audit log requests for a given enterprise account. It's meant for accessing historical log records. Note that using this API is discouraged for new use cases; consider using the audit log events API instead.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_account_id",
+        "required": true,
+        "description": "The unique identifier for the enterprise account to retrieve audit log requests for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterpriseAccountId"
+      },
+      {
+        "name": "audit_log_page_size",
+        "required": false,
+        "description": "Specify the number of audit log requests to return per page. Use this to control pagination.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pageSize"
+      },
+      {
+        "name": "pagination_offset",
+        "required": false,
+        "description": "A number indicating the starting point for retrieving audit log requests. Used for pagination.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-audit-log-requests'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.auditLogs:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/auditLogs",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "pageSize",
+        "tool_parameter_name": "audit_log_page_size",
+        "description": "",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "pagination_offset",
+        "description": "",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "enterpriseAccountId",
+        "tool_parameter_name": "enterprise_account_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

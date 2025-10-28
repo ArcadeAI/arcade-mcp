@@ -1,18 +1,18 @@
 {
   "name": "DeleteMiroBoard",
-  "fully_qualified_name": "MiroApi.DeleteMiroBoard@0.1.0",
-  "description": "Delete a Miro board and move it to Trash.\n\nUse this tool to delete a Miro board. Boards on paid plans are moved to Trash and can be restored via the UI within 90 days. Ensure you have the necessary 'boards:write' scope.",
+  "fully_qualified_name": "MiroApi.DeleteMiroBoard@2.0.0",
+  "description": "Delete a Miro board and move it to Trash.\n\nUse this tool to delete a Miro board. Deleted boards on paid plans are moved to Trash and can be restored via the UI within 90 days. Requires 'boards:write' scope.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "board_unique_id",
+        "name": "board_identifier",
         "required": true,
-        "description": "Unique identifier of the Miro board to delete.",
+        "description": "Unique identifier of the Miro board to be deleted. Must be a valid string ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/boards/{board_id}",
@@ -70,7 +70,7 @@
     "parameters": [
       {
         "name": "board_id",
-        "tool_parameter_name": "board_unique_id",
+        "tool_parameter_name": "board_identifier",
         "description": "Unique identifier (ID) of the board that you want to delete.",
         "value_schema": {
           "val_type": "string",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

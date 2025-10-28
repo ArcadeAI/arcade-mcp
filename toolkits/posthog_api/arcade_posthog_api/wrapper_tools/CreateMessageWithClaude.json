@@ -1,0 +1,413 @@
+{
+  "name": "CreateMessageWithClaude",
+  "fully_qualified_name": "PosthogApi.CreateMessageWithClaude@0.1.0",
+  "description": "Create a message using Anthropic's Claude models.\n\nThis tool creates a new message with Anthropic's Claude models, using the format compatible with Anthropic's Messages API. It should be called when you need to generate a message leveraging Claude's capabilities.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The ID of the project you want to access. Retrieve this by calling /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "request_body",
+        "required": true,
+        "description": "JSON object containing model, messages, max_tokens, and other parameters for creating a message with Claude.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "model": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The model to use for completion (e.g., 'claude-3-5-sonnet-20241022')"
+            },
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "List of message objects with 'role' and 'content'"
+            },
+            "max_tokens": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Maximum number of tokens to generate"
+            },
+            "temperature": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sampling temperature between 0 and 1"
+            },
+            "top_p": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Nucleus sampling parameter"
+            },
+            "top_k": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Top-k sampling parameter"
+            },
+            "stream": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to stream the response"
+            },
+            "stop_sequences": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom stop sequences"
+            },
+            "system": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "System prompt (string or array of content blocks)"
+            },
+            "metadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Metadata to attach to the request"
+            },
+            "thinking": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Thinking configuration for extended thinking"
+            },
+            "tools": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of tools available to the model"
+            },
+            "tool_choice": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls which tool is called"
+            },
+            "service_tier": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Service tier for the request\n\n* `auto` - auto\n* `standard_only` - standard_only"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "message_format",
+        "required": false,
+        "description": "Specify the format of the message. Options are 'json' or 'txt'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "json",
+            "txt"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "format"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'llm_gateway_v1_messages_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/llm_gateway/v1/messages/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "format",
+        "tool_parameter_name": "message_format",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "json",
+            "txt"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "model": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The model to use for completion (e.g., 'claude-3-5-sonnet-20241022')"
+            },
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "List of message objects with 'role' and 'content'"
+            },
+            "max_tokens": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Maximum number of tokens to generate"
+            },
+            "temperature": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sampling temperature between 0 and 1"
+            },
+            "top_p": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Nucleus sampling parameter"
+            },
+            "top_k": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Top-k sampling parameter"
+            },
+            "stream": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to stream the response"
+            },
+            "stop_sequences": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom stop sequences"
+            },
+            "system": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "System prompt (string or array of content blocks)"
+            },
+            "metadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Metadata to attach to the request"
+            },
+            "thinking": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Thinking configuration for extended thinking"
+            },
+            "tools": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of tools available to the model"
+            },
+            "tool_choice": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls which tool is called"
+            },
+            "service_tier": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Service tier for the request\n\n* `auto` - auto\n* `standard_only` - standard_only"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"model\": {\n            \"type\": \"string\",\n            \"description\": \"The model to use for completion (e.g., 'claude-3-5-sonnet-20241022')\"\n          },\n          \"messages\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"description\": \"List of message objects with 'role' and 'content'\"\n          },\n          \"max_tokens\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"default\": 4096,\n            \"description\": \"Maximum number of tokens to generate\"\n          },\n          \"temperature\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 1.0,\n            \"minimum\": 0.0,\n            \"description\": \"Sampling temperature between 0 and 1\"\n          },\n          \"top_p\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 1.0,\n            \"minimum\": 0.0,\n            \"description\": \"Nucleus sampling parameter\"\n          },\n          \"top_k\": {\n            \"type\": \"integer\",\n            \"minimum\": 0,\n            \"description\": \"Top-k sampling parameter\"\n          },\n          \"stream\": {\n            \"type\": \"boolean\",\n            \"default\": false,\n            \"description\": \"Whether to stream the response\"\n          },\n          \"stop_sequences\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Custom stop sequences\"\n          },\n          \"system\": {\n            \"description\": \"System prompt (string or array of content blocks)\"\n          },\n          \"metadata\": {\n            \"description\": \"Metadata to attach to the request\"\n          },\n          \"thinking\": {\n            \"description\": \"Thinking configuration for extended thinking\"\n          },\n          \"tools\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"description\": \"List of tools available to the model\"\n          },\n          \"tool_choice\": {\n            \"description\": \"Controls which tool is called\"\n          },\n          \"service_tier\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"auto\",\n                  \"standard_only\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `auto` - auto\\n* `standard_only` - standard_only\"\n              }\n            ],\n            \"description\": \"Service tier for the request\\n\\n* `auto` - auto\\n* `standard_only` - standard_only\"\n          }\n        },\n        \"required\": [\n          \"messages\",\n          \"model\"\n        ]\n      },\n      \"examples\": {\n        \"BasicRequest\": {\n          \"value\": {\n            \"model\": \"claude-3-5-sonnet-20241022\",\n            \"messages\": [\n              {\n                \"role\": \"user\",\n                \"content\": \"Hello, Claude!\"\n              }\n            ],\n            \"max_tokens\": 1024\n          },\n          \"summary\": \"Basic Request\",\n          \"description\": \"Simple message request\"\n        },\n        \"StreamingRequest\": {\n          \"value\": {\n            \"model\": \"claude-3-5-sonnet-20241022\",\n            \"messages\": [\n              {\n                \"role\": \"user\",\n                \"content\": \"Write a haiku\"\n              }\n            ],\n            \"max_tokens\": 1024,\n            \"stream\": true\n          },\n          \"summary\": \"Streaming Request\",\n          \"description\": \"Request with streaming enabled\"\n        }\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"model\": {\n            \"type\": \"string\",\n            \"description\": \"The model to use for completion (e.g., 'claude-3-5-sonnet-20241022')\"\n          },\n          \"messages\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"description\": \"List of message objects with 'role' and 'content'\"\n          },\n          \"max_tokens\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"default\": 4096,\n            \"description\": \"Maximum number of tokens to generate\"\n          },\n          \"temperature\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 1.0,\n            \"minimum\": 0.0,\n            \"description\": \"Sampling temperature between 0 and 1\"\n          },\n          \"top_p\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 1.0,\n            \"minimum\": 0.0,\n            \"description\": \"Nucleus sampling parameter\"\n          },\n          \"top_k\": {\n            \"type\": \"integer\",\n            \"minimum\": 0,\n            \"description\": \"Top-k sampling parameter\"\n          },\n          \"stream\": {\n            \"type\": \"boolean\",\n            \"default\": false,\n            \"description\": \"Whether to stream the response\"\n          },\n          \"stop_sequences\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Custom stop sequences\"\n          },\n          \"system\": {\n            \"description\": \"System prompt (string or array of content blocks)\"\n          },\n          \"metadata\": {\n            \"description\": \"Metadata to attach to the request\"\n          },\n          \"thinking\": {\n            \"description\": \"Thinking configuration for extended thinking\"\n          },\n          \"tools\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"description\": \"List of tools available to the model\"\n          },\n          \"tool_choice\": {\n            \"description\": \"Controls which tool is called\"\n          },\n          \"service_tier\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"auto\",\n                  \"standard_only\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `auto` - auto\\n* `standard_only` - standard_only\"\n              }\n            ],\n            \"description\": \"Service tier for the request\\n\\n* `auto` - auto\\n* `standard_only` - standard_only\"\n          }\n        },\n        \"required\": [\n          \"messages\",\n          \"model\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"model\": {\n            \"type\": \"string\",\n            \"description\": \"The model to use for completion (e.g., 'claude-3-5-sonnet-20241022')\"\n          },\n          \"messages\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"description\": \"List of message objects with 'role' and 'content'\"\n          },\n          \"max_tokens\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"default\": 4096,\n            \"description\": \"Maximum number of tokens to generate\"\n          },\n          \"temperature\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 1.0,\n            \"minimum\": 0.0,\n            \"description\": \"Sampling temperature between 0 and 1\"\n          },\n          \"top_p\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"maximum\": 1.0,\n            \"minimum\": 0.0,\n            \"description\": \"Nucleus sampling parameter\"\n          },\n          \"top_k\": {\n            \"type\": \"integer\",\n            \"minimum\": 0,\n            \"description\": \"Top-k sampling parameter\"\n          },\n          \"stream\": {\n            \"type\": \"boolean\",\n            \"default\": false,\n            \"description\": \"Whether to stream the response\"\n          },\n          \"stop_sequences\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Custom stop sequences\"\n          },\n          \"system\": {\n            \"description\": \"System prompt (string or array of content blocks)\"\n          },\n          \"metadata\": {\n            \"description\": \"Metadata to attach to the request\"\n          },\n          \"thinking\": {\n            \"description\": \"Thinking configuration for extended thinking\"\n          },\n          \"tools\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"description\": \"List of tools available to the model\"\n          },\n          \"tool_choice\": {\n            \"description\": \"Controls which tool is called\"\n          },\n          \"service_tier\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"auto\",\n                  \"standard_only\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `auto` - auto\\n* `standard_only` - standard_only\"\n              }\n            ],\n            \"description\": \"Service tier for the request\\n\\n* `auto` - auto\\n* `standard_only` - standard_only\"\n          }\n        },\n        \"required\": [\n          \"messages\",\n          \"model\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

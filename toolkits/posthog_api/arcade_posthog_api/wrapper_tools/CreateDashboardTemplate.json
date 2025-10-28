@@ -1,0 +1,374 @@
+{
+  "name": "CreateDashboardTemplate",
+  "fully_qualified_name": "PosthogApi.CreateDashboardTemplate@0.1.0",
+  "description": "Create a new dashboard template in a Datadog project.\n\nThis tool allows you to create a new dashboard template within a specified Datadog project. Use it when you need to set up a new dashboard template using the project's ID.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The unique identifier for the Datadog project where you want to create the dashboard template. Obtain it by calling /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "dashboard_template_details",
+        "required": false,
+        "description": "JSON object containing details about the dashboard template such as id, template_name, description, filters, tags, tiles, variables, and other relevant data.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "template_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard_description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard_filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tiles": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "variables": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "image_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "team_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "scope": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "availability_contexts": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'dashboard_templates_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/dashboard_templates/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "dashboard_template_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "template_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard_description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard_filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tiles": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "variables": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "image_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "team_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "scope": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "availability_contexts": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"template_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"dashboard_description\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"dashboard_filters\": {\n            \"nullable\": true\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"maxLength\": 255\n            },\n            \"nullable\": true\n          },\n          \"tiles\": {\n            \"nullable\": true\n          },\n          \"variables\": {\n            \"nullable\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"created_by\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"image_url\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 8201\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"scope\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"team\",\n                  \"global\",\n                  \"feature_flag\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `team` - Only team\\n* `global` - Global\\n* `feature_flag` - Feature Flag\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"availability_contexts\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"maxLength\": 255\n            },\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"id\",\n          \"team_id\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"template_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"dashboard_description\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"dashboard_filters\": {\n            \"nullable\": true\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"maxLength\": 255\n            },\n            \"nullable\": true\n          },\n          \"tiles\": {\n            \"nullable\": true\n          },\n          \"variables\": {\n            \"nullable\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"created_by\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"image_url\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 8201\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"scope\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"team\",\n                  \"global\",\n                  \"feature_flag\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `team` - Only team\\n* `global` - Global\\n* `feature_flag` - Feature Flag\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"availability_contexts\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"maxLength\": 255\n            },\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"id\",\n          \"team_id\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"template_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"dashboard_description\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"dashboard_filters\": {\n            \"nullable\": true\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"maxLength\": 255\n            },\n            \"nullable\": true\n          },\n          \"tiles\": {\n            \"nullable\": true\n          },\n          \"variables\": {\n            \"nullable\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"created_by\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"image_url\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 8201\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"scope\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"team\",\n                  \"global\",\n                  \"feature_flag\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `team` - Only team\\n* `global` - Global\\n* `feature_flag` - Feature Flag\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"availability_contexts\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"maxLength\": 255\n            },\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"id\",\n          \"team_id\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

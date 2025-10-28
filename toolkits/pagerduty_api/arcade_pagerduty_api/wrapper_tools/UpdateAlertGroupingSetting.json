@@ -1,0 +1,366 @@
+{
+  "name": "UpdateAlertGroupingSetting",
+  "fully_qualified_name": "PagerdutyApi.UpdateAlertGroupingSetting@2.0.0",
+  "description": "Update an existing alert grouping setting in PagerDuty.\n\nUse this tool to update an alert grouping setting in PagerDuty. This is particularly useful for managing how alerts are grouped and ensuring the correct configurations are in place. Note that if 'services' are not provided, existing services will remain unchanged. Requires scoped OAuth with `services.write`.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The ID of the alert grouping setting to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "Specify the version of the API to use by setting the `Accept` header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Specifies the media type of the resource. Use 'application/json' for JSON payloads.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "alert_grouping_settings",
+        "required": false,
+        "description": "JSON object defining how alerts will be grouped. Includes details like name, description, type, config, services, and timestamps.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "alert_grouping_setting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An optional short-form string that provides succinct information about an AlertGroupingSetting object suitable for primary labeling of the entity. It is not intended to be an identifier."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An optional description in string that provides more information about an AlertGroupingSetting object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "content_based",
+                    "content_based_intelligent",
+                    "intelligent",
+                    "time"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "config": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "services": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "The array of one or many Services with just ServiceID/name that the AlertGroupingSetting applies to. Type of content_based_intelligent allows for only one service in the array."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ISO8601 date/time an AlertGroupingSetting got created at."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ISO8601 date/time an AlertGroupingSetting last got updated at."
+                }
+              },
+              "inner_properties": null,
+              "description": "Defines how alerts will be automatically grouped into incidents based on the configurations defined. Note that the Alert Grouping Setting features are available only on certain plans.\n"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'putAlertGroupingSetting'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/alert_grouping_settings/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "alert_grouping_settings",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "alert_grouping_setting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An optional short-form string that provides succinct information about an AlertGroupingSetting object suitable for primary labeling of the entity. It is not intended to be an identifier."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An optional description in string that provides more information about an AlertGroupingSetting object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "content_based",
+                    "content_based_intelligent",
+                    "intelligent",
+                    "time"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "config": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "services": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "The array of one or many Services with just ServiceID/name that the AlertGroupingSetting applies to. Type of content_based_intelligent allows for only one service in the array."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ISO8601 date/time an AlertGroupingSetting got created at."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ISO8601 date/time an AlertGroupingSetting last got updated at."
+                }
+              },
+              "inner_properties": null,
+              "description": "Defines how alerts will be automatically grouped into incidents based on the configurations defined. Note that the Alert Grouping Setting features are available only on certain plans.\n"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"alert_grouping_setting\": {\n            \"type\": \"object\",\n            \"description\": \"Defines how alerts will be automatically grouped into incidents based on the configurations defined. Note that the Alert Grouping Setting features are available only on certain plans.\\n\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"readOnly\": true\n              },\n              \"name\": {\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"description\": \"An optional short-form string that provides succinct information about an AlertGroupingSetting object suitable for primary labeling of the entity. It is not intended to be an identifier.\"\n              },\n              \"description\": {\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"description\": \"An optional description in string that provides more information about an AlertGroupingSetting object.\"\n              },\n              \"type\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"content_based\",\n                  \"content_based_intelligent\",\n                  \"intelligent\",\n                  \"time\"\n                ]\n              },\n              \"config\": {\n                \"anyOf\": [\n                  {\n                    \"type\": \"object\",\n                    \"title\": \"Content Only Grouping\",\n                    \"description\": \"The configuration for Content Based Alert Grouping\",\n                    \"properties\": {\n                      \"aggregate\": {\n                        \"type\": \"string\",\n                        \"description\": \"Whether Alerts should be grouped if `all` or `any` specified fields match. If `all` is selected, an exact match on every specified field name must occur for Alerts to be grouped. If `any` is selected, Alerts will be grouped when there is an exact match on at least one of the specified fields.\",\n                        \"enum\": [\n                          \"all, any\"\n                        ]\n                      },\n                      \"fields\": {\n                        \"type\": \"array\",\n                        \"description\": \"An array of strings which represent the fields with which to group against. Depending on the aggregate, Alerts will group if some or all the fields match.\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"time_window\": {\n                        \"type\": \"integer\",\n                        \"minimum\": 300,\n                        \"maximum\": 86400,\n                        \"description\": \"The maximum amount of time allowed between Alerts. Any Alerts arriving greater than `time_window` seconds apart will not be grouped together. This is a rolling time window up to 24 hours and is counted from the most recently grouped alert. The window is extended every time a new alert is added to the group, up to 24 hours (24 hours only applies to single-service settings). To use the \\\"recommended_time_window,\\\" set the value to 0, otherwise the value must be between 300 <= time_window <= 3600 or 86400(i.e. 24 hours).\"\n                      },\n                      \"recommended_time_window\": {\n                        \"readOnly\": true,\n                        \"type\": \"integer\",\n                        \"description\": \"In order to ensure your Service has the optimal grouping window, we use data science to calculate your Service's average Alert inter-arrival time. We encourage customer's to use this value, please set `time_window` to 0 to use the `recommended_time_window`.\"\n                      }\n                    }\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"title\": \"Content and Intelligent Grouping\",\n                    \"description\": \"The configuration for Content Based Intelligent Alert Grouping\",\n                    \"properties\": {\n                      \"aggregate\": {\n                        \"type\": \"string\",\n                        \"description\": \"Whether Alerts should be grouped if `all` or `any` specified fields match. If `all` is selected, an exact match on every specified field name must occur for Alerts to be grouped. If `any` is selected, Alerts will be grouped when there is an exact match on at least one of the specified fields.\",\n                        \"enum\": [\n                          \"all, any\"\n                        ]\n                      },\n                      \"fields\": {\n                        \"type\": \"array\",\n                        \"description\": \"An array of strings which represent the fields with which to group against. Depending on the aggregate, Alerts will group if some or all the fields match.\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"time_window\": {\n                        \"type\": \"integer\",\n                        \"minimum\": 300,\n                        \"maximum\": 3600,\n                        \"description\": \"The maximum amount of time allowed between Alerts. Any Alerts arriving greater than `time_window` seconds apart will not be grouped together. This is a rolling time window up to 24 hours and is counted from the most recently grouped alert. The window is extended every time a new alert is added to the group, up to 24 hours (24 hours only applies to single-service settings). To use the \\\"recommended_time_window,\\\" set the value to 0, otherwise the value must be between 300 <= time_window <= 3600.\"\n                      },\n                      \"recommended_time_window\": {\n                        \"readOnly\": true,\n                        \"type\": \"integer\",\n                        \"description\": \"In order to ensure your Service has the optimal grouping window, we use data science to calculate your Service's average Alert inter-arrival time. We encourage customer's to use this value, please set `time_window` to 0 to use the `recommended_time_window`.\"\n                      }\n                    }\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"title\": \"Time Grouping\",\n                    \"description\": \"The configuration for Time Based Alert Grouping\",\n                    \"properties\": {\n                      \"timeout\": {\n                        \"type\": \"integer\",\n                        \"minimum\": 60,\n                        \"maximum\": 86400,\n                        \"description\": \"The duration in seconds within which to automatically group incoming Alerts. To continue grouping Alerts until the Incident is resolved, set this value to 0.\"\n                      }\n                    }\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"title\": \"Intelligent Grouping\",\n                    \"description\": \"The configuration for Intelligent Alert Grouping\",\n                    \"properties\": {\n                      \"time_window\": {\n                        \"type\": \"integer\",\n                        \"minimum\": 300,\n                        \"maximum\": 3600,\n                        \"description\": \"The maximum amount of time allowed between Alerts. Any Alerts arriving greater than `time_window` seconds apart will not be grouped together. This is a rolling time window up to 24 hours and is counted from the most recently grouped alert. The window is extended every time a new alert is added to the group, up to 24 hours (24 hours only applies to single-service settings). To use the \\\"recommended_time_window,\\\" set the value to 0, otherwise the value must be between 300 <= time_window <= 3600.\"\n                      },\n                      \"recommended_time_window\": {\n                        \"readOnly\": true,\n                        \"type\": \"integer\",\n                        \"description\": \"In order to ensure your Service has the optimal grouping window, we use data science to calculate your Service's average Alert inter-arrival time. We encourage customer's to use this value, please set `time_window` to 0 to use the `recommended_time_window`.\"\n                      },\n                      \"iag_fields\": {\n                        \"type\": \"array\",\n                        \"description\": \"An array of strings which represent the iag fields with which to intelligently group against.\",\n                        \"default\": [\n                          \"summary\"\n                        ],\n                        \"items\": {\n                          \"type\": \"string\"\n                        }\n                      }\n                    }\n                  }\n                ]\n              },\n              \"services\": {\n                \"type\": \"array\",\n                \"description\": \"The array of one or many Services with just ServiceID/name that the AlertGroupingSetting applies to. Type of content_based_intelligent allows for only one service in the array.\",\n                \"items\": {\n                  \"allOf\": [\n                    {\n                      \"allOf\": [\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"id\": {\n                              \"type\": \"string\",\n                              \"readOnly\": true\n                            },\n                            \"summary\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"readOnly\": true,\n                              \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                            },\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"readOnly\": true,\n                              \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                            },\n                            \"self\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"readOnly\": true,\n                              \"format\": \"url\",\n                              \"description\": \"the API show URL at which the object is accessible\"\n                            },\n                            \"html_url\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"readOnly\": true,\n                              \"format\": \"url\",\n                              \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"required\": [\n                            \"type\",\n                            \"id\"\n                          ]\n                        }\n                      ]\n                    },\n                    {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"type\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"service_reference\"\n                          ]\n                        }\n                      }\n                    }\n                  ]\n                }\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"The ISO8601 date/time an AlertGroupingSetting got created at.\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"The ISO8601 date/time an AlertGroupingSetting last got updated at.\",\n                \"readOnly\": true\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"alert_grouping_setting\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"alert_grouping_setting\": {\n              \"id\": \"PZC4OM1\",\n              \"name\": \"Example of Alert Grouping Setting\",\n              \"description\": \"This Alert Grouping Setting is an example\",\n              \"type\": \"content_based\",\n              \"config\": {\n                \"time_window\": 900,\n                \"aggregate\": \"all\",\n                \"fields\": [\n                  \"summary\",\n                  \"component\",\n                  \"custom_details.host\",\n                  \"custom_details.field1.field2\"\n                ]\n              },\n              \"services\": [\n                {\n                  \"id\": \"P0KJZ0A\"\n                },\n                {\n                  \"id\": \"PA15YRT\"\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

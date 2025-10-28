@@ -1,18 +1,18 @@
 {
   "name": "DeletePostmortem",
-  "fully_qualified_name": "PagerdutyApi.DeletePostmortem@0.1.0",
-  "description": "Delete a postmortem from a Pagerduty status page post.\n\nThis tool deletes a postmortem associated with a specific post on a Pagerduty status page using the post ID. It requires appropriate OAuth scope permissions to execute.",
+  "fully_qualified_name": "PagerdutyApi.DeletePostmortem@2.0.0",
+  "description": "Deletes a postmortem from a status page post by ID.\n\nUse this tool to remove a postmortem linked to a specific status page post using the post's ID. This operation requires scoped OAuth with `status_pages.write` permission.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique ID of the resource to delete the postmortem from.",
+        "description": "The unique identifier of the resource to delete.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "status_page_post_id",
         "required": true,
-        "description": "The ID of the specific Status Page Post to delete the postmortem from.",
+        "description": "The unique identifier for the status page post whose postmortem you want to delete.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "post_id"
       },
       {
-        "name": "accept_version_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "The header used for API versioning. Specify the API version needed for the request.",
+        "description": "Specify the versioning format for the API response using the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/posts/{post_id}/postmortem",
@@ -136,7 +136,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -163,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

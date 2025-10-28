@@ -1,0 +1,156 @@
+{
+  "name": "UpdateIncidentCustomFields",
+  "fully_qualified_name": "PagerdutyApi.UpdateIncidentCustomFields@2.0.0",
+  "description": "Update custom field values for a specific incident.\n\nThis tool updates custom field values for a given incident in PagerDuty. Requires 'incidents.write' OAuth scope.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_id",
+        "required": true,
+        "description": "The ID of the incident to update custom field values.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "incident_custom_fields",
+        "required": false,
+        "description": "JSON object with custom field updates for the incident, including field names and their new values.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'setIncidentFieldValues'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents/{id}/custom_fields/values",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "incident_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_custom_fields",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"title\": \"Array of Custom Field Values\",\n            \"items\": {\n              \"title\": \"Custom Field Value\",\n              \"oneOf\": [\n                {\n                  \"type\": \"object\",\n                  \"title\": \"Value by Field Name\",\n                  \"properties\": {\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"title\": \"Field Name\",\n                      \"description\": \"The name of the field. May include ASCII characters, specifically lowercase letters, digits, and underescores. The `name` for a Field must be unique and cannot be changed once created.\",\n                      \"maxLength\": 50\n                    },\n                    \"value\": {\n                      \"oneOf\": [\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Boolean\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"boolean\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Float\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"number\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Integer\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"integer\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"String\",\n                          \"properties\": {\n                            \"value\": {\n                              \"oneOf\": [\n                                {\n                                  \"type\": \"string\",\n                                  \"maxLength\": 200,\n                                  \"nullable\": true\n                                },\n                                {\n                                  \"type\": \"array\",\n                                  \"items\": {\n                                    \"type\": \"string\",\n                                    \"maxLength\": 200\n                                  },\n                                  \"maxItems\": 10,\n                                  \"uniqueItems\": true,\n                                  \"nullable\": true\n                                }\n                              ]\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Datetime\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"format\": \"date-time\"\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Url\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"format\": \"uri\",\n                              \"maxLength\": 200,\n                              \"nullable\": true\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"title\": \"Value by Field ID\",\n                  \"properties\": {\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"The ID of the Field.\"\n                    },\n                    \"value\": {\n                      \"oneOf\": [\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Boolean\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"boolean\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Float\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"number\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Integer\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"integer\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"String\",\n                          \"properties\": {\n                            \"value\": {\n                              \"oneOf\": [\n                                {\n                                  \"type\": \"string\",\n                                  \"maxLength\": 200,\n                                  \"nullable\": true\n                                },\n                                {\n                                  \"type\": \"array\",\n                                  \"items\": {\n                                    \"type\": \"string\",\n                                    \"maxLength\": 200\n                                  },\n                                  \"maxItems\": 10,\n                                  \"uniqueItems\": true,\n                                  \"nullable\": true\n                                }\n                              ]\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Datetime\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"format\": \"date-time\"\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Url\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"format\": \"uri\",\n                              \"maxLength\": 200,\n                              \"nullable\": true\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  }\n                }\n              ]\n            }\n          }\n        },\n        \"required\": [\n          \"custom_fields\"\n        ]\n      },\n      \"examples\": {\n        \"example_with_custom_field_name\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"custom_fields\": [\n              {\n                \"name\": \"environment\",\n                \"value\": \"production\"\n              }\n            ]\n          }\n        },\n        \"example_with_custom_field_id\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"custom_fields\": [\n              {\n                \"id\": \"PT4KHEE\",\n                \"value\": \"production\"\n              }\n            ]\n          }\n        },\n        \"example_with_multiple_value_field\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"custom_fields\": [\n              {\n                \"id\": \"PT4KHEE\",\n                \"value\": [\n                  \"production\",\n                  \"staging\"\n                ]\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

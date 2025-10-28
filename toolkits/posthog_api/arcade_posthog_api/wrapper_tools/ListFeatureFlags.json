@@ -1,0 +1,436 @@
+{
+  "name": "ListFeatureFlags",
+  "fully_qualified_name": "PosthogApi.ListFeatureFlags@0.1.0",
+  "description": "Retrieve feature flags for a specified project.\n\nUse this tool to fetch all feature flags associated with a given project. Useful for managing and reviewing the state of feature flags within an application.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The identifier for the project to access feature flags. Retrieve using /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "filter_by_active_status",
+        "required": false,
+        "description": "Filter feature flags by active status. Use 'STALE', 'false', or 'true'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "STALE",
+            "false",
+            "true"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "active"
+      },
+      {
+        "name": "initial_creator_user_id",
+        "required": false,
+        "description": "The User ID that initially created the feature flag. It helps filter feature flags created by a specific user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The User ID which initially created the feature flag."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_by_id"
+      },
+      {
+        "name": "filter_by_evaluation_runtime",
+        "required": false,
+        "description": "Filter feature flags by their evaluation runtime. Options: 'both', 'client', 'server'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "both",
+            "client",
+            "server"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter feature flags by their evaluation runtime."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "evaluation_runtime"
+      },
+      {
+        "name": "exclude_feature_flag_keys",
+        "required": false,
+        "description": "A JSON-encoded list of feature flag keys to exclude from the results. Useful for filtering.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "JSON-encoded list of feature flag keys to exclude from the results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "excluded_properties"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specify the number of feature flags to return for each page of results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "results_offset_index",
+        "required": false,
+        "description": "The starting index for the results to be returned.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The initial index from which to return the results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "feature_flag_search_term",
+        "required": false,
+        "description": "Search for a feature flag by its key or name, case insensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search by feature flag key or name. Case insensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search"
+      },
+      {
+        "name": "filter_by_tags",
+        "required": false,
+        "description": "A JSON-encoded list of tag names to filter feature flags by. Use this to specify which tags should be included in the results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "JSON-encoded list of tag names to filter feature flags by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tags"
+      },
+      {
+        "name": "flag_type",
+        "required": false,
+        "description": "Specifies the feature flag type to filter results. Options are 'boolean', 'experiment', or 'multivariant'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "boolean",
+            "experiment",
+            "multivariant"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'feature_flags_list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/feature_flags/",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "active",
+        "tool_parameter_name": "filter_by_active_status",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "STALE",
+            "false",
+            "true"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_by_id",
+        "tool_parameter_name": "initial_creator_user_id",
+        "description": "The User ID which initially created the feature flag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The User ID which initially created the feature flag."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "evaluation_runtime",
+        "tool_parameter_name": "filter_by_evaluation_runtime",
+        "description": "Filter feature flags by their evaluation runtime.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "both",
+            "client",
+            "server"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter feature flags by their evaluation runtime."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "excluded_properties",
+        "tool_parameter_name": "exclude_feature_flag_keys",
+        "description": "JSON-encoded list of feature flag keys to exclude from the results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "JSON-encoded list of feature flag keys to exclude from the results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "Number of results to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "results_offset_index",
+        "description": "The initial index from which to return the results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The initial index from which to return the results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search",
+        "tool_parameter_name": "feature_flag_search_term",
+        "description": "Search by feature flag key or name. Case insensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search by feature flag key or name. Case insensitive."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tags",
+        "tool_parameter_name": "filter_by_tags",
+        "description": "JSON-encoded list of tag names to filter feature flags by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "JSON-encoded list of tag names to filter feature flags by."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "flag_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "boolean",
+            "experiment",
+            "multivariant"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

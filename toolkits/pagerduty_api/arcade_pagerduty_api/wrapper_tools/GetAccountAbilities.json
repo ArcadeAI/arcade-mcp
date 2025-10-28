@@ -1,18 +1,18 @@
 {
   "name": "GetAccountAbilities",
-  "fully_qualified_name": "PagerdutyApi.GetAccountAbilities@0.1.0",
-  "description": "Retrieve a list of all abilities for your account.\n\nCall this tool to get a list of your account's abilities, which describe its capabilities based on your pricing plan or account state. Useful for understanding what features are available to your account.",
+  "fully_qualified_name": "PagerdutyApi.GetAccountAbilities@2.0.0",
+  "description": "Retrieve your account's available abilities by feature name.\n\nUse this tool to get a list of the features or capabilities available on your account, such as 'teams'. The availability of these abilities may depend on factors like your pricing plan or account status.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_version_header",
+        "name": "use_versioning_header",
         "required": true,
-        "description": "The `Accept` header specifying the API version for the request.",
+        "description": "Specify the API version to use by setting the 'Accept' header. This controls the versioning of the requested API.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/abilities",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "use_versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

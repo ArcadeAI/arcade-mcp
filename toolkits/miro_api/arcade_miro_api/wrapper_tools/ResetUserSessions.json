@@ -1,18 +1,18 @@
 {
   "name": "ResetUserSessions",
-  "fully_qualified_name": "MiroApi.ResetUserSessions@0.1.0",
-  "description": "Reset all active user sessions immediately.\n\nThis tool is used by Enterprise plan Company Admins to reset all active sessions for a user, effectively requiring them to sign in again. It's useful for handling security concerns such as compromised credentials or suspicious account activity.",
+  "fully_qualified_name": "MiroApi.ResetUserSessions@2.0.0",
+  "description": "Reset all active Miro sessions for a specific user.\n\nThis tool is used to immediately end all active Miro sessions for a specified user across all devices, requiring them to sign in again. It's useful for security reasons, such as when credentials are compromised or there's suspicious activity. This API is enterprise-only and requires admin privileges.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "user_email_to_reset_sessions",
+        "name": "user_email_for_session_reset",
         "required": true,
-        "description": "Email ID of the user whose sessions need to be reset. This will sign the user out from all devices.",
+        "description": "Email ID of the user whose sessions need resetting. This will sign the user out from all devices.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/sessions/reset_all",
@@ -70,7 +70,7 @@
     "parameters": [
       {
         "name": "email",
-        "tool_parameter_name": "user_email_to_reset_sessions",
+        "tool_parameter_name": "user_email_for_session_reset",
         "description": "Email ID of the user whose sessions you want to reset. Note that this user will be signed out from all devices.",
         "value_schema": {
           "val_type": "string",
@@ -83,6 +83,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

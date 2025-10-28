@@ -1,0 +1,367 @@
+{
+  "name": "UpdateTimeEntry",
+  "fully_qualified_name": "ClickupApi.UpdateTimeEntry@0.1.0",
+  "description": "Update the details of a time entry.\n\nThis tool updates specific details of a time entry in ClickUp. Use it when you need to modify data such as the duration, description, or other attributes of an existing time entry.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The Workspace ID is required when referencing a task by its custom task ID. Provide it if `custom_task_ids` is set to `true`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The ID of the workspace (team) where the time entry is located. This is an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "timer_id",
+        "required": true,
+        "description": "The unique identifier of the time entry to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "timer_id"
+      },
+      {
+        "name": "time_entry_details",
+        "required": true,
+        "description": "Details for updating the time entry, including description, tags, start, end times, and other attributes.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "Users on the Business Plan and above can include a time tracking label."
+            },
+            "tag_action": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "When providing `start`, you must also provide `end`."
+            },
+            "end": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "When providing `end`, you must also provide `start`."
+            },
+            "tid": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "duration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Accessible tag actions are `[\"replace\", \"add\", \"remove\"]`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "use_custom_task_ids",
+        "required": false,
+        "description": "Set to true to reference tasks by custom task IDs instead of standard IDs.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by it's custom task id, this value must be `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_task_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateatimeEntry'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/time_entries/{timer_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "custom_task_ids",
+        "tool_parameter_name": "use_custom_task_ids",
+        "description": "If you want to reference a task by it's custom task id, this value must be `true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by it's custom task id, this value must be `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "timer_id",
+        "tool_parameter_name": "timer_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "time_entry_details",
+        "description": "Accessible tag actions are `[\"replace\", \"add\", \"remove\"]`",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "Users on the Business Plan and above can include a time tracking label."
+            },
+            "tag_action": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "When providing `start`, you must also provide `end`."
+            },
+            "end": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "When providing `end`, you must also provide `start`."
+            },
+            "tid": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "duration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Accessible tag actions are `[\"replace\", \"add\", \"remove\"]`"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Accessible tag actions are `[\\\"replace\\\", \\\"add\\\", \\\"remove\\\"]`\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"UpdateatimeEntryrequest\",\n        \"required\": [\n          \"tags\",\n          \"tid\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"tags\": {\n            \"description\": \"Users on the Business Plan and above can include a time tracking label.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"Schema reference broken: #/paths/~1v2~1team~1%7Bteam_Id%7D~1time_entries/post/requestBody/content/application~1json/schema/properties/tags/items\",\n              \"additionalProperties\": true,\n              \"x-moar-broken-reference\": \"#/paths/~1v2~1team~1%7Bteam_Id%7D~1time_entries/post/requestBody/content/application~1json/schema/properties/tags/items\"\n            }\n          },\n          \"tag_action\": {\n            \"type\": \"string\"\n          },\n          \"start\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int64\",\n            \"description\": \"When providing `start`, you must also provide `end`.\"\n          },\n          \"end\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int64\",\n            \"description\": \"When providing `end`, you must also provide `start`.\"\n          },\n          \"tid\": {\n            \"type\": \"string\"\n          },\n          \"billable\": {\n            \"type\": \"boolean\"\n          },\n          \"duration\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          }\n        },\n        \"examples\": [\n          {\n            \"description\": \"\",\n            \"tags\": [\n              {\n                \"name\": \"name of tag\",\n                \"tag_bg\": \"#BF55EC\",\n                \"tag_fg\": \"#FFFFFF\"\n              }\n            ],\n            \"tag_action\": \"add\",\n            \"start\": 1595289395842,\n            \"end\": 1595289495842,\n            \"tid\": \"task_id\",\n            \"billable\": true,\n            \"duration\": 100000\n          }\n        ]\n      },\n      \"example\": {\n        \"description\": \"\",\n        \"tags\": [\n          {\n            \"name\": \"name of tag\",\n            \"tag_bg\": \"#BF55EC\",\n            \"tag_fg\": \"#FFFFFF\"\n          }\n        ],\n        \"tag_action\": \"add\",\n        \"start\": 1595289395842,\n        \"end\": 1595289495842,\n        \"tid\": \"task_id\",\n        \"billable\": true,\n        \"duration\": 100000\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

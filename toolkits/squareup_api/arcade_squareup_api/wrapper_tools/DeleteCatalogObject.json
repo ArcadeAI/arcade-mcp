@@ -1,18 +1,18 @@
 {
   "name": "DeleteCatalogObject",
-  "fully_qualified_name": "SquareupApi.DeleteCatalogObject@0.1.0",
-  "description": "Deletes a catalog object and its children by ID.\n\nThis tool deletes a catalog object by its ID, including all its child objects, ensuring that only one delete request is processed at a time per seller account. It should be called when you want to permanently remove a catalog item and its variations.",
+  "fully_qualified_name": "SquareupApi.DeleteCatalogObject@2.0.0",
+  "description": "Delete a catalog object and its children by ID.\n\nThis tool deletes a catalog object in the Squareup catalog using the provided ID. The deletion is cascading, removing all child objects as well. Only one delete request is processed at a time per seller account.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "catalog_object_id",
         "required": true,
-        "description": "The ID of the catalog object, including its child objects, to be deleted. This is a cascading deletion.",
+        "description": "The unique ID of the catalog object to delete. Deletion is cascading, removing all dependent objects.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/catalog/object/{object_id}",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

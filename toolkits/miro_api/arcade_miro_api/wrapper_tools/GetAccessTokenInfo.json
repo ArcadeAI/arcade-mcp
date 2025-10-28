@@ -1,11 +1,11 @@
 {
   "name": "GetAccessTokenInfo",
-  "fully_qualified_name": "MiroApi.GetAccessTokenInfo@0.1.0",
-  "description": "Retrieve details about an access token.\n\nUse this tool to obtain detailed information regarding an access token, including token type, scopes, associated team, and user information, as well as creation date and time.",
+  "fully_qualified_name": "MiroApi.GetAccessTokenInfo@2.0.0",
+  "description": "Retrieve detailed information about an access token.\n\nUse this tool to get information about an OAuth access token, including its type, scopes, associated team, user details, creation date and time, and the creator's identity.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": []
@@ -39,13 +39,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v1/oauth-token",
@@ -62,6 +62,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,237 @@
+{
+  "name": "RenameTimeEntryLabel",
+  "fully_qualified_name": "ClickupApi.RenameTimeEntryLabel@0.1.0",
+  "description": "Rename a time entry label in ClickUp.\n\nUse this tool to change the name of a label associated with time entries for a specific team in ClickUp.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The ID of the workspace where the label is located. This is required to specify the team in ClickUp whose label you want to rename.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "current_label_name",
+        "required": true,
+        "description": "The current name of the time entry label that needs to be renamed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "new_label_name",
+        "required": true,
+        "description": "The new name for the time entry label to be applied in ClickUp.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "new_name"
+      },
+      {
+        "name": "label_background_color",
+        "required": true,
+        "description": "Hex code for the new background color of the label (e.g., '#FFFFFF').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag_bg"
+      },
+      {
+        "name": "foreground_color_for_tag",
+        "required": true,
+        "description": "Specify the hexadecimal foreground color for the tag (e.g., '#FFFFFF').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag_fg"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'Changetagnamesfromtimeentries'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/time_entries/tags",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "current_label_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "new_name",
+        "tool_parameter_name": "new_label_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag_bg",
+        "tool_parameter_name": "label_background_color",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag_fg",
+        "tool_parameter_name": "foreground_color_for_tag",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"Changetagnamesfromtimeentriesrequest\",\n        \"required\": [\n          \"name\",\n          \"new_name\",\n          \"tag_bg\",\n          \"tag_fg\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"new_name\": {\n            \"type\": \"string\"\n          },\n          \"tag_bg\": {\n            \"type\": \"string\"\n          },\n          \"tag_fg\": {\n            \"type\": \"string\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"old tag name\",\n            \"new_name\": \"new tag name\",\n            \"tag_bg\": \"#000000\",\n            \"tag_fg\": \"#000000\"\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"old tag name\",\n        \"new_name\": \"new tag name\",\n        \"tag_bg\": \"#000000\",\n        \"tag_fg\": \"#000000\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

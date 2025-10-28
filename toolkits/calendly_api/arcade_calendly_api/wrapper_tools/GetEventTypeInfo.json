@@ -1,18 +1,18 @@
 {
   "name": "GetEventTypeInfo",
-  "fully_qualified_name": "CalendlyApi.GetEventTypeInfo@0.1.0",
-  "description": "Retrieve information about a specified Event Type.\n\nUse this tool to fetch details of a specific Event Type by providing its unique identifier.",
+  "fully_qualified_name": "CalendlyApi.GetEventTypeInfo@2.0.0",
+  "description": "Retrieve information about a specified event type on Calendly.\n\nUse this tool to obtain detailed information about a specific event type by providing its unique identifier (UUID). It's useful for understanding the configuration and settings of different event types in your Calendly account.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "event_type_uuid",
         "required": true,
-        "description": "A unique identifier for the Event Type. Provide this to get information about the specific Event Type.",
+        "description": "The unique identifier (UUID) for the event type to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/event_types/{uuid}",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

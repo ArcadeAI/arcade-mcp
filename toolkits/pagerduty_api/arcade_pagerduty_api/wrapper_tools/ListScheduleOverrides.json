@@ -1,18 +1,18 @@
 {
   "name": "ListScheduleOverrides",
-  "fully_qualified_name": "PagerdutyApi.ListScheduleOverrides@0.1.0",
-  "description": "Retrieve list of schedule overrides for a time range.\n\nUse this tool to get a list of schedule overrides for a given time range, which indicates when users are On-Call. OAuth with 'schedules.read' scope is required.",
+  "fully_qualified_name": "PagerdutyApi.ListScheduleOverrides@2.0.0",
+  "description": "Fetch overrides for a specific schedule and time range.\n\nUse this tool to list all the overrides for a given schedule within a specified time range. Useful for understanding changes to on-call schedules. Requires `schedules.read` OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "start_date",
         "required": true,
-        "description": "The start date of the range for searching schedule overrides. Format: YYYY-MM-DD.",
+        "description": "The start date for the search range, formatted as YYYY-MM-DD.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "end_date_range",
         "required": true,
-        "description": "The end date for the search range in 'YYYY-MM-DD' format. Specifies the last day to include in the results.",
+        "description": "The end date for the search range in which to list schedule overrides.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "resource_id",
         "required": true,
-        "description": "The ID of the schedule resource to fetch overrides for.",
+        "description": "Specify the ID of the schedule resource to fetch overrides.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_header_versioning",
+        "name": "accept_versioning_header",
         "required": true,
-        "description": "Specify the versioning format for the API response using the Accept header.",
+        "description": "Specifies the API version through the `Accept` header. Use appropriate MIME types to indicate the desired version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "response_content_type",
         "required": true,
-        "description": "Set the 'Content-Type' header to specify the format of the request body. Typically 'application/json'.",
+        "description": "Specifies the MIME type for the response. Must be \"application/json\".",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
       {
         "name": "return_only_editable_overrides",
         "required": false,
-        "description": "Set to true to return only future editable overrides, providing only their IDs.",
+        "description": "Set to true to return only editable overrides. Only future overrides will be included.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "editable"
       },
       {
-        "name": "allow_overflow",
+        "name": "include_overflown_entries",
         "required": false,
-        "description": "Set to true to allow schedule entries that extend beyond the date range bounds without truncation.",
+        "description": "Set to true to include schedule entries extending beyond date range bounds. Defaults to false.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -147,13 +147,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/schedules/{id}/overrides",
@@ -216,7 +216,7 @@
       },
       {
         "name": "overflow",
-        "tool_parameter_name": "allow_overflow",
+        "tool_parameter_name": "include_overflown_entries",
         "description": "Any on-call schedule entries that pass the date range bounds will be truncated at the bounds, unless the parameter overflow=true is passed. This parameter defaults to false.",
         "value_schema": {
           "val_type": "boolean",
@@ -252,7 +252,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_versioning",
+        "tool_parameter_name": "accept_versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -270,7 +270,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "response_content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -299,6 +299,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

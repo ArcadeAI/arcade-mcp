@@ -1,0 +1,226 @@
+{
+  "name": "CreateServiceEventRule",
+  "fully_qualified_name": "PagerdutyApi.CreateServiceEventRule@2.0.0",
+  "description": "Create a new Event Rule on a Service in PagerDuty.\n\nThis tool creates a new Event Rule for a specified service in PagerDuty. It should be called when you need to set up or manage event rules for monitoring and alerting within a service. Note that rulesets and event rules will be deprecated, so consider migrating to Event Orchestration.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "service_resource_id",
+        "required": true,
+        "description": "The unique ID of the service resource where the event rule will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "Specifies the `Accept` header used for versioning the API request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the resource, must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "service_event_rule_request_body",
+        "required": false,
+        "description": "A JSON object containing the configuration of the event rule to be created. This should include all necessary details such as conditions and actions for the rule.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createServiceEventRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/services/{id}/rules",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "service_resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "service_event_rule_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"rule\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"ID of the Event Rule.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible.\",\n                    \"readOnly\": true\n                  },\n                  \"disabled\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"Indicates whether the Event Rule is disabled and would therefore not be evaluated.\"\n                  },\n                  \"conditions\": {\n                    \"type\": \"object\",\n                    \"description\": \"Conditions evaluated to check if an event matches this Event Rule. Is always empty for the catch_all rule, though.\",\n                    \"properties\": {\n                      \"operator\": {\n                        \"type\": \"string\",\n                        \"description\": \"Operator to combine sub-conditions.\",\n                        \"enum\": [\n                          \"and\",\n                          \"or\"\n                        ]\n                      },\n                      \"subconditions\": {\n                        \"type\": \"array\",\n                        \"description\": \"Array of sub-conditions.\",\n                        \"items\": {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"operator\": {\n                              \"type\": \"string\",\n                              \"description\": \"The type of operator to apply.\",\n                              \"enum\": [\n                                \"exists\",\n                                \"nexists\",\n                                \"equals\",\n                                \"nequals\",\n                                \"contains\",\n                                \"ncontains\",\n                                \"matches\",\n                                \"nmatches\"\n                              ]\n                            },\n                            \"parameters\": {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"path\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"Path to a field in an event, in dot-notation.  For Event Rules on a serivce, this will have to be a PD-CEF field.\"\n                                },\n                                \"value\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"Value to apply to the operator.\"\n                                },\n                                \"options\": {\n                                  \"type\": \"object\",\n                                  \"description\": \"Options to configure the operator.\"\n                                }\n                              },\n                              \"required\": [\n                                \"value\",\n                                \"path\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"operator\",\n                            \"parameters\"\n                          ]\n                        }\n                      }\n                    },\n                    \"required\": [\n                      \"operator\",\n                      \"subconditions\"\n                    ]\n                  },\n                  \"time_frame\": {\n                    \"description\": \"Time-based conditions for limiting when the rule is active.\",\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"active_between\": {\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"start_time\",\n                          \"end_time\"\n                        ],\n                        \"description\": \"A fixed window of time during which the rule is active.\",\n                        \"properties\": {\n                          \"start_time\": {\n                            \"type\": \"integer\",\n                            \"description\": \"The start time in milliseconds.\"\n                          },\n                          \"end_time\": {\n                            \"type\": \"integer\",\n                            \"description\": \"End time in milliseconds.\"\n                          }\n                        }\n                      },\n                      \"scheduled_weekly\": {\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"start_time\",\n                          \"duration\",\n                          \"timezone\",\n                          \"weekdays\"\n                        ],\n                        \"description\": \"A reccuring window of time based on the day of the week, during which the rule is active.\",\n                        \"properties\": {\n                          \"start_time\": {\n                            \"type\": \"integer\",\n                            \"description\": \"The amount of milliseconds into the day at which the window starts.\"\n                          },\n                          \"duration\": {\n                            \"type\": \"integer\",\n                            \"description\": \"The duration of the window in milliseconds.\"\n                          },\n                          \"timezone\": {\n                            \"type\": \"string\",\n                            \"description\": \"The timezone.\"\n                          },\n                          \"weekdays\": {\n                            \"type\": \"array\",\n                            \"description\": \"An array of day values. Ex [1, 3, 5] is Monday, Wednesday, Friday.\",\n                            \"items\": {\n                              \"type\": \"integer\"\n                            }\n                          }\n                        }\n                      }\n                    }\n                  },\n                  \"variables\": {\n                    \"type\": \"array\",\n                    \"description\": \"[Early Access] Populate variables from event payloads and use those variables in other event actions.\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"type\": {\n                          \"type\": \"string\",\n                          \"description\": \"The type of operation to populate the variable.\",\n                          \"enum\": [\n                            \"regex\"\n                          ]\n                        },\n                        \"name\": {\n                          \"type\": \"string\",\n                          \"description\": \"The name of the variable.\"\n                        },\n                        \"parameters\": {\n                          \"type\": \"object\",\n                          \"description\": \"The parameters for performing the operation to populate the\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"description\": \"The value for the operation. For example, an RE2 regular expression for regex-type variables.\"\n                            },\n                            \"path\": {\n                              \"type\": \"string\",\n                              \"description\": \"Path to a field in an event, in dot-notation. For Event Rules on a Service, this will have to be a PD-CEF field.\"\n                            }\n                          },\n                          \"required\": [\n                            \"value\",\n                            \"path\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"type\",\n                        \"name\",\n                        \"parameters\"\n                      ]\n                    }\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"position\": {\n                    \"type\": \"integer\",\n                    \"description\": \"Position/index of the Event Rule on the Service.  Starting from position 0 (the first rule), rules are evaluated one-by-one until a matching Event Rule is found or the end of the list is reached.\"\n                  },\n                  \"actions\": {\n                    \"type\": \"object\",\n                    \"description\": \"When an event matches this Event Rule, the actions that will be taken to change the resulting Alert and Incident.\",\n                    \"properties\": {\n                      \"annotate\": {\n                        \"description\": \"Set a note on the resulting incident.\",\n                        \"type\": \"object\",\n                        \"nullable\": true,\n                        \"required\": [\n                          \"value\"\n                        ],\n                        \"properties\": {\n                          \"value\": {\n                            \"type\": \"string\",\n                            \"description\": \"The content of the note.\"\n                          }\n                        }\n                      },\n                      \"event_action\": {\n                        \"description\": \"Set whether the resulting alert status is trigger or resolve.\",\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"value\"\n                        ],\n                        \"nullable\": true,\n                        \"properties\": {\n                          \"value\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                              \"trigger\",\n                              \"resolve\"\n                            ]\n                          }\n                        }\n                      },\n                      \"extractions\": {\n                        \"type\": \"array\",\n                        \"description\": \"Dynamically extract values to set and modify new and existing PD-CEF fields.\",\n                        \"items\": {\n                          \"oneOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"target\",\n                                \"source\",\n                                \"regex\"\n                              ],\n                              \"properties\": {\n                                \"target\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"The PD-CEF field that will be set with the value from the regex.\"\n                                },\n                                \"source\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"The path to the event field where the regex will be applied to extract a value.\"\n                                },\n                                \"regex\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"A RE2 regular expression.  If it contains one or more capture groups, their values will be extracted and appended together.  If it contains no capture groups, the whole match is used.\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"target\",\n                                \"template\"\n                              ],\n                              \"properties\": {\n                                \"target\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"The PD-CEF field that will be set with the value from the regex.\"\n                                },\n                                \"template\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"A value that will be used to populate the target PD-CEF field.  You can include variables extracted from the payload by using string interpolation.\",\n                                  \"example\": \"Error number {{count}} on host {{host}}\"\n                                }\n                              }\n                            }\n                          ]\n                        }\n                      },\n                      \"priority\": {\n                        \"description\": \"Set the priority ID for the resulting incident. You can find the priority you want by calling the priorities endpoint.\",\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"value\"\n                        ],\n                        \"nullable\": true,\n                        \"properties\": {\n                          \"value\": {\n                            \"type\": \"string\",\n                            \"description\": \"The priority ID.\"\n                          }\n                        }\n                      },\n                      \"severity\": {\n                        \"description\": \"Set the severity of the resulting alert.\",\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"value\"\n                        ],\n                        \"nullable\": true,\n                        \"properties\": {\n                          \"value\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                              \"info\",\n                              \"warning\",\n                              \"error\",\n                              \"critical\"\n                            ]\n                          }\n                        }\n                      },\n                      \"suppress\": {\n                        \"description\": \"Set whether the resulting alert is suppressed. Can optionally be used with a threshold where resulting alerts will be suppressed until the threshold is met in a window of time. If using a threshold the rule must also set a route action.\",\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"value\"\n                        ],\n                        \"properties\": {\n                          \"value\": {\n                            \"type\": \"boolean\"\n                          },\n                          \"threshold_value\": {\n                            \"type\": \"integer\",\n                            \"description\": \"The number of occurences needed during the window of time to trigger the theshold.\"\n                          },\n                          \"threshold_time_unit\": {\n                            \"type\": \"string\",\n                            \"description\": \"The time unit for the window of time.\",\n                            \"enum\": [\n                              \"seconds\",\n                              \"minutes\",\n                              \"hours\"\n                            ]\n                          },\n                          \"threshold_time_amount\": {\n                            \"type\": \"integer\",\n                            \"description\": \"The amount of time units for the window of time.\"\n                          }\n                        }\n                      },\n                      \"suspend\": {\n                        \"description\": \"Set the length of time to suspend the resulting alert before triggering. Rules with a suspend action must also set a route action, and cannot have a suppress with threshold action\",\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"value\"\n                        ],\n                        \"nullable\": true,\n                        \"properties\": {\n                          \"value\": {\n                            \"type\": \"integer\",\n                            \"description\": \"The amount of time to suspend the alert in seconds.\"\n                          }\n                        }\n                      }\n                    }\n                  }\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"rule\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"rule\": {\n              \"id\": \"14e56445-ebab-4dd0-ba9d-fc28a41b7e7b\",\n              \"position\": 0,\n              \"disabled\": false,\n              \"conditions\": {\n                \"operator\": \"and\",\n                \"subconditions\": [\n                  {\n                    \"operator\": \"contains\",\n                    \"parameters\": {\n                      \"value\": \"mysql\",\n                      \"path\": \"class\"\n                    }\n                  }\n                ]\n              },\n              \"time_frame\": {\n                \"active_between\": {\n                  \"start_time\": 1577880000000,\n                  \"end_time\": 1580558400000\n                }\n              },\n              \"actions\": {\n                \"annotate\": {\n                  \"value\": \"This incident was modified by an Event Rule\"\n                },\n                \"priority\": {\n                  \"value\": \"PCMUB6F\"\n                },\n                \"severity\": {\n                  \"value\": \"warning\"\n                },\n                \"extractions\": [\n                  {\n                    \"target\": \"dedup_key\",\n                    \"source\": \"custom_details.error_summary\",\n                    \"regex\": \"Host (.*) is experiencing errors\"\n                  }\n                ]\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

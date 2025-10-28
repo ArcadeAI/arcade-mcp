@@ -1,18 +1,18 @@
 {
   "name": "DeleteEscalationPolicy",
-  "fully_qualified_name": "PagerdutyApi.DeleteEscalationPolicy@0.1.0",
-  "description": "Delete an existing escalation policy.\n\nRemove an existing escalation policy and its rules. Ensure the policy is not in use by any services before attempting deletion. Requires appropriate OAuth scope.",
+  "fully_qualified_name": "PagerdutyApi.DeleteEscalationPolicy@2.0.0",
+  "description": "Delete an existing escalation policy from PagerDuty.\n\nUse this tool when you need to delete an existing escalation policy that is not in use by any services. Escalation policies define alert sequences for users. Ensure you have the necessary permissions (`escalation_policies.write`).",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "escalation_policy_id",
         "required": true,
-        "description": "The ID of the escalation policy to be deleted. Ensure it is not in use before proceeding.",
+        "description": "The ID of the escalation policy to be deleted. Ensure the policy is not in use by any services and that you have the required permissions.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_header_version",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify the version for the `Accept` header as a string. This is required for versioning the API call.",
+        "description": "The versioning header for the API request, specifying the API version expected in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Specifies the format of the request body. Use 'application/json'.",
+        "description": "The 'Content-Type' header for the request, should be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/escalation_policies/{id}",
@@ -102,7 +102,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "escalation_policy_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

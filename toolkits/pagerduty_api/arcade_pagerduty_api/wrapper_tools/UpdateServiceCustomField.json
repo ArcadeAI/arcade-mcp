@@ -1,0 +1,298 @@
+{
+  "name": "UpdateServiceCustomField",
+  "fully_qualified_name": "PagerdutyApi.UpdateServiceCustomField@2.0.0",
+  "description": "Update a custom field for a PagerDuty service.\n\nThis tool updates a specified custom field for services in PagerDuty. It requires OAuth with `custom_fields.write` permission.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "service_field_id",
+        "required": true,
+        "description": "The unique identifier of the custom field to update in PagerDuty.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the field."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "field_id"
+      },
+      {
+        "name": "accept_header",
+        "required": true,
+        "description": "Specifies the accepted response version for the API. Used for versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "The Content-Type header specifying the data format. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "custom_field_details",
+        "required": false,
+        "description": "JSON object detailing the custom field to be updated, including description, display name, enabled status, and field options.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "field": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A description of the data this field contains."
+                },
+                "display_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The human-readable name of the field. This must be unique across an account."
+                },
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": [
+                    "True",
+                    "False"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the field is enabled."
+                },
+                "field_options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "List of field options to update, insert or delete. This field supports several behaviors:\n  - Empty array: Deletes all field options\n  - Omitting the `field_options` array entirely: Preserves all existing options\n  - Not listing an existing option: Deletes that option (unless it's the current default value)\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Details of the custom field to be updated."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateServiceCustomField'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/services/custom_fields/{field_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "field_id",
+        "tool_parameter_name": "service_field_id",
+        "description": "The ID of the field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the field."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_field_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "field": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A description of the data this field contains."
+                },
+                "display_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The human-readable name of the field. This must be unique across an account."
+                },
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": [
+                    "True",
+                    "False"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the field is enabled."
+                },
+                "field_options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "List of field options to update, insert or delete. This field supports several behaviors:\n  - Empty array: Deletes all field options\n  - Omitting the `field_options` array entirely: Preserves all existing options\n  - Not listing an existing option: Deletes that option (unless it's the current default value)\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Details of the custom field to be updated."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"field\": {\n            \"type\": \"object\",\n            \"description\": \"Details of the custom field to be updated.\",\n            \"properties\": {\n              \"description\": {\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"description\": \"A description of the data this field contains.\",\n                \"maxLength\": 1000\n              },\n              \"display_name\": {\n                \"type\": \"string\",\n                \"description\": \"The human-readable name of the field. This must be unique across an account.\",\n                \"maxLength\": 50\n              },\n              \"enabled\": {\n                \"type\": \"boolean\",\n                \"description\": \"Whether the field is enabled.\",\n                \"enum\": [\n                  true,\n                  false\n                ]\n              },\n              \"field_options\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"allOf\": [\n                    {\n                      \"type\": \"object\",\n                      \"description\": \"An option for a custom field. Can only be applied to fields with a `field_type` of `single_value_fixed` or `multi_value_fixed`.\",\n                      \"properties\": {\n                        \"data\": {\n                          \"type\": \"object\",\n                          \"description\": \"The data content of the field option.\",\n                          \"properties\": {\n                            \"data_type\": {\n                              \"type\": \"string\",\n                              \"description\": \"The kind of data represented by this option. Must match the Field's `data_type`.\",\n                              \"enum\": [\n                                \"string\"\n                              ]\n                            },\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"description\": \"The value of the field option. Must be unique within the field.\",\n                              \"maxLength\": 200\n                            }\n                          },\n                          \"required\": [\n                            \"data_type\",\n                            \"value\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"data\"\n                      ]\n                    },\n                    {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"id\": {\n                          \"type\": \"string\",\n                          \"description\": \"The unique identifier of the field option. How this field is used determines the behavior:\\n  - When included with a valid `id`: Updates the corresponding existing field option\\n  - When omitted or null: Creates a new field option\\n\"\n                        }\n                      }\n                    }\n                  ]\n                },\n                \"description\": \"List of field options to update, insert or delete. This field supports several behaviors:\\n  - Empty array: Deletes all field options\\n  - Omitting the `field_options` array entirely: Preserves all existing options\\n  - Not listing an existing option: Deletes that option (unless it's the current default value)\\n\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"field\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Update Field Example - Basic Properties\",\n          \"value\": {\n            \"field\": {\n              \"description\": \"The production environment where this service is deployed\",\n              \"display_name\": \"Production Environment\",\n              \"enabled\": true\n            }\n          }\n        },\n        \"request_with_options\": {\n          \"summary\": \"Update Field Example - With Field Options\",\n          \"value\": {\n            \"field\": {\n              \"description\": \"The production environment where this service is deployed\",\n              \"display_name\": \"Production Environment\",\n              \"enabled\": true,\n              \"field_options\": [\n                {\n                  \"data\": {\n                    \"data_type\": \"string\",\n                    \"value\": \"production\"\n                  },\n                  \"id\": \"OPT1\"\n                },\n                {\n                  \"data\": {\n                    \"data_type\": \"string\",\n                    \"value\": \"staging-new\"\n                  },\n                  \"id\": \"OPT2\"\n                },\n                {\n                  \"data\": {\n                    \"data_type\": \"string\",\n                    \"value\": \"development-new\"\n                  }\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

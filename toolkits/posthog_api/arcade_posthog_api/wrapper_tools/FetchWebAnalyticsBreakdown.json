@@ -1,0 +1,415 @@
+{
+  "name": "FetchWebAnalyticsBreakdown",
+  "fully_qualified_name": "PosthogApi.FetchWebAnalyticsBreakdown@0.1.0",
+  "description": "Retrieve breakdown of web analytics by property.\n\nUse this tool to obtain a detailed breakdown of web analytics data by various properties such as browser, device type, or country. Ideal for analyzing how different segments interact with your web project.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "breakdown_property",
+        "required": true,
+        "description": "Specify the property to break down web analytics by, such as Browser, DeviceType, Country, etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DeviceType",
+            "Browser",
+            "OS",
+            "Viewport",
+            "InitialReferringDomain",
+            "InitialUTMSource",
+            "InitialUTMMedium",
+            "InitialUTMCampaign",
+            "InitialUTMTerm",
+            "InitialUTMContent",
+            "Country",
+            "Region",
+            "City",
+            "InitialPage",
+            "Page",
+            "ExitPage",
+            "InitialChannelType"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Property to break down by\n\n* `DeviceType` - DeviceType\n* `Browser` - Browser\n* `OS` - OS\n* `Viewport` - Viewport\n* `InitialReferringDomain` - InitialReferringDomain\n* `InitialUTMSource` - InitialUTMSource\n* `InitialUTMMedium` - InitialUTMMedium\n* `InitialUTMCampaign` - InitialUTMCampaign\n* `InitialUTMTerm` - InitialUTMTerm\n* `InitialUTMContent` - InitialUTMContent\n* `Country` - Country\n* `Region` - Region\n* `City` - City\n* `InitialPage` - InitialPage\n* `Page` - Page\n* `ExitPage` - ExitPage\n* `InitialChannelType` - InitialChannelType"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "breakdown_by"
+      },
+      {
+        "name": "start_date",
+        "required": true,
+        "description": "Start date for the query in the format YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date for the query (format: YYYY-MM-DD)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_from"
+      },
+      {
+        "name": "end_date",
+        "required": true,
+        "description": "The end date for retrieving web analytics data, formatted as YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for the query (format: YYYY-MM-DD)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_to"
+      },
+      {
+        "name": "project_id_for_access",
+        "required": true,
+        "description": "Project ID to access specific analytics data. Obtainable via a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "filter_by_host",
+        "required": false,
+        "description": "Specify the domain to filter the results by, such as 'example.com'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Host to filter by (e.g. example.com)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "host"
+      },
+      {
+        "name": "results_limit",
+        "required": false,
+        "description": "Specify the maximum number of results to return from the query.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "results_offset",
+        "required": false,
+        "description": "Number of results to skip for paginated data retrieval.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to skip"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "apply_url_path_cleaning",
+        "required": false,
+        "description": "Set to true to apply URL path cleaning.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Apply URL path cleaning"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "apply_path_cleaning"
+      },
+      {
+        "name": "filter_test_accounts",
+        "required": false,
+        "description": "Set to true to filter out test accounts from the results.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter out test accounts"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_test_accounts"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'web_analytics_breakdown_retrieve'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/web_analytics/breakdown/",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "apply_path_cleaning",
+        "tool_parameter_name": "apply_url_path_cleaning",
+        "description": "Apply URL path cleaning",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Apply URL path cleaning"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": true,
+        "documentation_urls": []
+      },
+      {
+        "name": "breakdown_by",
+        "tool_parameter_name": "breakdown_property",
+        "description": "Property to break down by\n\n* `DeviceType` - DeviceType\n* `Browser` - Browser\n* `OS` - OS\n* `Viewport` - Viewport\n* `InitialReferringDomain` - InitialReferringDomain\n* `InitialUTMSource` - InitialUTMSource\n* `InitialUTMMedium` - InitialUTMMedium\n* `InitialUTMCampaign` - InitialUTMCampaign\n* `InitialUTMTerm` - InitialUTMTerm\n* `InitialUTMContent` - InitialUTMContent\n* `Country` - Country\n* `Region` - Region\n* `City` - City\n* `InitialPage` - InitialPage\n* `Page` - Page\n* `ExitPage` - ExitPage\n* `InitialChannelType` - InitialChannelType",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DeviceType",
+            "Browser",
+            "OS",
+            "Viewport",
+            "InitialReferringDomain",
+            "InitialUTMSource",
+            "InitialUTMMedium",
+            "InitialUTMCampaign",
+            "InitialUTMTerm",
+            "InitialUTMContent",
+            "Country",
+            "Region",
+            "City",
+            "InitialPage",
+            "Page",
+            "ExitPage",
+            "InitialChannelType"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Property to break down by\n\n* `DeviceType` - DeviceType\n* `Browser` - Browser\n* `OS` - OS\n* `Viewport` - Viewport\n* `InitialReferringDomain` - InitialReferringDomain\n* `InitialUTMSource` - InitialUTMSource\n* `InitialUTMMedium` - InitialUTMMedium\n* `InitialUTMCampaign` - InitialUTMCampaign\n* `InitialUTMTerm` - InitialUTMTerm\n* `InitialUTMContent` - InitialUTMContent\n* `Country` - Country\n* `Region` - Region\n* `City` - City\n* `InitialPage` - InitialPage\n* `Page` - Page\n* `ExitPage` - ExitPage\n* `InitialChannelType` - InitialChannelType"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_from",
+        "tool_parameter_name": "start_date",
+        "description": "Start date for the query (format: YYYY-MM-DD)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date for the query (format: YYYY-MM-DD)"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_to",
+        "tool_parameter_name": "end_date",
+        "description": "End date for the query (format: YYYY-MM-DD)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for the query (format: YYYY-MM-DD)"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_test_accounts",
+        "tool_parameter_name": "filter_test_accounts",
+        "description": "Filter out test accounts",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter out test accounts"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": true,
+        "documentation_urls": []
+      },
+      {
+        "name": "host",
+        "tool_parameter_name": "filter_by_host",
+        "description": "Host to filter by (e.g. example.com)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Host to filter by (e.g. example.com)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_limit",
+        "description": "Number of results to return",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 100,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "results_offset",
+        "description": "Number of results to skip",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of results to skip"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id_for_access",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

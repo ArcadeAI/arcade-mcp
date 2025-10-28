@@ -1,0 +1,188 @@
+{
+  "name": "CreateSpaceInWorkspace",
+  "fully_qualified_name": "ClickupApi.CreateSpaceInWorkspace@0.1.0",
+  "description": "Add a new Space to a Workspace.\n\nUse this tool to create a new space within a specified workspace on ClickUp. It should be called when a user wants to organize tasks or projects under a new space in their team environment.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The ID of the workspace where the new space will be added. It should be an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "new_space_configuration",
+        "required": true,
+        "description": "JSON object with details for the new space, including its name, multiple assignees option, and features.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "multiple_assignees": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "features": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1space~1%7Bspace_id%7D/put/requestBody/content/application~1json/schema/properties/features"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateSpace'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/space",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_space_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "multiple_assignees": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "features": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1space~1%7Bspace_id%7D/put/requestBody/content/application~1json/schema/properties/features"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateSpacerequest\",\n        \"required\": [\n          \"name\",\n          \"multiple_assignees\",\n          \"features\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"multiple_assignees\": {\n            \"type\": \"boolean\"\n          },\n          \"features\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1space~1%7Bspace_id%7D/put/requestBody/content/application~1json/schema/properties/features\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1space~1%7Bspace_id%7D/put/requestBody/content/application~1json/schema/properties/features\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"New Space Name\",\n            \"multiple_assignees\": true,\n            \"features\": {\n              \"due_dates\": {\n                \"enabled\": true,\n                \"start_date\": false,\n                \"remap_due_dates\": true,\n                \"remap_closed_due_date\": false\n              },\n              \"time_tracking\": {\n                \"enabled\": false\n              },\n              \"tags\": {\n                \"enabled\": true\n              },\n              \"time_estimates\": {\n                \"enabled\": true\n              },\n              \"checklists\": {\n                \"enabled\": true\n              },\n              \"custom_fields\": {\n                \"enabled\": true\n              },\n              \"remap_dependencies\": {\n                \"enabled\": true\n              },\n              \"dependency_warning\": {\n                \"enabled\": true\n              },\n              \"portfolios\": {\n                \"enabled\": true\n              }\n            }\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"New Space Name\",\n        \"multiple_assignees\": true,\n        \"features\": {\n          \"due_dates\": {\n            \"enabled\": true,\n            \"start_date\": false,\n            \"remap_due_dates\": true,\n            \"remap_closed_due_date\": false\n          },\n          \"time_tracking\": {\n            \"enabled\": false\n          },\n          \"tags\": {\n            \"enabled\": true\n          },\n          \"time_estimates\": {\n            \"enabled\": true\n          },\n          \"checklists\": {\n            \"enabled\": true\n          },\n          \"custom_fields\": {\n            \"enabled\": true\n          },\n          \"remap_dependencies\": {\n            \"enabled\": true\n          },\n          \"dependency_warning\": {\n            \"enabled\": true\n          },\n          \"portfolios\": {\n            \"enabled\": true\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

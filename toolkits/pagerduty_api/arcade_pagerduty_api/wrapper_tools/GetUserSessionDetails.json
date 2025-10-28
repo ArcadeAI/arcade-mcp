@@ -1,18 +1,18 @@
 {
   "name": "GetUserSessionDetails",
-  "fully_qualified_name": "PagerdutyApi.GetUserSessionDetails@0.1.0",
-  "description": "Retrieve details about a specific PagerDuty user session.\n\nThis tool is used to get information about a user's session in PagerDuty. It does not include OAuth tokens issued after November 2021. Users are members of a PagerDuty account who can interact with account data, including incidents. Ensure appropriate OAuth scopes (`users:sessions.read`) are set.",
+  "fully_qualified_name": "PagerdutyApi.GetUserSessionDetails@2.0.0",
+  "description": "Fetches details about a specific PagerDuty user session.\n\nUse this tool to retrieve details of a user's session in PagerDuty. Useful for understanding user access and activity, especially in managing incidents and data interaction within an account.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier for the resource to retrieve session details.",
+        "description": "The unique ID of the PagerDuty user whose session details you want to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "session_type",
         "required": true,
-        "description": "Specifies the session type for the user session ID. Expect a string value indicating the type.",
+        "description": "Specifies the type of the user session. This information is required to identify the nature of the session for the user session ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "user_session_id",
         "required": true,
-        "description": "The unique session ID for the PagerDuty user session to retrieve details.",
+        "description": "The unique session ID for a specific PagerDuty user to retrieve session details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "session_id"
       },
       {
-        "name": "accept_header_version",
+        "name": "api_version_header",
         "required": true,
-        "description": "The versioning header for API response. Use it to specify the API version.",
+        "description": "Specifies the version of the API to use for the request via the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specify the content type for the request, typically 'application/json'.",
+        "description": "Specifies the desired format for the response. Usually set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,13 +117,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/{id}/sessions/{type}/{session_id}",
@@ -186,7 +186,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "api_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -233,6 +233,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

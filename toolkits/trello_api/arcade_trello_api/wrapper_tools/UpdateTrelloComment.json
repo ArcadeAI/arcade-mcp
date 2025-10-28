@@ -1,18 +1,18 @@
 {
   "name": "UpdateTrelloComment",
-  "fully_qualified_name": "TrelloApi.UpdateTrelloComment@0.1.0",
-  "description": "Update a specific comment on Trello.\n\nUse this tool to edit the content of a comment action on Trello by specifying the action ID.",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloComment@2.0.0",
+  "description": "Edit a comment action in Trello.\n\nUse this tool to update the content of a specific comment action on Trello. It is applicable only to comment actions.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "new_comment_text",
         "required": true,
-        "description": "The updated text content for the Trello comment. This replaces the current comment text.",
+        "description": "The updated text content for the Trello comment action.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "action_id",
         "required": true,
-        "description": "The unique identifier for the action to be updated. Required to specify which comment you want to edit.",
+        "description": "The unique identifier for the specific action comment you want to update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/actions/{id}",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

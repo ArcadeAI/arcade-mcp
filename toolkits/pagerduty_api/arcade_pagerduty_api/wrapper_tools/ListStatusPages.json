@@ -1,18 +1,18 @@
 {
   "name": "ListStatusPages",
-  "fully_qualified_name": "PagerdutyApi.ListStatusPages@0.1.0",
-  "description": "Retrieve a list of status pages from PagerDuty.\n\nUse this tool to obtain a list of available status pages from PagerDuty. This requires `status_pages.read` permission through Scoped OAuth.",
+  "fully_qualified_name": "PagerdutyApi.ListStatusPages@2.0.0",
+  "description": "Retrieve a list of status pages.\n\nUse this tool to get a list of status pages. Requires `status_pages.read` OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_header_version",
+        "name": "accept_version_header",
         "required": true,
-        "description": "The API version to specify in the `Accept` header for versioning requests.",
+        "description": "Specify the version of the API to use for the `Accept` header, which acts as a versioning mechanism.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "status_page_type",
         "required": false,
-        "description": "Specifies if the status page is 'public' or 'private'.",
+        "description": "Specifies the type of the status page. Must be 'public' or 'private'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -73,13 +73,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages",
@@ -109,7 +109,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -136,6 +136,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "ListAvailableEmoji",
-  "fully_qualified_name": "TrelloApi.ListAvailableEmoji@0.1.0",
-  "description": "Retrieve a list of available emojis from Trello.\n\nThis tool is used to call the Trello API to retrieve a list of all available emojis. It should be called when there's a need to access or display the available emoji options within Trello.",
+  "fully_qualified_name": "TrelloApi.ListAvailableEmoji@2.0.0",
+  "description": "Retrieve a list of available emojis on Trello.\n\nThis tool is used to fetch and list all the available emojis from Trello, useful for incorporating emojis into Trello cards or boards.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "locale",
+        "name": "locale_for_emoji",
         "required": false,
-        "description": "The locale for emoji descriptions and names. Defaults to the logged-in member's locale.",
+        "description": "Specify the locale for returning emoji descriptions and names. Defaults to the logged-in member's locale.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/emoji",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "locale",
-        "tool_parameter_name": "locale",
+        "tool_parameter_name": "locale_for_emoji",
         "description": "The locale to return emoji descriptions and names in. Defaults to the logged in member's locale.",
         "value_schema": {
           "val_type": "string",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

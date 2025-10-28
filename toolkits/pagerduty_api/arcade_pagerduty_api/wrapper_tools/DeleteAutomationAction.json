@@ -1,18 +1,18 @@
 {
   "name": "DeleteAutomationAction",
-  "fully_qualified_name": "PagerdutyApi.DeleteAutomationAction@0.1.0",
-  "description": "Delete a specified automation action by ID.\n\nThis tool deletes an automation action in PagerDuty by its ID. Use it when you need to remove an existing automation action from your configuration.",
+  "fully_qualified_name": "PagerdutyApi.DeleteAutomationAction@2.0.0",
+  "description": "Delete an automation action by ID.\n\nThis tool deletes a specified automation action in PagerDuty using its unique ID. Use when you need to remove an existing automation action from the system.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique ID of the automation action to delete. It identifies which action will be removed.",
+        "description": "The unique ID of the automation action to be deleted. Required for identifying the specific resource.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "accept_version_header",
         "required": true,
-        "description": "Specify the API version to use with the 'Accept' header for versioning.",
+        "description": "The 'Accept' header value for API versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specifies the content type of the request body. Use 'application/json'.",
+        "description": "Set to 'application/json' to specify the content type header for the request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/automation_actions/actions/{id}",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,249 @@
+{
+  "name": "UpdateTrelloCardCustomFields",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloCardCustomFields@2.0.0",
+  "description": "Update custom fields on a Trello card.\n\nUse this tool to set, update, or remove values for multiple custom fields on a specific Trello card. Ideal for managing card metadata and ensuring up-to-date information on your board.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_fields_updates",
+        "required": false,
+        "description": "A JSON array of objects where each object specifies the ID of the custom field and the corresponding value to update. Supports text, checkbox, date, and number values, or the option ID for list fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customFieldItems": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "idCustomField": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the Custom Field"
+                },
+                "value": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "checked": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "date": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "number": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "An object containing the key and value to set for the card's Custom Field value. The key used to set the value should match the type of Custom Field defined. This is optional if Custom Field is list type."
+                },
+                "idValue": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the option for the list type Custom Field. This is optional if Custom Field is not list type."
+                }
+              },
+              "description": "An array of objects containing the custom field ID, key and value, and ID of list type option."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-cards-idcard-customfields'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/cards/{idCard}/customFields",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_fields_updates",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customFieldItems": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "idCustomField": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the Custom Field"
+                },
+                "value": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "checked": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "date": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "number": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "An object containing the key and value to set for the card's Custom Field value. The key used to set the value should match the type of Custom Field defined. This is optional if Custom Field is list type."
+                },
+                "idValue": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the option for the list type Custom Field. This is optional if Custom Field is not list type."
+                }
+              },
+              "description": "An array of objects containing the custom field ID, key and value, and ID of list type option."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"customFieldItems\": {\n            \"type\": \"array\",\n            \"description\": \"An array of objects containing the custom field ID, key and value, and ID of list type option.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"idCustomField\": {\n                  \"pattern\": \"^[0-9a-fA-F]{32}$\",\n                  \"example\": \"5abbe4b7ddc1b351ef961414\",\n                  \"description\": \"The ID of the Custom Field\"\n                },\n                \"value\": {\n                  \"type\": \"object\",\n                  \"description\": \"An object containing the key and value to set for the card's Custom Field value. The key used to set the value should match the type of Custom Field defined. This is optional if Custom Field is list type.\",\n                  \"properties\": {\n                    \"text\": {\n                      \"type\": \"string\"\n                    },\n                    \"checked\": {\n                      \"type\": \"boolean\"\n                    },\n                    \"date\": {\n                      \"type\": \"string\",\n                      \"format\": \"date-time\",\n                      \"example\": \"2018-03-13T16:00:00.000Z\"\n                    },\n                    \"number\": {\n                      \"type\": \"number\"\n                    }\n                  }\n                },\n                \"idValue\": {\n                  \"pattern\": \"^[0-9a-fA-F]{32}$\",\n                  \"example\": \"5abbe4b7ddc1b351ef961414\",\n                  \"description\": \"The ID of the option for the list type Custom Field. This is optional if Custom Field is not list type.\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

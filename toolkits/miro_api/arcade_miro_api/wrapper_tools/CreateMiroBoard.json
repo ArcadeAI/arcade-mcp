@@ -1,0 +1,399 @@
+{
+  "name": "CreateMiroBoard",
+  "fully_qualified_name": "MiroApi.CreateMiroBoard@2.0.0",
+  "description": "Create a new board on Miro with specific settings.\n\nThis tool allows you to create a new board in Miro by specifying its name and sharing policies. It is limited to creating up to 3 team boards for users on the free plan. Ensure you have the required 'boards:write' scope.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_details",
+        "required": false,
+        "description": "JSON object specifying the board's name, description, policies, team ID, and project ID.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the board."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name for the board."
+            },
+            "policy": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "permissionsPolicy": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collaborationToolsStartAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all_editors",
+                        "board_owners_and_coowners"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines who can start or stop timer, voting, video chat, screen sharing, attention management. Others will only be able to join. To change the value for the `collaborationToolsStartAccess` parameter, contact Miro Customer Support."
+                    },
+                    "copyAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "anyone",
+                        "team_members",
+                        "team_editors",
+                        "board_owner"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines who can copy the board, copy objects, download images, and save the board as a template or PDF."
+                    },
+                    "sharingAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "team_members_with_editing_rights",
+                        "owner_and_coowners"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines who can change access and invite users to this board. To change the value for the `sharingAccess` parameter, contact Miro Customer Support."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines the permissions policies for the board."
+                },
+                "sharingPolicy": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "access": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "private",
+                        "view",
+                        "edit",
+                        "comment"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines the public-level access to the board."
+                    },
+                    "inviteToAccountAndBoardLinkAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "viewer",
+                        "commenter",
+                        "editor",
+                        "no_access"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines the user role when inviting a user via the invite to team and board link. For Enterprise users, the `inviteToAccountAndBoardLinkAccess` parameter is always set to `no_access` regardless of the value that you assign for this parameter."
+                    },
+                    "organizationAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "private",
+                        "view",
+                        "comment",
+                        "edit"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines the organization-level access to the board. If the board is created for a team that does not belong to an organization, the `organizationAccess` parameter is always set to the default value."
+                    },
+                    "teamAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "private",
+                        "view",
+                        "comment",
+                        "edit"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines the team-level access to the board. By default, **edit** for the free plan and **private** for other plans."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines the public-level, organization-level, and team-level access for the board. The access level that a user gets depends on the highest level of access that results from considering the public-level, team-level, organization-level, and direct sharing access."
+                }
+              },
+              "inner_properties": null,
+              "description": "Defines the permissions policies and sharing policies for the board."
+            },
+            "teamId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier (ID) of the team where the board must be placed."
+            },
+            "projectId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier (ID) of the project to which the board must be added."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-board'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "board_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the board."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name for the board."
+            },
+            "policy": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "permissionsPolicy": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collaborationToolsStartAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all_editors",
+                        "board_owners_and_coowners"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines who can start or stop timer, voting, video chat, screen sharing, attention management. Others will only be able to join. To change the value for the `collaborationToolsStartAccess` parameter, contact Miro Customer Support."
+                    },
+                    "copyAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "anyone",
+                        "team_members",
+                        "team_editors",
+                        "board_owner"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines who can copy the board, copy objects, download images, and save the board as a template or PDF."
+                    },
+                    "sharingAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "team_members_with_editing_rights",
+                        "owner_and_coowners"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines who can change access and invite users to this board. To change the value for the `sharingAccess` parameter, contact Miro Customer Support."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines the permissions policies for the board."
+                },
+                "sharingPolicy": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "access": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "private",
+                        "view",
+                        "edit",
+                        "comment"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines the public-level access to the board."
+                    },
+                    "inviteToAccountAndBoardLinkAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "viewer",
+                        "commenter",
+                        "editor",
+                        "no_access"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines the user role when inviting a user via the invite to team and board link. For Enterprise users, the `inviteToAccountAndBoardLinkAccess` parameter is always set to `no_access` regardless of the value that you assign for this parameter."
+                    },
+                    "organizationAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "private",
+                        "view",
+                        "comment",
+                        "edit"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines the organization-level access to the board. If the board is created for a team that does not belong to an organization, the `organizationAccess` parameter is always set to the default value."
+                    },
+                    "teamAccess": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "private",
+                        "view",
+                        "comment",
+                        "edit"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines the team-level access to the board. By default, **edit** for the free plan and **private** for other plans."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines the public-level, organization-level, and team-level access for the board. The access level that a user gets depends on the highest level of access that results from considering the public-level, team-level, organization-level, and direct sharing access."
+                }
+              },
+              "inner_properties": null,
+              "description": "Defines the permissions policies and sharing policies for the board."
+            },
+            "teamId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier (ID) of the team where the board must be placed."
+            },
+            "projectId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier (ID) of the project to which the board must be added."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description of the board.\",\n            \"maxLength\": 300,\n            \"minLength\": 0\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"default\": \"Untitled\",\n            \"description\": \"Name for the board.\",\n            \"maxLength\": 60,\n            \"minLength\": 1\n          },\n          \"policy\": {\n            \"type\": \"object\",\n            \"description\": \"Defines the permissions policies and sharing policies for the board.\",\n            \"properties\": {\n              \"permissionsPolicy\": {\n                \"type\": \"object\",\n                \"description\": \"Defines the permissions policies for the board.\",\n                \"properties\": {\n                  \"collaborationToolsStartAccess\": {\n                    \"type\": \"string\",\n                    \"default\": \"all_editors\",\n                    \"description\": \"Defines who can start or stop timer, voting, video chat, screen sharing, attention management. Others will only be able to join. To change the value for the `collaborationToolsStartAccess` parameter, contact Miro Customer Support.\",\n                    \"enum\": [\n                      \"all_editors\",\n                      \"board_owners_and_coowners\"\n                    ]\n                  },\n                  \"copyAccess\": {\n                    \"type\": \"string\",\n                    \"default\": \"anyone\",\n                    \"description\": \"Defines who can copy the board, copy objects, download images, and save the board as a template or PDF.\",\n                    \"enum\": [\n                      \"anyone\",\n                      \"team_members\",\n                      \"team_editors\",\n                      \"board_owner\"\n                    ]\n                  },\n                  \"sharingAccess\": {\n                    \"type\": \"string\",\n                    \"default\": \"team_members_with_editing_rights\",\n                    \"description\": \"Defines who can change access and invite users to this board. To change the value for the `sharingAccess` parameter, contact Miro Customer Support.\",\n                    \"enum\": [\n                      \"team_members_with_editing_rights\",\n                      \"owner_and_coowners\"\n                    ]\n                  }\n                }\n              },\n              \"sharingPolicy\": {\n                \"type\": \"object\",\n                \"description\": \"Defines the public-level, organization-level, and team-level access for the board. The access level that a user gets depends on the highest level of access that results from considering the public-level, team-level, organization-level, and direct sharing access.\",\n                \"properties\": {\n                  \"access\": {\n                    \"type\": \"string\",\n                    \"default\": \"private\",\n                    \"description\": \"Defines the public-level access to the board.\",\n                    \"enum\": [\n                      \"private\",\n                      \"view\",\n                      \"edit\",\n                      \"comment\"\n                    ]\n                  },\n                  \"inviteToAccountAndBoardLinkAccess\": {\n                    \"type\": \"string\",\n                    \"default\": \"no_access\",\n                    \"description\": \"Defines the user role when inviting a user via the invite to team and board link. For Enterprise users, the `inviteToAccountAndBoardLinkAccess` parameter is always set to `no_access` regardless of the value that you assign for this parameter.\",\n                    \"enum\": [\n                      \"viewer\",\n                      \"commenter\",\n                      \"editor\",\n                      \"no_access\"\n                    ]\n                  },\n                  \"organizationAccess\": {\n                    \"type\": \"string\",\n                    \"default\": \"private\",\n                    \"description\": \"Defines the organization-level access to the board. If the board is created for a team that does not belong to an organization, the `organizationAccess` parameter is always set to the default value.\",\n                    \"enum\": [\n                      \"private\",\n                      \"view\",\n                      \"comment\",\n                      \"edit\"\n                    ]\n                  },\n                  \"teamAccess\": {\n                    \"type\": \"string\",\n                    \"description\": \"Defines the team-level access to the board. By default, **edit** for the free plan and **private** for other plans.\",\n                    \"enum\": [\n                      \"private\",\n                      \"view\",\n                      \"comment\",\n                      \"edit\"\n                    ]\n                  }\n                }\n              }\n            }\n          },\n          \"teamId\": {\n            \"type\": \"string\",\n            \"description\": \"Unique identifier (ID) of the team where the board must be placed.\"\n          },\n          \"projectId\": {\n            \"type\": \"string\",\n            \"description\": \"Unique identifier (ID) of the project to which the board must be added.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

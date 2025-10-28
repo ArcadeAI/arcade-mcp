@@ -1,0 +1,109 @@
+{
+  "name": "DeleteCatalogItems",
+  "fully_qualified_name": "SquareupApi.DeleteCatalogItems@2.0.0",
+  "description": "Deletes catalog items and their children by IDs.\n\nUse this tool to delete a set of catalog items by providing their IDs. Deletion is cascading, removing both the items and their associated variations. The tool succeeds even if only part of the requested deletions can be processed, returning only the successfully deleted item IDs.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "catalog_object_ids_to_delete",
+        "required": true,
+        "description": "The IDs of the catalog objects to be deleted. Deletion is cascading, removing the item and dependent objects.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the CatalogObjects to be deleted. When an object is deleted, other objects\nin the graph that depend on that object will be deleted as well (for example, deleting a\nCatalogItem will delete its CatalogItemVariation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "object_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BatchDeleteCatalogObjects'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ITEMS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/catalog/batch-delete",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "object_ids",
+        "tool_parameter_name": "catalog_object_ids_to_delete",
+        "description": "The IDs of the CatalogObjects to be deleted. When an object is deleted, other objects\nin the graph that depend on that object will be deleted as well (for example, deleting a\nCatalogItem will delete its CatalogItemVariation.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the CatalogObjects to be deleted. When an object is deleted, other objects\nin the graph that depend on that object will be deleted as well (for example, deleting a\nCatalogItem will delete its CatalogItemVariation."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"object_ids\"\n        ],\n        \"properties\": {\n          \"object_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The IDs of the CatalogObjects to be deleted. When an object is deleted, other objects\\nin the graph that depend on that object will be deleted as well (for example, deleting a\\nCatalogItem will delete its CatalogItemVariation.\"\n          }\n        },\n        \"example\": {\n          \"object_ids\": [\n            \"W62UWFY35CWMYGVWK6TWJDNI\",\n            \"AA27W3M2GGTF3H6AVPNB77CK\"\n          ]\n        },\n        \"x-sq-sdk-sample-code\": {\n          \"csharp\": \"/sdk_samples/Catalog/BatchDeleteCatalogObjects/BatchDeleteCatalogObjectsRequest.csharp\",\n          \"java\": \"/sdk_samples/Catalog/BatchDeleteCatalogObjects/BatchDeleteCatalogObjectsRequest.java\",\n          \"javascript\": \"/sdk_samples/Catalog/BatchDeleteCatalogObjects/BatchDeleteCatalogObjectsRequest.javascript\",\n          \"php\": \"/sdk_samples/Catalog/BatchDeleteCatalogObjects/BatchDeleteCatalogObjectsRequest.php\",\n          \"python\": \"/sdk_samples/Catalog/BatchDeleteCatalogObjects/BatchDeleteCatalogObjectsRequest.python\",\n          \"ruby\": \"/sdk_samples/Catalog/BatchDeleteCatalogObjects/BatchDeleteCatalogObjectsRequest.ruby\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

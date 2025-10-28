@@ -1,18 +1,18 @@
 {
   "name": "GetUserAvailabilitySchedules",
-  "fully_qualified_name": "CalendlyApi.GetUserAvailabilitySchedules@0.1.0",
-  "description": "Retrieve the user's availability schedules.\n\nThis tool returns the availability schedules for a specified user. Call this tool when you need to know a user's available times for scheduling purposes.",
+  "fully_qualified_name": "CalendlyApi.GetUserAvailabilitySchedules@2.0.0",
+  "description": "Fetch a user's availability schedules.\n\nUse this tool to get the availability schedules of a specified user, assisting in planning or checking user availability.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "user_uri_reference",
         "required": true,
-        "description": "A string representing the URI of the user to retrieve availability for.",
+        "description": "A URI reference to the specified user whose availability schedules are to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/user_availability_schedules",
@@ -83,6 +83,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "GetGlobalOrchestrationRules",
-  "fully_qualified_name": "PagerdutyApi.GetGlobalOrchestrationRules@0.1.0",
-  "description": "Fetch the Global Orchestration Rules for Event Processing.\n\nUse this tool to obtain the global orchestration rules for a specific event orchestration. Useful for understanding how events are processed and modified globally. OAuth with 'event_orchestrations.read' is required.",
+  "fully_qualified_name": "PagerdutyApi.GetGlobalOrchestrationRules@2.0.0",
+  "description": "Retrieve global orchestration rules for an event.\n\nThis tool fetches the global orchestration rules for a specified event orchestration, which contains a set of event rules applicable to all incoming events. These rules can modify, enhance, and route the event for further processing.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "event_orchestration_id",
         "required": true,
-        "description": "The unique identifier for an Event Orchestration, required to fetch its global orchestration rules.",
+        "description": "The ID of the specific Event Orchestration to retrieve rules for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "versioning_header",
+        "name": "version_header",
         "required": true,
-        "description": "The `Accept` header specifies the API version for the response.",
+        "description": "Specifies the API version using the Accept header for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "The content type header for the request, expected to be 'application/json'.",
+        "description": "The content type for the request. Must be set to `application/json`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/event_orchestrations/{id}/global",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

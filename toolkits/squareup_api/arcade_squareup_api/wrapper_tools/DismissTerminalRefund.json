@@ -1,18 +1,18 @@
 {
   "name": "DismissTerminalRefund",
-  "fully_qualified_name": "SquareupApi.DismissTerminalRefund@0.1.0",
-  "description": "Dismiss a Terminal refund request if permissible.\n\nUse this tool to dismiss a Terminal refund request when the request status and type allow for dismissal.",
+  "fully_qualified_name": "SquareupApi.DismissTerminalRefund@2.0.0",
+  "description": "Dismiss a Terminal refund request.\n\nUse this tool to dismiss a Terminal refund request if it's allowable based on the status and type of the request.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "terminal_refund_unique_id",
         "required": true,
-        "description": "The unique identifier for the `TerminalRefund` that is associated with the refund to be dismissed.",
+        "description": "Unique ID for the TerminalRefund associated with the refund to be dismissed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}/dismiss",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

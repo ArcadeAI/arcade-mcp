@@ -1,0 +1,204 @@
+{
+  "name": "AddGuestToFolder",
+  "fully_qualified_name": "ClickupApi.AddGuestToFolder@0.1.0",
+  "description": "Share a folder with a guest in ClickUp's Enterprise Plan.\n\nThis tool shares a specific folder with a guest, available only for ClickUp Workspaces on the Enterprise Plan. Use it to collaborate by granting access to specified guests.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "folder_id",
+        "required": true,
+        "description": "The unique integer ID of the folder to be shared with the guest.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folder_id"
+      },
+      {
+        "name": "guest_identifier",
+        "required": true,
+        "description": "The unique identifier for the guest to whom the folder will be shared. This should be an integer representing the guest's ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "guest_id"
+      },
+      {
+        "name": "guest_permission_level",
+        "required": true,
+        "description": "Defines guest's access level: 'read' for view only, 'comment', 'edit', or 'create' for full access.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Can be `read` (view only), `comment`, `edit`, or `create` (full)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "permission_level"
+      },
+      {
+        "name": "include_shared_items",
+        "required": false,
+        "description": "Set to true to include details of items shared with the guest. Default is true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Exclude details of items shared with the guest by setting this parameter to `false`. By default this parameter is set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_shared"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'AddGuestToFolder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/folder/{folder_id}/guest/{guest_id}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include_shared",
+        "tool_parameter_name": "include_shared_items",
+        "description": "Exclude details of items shared with the guest by setting this parameter to `false`. By default this parameter is set to `true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Exclude details of items shared with the guest by setting this parameter to `false`. By default this parameter is set to `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "folder_id",
+        "tool_parameter_name": "folder_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "guest_id",
+        "tool_parameter_name": "guest_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "permission_level",
+        "tool_parameter_name": "guest_permission_level",
+        "description": "Can be `read` (view only), `comment`, `edit`, or `create` (full).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Can be `read` (view only), `comment`, `edit`, or `create` (full)."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"AddGuestToFolderrequest\",\n        \"required\": [\n          \"permission_level\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"permission_level\": {\n            \"description\": \"Can be `read` (view only), `comment`, `edit`, or `create` (full).\",\n            \"type\": \"string\"\n          }\n        },\n        \"examples\": [\n          {\n            \"permission_level\": \"read\"\n          }\n        ]\n      },\n      \"example\": {\n        \"permission_level\": \"read\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

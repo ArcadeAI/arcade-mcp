@@ -1,18 +1,18 @@
 {
   "name": "CreateUserStatusUpdateNotificationRule",
-  "fully_qualified_name": "PagerdutyApi.CreateUserStatusUpdateNotificationRule@0.1.0",
-  "description": "Creates a user's status update notification rule on PagerDuty.\n\nThis tool is used to create a new status update notification rule for a user on PagerDuty. It should be called when there's a need to set up notifications for user status updates. This action requires appropriate OAuth permissions ('users.write').",
+  "fully_qualified_name": "PagerdutyApi.CreateUserStatusUpdateNotificationRule@2.0.0",
+  "description": "Create a new status update notification rule for a user.\n\nThis tool creates a new notification rule for a user's status updates in a PagerDuty account. It should be called when you need to set up or modify a user's notification settings for incident interactions. Requires user write permissions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "user_resource_id",
+        "name": "resource_id",
         "required": true,
-        "description": "The ID of the user resource for which the notification rule should be created.",
+        "description": "The ID of the user resource for which the notification rule is being created.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_header_version",
+        "name": "api_version_header",
         "required": true,
-        "description": "Specifies the API version to use as an accept header for versioning.",
+        "description": "Specify the API version using the 'Accept' header for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the request body. Must be set to 'application/json'.",
+        "description": "The MIME type of the request body. Typically set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "status_update_notification_rule",
         "required": false,
-        "description": "JSON object defining the status update notification rule. Must include contact method details.",
+        "description": "A JSON object representing the rule for contacting the user for incident status updates. It includes details like contact method and notification preferences.",
         "value_schema": {
           "val_type": "json",
           "inner_val_type": null,
@@ -120,13 +120,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/{id}/status_update_notification_rules",
@@ -135,7 +135,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "user_resource_id",
+        "tool_parameter_name": "resource_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -153,7 +153,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "api_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -171,7 +171,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -236,6 +236,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"status_update_notification_rule\": {\n            \"type\": \"object\",\n            \"description\": \"A rule for contacting the user for Incident Status Updates.\",\n            \"properties\": {\n              \"contact_method\": {\n                \"allOf\": [\n                  {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true\n                          },\n                          \"summary\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                          },\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true,\n                            \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                          },\n                          \"self\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"the API show URL at which the object is accessible\"\n                          },\n                          \"html_url\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                          }\n                        }\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"type\",\n                          \"id\"\n                        ]\n                      }\n                    ]\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"email_contact_method_reference\",\n                          \"phone_contact_method_reference\",\n                          \"push_notification_contact_method_reference\",\n                          \"sms_contact_method_reference\"\n                        ]\n                      }\n                    }\n                  }\n                ]\n              }\n            },\n            \"required\": [\n              \"contact_method\"\n            ],\n            \"example\": {\n              \"contact_method\": {\n                \"id\": \"PXPGF42\",\n                \"type\": \"email_contact_method_reference\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"status_update_notification_rule\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"status_update_notification_rule\": {\n              \"contact_method\": {\n                \"id\": \"PXPGF42\",\n                \"type\": \"email_contact_method_reference\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The status update notification rule to be created.\"\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

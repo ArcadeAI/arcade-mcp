@@ -1,0 +1,204 @@
+{
+  "name": "CreateUserGroup",
+  "fully_qualified_name": "ClickupApi.CreateUserGroup@0.1.0",
+  "description": "Create a user group within a ClickUp workspace.\n\nUse this tool to organize and manage users by creating a user group within a specific ClickUp workspace. Note that adding a guest with view-only permissions converts them to a paid guest, potentially incurring additional costs.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The unique ID of the ClickUp workspace where the user group will be created.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "group_name",
+        "required": true,
+        "description": "The name of the user group to be created within the workspace. This should be a descriptive name to identify the group easily.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "user_group_members",
+        "required": true,
+        "description": "List of user IDs to include in the user group. Each ID should be an integer representing a user within the workspace.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "members"
+      },
+      {
+        "name": "group_handle",
+        "required": false,
+        "description": "A unique string identifier for the user group to be created. This will be used as the group's handle within the workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "handle"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateUserGroup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/group",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "group_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "handle",
+        "tool_parameter_name": "group_handle",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "members",
+        "tool_parameter_name": "user_group_members",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateTeamrequest\",\n        \"required\": [\n          \"name\",\n          \"members\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"handle\": {\n            \"type\": \"string\"\n          },\n          \"members\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\",\n              \"contentEncoding\": \"int32\"\n            },\n            \"description\": \"\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"New team name\",\n            \"handle\": \"newteamname\",\n            \"members\": [\n              123456,\n              987654\n            ]\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"New User Group name\",\n        \"handle\": \"newusergroupname\",\n        \"members\": [\n          123456,\n          987654\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "SubscribeToBusinessService",
-  "fully_qualified_name": "PagerdutyApi.SubscribeToBusinessService@0.1.0",
-  "description": "Subscribe an account to a PagerDuty business service.\n\nInitiates a subscription for your account to a specified PagerDuty business service, requiring the 'subscribers.write' permission scope.",
+  "fully_qualified_name": "PagerdutyApi.SubscribeToBusinessService@2.0.0",
+  "description": "Subscribe your account to a PagerDuty business service.\n\nUse this tool to subscribe your account to a specified business service in PagerDuty. Authorization with the 'subscribers.write' scope is required for this action.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier of the business service to subscribe to.",
+        "description": "The ID of the business service resource to subscribe to.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "accept_version_header",
         "required": true,
-        "description": "Specifies the API version required for the request. Use the appropriate version string.",
+        "description": "Specify the version of the API to use in the request using the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/business_services/{id}/account_subscription",
@@ -130,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

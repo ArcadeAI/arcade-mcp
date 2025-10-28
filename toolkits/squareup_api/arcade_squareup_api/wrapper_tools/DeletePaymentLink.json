@@ -1,18 +1,18 @@
 {
   "name": "DeletePaymentLink",
-  "fully_qualified_name": "SquareupApi.DeletePaymentLink@0.1.0",
-  "description": "Deletes a specified payment link.\n\nUse this tool to delete a payment link by providing the link's ID. Call it when you need to remove a payment link from your system.",
+  "fully_qualified_name": "SquareupApi.DeletePaymentLink@2.0.0",
+  "description": "Deletes a specified payment link.\n\nUse this tool to delete a payment link by its ID when it is no longer needed or was created in error.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "payment_link_id",
         "required": true,
-        "description": "The ID of the payment link you want to delete. Provide the specific link ID to proceed with deletion.",
+        "description": "The unique identifier of the payment link to delete. This ID specifies which payment link should be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -49,8 +49,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "ORDERS_WRITE",
-          "ORDERS_READ"
+          "ORDERS_READ",
+          "ORDERS_WRITE"
         ]
       }
     },
@@ -60,13 +60,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/online-checkout/payment-links/{id}",
@@ -88,6 +88,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -101,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

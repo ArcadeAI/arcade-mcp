@@ -1,0 +1,227 @@
+{
+  "name": "UpsertAirtableRecords",
+  "fully_qualified_name": "AirtableApi.UpsertAirtableRecords@2.0.0",
+  "description": "Update or insert records in an Airtable HyperDB table.\n\nUse this tool to update or insert records in an Airtable HyperDB table by matching primary keys. Ideal for syncing data or ensuring records are up-to-date without manual oversight.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_account_id",
+        "required": true,
+        "description": "The identifier for the Airtable enterprise account. Required for accessing the HyperDB table.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterpriseAccountId"
+      },
+      {
+        "name": "data_table_id",
+        "required": true,
+        "description": "The identifier for the HyperDB data table in Airtable. Required for targeting the specific table for upsert operations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dataTableId"
+      },
+      {
+        "name": "records_to_upsert",
+        "required": false,
+        "description": "JSON array of records to upsert, each with a unique primaryKey and associated fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "records": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "primaryKey": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'hyperdb-upsert-records-by-primary-keys'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "hyperDB.records:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/{enterpriseAccountId}/{dataTableId}/upsertRecords",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterpriseAccountId",
+        "tool_parameter_name": "enterprise_account_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "dataTableId",
+        "tool_parameter_name": "data_table_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "records_to_upsert",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "records": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "primaryKey": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Example response\": {\n          \"description\": \"Simple example\",\n          \"summary\": \"Example response\",\n          \"value\": {\n            \"records\": [\n              {\n                \"fields\": {\n                  \"id\": \"483\",\n                  \"name\": \"Frank\"\n                },\n                \"primaryKey\": \"483\"\n              },\n              {\n                \"fields\": {\n                  \"id\": \"484\",\n                  \"name\": \"Alice\"\n                },\n                \"primaryKey\": \"484\"\n              }\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"records\": {\n            \"items\": {\n              \"properties\": {\n                \"fields\": {\n                  \"additionalProperties\": {\n                    \"anyOf\": [\n                      {\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"description\": \"A date timestamp in the ISO format, eg:\\\"2018-01-01T00:00:00.000Z\\\"\",\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"type\": \"null\"\n                      }\n                    ]\n                  },\n                  \"type\": \"object\"\n                },\n                \"primaryKey\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"primaryKey\",\n                \"fields\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"records\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

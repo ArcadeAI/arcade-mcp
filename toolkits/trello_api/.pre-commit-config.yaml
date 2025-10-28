@@ -14,5 +14,5 @@ repos:
     rev: v0.6.7
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [--fix, --ignore=S107,--ignore=RUF002]
       - id: ruff-format

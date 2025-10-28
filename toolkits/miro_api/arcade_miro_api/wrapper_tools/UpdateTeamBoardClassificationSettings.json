@@ -1,0 +1,204 @@
+{
+  "name": "UpdateTeamBoardClassificationSettings",
+  "fully_qualified_name": "MiroApi.UpdateTeamBoardClassificationSettings@2.0.0",
+  "description": "Updates board classification settings for a team's existing board.\n\nThis tool updates the classification settings of a board within a specific team in an enterprise plan. It requires Company Admin permissions and is applicable only for enterprise users. Use this tool to modify board classification settings as necessary for compliance or organizational policy changes.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "ID of the organization whose team's board classification settings will be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique identifier for the team to update board classification settings for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the team"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "data_classification_default_label_id",
+        "required": false,
+        "description": "The ID of the default data classification label to set for the team. This should be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Data classification default label id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "defaultLabelId"
+      },
+      {
+        "name": "enable_data_classification",
+        "required": false,
+        "description": "Enable data classification for the team. Set to `true` to enable, `false` to disable.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Data classification enabled for team"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-dataclassification-team-settings-set'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/data-classification-settings",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "id of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the organization"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "id of the team",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the team"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "defaultLabelId",
+        "tool_parameter_name": "data_classification_default_label_id",
+        "description": "Data classification default label id",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Data classification default label id"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "enabled",
+        "tool_parameter_name": "enable_data_classification",
+        "description": "Data classification enabled for team",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Data classification enabled for team"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"defaultLabelId\": {\n            \"type\": \"integer\",\n            \"description\": \"Data classification default label id\",\n            \"format\": \"int64\",\n            \"example\": 3000457366756291000\n          },\n          \"enabled\": {\n            \"type\": \"boolean\",\n            \"description\": \"Data classification enabled for team\",\n            \"example\": true\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

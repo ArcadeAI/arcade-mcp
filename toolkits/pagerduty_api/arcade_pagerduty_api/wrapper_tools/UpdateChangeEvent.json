@@ -1,0 +1,226 @@
+{
+  "name": "UpdateChangeEvent",
+  "fully_qualified_name": "PagerdutyApi.UpdateChangeEvent@2.0.0",
+  "description": "Updates an existing change event in PagerDuty.\n\nUse this tool to modify details of an existing change event using PagerDuty's updateChangeEvent API. Requires appropriate OAuth scope (`change_events.write`).",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier of the change event to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_header_version",
+        "required": true,
+        "description": "Specifies the version of the API to use via the `Accept` header. Required for versioning purposes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Specifies the content type of the request. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "change_event_update_data",
+        "required": false,
+        "description": "JSON object containing the details of the Change Event to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "change_event": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The Change Event to be updated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateChangeEvent'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/change_events/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "change_event_update_data",
+        "description": "The Change Event to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "change_event": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The Change Event to be updated."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"change_event\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"timestamp\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"description\": \"The time at which the emitting tool detected or generated the event.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"default\": \"change_event\",\n                    \"description\": \"The type of object being created.\",\n                    \"enum\": [\n                      \"change_event\"\n                    ]\n                  },\n                  \"services\": {\n                    \"type\": \"array\",\n                    \"readOnly\": true,\n                    \"description\": \"An array containing Service objects that this change event is associated with.\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"service_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  },\n                  \"integration\": {\n                    \"allOf\": [\n                      {\n                        \"readOnly\": true\n                      },\n                      {\n                        \"allOf\": [\n                          {\n                            \"allOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"id\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true\n                                  },\n                                  \"summary\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                  },\n                                  \"type\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true,\n                                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                  },\n                                  \"self\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"the API show URL at which the object is accessible\"\n                                  },\n                                  \"html_url\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                  }\n                                }\n                              },\n                              {\n                                \"type\": \"object\",\n                                \"required\": [\n                                  \"type\",\n                                  \"id\"\n                                ]\n                              }\n                            ]\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"aws_cloudwatch_inbound_integration_reference\",\n                                  \"cloudkick_inbound_integration_reference\",\n                                  \"event_transformer_api_inbound_integration_reference\",\n                                  \"generic_email_inbound_integration_reference\",\n                                  \"generic_events_api_inbound_integration_reference\",\n                                  \"keynote_inbound_integration_reference\",\n                                  \"nagios_inbound_integration_reference\",\n                                  \"pingdom_inbound_integration_reference\",\n                                  \"sql_monitor_inbound_integration_reference\",\n                                  \"events_api_v2_inbound_integration_reference\",\n                                  \"inbound_integration_reference\"\n                                ]\n                              }\n                            }\n                          }\n                        ]\n                      }\n                    ]\n                  },\n                  \"routing_key\": {\n                    \"readOnly\": true,\n                    \"title\": \"Routing Key\",\n                    \"description\": \"This is the 32 character Integration Key for an Integration on a Service. The same Integration Key can be used for both alert and change events.\",\n                    \"type\": \"string\"\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"description\": \"A brief text summary of the event. Displayed in PagerDuty to provide information about the change. The maximum permitted length of this property is 1024 characters.\"\n                  },\n                  \"source\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"The unique name of the location where the Change Event occurred.\"\n                  },\n                  \"links\": {\n                    \"type\": \"array\",\n                    \"readOnly\": true,\n                    \"description\": \"List of links to include.\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"href\": {\n                          \"type\": \"string\"\n                        },\n                        \"text\": {\n                          \"type\": \"string\"\n                        }\n                      }\n                    }\n                  },\n                  \"images\": {\n                    \"type\": \"array\",\n                    \"readOnly\": true,\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"src\": {\n                          \"type\": \"string\"\n                        },\n                        \"href\": {\n                          \"type\": \"string\"\n                        },\n                        \"alt\": {\n                          \"type\": \"string\"\n                        }\n                      }\n                    }\n                  },\n                  \"custom_details\": {\n                    \"type\": \"object\",\n                    \"description\": \"Additional details about the change event.\",\n                    \"title\": \"Custom Details\"\n                  }\n                },\n                \"example\": {\n                  \"summary\": \"Build Success - Increase snapshot create timeout to 30 seconds\",\n                  \"timestamp\": \"2020-07-17T08:42:58Z\",\n                  \"type\": \"change_event\",\n                  \"source\": \"acme-build-pipeline-tool-default-i-9999\",\n                  \"integration\": {\n                    \"id\": \"PEYSGVF\",\n                    \"type\": \"inbound_integration_reference\"\n                  },\n                  \"services\": [\n                    {\n                      \"id\": \"PEYSGRV\",\n                      \"type\": \"service_reference\"\n                    }\n                  ],\n                  \"custom_details\": {\n                    \"build_state\": \"passed\",\n                    \"build_number\": \"2\",\n                    \"run_time\": \"1236s\"\n                  },\n                  \"links\": [\n                    {\n                      \"href\": \"https://acme.pagerduty.dev/build/2\",\n                      \"text\": \"View more details in Acme!\"\n                    }\n                  ]\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"change_event\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"change_event\": {\n              \"summary\": \"Build Success - Increase snapshot create timeout to 30 seconds\",\n              \"type\": \"change_event\",\n              \"custom_details\": {\n                \"build_state\": \"passed\",\n                \"build_number\": \"2\",\n                \"run_time\": \"1236s\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The Change Event to be updated.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,377 @@
+{
+  "name": "AssignTagsToPagerdutyEntity",
+  "fully_qualified_name": "PagerdutyApi.AssignTagsToPagerdutyEntity@2.0.0",
+  "description": "Assign tags to PagerDuty entities like policies, teams, or users.\n\nAssign or update tags for Escalation Policies, Teams, or Users in PagerDuty to facilitate filtering and organization. Use this tool to manage tags efficiently.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "entity_type",
+        "required": true,
+        "description": "Specify the entity type to tag. Options: 'users', 'teams', 'escalation_policies'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "users",
+            "teams",
+            "escalation_policies"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of entity related with the tag"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "entity_type"
+      },
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier of the PagerDuty entity to assign tags to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "The `Accept` header value specifying the API version for the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "The MIME type for the request, must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "tags_assignment_details",
+        "required": false,
+        "description": "JSON object detailing tags to add or remove for an entity. Include 'add' for adding tags and 'remove' for removing tag references.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "add": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "tag",
+                    "tag_reference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The label of the tag. Should be used when type is \"tag\"."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the tag. Should be used when type is \"tag_reference\"."
+                }
+              },
+              "description": "Array of tags and/or tag references to add to the entity.\nFor elements with type `tag_reference`, the tag with the corresponding `id` is added to the entity.\nFor elements with type `tag`, if there is an existing tag with the given\nlabel that tag is added to the entity. If there is no existing tag with that label and the user has permission\nto create tags, a new tag is created with that label and assigned to the entity.\n"
+            },
+            "remove": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "tag_reference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the tag"
+                }
+              },
+              "description": "Array of tag references to remove from the entity."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createEntityTypeByIdChangeTags'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/{entity_type}/{id}/change_tags",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "entity_type",
+        "tool_parameter_name": "entity_type",
+        "description": "Type of entity related with the tag",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "users",
+            "teams",
+            "escalation_policies"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of entity related with the tag"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "tags_assignment_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "add": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "tag",
+                    "tag_reference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The label of the tag. Should be used when type is \"tag\"."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the tag. Should be used when type is \"tag_reference\"."
+                }
+              },
+              "description": "Array of tags and/or tag references to add to the entity.\nFor elements with type `tag_reference`, the tag with the corresponding `id` is added to the entity.\nFor elements with type `tag`, if there is an existing tag with the given\nlabel that tag is added to the entity. If there is no existing tag with that label and the user has permission\nto create tags, a new tag is created with that label and assigned to the entity.\n"
+            },
+            "remove": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "tag_reference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the tag"
+                }
+              },
+              "description": "Array of tag references to remove from the entity."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Tags to add to or remove from the entity.\",\n        \"properties\": {\n          \"add\": {\n            \"type\": \"array\",\n            \"description\": \"Array of tags and/or tag references to add to the entity.\\nFor elements with type `tag_reference`, the tag with the corresponding `id` is added to the entity.\\nFor elements with type `tag`, if there is an existing tag with the given\\nlabel that tag is added to the entity. If there is no existing tag with that label and the user has permission\\nto create tags, a new tag is created with that label and assigned to the entity.\\n\",\n            \"items\": {\n              \"title\": \"Tags to add\",\n              \"type\": \"object\",\n              \"properties\": {\n                \"type\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"tag\",\n                    \"tag_reference\"\n                  ]\n                },\n                \"label\": {\n                  \"type\": \"string\",\n                  \"description\": \"The label of the tag. Should be used when type is \\\"tag\\\".\",\n                  \"maxLength\": 191\n                },\n                \"id\": {\n                  \"type\": \"string\",\n                  \"description\": \"The id of the tag. Should be used when type is \\\"tag_reference\\\".\",\n                  \"readOnly\": true\n                }\n              },\n              \"required\": [\n                \"type\"\n              ]\n            }\n          },\n          \"remove\": {\n            \"type\": \"array\",\n            \"description\": \"Array of tag references to remove from the entity.\",\n            \"items\": {\n              \"title\": \"Tags to remove.\",\n              \"type\": \"object\",\n              \"properties\": {\n                \"type\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"tag_reference\"\n                  ]\n                },\n                \"id\": {\n                  \"type\": \"string\",\n                  \"description\": \"The id of the tag\",\n                  \"readOnly\": true\n                }\n              },\n              \"required\": [\n                \"type\",\n                \"id\"\n              ]\n            }\n          }\n        }\n      },\n      \"examples\": {\n        \"tags\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"add\": [\n              {\n                \"type\": \"tag\",\n                \"label\": \"Batman\"\n              },\n              {\n                \"type\": \"tag_reference\",\n                \"id\": \"P5IYCNZ\"\n              }\n            ],\n            \"remove\": [\n              {\n                \"type\": \"tag_reference\",\n                \"id\": \"POE7RY8\"\n              },\n              {\n                \"type\": \"tag_reference\",\n                \"id\": \"PG68P1M\"\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

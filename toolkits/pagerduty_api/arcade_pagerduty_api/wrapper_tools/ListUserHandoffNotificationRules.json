@@ -1,18 +1,18 @@
 {
   "name": "ListUserHandoffNotificationRules",
-  "fully_qualified_name": "PagerdutyApi.ListUserHandoffNotificationRules@0.1.0",
-  "description": "Retrieve handoff notification rules for a PagerDuty user.\n\nThis tool retrieves the handoff notification rules for a specified user in PagerDuty. It's useful for understanding how a user is notified during on-call handoffs. Requires 'users.read' OAuth scope.",
+  "fully_qualified_name": "PagerdutyApi.ListUserHandoffNotificationRules@2.0.0",
+  "description": "List handoff notification rules for a PagerDuty user.\n\nUse this tool to retrieve the handoff notification rules for a specific user in a PagerDuty account. This can be helpful to understand how notifications are managed for user on-call handoffs.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "user_id",
         "required": true,
-        "description": "Specify the ID of the PagerDuty user to retrieve their handoff notification rules.",
+        "description": "The unique identifier of the PagerDuty user whose handoff notification rules you want to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "accept_version_header",
         "required": true,
-        "description": "Specify the API version using the `Accept` header for versioning.",
+        "description": "Specifies the API version using the `Accept` header for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "The content type for the request. Use 'application/json'.",
+        "description": "Specifies the media type of the resource. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/{id}/oncall_handoff_notification_rules",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

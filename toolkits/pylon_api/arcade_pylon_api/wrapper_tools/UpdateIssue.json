@@ -1,0 +1,333 @@
+{
+  "name": "UpdateIssue",
+  "fully_qualified_name": "PylonApi.UpdateIssue@0.1.0",
+  "description": "Update details of an existing issue.\n\nUse this tool to modify information for an already existing issue when changes or corrections are needed.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_id",
+        "required": true,
+        "description": "The ID of the issue to update. This should be a string representing the unique identifier for the issue.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the issue to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "issue_update_details",
+        "required": false,
+        "description": "JSON object containing details to update an issue such as account_id, assignee_id, custom_fields, customer_portal_visible, requester_id, state, tags, and team_id.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the account that this issue belongs to. Only supported on issues with source: [\"manual\", \"form\", \"email\"]."
+            },
+            "assignee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the user who should be assigned to this issue. If empty string is passed in, the issue assignee will be removed."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be used on this issue. Only passed in fields will be modified."
+            },
+            "customer_portal_visible": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the issue should be visible in the customer portal."
+            },
+            "requester_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the requester that this issue is on behalf of."
+            },
+            "requestor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deprecated: Use requester_id instead."
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The state this issue should be moved to. Can be one of new, waiting_on_you, waiting_on_customer, on_hold, closed, or a custom status."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of strings to use as tags on this issue. If provided, the issue tags will be updated to be exactly the given tags."
+            },
+            "team_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the team this issue should be assigned to. If empty string is passed in, any assigned team will be removed."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateIssue'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/issues/{id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "issue_id",
+        "description": "The ID of the issue to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the issue to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "issue_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the account that this issue belongs to. Only supported on issues with source: [\"manual\", \"form\", \"email\"]."
+            },
+            "assignee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the user who should be assigned to this issue. If empty string is passed in, the issue assignee will be removed."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be used on this issue. Only passed in fields will be modified."
+            },
+            "customer_portal_visible": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the issue should be visible in the customer portal."
+            },
+            "requester_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the requester that this issue is on behalf of."
+            },
+            "requestor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deprecated: Use requester_id instead."
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The state this issue should be moved to. Can be one of new, waiting_on_you, waiting_on_customer, on_hold, closed, or a custom status."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of strings to use as tags on this issue. If provided, the issue tags will be updated to be exactly the given tags."
+            },
+            "team_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the team this issue should be assigned to. If empty string is passed in, any assigned team will be removed."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"account_id\": {\n            \"description\": \"The ID of the account that this issue belongs to. Only supported on issues with source: [\\\"manual\\\", \\\"form\\\", \\\"email\\\"].\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AccountID\"\n          },\n          \"assignee_id\": {\n            \"description\": \"The ID of the user who should be assigned to this issue. If empty string is passed in, the issue assignee will be removed.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AssigneeID\"\n          },\n          \"custom_fields\": {\n            \"description\": \"An array of custom fields to be used on this issue. Only passed in fields will be modified.\",\n            \"items\": {\n              \"properties\": {\n                \"slug\": {\n                  \"description\": \"The slug of the custom field.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Slug\"\n                },\n                \"value\": {\n                  \"description\": \"The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Value\"\n                },\n                \"values\": {\n                  \"description\": \"The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": \"array\",\n                  \"x-go-name\": \"Values\"\n                }\n              },\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"CustomFields\"\n          },\n          \"customer_portal_visible\": {\n            \"description\": \"Whether the issue should be visible in the customer portal.\",\n            \"type\": \"boolean\",\n            \"x-go-name\": \"CustomerPortalVisible\"\n          },\n          \"requester_id\": {\n            \"description\": \"The ID of the requester that this issue is on behalf of.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"RequesterID\"\n          },\n          \"requestor_id\": {\n            \"description\": \"Deprecated: Use requester_id instead.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"RequestorID\"\n          },\n          \"state\": {\n            \"description\": \"The state this issue should be moved to. Can be one of new, waiting_on_you, waiting_on_customer, on_hold, closed, or a custom status.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"State\"\n          },\n          \"tags\": {\n            \"description\": \"An array of strings to use as tags on this issue. If provided, the issue tags will be updated to be exactly the given tags.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Tags\"\n          },\n          \"team_id\": {\n            \"description\": \"The ID of the team this issue should be assigned to. If empty string is passed in, any assigned team will be removed.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"TeamID\"\n          }\n        },\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

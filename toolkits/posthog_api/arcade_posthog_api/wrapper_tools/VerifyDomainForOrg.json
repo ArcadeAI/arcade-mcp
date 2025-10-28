@@ -1,0 +1,359 @@
+{
+  "name": "VerifyDomainForOrg",
+  "fully_qualified_name": "PosthogApi.VerifyDomainForOrg@0.1.0",
+  "description": "Verify a domain for a specified organization.\n\nThis tool verifies a domain associated with a specified organization by creating a verification request for it. Useful when ensuring domain control and validation in organizational contexts.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "domain_uuid",
+        "required": true,
+        "description": "A UUID string identifying the domain to be verified for the organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this domain."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "A unique string ID representing the organization associated with the domain to verify.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "domain_verification_details",
+        "required": true,
+        "description": "A JSON object containing details like `id`, `domain`, `is_verified`, `verification_challenge`, and more, needed for domain verification.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "domain": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_verified": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines whether a domain is verified or not."
+            },
+            "verified_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "verification_challenge": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "jit_provisioning_enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "sso_enforcement": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "has_saml": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Returns whether SAML is configured for the instance. Does not validate the user has the required license (that check is performed in other places)."
+            },
+            "saml_entity_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "saml_acs_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "saml_x509_cert": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'domains_verify_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/organizations/{organization_id}/domains/{id}/verify/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "domain_uuid",
+        "description": "A UUID string identifying this domain.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this domain."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "domain_verification_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "domain": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_verified": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines whether a domain is verified or not."
+            },
+            "verified_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "verification_challenge": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "jit_provisioning_enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "sso_enforcement": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "has_saml": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Returns whether SAML is configured for the instance. Does not validate the user has the required license (that check is performed in other places)."
+            },
+            "saml_entity_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "saml_acs_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "saml_x509_cert": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"domain\": {\n            \"type\": \"string\",\n            \"maxLength\": 128\n          },\n          \"is_verified\": {\n            \"type\": \"boolean\",\n            \"description\": \"Determines whether a domain is verified or not.\",\n            \"readOnly\": true\n          },\n          \"verified_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"verification_challenge\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"jit_provisioning_enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"sso_enforcement\": {\n            \"type\": \"string\",\n            \"maxLength\": 28\n          },\n          \"has_saml\": {\n            \"type\": \"boolean\",\n            \"description\": \"Returns whether SAML is configured for the instance. Does not validate the user has the required license (that check is performed in other places).\",\n            \"readOnly\": true\n          },\n          \"saml_entity_id\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 512\n          },\n          \"saml_acs_url\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 512\n          },\n          \"saml_x509_cert\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"domain\",\n          \"has_saml\",\n          \"id\",\n          \"is_verified\",\n          \"verification_challenge\",\n          \"verified_at\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"domain\": {\n            \"type\": \"string\",\n            \"maxLength\": 128\n          },\n          \"is_verified\": {\n            \"type\": \"boolean\",\n            \"description\": \"Determines whether a domain is verified or not.\",\n            \"readOnly\": true\n          },\n          \"verified_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"verification_challenge\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"jit_provisioning_enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"sso_enforcement\": {\n            \"type\": \"string\",\n            \"maxLength\": 28\n          },\n          \"has_saml\": {\n            \"type\": \"boolean\",\n            \"description\": \"Returns whether SAML is configured for the instance. Does not validate the user has the required license (that check is performed in other places).\",\n            \"readOnly\": true\n          },\n          \"saml_entity_id\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 512\n          },\n          \"saml_acs_url\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 512\n          },\n          \"saml_x509_cert\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"domain\",\n          \"has_saml\",\n          \"id\",\n          \"is_verified\",\n          \"verification_challenge\",\n          \"verified_at\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"domain\": {\n            \"type\": \"string\",\n            \"maxLength\": 128\n          },\n          \"is_verified\": {\n            \"type\": \"boolean\",\n            \"description\": \"Determines whether a domain is verified or not.\",\n            \"readOnly\": true\n          },\n          \"verified_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"verification_challenge\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"jit_provisioning_enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"sso_enforcement\": {\n            \"type\": \"string\",\n            \"maxLength\": 28\n          },\n          \"has_saml\": {\n            \"type\": \"boolean\",\n            \"description\": \"Returns whether SAML is configured for the instance. Does not validate the user has the required license (that check is performed in other places).\",\n            \"readOnly\": true\n          },\n          \"saml_entity_id\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 512\n          },\n          \"saml_acs_url\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 512\n          },\n          \"saml_x509_cert\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"domain\",\n          \"has_saml\",\n          \"id\",\n          \"is_verified\",\n          \"verification_challenge\",\n          \"verified_at\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

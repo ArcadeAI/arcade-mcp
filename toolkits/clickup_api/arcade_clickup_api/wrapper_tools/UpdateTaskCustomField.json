@@ -1,0 +1,237 @@
+{
+  "name": "UpdateTaskCustomField",
+  "fully_qualified_name": "ClickupApi.UpdateTaskCustomField@0.1.0",
+  "description": "Update a custom field value for a specific task in ClickUp.\n\nUse this tool to add data to a custom field on a task. Requires the `task_id` of the task and the `field_id` of the custom field. Retrieve `field_id` using the 'Get Accessible Custom Fields' or 'Get Task' endpoints.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_id",
+        "required": true,
+        "description": "The ID of the task to be updated with new custom field data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter the task ID of the task you want to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_id"
+      },
+      {
+        "name": "custom_field_uuid",
+        "required": true,
+        "description": "The UUID of the custom field to update for a specific task.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter the universal unique identifier (UUID) of the Custom Field you want to set."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "field_id"
+      },
+      {
+        "name": "custom_field_value_data",
+        "required": true,
+        "description": "A JSON object containing the data to set for the custom field on the task.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "workspace_id",
+        "required": false,
+        "description": "Provide the Workspace ID when referencing a task by its Custom Task ID (`custom_task_ids` must be true).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n\n \\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "use_custom_task_id_reference",
+        "required": false,
+        "description": "Set to `true` to reference a task using its Custom Task ID.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by its Custom Task ID, this value must be `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_task_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SetCustomFieldValue'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/task/{task_id}/field/{field_id}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "custom_task_ids",
+        "tool_parameter_name": "use_custom_task_id_reference",
+        "description": "If you want to reference a task by its Custom Task ID, this value must be `true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by its Custom Task ID, this value must be `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n\n \\\nFor example: `custom_task_ids=true&team_id=123`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n\n \\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_id",
+        "tool_parameter_name": "task_id",
+        "description": "Enter the task ID of the task you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter the task ID of the task you want to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "field_id",
+        "tool_parameter_name": "custom_field_uuid",
+        "description": "Enter the universal unique identifier (UUID) of the Custom Field you want to set.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter the universal unique identifier (UUID) of the Custom Field you want to set."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_field_value_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"SetCustomFieldValuerequest\",\n        \"anyOf\": [\n          {\n            \"type\": \"object\",\n            \"title\": \"URL Custom Field\",\n            \"description\": \"The `value` must be a string with a valid URL.\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"string\",\n                \"example\": \"https://clickup.com/api\"\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Dropdown Custom Field\",\n            \"description\": \"Enter the universal unique identifier (UUID) of the dropdown menu option you want to set. You can find the UUIDs available for each Dropdown Custom Field using [Get Accessible Custom Fields.](ref:getaccessiblecustomfields) New Dropdown Custom Field options cannot be created from this request.\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"string\",\n                \"example\": \"uuid1234\"\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Email Custom Field\",\n            \"description\": \"The `value` must be a string with a valid email address.\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"string\",\n                \"example\": \"user@company.com\"\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Phone Custom Field\",\n            \"description\": \"The `value` must be a string with a valid country code.\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"string\",\n                \"example\": \"+1 123 456 7890\"\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Date Custom Field\",\n            \"description\": \"The `value` must be Unix time in milliseconds. To display the time in a Date Custom Field in ClickUp, you must include `time: true` in the `value_options` property.\",\n            \"properties\": {\n              \"value\": {\n                \"type\": \"integer\",\n                \"format\": \"int32\",\n                \"example\": 1667367645000\n              },\n              \"value_options\": {\n                \"type\": \"object\",\n                \"required\": [\n                  \"time\"\n                ],\n                \"properties\": {\n                  \"time\": {\n                    \"type\": \"boolean\",\n                    \"example\": true\n                  }\n                }\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Short or Long Text Custom Field\",\n            \"description\": \"Enter a string of text.\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"string\",\n                \"example\": \"This is short or long text in a Custom Field.\"\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Number Custom Field\",\n            \"description\": \"Enter a number.\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"number\",\n                \"example\": -28\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Money Custom Field\",\n            \"description\": \"You can set an amount, but not the currency of a Money Custom Field via the API. You can check the currency of a Money Custom Field using [Get Accessible Custom Fields.](ref:getaccessiblecustomfields)\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"number\",\n                \"example\": 8000\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Task Relationship Custom Field\",\n            \"description\": \"Enter an array of task ids in the `add` property to add them to a Task Relationship Custom Field. Enter them into the `rem` property to remove tasks from the Relationship.\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"add\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"rem\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                }\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"People Custom Field\",\n            \"description\": \"Enter an array of user ids or a Team id in the `add` property to add them to a People Custom Field. Enter them into the `rem` property to remove users from a People Custom Field. You can get a list of people in the Workspace using [Get Authorized Teams (Workspaces).](ref:getauthorizedteams)\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"add\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"number\"\n                    }\n                  },\n                  \"rem\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"number\"\n                    }\n                  }\n                }\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Emoji (Rating) Custom Field\",\n            \"description\": \"Enter an integer that is greater than or equal to zero and where the `count` property is greater than or equal to the `value`. You can find the `count` property for each Emoji (Rating) Custom Field using [Get Accessible Custom Fields.](ref:getaccessiblecustomfields)\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"integer\",\n                \"format\": \"int32\",\n                \"example\": 4\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Manual Progress Custom Field\",\n            \"description\": \"Enter a number between the `start` and `end` values of each Manual Progress Custom Field. For example, for a field with `start: 10` and `end: 30`, sending `current: 20` will be displayed as 50% complete in ClickUp. You can find the `start` and `end` values for each Manual Progress Custom Field using [Get Accessible Custom Fields.](ref:getaccessiblecustomfields)\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"object\",\n                \"required\": [\n                  \"current\"\n                ],\n                \"properties\": {\n                  \"current\": {\n                    \"type\": \"number\",\n                    \"example\": 20\n                  }\n                }\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Label Custom Field\",\n            \"description\": \"Enter an array of the universal unique identifiers (UUIDs) of the labels you want to apply. You can find the UUIDs available for each Label Custom Field using [Get Accessible Custom Fields.](ref:getaccessiblecustomfields)\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\",\n                  \"example\": [\n                    \"uuid1234\",\n                    \"uuid9876\"\n                  ]\n                }\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Location Custom Field\",\n            \"description\": \"Include the latitude, longitude, and formatted address as defined in the [Google Maps Geocoding API.](https://developers.google.com/maps/documentation/geocoding/overview)\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"location\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"lat\": {\n                        \"type\": \"number\"\n                      },\n                      \"lng\": {\n                        \"type\": \"number\"\n                      }\n                    }\n                  },\n                  \"formatted_address\": {\n                    \"type\": \"string\"\n                  }\n                }\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"title\": \"Button Custom Field\",\n            \"description\": \"Set a button Custom Field to `true` to \\\"click\\\" it. This will trigger the button's action as if it was clicked in the UI.\",\n            \"required\": [\n              \"value\"\n            ],\n            \"properties\": {\n              \"value\": {\n                \"type\": \"boolean\",\n                \"example\": true\n              }\n            }\n          }\n        ]\n      },\n      \"examples\": {\n        \"URL Custom Field\": {\n          \"value\": {\n            \"value\": \"https://clickup.com/api\"\n          }\n        },\n        \"Dropdown Custom Field\": {\n          \"value\": {\n            \"value\": \"uuid1234\"\n          }\n        },\n        \"Email Custom Field\": {\n          \"value\": {\n            \"value\": \"user@company.com\"\n          }\n        },\n        \"Phone Custom Field\": {\n          \"value\": {\n            \"value\": \"+1 201 555 0123\"\n          }\n        },\n        \"Date Custom Field\": {\n          \"value\": {\n            \"value\": 1667367645000,\n            \"value_options\": {\n              \"time\": true\n            }\n          }\n        },\n        \"Short or Long Text Custom Field\": {\n          \"value\": {\n            \"value\": \"This is short or long text in a Custom Field.\"\n          }\n        },\n        \"Number Custom Field\": {\n          \"value\": {\n            \"value\": -28\n          }\n        },\n        \"Money Custom Field\": {\n          \"value\": {\n            \"value\": 8000\n          }\n        },\n        \"Task Relationship Custom Field\": {\n          \"value\": {\n            \"value\": {\n              \"add\": [\n                \"abcd1234\",\n                \"efghi5678\"\n              ],\n              \"rem\": [\n                \"jklm9876\",\n                \"yuiop5678\"\n              ]\n            }\n          }\n        },\n        \"People Custom Field\": {\n          \"value\": {\n            \"value\": {\n              \"add\": [\n                123,\n                456\n              ],\n              \"rem\": [\n                987,\n                765\n              ]\n            }\n          }\n        },\n        \"Emoji (Rating) Custom Field\": {\n          \"value\": {\n            \"value\": 4\n          }\n        },\n        \"Manual Progress Custom Field\": {\n          \"value\": {\n            \"value\": {\n              \"current\": 20\n            }\n          }\n        },\n        \"Label Custom Field\": {\n          \"value\": {\n            \"value\": [\n              \"uuid1234\",\n              \"uuid9876\"\n            ]\n          }\n        },\n        \"Location Custom Field\": {\n          \"value\": {\n            \"value\": {\n              \"location\": {\n                \"lat\": -28.016667,\n                \"lng\": 153.4\n              },\n              \"formatted_address\": \"Gold Coast QLD, Australia\"\n            }\n          }\n        },\n        \"Button Custom Field\": {\n          \"value\": {\n            \"value\": true\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

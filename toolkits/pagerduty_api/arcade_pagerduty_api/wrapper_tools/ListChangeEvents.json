@@ -1,18 +1,18 @@
 {
   "name": "ListChangeEvents",
-  "fully_qualified_name": "PagerdutyApi.ListChangeEvents@0.1.0",
-  "description": "Retrieve a list of existing change events from Pagerduty.\n\nThis tool retrieves all existing change events from Pagerduty. It should be called when users need to view or manage change events in their system. It requires 'change_events.read' permission.",
+  "fully_qualified_name": "PagerdutyApi.ListChangeEvents@2.0.0",
+  "description": "Fetch a list of existing change events from PagerDuty.\n\nUse this tool to retrieve all current change events. Useful for monitoring and tracking changes within systems integrated with PagerDuty.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_versioning_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specify the API version to use via the `Accept` header for versioning.",
+        "description": "The `Accept` header specifies which API version to use. Ensure that the correct version string is provided for compatibility.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Sets the content type of the request. It must be 'application/json'.",
+        "description": "Content-Type header to specify the media type of the request. Typically set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "The number of results to display per page of the response.",
+        "description": "Specify the number of change event results to return per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "Offset to start pagination in search results. Use this to skip a specified number of records.",
+        "description": "Offset to start retrieving paginated search results.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
       {
         "name": "team_ids",
         "required": false,
-        "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the 'teams' ability.",
+        "description": "Array of team IDs. Filters results to those teams. Requires 'teams' ability.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -89,7 +89,7 @@
       {
         "name": "integration_ids",
         "required": false,
-        "description": "An array of integration IDs to filter results. Only events related to these integrations will be returned.",
+        "description": "Array of integration IDs; filters results to these integrations.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "integration_ids[]"
       },
       {
-        "name": "start_date_utc_iso",
+        "name": "start_date_time_utc",
         "required": false,
-        "description": "The start of the date range for the search in UTC ISO 8601 format. Must be UTC datetime.",
+        "description": "The start date and time for searching change events, in UTC ISO 8601 format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -119,7 +119,7 @@
       {
         "name": "end_date_utc",
         "required": false,
-        "description": "The end of the date range for search, in UTC ISO 8601 format. Non-UTC datetimes will return HTTP 400.",
+        "description": "The end date in UTC ISO 8601 format for the date range to search. Note: Must be a valid UTC string.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -132,9 +132,9 @@
         "http_endpoint_parameter_name": "until"
       },
       {
-        "name": "include_total_in_response",
+        "name": "include_total_in_pagination",
         "required": false,
-        "description": "Set to true to include the total number of change events in the response. This may increase response time.",
+        "description": "Set to true to include the total count of results in pagination responses, which is null by default.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -177,13 +177,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/change_events",
@@ -228,7 +228,7 @@
       },
       {
         "name": "total",
-        "tool_parameter_name": "include_total_in_response",
+        "tool_parameter_name": "include_total_in_pagination",
         "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -241,7 +241,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -282,7 +282,7 @@
       },
       {
         "name": "since",
-        "tool_parameter_name": "start_date_utc_iso",
+        "tool_parameter_name": "start_date_time_utc",
         "description": "The start of the date range over which you want to search, as a UTC ISO 8601 datetime string. Will return an HTTP 400 for non-UTC datetimes.",
         "value_schema": {
           "val_type": "string",
@@ -318,7 +318,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_versioning_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -365,6 +365,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

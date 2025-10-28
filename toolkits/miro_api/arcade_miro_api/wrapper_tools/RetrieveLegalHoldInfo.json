@@ -1,18 +1,18 @@
 {
   "name": "RetrieveLegalHoldInfo",
-  "fully_qualified_name": "MiroApi.RetrieveLegalHoldInfo@0.1.0",
-  "description": "Retrieve information about a legal hold in an organization's case.\n\nUse this tool to get details about a legal hold in a specific case within an organization, requiring organization:cases:management scope and applicable for Enterprise Guard users with specific admin roles.",
+  "fully_qualified_name": "MiroApi.RetrieveLegalHoldInfo@2.0.0",
+  "description": "Retrieve legal hold information for a specific case.\n\nThis tool retrieves details of a legal hold within a case for an organization. It's designed for organizations with the Enterprise Guard add-on, and accessible to users with Company Admin and eDiscovery Admin roles.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id",
         "required": true,
-        "description": "The unique ID of the organization for which to retrieve legal hold data.",
+        "description": "The unique ID of the organization to retrieve the legal hold information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "case_identifier",
         "required": true,
-        "description": "The unique identifier for the case to retrieve the legal hold information.",
+        "description": "The unique ID of the case for which you want to retrieve the legal hold information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "case_id"
       },
       {
-        "name": "legal_hold_id",
+        "name": "legal_hold_identifier",
         "required": true,
-        "description": "The unique identifier for the legal hold to be retrieved.",
+        "description": "The unique identifier for the legal hold you want to retrieve information about.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/cases/{case_id}/legal-holds/{legal_hold_id}",
@@ -113,6 +113,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -130,11 +131,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "legal_hold_id",
-        "tool_parameter_name": "legal_hold_id",
+        "tool_parameter_name": "legal_hold_identifier",
         "description": "The ID of the legal hold you want to retrieve.",
         "value_schema": {
           "val_type": "string",
@@ -147,6 +149,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -160,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

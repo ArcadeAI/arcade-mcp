@@ -1,18 +1,18 @@
 {
   "name": "ListUserNotificationRules",
-  "fully_qualified_name": "PagerdutyApi.ListUserNotificationRules@0.1.0",
-  "description": "Retrieve notification rules for a PagerDuty user.\n\nThis tool retrieves the list of notification rules for a specified PagerDuty user, allowing you to see how notifications are configured. Use it to manage or review user notifications.",
+  "fully_qualified_name": "PagerdutyApi.ListUserNotificationRules@2.0.0",
+  "description": "Retrieve a PagerDuty user's notification rules.\n\nUse this tool to list the notification rules associated with a specific PagerDuty user. This can help you understand the methods and conditions under which users are notified about incidents and other account activities.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "user_id",
+        "name": "user_resource_id",
         "required": true,
-        "description": "The unique identifier of the PagerDuty user whose notification rules are being retrieved.",
+        "description": "The unique identifier of the PagerDuty user whose notification rules are to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "response_format_version",
+        "name": "api_version_header",
         "required": true,
-        "description": "Specifies the version of the API to use for the response format. Use the `Accept` header for versioning.",
+        "description": "Specifies the API version using the `Accept` header. Provide the version string required.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the response. Only 'application/json' is supported.",
+        "description": "Specify the media type of the request. Use `application/json`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -76,7 +76,7 @@
       {
         "name": "incident_urgency",
         "required": false,
-        "description": "The urgency level for applying notification rules. Options: 'high', 'low', 'all'. Defaults to 'high'.",
+        "description": "Specify the incident urgency for the notification rules: 'high', 'low', or 'all'. Defaults to 'high'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -123,13 +123,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/{id}/notification_rules",
@@ -180,7 +180,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "user_id",
+        "tool_parameter_name": "user_resource_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -198,7 +198,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "response_format_version",
+        "tool_parameter_name": "api_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -216,7 +216,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -245,6 +245,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

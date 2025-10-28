@@ -1,18 +1,18 @@
 {
   "name": "ListServiceCustomFields",
-  "fully_qualified_name": "PagerdutyApi.ListServiceCustomFields@0.1.0",
-  "description": "Retrieve custom fields for PagerDuty services.\n\nThis tool retrieves a list of custom fields available for services in PagerDuty, useful for understanding service configurations.",
+  "fully_qualified_name": "PagerdutyApi.ListServiceCustomFields@2.0.0",
+  "description": "Retrieve the custom fields for PagerDuty services.\n\nThis tool should be called to obtain a list of custom fields available for services in PagerDuty. It requires the 'custom_fields.read' OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "api_version",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify the API version using the `Accept` header for versioning purposes.",
+        "description": "The version of the API to use, specified in the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Specifies the Content-Type header for the request, typically 'application/json'.",
+        "description": "Specifies the media type of the resource. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,13 +89,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/services/custom_fields",
@@ -124,7 +124,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "api_version",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -171,6 +171,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }
