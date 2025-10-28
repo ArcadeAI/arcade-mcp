@@ -17,6 +17,6 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
-        exclude: "(.*/templates/.*|libs/tests/.*|toolkits/clickup_api/.*\\.py)"
+        exclude: "(.*/templates/.*|libs/tests/.*)"
       - id: ruff-format
-        exclude: "(.*/templates/.*|libs/tests/.*|toolkits/clickup_api/.*\\.py)"
+        exclude: "(.*/templates/.*|libs/tests/.*)"
