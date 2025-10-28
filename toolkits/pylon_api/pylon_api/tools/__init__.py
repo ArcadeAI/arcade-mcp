@@ -5174,4 +5174,3 @@ async def update_user_profile(
         return {"response_json": response.json()}
     except Exception:
         return {"response_text": response.text}
-
