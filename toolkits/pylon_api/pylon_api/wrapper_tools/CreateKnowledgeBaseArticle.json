@@ -1,0 +1,529 @@
+{
+  "name": "CreateKnowledgeBaseArticle",
+  "fully_qualified_name": "PylonApi.CreateKnowledgeBaseArticle@0.1.0",
+  "description": "Create and publish an article in a knowledge base.\n\nThis tool allows the creation of a new article in a specified knowledge base, including optional translations. If the article is set to publish, translations will also be published.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "knowledge_base_id",
+        "required": true,
+        "description": "The unique identifier for the knowledge base where the article will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the knowledge base the article is being added to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "article_details",
+        "required": false,
+        "description": "JSON object containing details of the article such as author ID, HTML body, title, and any translations. Includes configuration for publication, visibility, and access.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "author_user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the user attributed as the author of the article."
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The HTML body of the article."
+            },
+            "collection_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The id of the collection associated to the article"
+            },
+            "is_published": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the article should be published. Defaults to false."
+            },
+            "is_unlisted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the article can only be accessible only via direct link. Defaults to false."
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The slug of the article. Defaults to a slug based on the title."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of the article."
+            },
+            "translations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "body_html": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The translated HTML body of the article."
+                },
+                "language": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The language code of the translation. Supported language codes can be found in https://docs.usepylon.com/pylon-docs/knowledge-base/translation#supported-language-codes."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The translated title of the article."
+                }
+              },
+              "description": "Translations of the article content in different languages"
+            },
+            "visibility_config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "ai_agent_access": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "inherit",
+                    "none",
+                    "specific_agents"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "AI agent access control for the article. Defaults to inherit from the parent scope when omitted.\n\n* inherit KnowledgeBaseArticleAIAgentAccessInherit  Defers the access check to the parent object (Collection or KnowledgeBase).\n\n* none KnowledgeBaseArticleAIAgentAccessNone  No AI agents have access to this article.\n\n* specific_agents KnowledgeBaseArticleAIAgentAccessSpecificAgents  Only specific AI agents enumerated in the allowlist have access."
+                },
+                "allowed_agent_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List of AI agent IDs that may access this article when ai_agent_access is set to \"specific_agents\"."
+                },
+                "customer_visibility_condition": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The field for this filter.  For allowed fields, see the documentation for\n\nthe specific endpoint you are using.\n\nFor non-compound filters (any operators other than \"and\" or \"or\"),\n\nField must be set, along with either Value or Values, depending on the operator."
+                    },
+                    "operator": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "equals",
+                        "not_equals",
+                        "contains",
+                        "does_not_contain",
+                        "in",
+                        "not_in",
+                        "and",
+                        "or",
+                        "time_is_after",
+                        "time_is_before",
+                        "time_range",
+                        "string_contains",
+                        "string_does_not_contain",
+                        "is_set",
+                        "is_unset"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The operator for this filter.\n\n* equals FilterOperatorEquals  Matches objects that are exactly equal to the value in the field.\n\n* not_equals FilterOperatorNotEquals  Matches objects that are not exactly equal to the value in the field.\n\n* contains FilterOperatorContains  For a multi-valued field, such as tags, this operator will match  objects that contain any of the values in the field.\n\n* does_not_contain FilterOperatorDoesNotContain  For a multi-valued field, such as tags, this operator will match  objects that do not contain any of the values in the field.\n\n* in FilterOperatorIn  Matches objects if the field is one of several possible values,  as specified in the values array.\n\n* not_in FilterOperatorNotIn  Matches objects if the field is none of several possible values,  as specified in the values array.\n\n* and FilterOperatorAnd  Matches objects only if all subfilters match.\n\n* or FilterOperatorOr  Matches objects if any subfilter matches.\n\n* time_is_after FilterOperatorTimeIsAfter  Matches objects if the field is after the given time.\n\n* time_is_before FilterOperatorTimeIsBefore  Matches objects if the field is before the given time.\n\n* time_range FilterOperatorTimeRange  Matches objects if the field is between the given times.\n\n* string_contains FilterOperatorStringContains  Matches objects if the field contains the given string.\n\n* string_does_not_contain FilterOperatorStringDoesNotContain  Matches objects if the field does not contain the given string.\n\n* is_set FilterOperatorIsSet  FilterOperatorIsSet matches objects if the field is set.\n\n* is_unset FilterOperatorIsUnset  FilterOperatorIsUnset matches objects if the field is unset."
+                    },
+                    "subfilters": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "Sub-filters for this filter.  Valid only when operator is \"and\" or \"or\".\n\nThe maximum allowed depth for a tree of filters is 3."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The value for this filter. Only used for single-valued operators\n\n(\"equals\", \"not_equals\", \"contains\", \"does_not_contain\")"
+                    },
+                    "values": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The values for this filter. Only used for multi-valued operators (\"in\", \"not_in\")."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "visibility": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "public",
+                    "customer",
+                    "internal_only"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The visibility setting of the article.\n\n* public KnowledgeBaseArticleVisibilityPublic\n\n* customer KnowledgeBaseArticleVisibilityCustomer\n\n* internal_only KnowledgeBaseArticleVisibilityInternalOnly"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateArticle'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/knowledge-bases/{id}/articles",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "knowledge_base_id",
+        "description": "The ID of the knowledge base the article is being added to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the knowledge base the article is being added to."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "article_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "author_user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the user attributed as the author of the article."
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The HTML body of the article."
+            },
+            "collection_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The id of the collection associated to the article"
+            },
+            "is_published": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the article should be published. Defaults to false."
+            },
+            "is_unlisted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the article can only be accessible only via direct link. Defaults to false."
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The slug of the article. Defaults to a slug based on the title."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of the article."
+            },
+            "translations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "body_html": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The translated HTML body of the article."
+                },
+                "language": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The language code of the translation. Supported language codes can be found in https://docs.usepylon.com/pylon-docs/knowledge-base/translation#supported-language-codes."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The translated title of the article."
+                }
+              },
+              "description": "Translations of the article content in different languages"
+            },
+            "visibility_config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "ai_agent_access": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "inherit",
+                    "none",
+                    "specific_agents"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "AI agent access control for the article. Defaults to inherit from the parent scope when omitted.\n\n* inherit KnowledgeBaseArticleAIAgentAccessInherit  Defers the access check to the parent object (Collection or KnowledgeBase).\n\n* none KnowledgeBaseArticleAIAgentAccessNone  No AI agents have access to this article.\n\n* specific_agents KnowledgeBaseArticleAIAgentAccessSpecificAgents  Only specific AI agents enumerated in the allowlist have access."
+                },
+                "allowed_agent_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List of AI agent IDs that may access this article when ai_agent_access is set to \"specific_agents\"."
+                },
+                "customer_visibility_condition": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The field for this filter.  For allowed fields, see the documentation for\n\nthe specific endpoint you are using.\n\nFor non-compound filters (any operators other than \"and\" or \"or\"),\n\nField must be set, along with either Value or Values, depending on the operator."
+                    },
+                    "operator": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "equals",
+                        "not_equals",
+                        "contains",
+                        "does_not_contain",
+                        "in",
+                        "not_in",
+                        "and",
+                        "or",
+                        "time_is_after",
+                        "time_is_before",
+                        "time_range",
+                        "string_contains",
+                        "string_does_not_contain",
+                        "is_set",
+                        "is_unset"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The operator for this filter.\n\n* equals FilterOperatorEquals  Matches objects that are exactly equal to the value in the field.\n\n* not_equals FilterOperatorNotEquals  Matches objects that are not exactly equal to the value in the field.\n\n* contains FilterOperatorContains  For a multi-valued field, such as tags, this operator will match  objects that contain any of the values in the field.\n\n* does_not_contain FilterOperatorDoesNotContain  For a multi-valued field, such as tags, this operator will match  objects that do not contain any of the values in the field.\n\n* in FilterOperatorIn  Matches objects if the field is one of several possible values,  as specified in the values array.\n\n* not_in FilterOperatorNotIn  Matches objects if the field is none of several possible values,  as specified in the values array.\n\n* and FilterOperatorAnd  Matches objects only if all subfilters match.\n\n* or FilterOperatorOr  Matches objects if any subfilter matches.\n\n* time_is_after FilterOperatorTimeIsAfter  Matches objects if the field is after the given time.\n\n* time_is_before FilterOperatorTimeIsBefore  Matches objects if the field is before the given time.\n\n* time_range FilterOperatorTimeRange  Matches objects if the field is between the given times.\n\n* string_contains FilterOperatorStringContains  Matches objects if the field contains the given string.\n\n* string_does_not_contain FilterOperatorStringDoesNotContain  Matches objects if the field does not contain the given string.\n\n* is_set FilterOperatorIsSet  FilterOperatorIsSet matches objects if the field is set.\n\n* is_unset FilterOperatorIsUnset  FilterOperatorIsUnset matches objects if the field is unset."
+                    },
+                    "subfilters": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "Sub-filters for this filter.  Valid only when operator is \"and\" or \"or\".\n\nThe maximum allowed depth for a tree of filters is 3."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The value for this filter. Only used for single-valued operators\n\n(\"equals\", \"not_equals\", \"contains\", \"does_not_contain\")"
+                    },
+                    "values": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The values for this filter. Only used for multi-valued operators (\"in\", \"not_in\")."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "visibility": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "public",
+                    "customer",
+                    "internal_only"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The visibility setting of the article.\n\n* public KnowledgeBaseArticleVisibilityPublic\n\n* customer KnowledgeBaseArticleVisibilityCustomer\n\n* internal_only KnowledgeBaseArticleVisibilityInternalOnly"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"author_user_id\": {\n            \"description\": \"The ID of the user attributed as the author of the article.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AuthorUserId\"\n          },\n          \"body_html\": {\n            \"description\": \"The HTML body of the article.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"BodyHTML\"\n          },\n          \"collection_id\": {\n            \"description\": \"The id of the collection associated to the article\",\n            \"type\": \"string\",\n            \"x-go-name\": \"CollectionID\"\n          },\n          \"is_published\": {\n            \"description\": \"Whether the article should be published. Defaults to false.\",\n            \"type\": \"boolean\",\n            \"x-go-name\": \"IsPublished\"\n          },\n          \"is_unlisted\": {\n            \"description\": \"Whether the article can only be accessible only via direct link. Defaults to false.\",\n            \"type\": \"boolean\",\n            \"x-go-name\": \"IsUnlisted\"\n          },\n          \"slug\": {\n            \"description\": \"The slug of the article. Defaults to a slug based on the title.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Slug\"\n          },\n          \"title\": {\n            \"description\": \"The title of the article.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Title\"\n          },\n          \"translations\": {\n            \"description\": \"Translations of the article content in different languages\",\n            \"items\": {\n              \"properties\": {\n                \"body_html\": {\n                  \"description\": \"The translated HTML body of the article.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"BodyHTML\"\n                },\n                \"language\": {\n                  \"description\": \"The language code of the translation. Supported language codes can be found in https://docs.usepylon.com/pylon-docs/knowledge-base/translation#supported-language-codes.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Language\"\n                },\n                \"title\": {\n                  \"description\": \"The translated title of the article.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Title\"\n                }\n              },\n              \"required\": [\n                \"body_html\",\n                \"language\",\n                \"title\"\n              ],\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Translations\"\n          },\n          \"visibility_config\": {\n            \"properties\": {\n              \"ai_agent_access\": {\n                \"description\": \"AI agent access control for the article. Defaults to inherit from the parent scope when omitted.\\n\\n* inherit KnowledgeBaseArticleAIAgentAccessInherit  Defers the access check to the parent object (Collection or KnowledgeBase).\\n\\n* none KnowledgeBaseArticleAIAgentAccessNone  No AI agents have access to this article.\\n\\n* specific_agents KnowledgeBaseArticleAIAgentAccessSpecificAgents  Only specific AI agents enumerated in the allowlist have access.\",\n                \"enum\": [\n                  \"inherit\",\n                  \"none\",\n                  \"specific_agents\"\n                ],\n                \"type\": \"string\",\n                \"x-go-enum-desc\": \"inherit KnowledgeBaseArticleAIAgentAccessInherit  Defers the access check to the parent object (Collection or KnowledgeBase).\\nnone KnowledgeBaseArticleAIAgentAccessNone  No AI agents have access to this article.\\nspecific_agents KnowledgeBaseArticleAIAgentAccessSpecificAgents  Only specific AI agents enumerated in the allowlist have access.\",\n                \"x-go-name\": \"AiAgentAccess\"\n              },\n              \"allowed_agent_ids\": {\n                \"description\": \"List of AI agent IDs that may access this article when ai_agent_access is set to \\\"specific_agents\\\".\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\",\n                \"x-go-name\": \"AllowedAgentIDs\"\n              },\n              \"customer_visibility_condition\": {\n                \"properties\": {\n                  \"field\": {\n                    \"description\": \"The field for this filter.  For allowed fields, see the documentation for\\n\\nthe specific endpoint you are using.\\n\\nFor non-compound filters (any operators other than \\\"and\\\" or \\\"or\\\"),\\n\\nField must be set, along with either Value or Values, depending on the operator.\",\n                    \"type\": \"string\",\n                    \"x-go-name\": \"Field\"\n                  },\n                  \"operator\": {\n                    \"description\": \"The operator for this filter.\\n\\n* equals FilterOperatorEquals  Matches objects that are exactly equal to the value in the field.\\n\\n* not_equals FilterOperatorNotEquals  Matches objects that are not exactly equal to the value in the field.\\n\\n* contains FilterOperatorContains  For a multi-valued field, such as tags, this operator will match  objects that contain any of the values in the field.\\n\\n* does_not_contain FilterOperatorDoesNotContain  For a multi-valued field, such as tags, this operator will match  objects that do not contain any of the values in the field.\\n\\n* in FilterOperatorIn  Matches objects if the field is one of several possible values,  as specified in the values array.\\n\\n* not_in FilterOperatorNotIn  Matches objects if the field is none of several possible values,  as specified in the values array.\\n\\n* and FilterOperatorAnd  Matches objects only if all subfilters match.\\n\\n* or FilterOperatorOr  Matches objects if any subfilter matches.\\n\\n* time_is_after FilterOperatorTimeIsAfter  Matches objects if the field is after the given time.\\n\\n* time_is_before FilterOperatorTimeIsBefore  Matches objects if the field is before the given time.\\n\\n* time_range FilterOperatorTimeRange  Matches objects if the field is between the given times.\\n\\n* string_contains FilterOperatorStringContains  Matches objects if the field contains the given string.\\n\\n* string_does_not_contain FilterOperatorStringDoesNotContain  Matches objects if the field does not contain the given string.\\n\\n* is_set FilterOperatorIsSet  FilterOperatorIsSet matches objects if the field is set.\\n\\n* is_unset FilterOperatorIsUnset  FilterOperatorIsUnset matches objects if the field is unset.\",\n                    \"enum\": [\n                      \"equals\",\n                      \"not_equals\",\n                      \"contains\",\n                      \"does_not_contain\",\n                      \"in\",\n                      \"not_in\",\n                      \"and\",\n                      \"or\",\n                      \"time_is_after\",\n                      \"time_is_before\",\n                      \"time_range\",\n                      \"string_contains\",\n                      \"string_does_not_contain\",\n                      \"is_set\",\n                      \"is_unset\"\n                    ],\n                    \"type\": \"string\",\n                    \"x-go-enum-desc\": \"equals FilterOperatorEquals  Matches objects that are exactly equal to the value in the field.\\nnot_equals FilterOperatorNotEquals  Matches objects that are not exactly equal to the value in the field.\\ncontains FilterOperatorContains  For a multi-valued field, such as tags, this operator will match  objects that contain any of the values in the field.\\ndoes_not_contain FilterOperatorDoesNotContain  For a multi-valued field, such as tags, this operator will match  objects that do not contain any of the values in the field.\\nin FilterOperatorIn  Matches objects if the field is one of several possible values,  as specified in the values array.\\nnot_in FilterOperatorNotIn  Matches objects if the field is none of several possible values,  as specified in the values array.\\nand FilterOperatorAnd  Matches objects only if all subfilters match.\\nor FilterOperatorOr  Matches objects if any subfilter matches.\\ntime_is_after FilterOperatorTimeIsAfter  Matches objects if the field is after the given time.\\ntime_is_before FilterOperatorTimeIsBefore  Matches objects if the field is before the given time.\\ntime_range FilterOperatorTimeRange  Matches objects if the field is between the given times.\\nstring_contains FilterOperatorStringContains  Matches objects if the field contains the given string.\\nstring_does_not_contain FilterOperatorStringDoesNotContain  Matches objects if the field does not contain the given string.\\nis_set FilterOperatorIsSet  FilterOperatorIsSet matches objects if the field is set.\\nis_unset FilterOperatorIsUnset  FilterOperatorIsUnset matches objects if the field is unset.\",\n                    \"x-go-name\": \"Operator\"\n                  },\n                  \"subfilters\": {\n                    \"description\": \"Sub-filters for this filter.  Valid only when operator is \\\"and\\\" or \\\"or\\\".\\n\\nThe maximum allowed depth for a tree of filters is 3.\",\n                    \"items\": {\n                      \"$ref\": \"#/components/schemas/Filter\",\n                      \"has_circular_reference\": true\n                    },\n                    \"type\": \"array\",\n                    \"x-go-name\": \"Subfilters\"\n                  },\n                  \"value\": {\n                    \"description\": \"The value for this filter. Only used for single-valued operators\\n\\n(\\\"equals\\\", \\\"not_equals\\\", \\\"contains\\\", \\\"does_not_contain\\\")\",\n                    \"type\": \"string\",\n                    \"x-go-name\": \"Value\"\n                  },\n                  \"values\": {\n                    \"description\": \"The values for this filter. Only used for multi-valued operators (\\\"in\\\", \\\"not_in\\\").\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\",\n                    \"x-go-name\": \"Values\"\n                  }\n                },\n                \"required\": [\n                  \"field\",\n                  \"operator\"\n                ],\n                \"type\": \"object\",\n                \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n              },\n              \"visibility\": {\n                \"description\": \"The visibility setting of the article.\\n\\n* public KnowledgeBaseArticleVisibilityPublic\\n\\n* customer KnowledgeBaseArticleVisibilityCustomer\\n\\n* internal_only KnowledgeBaseArticleVisibilityInternalOnly\",\n                \"enum\": [\n                  \"public\",\n                  \"customer\",\n                  \"internal_only\"\n                ],\n                \"type\": \"string\",\n                \"x-go-enum-desc\": \"public KnowledgeBaseArticleVisibilityPublic\\ncustomer KnowledgeBaseArticleVisibilityCustomer\\ninternal_only KnowledgeBaseArticleVisibilityInternalOnly\",\n                \"x-go-name\": \"Visibility\"\n              }\n            },\n            \"type\": \"object\",\n            \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n          }\n        },\n        \"required\": [\n          \"author_user_id\",\n          \"body_html\",\n          \"title\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": false
+  }
+}

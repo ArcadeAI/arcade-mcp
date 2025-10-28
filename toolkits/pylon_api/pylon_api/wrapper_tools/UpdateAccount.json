@@ -1,0 +1,467 @@
+{
+  "name": "UpdateAccount",
+  "fully_qualified_name": "PylonApi.UpdateAccount@0.1.0",
+  "description": "Update details of an existing account.\n\nUse this tool to modify the information of an existing account by providing the account ID and new details. It should be called when account information needs to be updated.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "account_id",
+        "required": true,
+        "description": "The ID or external ID of the account to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or external ID of the account to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "account_update_details",
+        "required": false,
+        "description": "JSON containing details to update an account like channels, custom fields, domains, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "channels": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "channel_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the channel. If this is a Microsoft Teams channel, the ID must be in the format of `{team_id}|{channel_id}`."
+                },
+                "is_primary": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether this channel is the primary channel for the account."
+                },
+                "mirror_to": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "channel_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the channel. If this is a Microsoft Teams channel, the ID must be in the format of `{team_id}|{channel_id}`."
+                    },
+                    "source": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The source, which can be one of `[\"slack\", \"microsoft_teams\", \"discord\"]`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "source": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The source, which can be one of `[\"slack\", \"microsoft_teams\", \"discord\"]`."
+                }
+              },
+              "description": "An array of channels to be linked to this account."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be used on this account."
+            },
+            "domains": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Domains of the account. Must specify one domain as primary."
+            },
+            "external_ids": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "external_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The external ID. Must be unique per object type (ex. account)."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The label of the external ID. Must be unique per object."
+                }
+              },
+              "description": "An array of external IDs to be used on this account. If provided, the accounts external IDs will be updated to the given external IDs."
+            },
+            "logo_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Logo URL of the account."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the account."
+            },
+            "owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the owner of the account."
+            },
+            "primary_domain": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Must be in the list of domains. If there are any domains, there must be exactly one primary domain."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of strings to use as tags on this account. If provided, the accounts tags will be updated to the given tags."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateAccount'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/accounts/{id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "account_id",
+        "description": "The ID or external ID of the account to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or external ID of the account to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "account_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "channels": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "channel_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the channel. If this is a Microsoft Teams channel, the ID must be in the format of `{team_id}|{channel_id}`."
+                },
+                "is_primary": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether this channel is the primary channel for the account."
+                },
+                "mirror_to": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "channel_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the channel. If this is a Microsoft Teams channel, the ID must be in the format of `{team_id}|{channel_id}`."
+                    },
+                    "source": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The source, which can be one of `[\"slack\", \"microsoft_teams\", \"discord\"]`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "source": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The source, which can be one of `[\"slack\", \"microsoft_teams\", \"discord\"]`."
+                }
+              },
+              "description": "An array of channels to be linked to this account."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be used on this account."
+            },
+            "domains": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Domains of the account. Must specify one domain as primary."
+            },
+            "external_ids": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "external_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The external ID. Must be unique per object type (ex. account)."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The label of the external ID. Must be unique per object."
+                }
+              },
+              "description": "An array of external IDs to be used on this account. If provided, the accounts external IDs will be updated to the given external IDs."
+            },
+            "logo_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Logo URL of the account."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the account."
+            },
+            "owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the owner of the account."
+            },
+            "primary_domain": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Must be in the list of domains. If there are any domains, there must be exactly one primary domain."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of strings to use as tags on this account. If provided, the accounts tags will be updated to the given tags."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"channels\": {\n            \"description\": \"An array of channels to be linked to this account.\",\n            \"items\": {\n              \"properties\": {\n                \"channel_id\": {\n                  \"description\": \"The ID of the channel. If this is a Microsoft Teams channel, the ID must be in the format of `{team_id}|{channel_id}`.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"ChannelID\"\n                },\n                \"is_primary\": {\n                  \"description\": \"Whether this channel is the primary channel for the account.\",\n                  \"type\": \"boolean\",\n                  \"x-go-name\": \"IsPrimary\"\n                },\n                \"mirror_to\": {\n                  \"properties\": {\n                    \"channel_id\": {\n                      \"description\": \"The ID of the channel. If this is a Microsoft Teams channel, the ID must be in the format of `{team_id}|{channel_id}`.\",\n                      \"type\": \"string\",\n                      \"x-go-name\": \"ChannelID\"\n                    },\n                    \"source\": {\n                      \"description\": \"The source, which can be one of `[\\\"slack\\\", \\\"microsoft_teams\\\", \\\"discord\\\"]`.\",\n                      \"type\": \"string\",\n                      \"x-go-name\": \"Source\"\n                    }\n                  },\n                  \"type\": \"object\",\n                  \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n                },\n                \"source\": {\n                  \"description\": \"The source, which can be one of `[\\\"slack\\\", \\\"microsoft_teams\\\", \\\"discord\\\"]`.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Source\"\n                }\n              },\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Channels\"\n          },\n          \"custom_fields\": {\n            \"description\": \"An array of custom fields to be used on this account.\",\n            \"items\": {\n              \"properties\": {\n                \"slug\": {\n                  \"description\": \"The slug of the custom field.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Slug\"\n                },\n                \"value\": {\n                  \"description\": \"The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Value\"\n                },\n                \"values\": {\n                  \"description\": \"The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": \"array\",\n                  \"x-go-name\": \"Values\"\n                }\n              },\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"CustomFields\"\n          },\n          \"domains\": {\n            \"description\": \"Domains of the account. Must specify one domain as primary.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Domains\"\n          },\n          \"external_ids\": {\n            \"description\": \"An array of external IDs to be used on this account. If provided, the accounts external IDs will be updated to the given external IDs.\",\n            \"items\": {\n              \"properties\": {\n                \"external_id\": {\n                  \"description\": \"The external ID. Must be unique per object type (ex. account).\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"ExternalID\"\n                },\n                \"label\": {\n                  \"description\": \"The label of the external ID. Must be unique per object.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Label\"\n                }\n              },\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"ExternalIDs\"\n          },\n          \"logo_url\": {\n            \"description\": \"Logo URL of the account.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"LogoURL\"\n          },\n          \"name\": {\n            \"description\": \"The name of the account.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Name\"\n          },\n          \"owner_id\": {\n            \"description\": \"The ID of the owner of the account.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"OwnerID\"\n          },\n          \"primary_domain\": {\n            \"description\": \"Must be in the list of domains. If there are any domains, there must be exactly one primary domain.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"PrimaryDomain\"\n          },\n          \"tags\": {\n            \"description\": \"An array of strings to use as tags on this account. If provided, the accounts tags will be updated to the given tags.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Tags\"\n          }\n        },\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

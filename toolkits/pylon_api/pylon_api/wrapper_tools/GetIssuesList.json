@@ -1,0 +1,137 @@
+{
+  "name": "GetIssuesList",
+  "fully_qualified_name": "PylonApi.GetIssuesList@0.1.0",
+  "description": "Retrieve a list of issues.\n\nCall this tool to get a list of issues from the Pylon service, useful for tracking or managing tasks and bugs.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_time_for_issue_range",
+        "required": true,
+        "description": "The start time in RFC3339 format to query issues. Duration with end_time must be <= 30 days.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start time (RFC3339) of the time range to get issues for. The duration between start_time and end_time must be less than or equal to 30 days."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_time"
+      },
+      {
+        "name": "end_time_rfc3339",
+        "required": true,
+        "description": "The end time in RFC3339 format for the issue retrieval range, must be within 30 days of the start time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end time (RFC3339) of the time range to get issues for. The duration between start_time and end_time must be less than or equal to 30 days."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_time"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetIssues'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/issues",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "start_time",
+        "tool_parameter_name": "start_time_for_issue_range",
+        "description": "The start time (RFC3339) of the time range to get issues for. The duration between start_time and end_time must be less than or equal to 30 days.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start time (RFC3339) of the time range to get issues for. The duration between start_time and end_time must be less than or equal to 30 days."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_time",
+        "tool_parameter_name": "end_time_rfc3339",
+        "description": "The end time (RFC3339) of the time range to get issues for. The duration between start_time and end_time must be less than or equal to 30 days.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end time (RFC3339) of the time range to get issues for. The duration between start_time and end_time must be less than or equal to 30 days."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

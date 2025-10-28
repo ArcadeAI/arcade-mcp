@@ -1,0 +1,268 @@
+{
+  "name": "CreateCustomField",
+  "fully_qualified_name": "PylonApi.CreateCustomField@0.1.0",
+  "description": "Create a new custom field in the system.\n\nUse this tool to add a custom field to your database or application configuration. It allows for extending the available data fields to include additional, personalized information.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_field_details",
+        "required": false,
+        "description": "JSON object containing details such as label, type, object type, default values, and selection options for the custom field.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "default_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for single-valued custom fields."
+            },
+            "default_values": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default values for multi-valued custom fields."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of the custom field."
+            },
+            "label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The label of the custom field."
+            },
+            "object_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The object type of the custom field. Can be \"account\", \"issue\", or \"contact\""
+            },
+            "select_options": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The label of the option."
+                },
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the option."
+                }
+              },
+              "description": "The list options of the select custom field. This is only present for select and multiselect custom fields."
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The slug of the custom field."
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of the custom field. Can be one of `text`, `number`, `decimal`, `boolean`, `date`, `datetime`, `user`, `url`, `select`, or `multiselect`."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateCustomField'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/custom-fields",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_field_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "default_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for single-valued custom fields."
+            },
+            "default_values": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default values for multi-valued custom fields."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of the custom field."
+            },
+            "label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The label of the custom field."
+            },
+            "object_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The object type of the custom field. Can be \"account\", \"issue\", or \"contact\""
+            },
+            "select_options": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The label of the option."
+                },
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the option."
+                }
+              },
+              "description": "The list options of the select custom field. This is only present for select and multiselect custom fields."
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The slug of the custom field."
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of the custom field. Can be one of `text`, `number`, `decimal`, `boolean`, `date`, `datetime`, `user`, `url`, `select`, or `multiselect`."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"default_value\": {\n            \"description\": \"The default value for single-valued custom fields.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"DefaultValue\"\n          },\n          \"default_values\": {\n            \"description\": \"The default values for multi-valued custom fields.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"DefaultValues\"\n          },\n          \"description\": {\n            \"description\": \"The description of the custom field.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Description\"\n          },\n          \"label\": {\n            \"description\": \"The label of the custom field.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Label\"\n          },\n          \"object_type\": {\n            \"description\": \"The object type of the custom field. Can be \\\"account\\\", \\\"issue\\\", or \\\"contact\\\"\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ObjectType\"\n          },\n          \"select_options\": {\n            \"description\": \"The list options of the select custom field. This is only present for select and multiselect custom fields.\",\n            \"items\": {\n              \"properties\": {\n                \"label\": {\n                  \"description\": \"The label of the option.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Label\"\n                },\n                \"slug\": {\n                  \"description\": \"The slug of the option.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Slug\"\n                }\n              },\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"SelectOptions\"\n          },\n          \"slug\": {\n            \"description\": \"The slug of the custom field.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Slug\"\n          },\n          \"type\": {\n            \"description\": \"The type of the custom field. Can be one of `text`, `number`, `decimal`, `boolean`, `date`, `datetime`, `user`, `url`, `select`, or `multiselect`.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Type\"\n          }\n        },\n        \"required\": [\n          \"label\",\n          \"object_type\",\n          \"type\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

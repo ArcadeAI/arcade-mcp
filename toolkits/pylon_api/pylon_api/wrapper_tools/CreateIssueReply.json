@@ -1,0 +1,285 @@
+{
+  "name": "CreateIssueReply",
+  "fully_qualified_name": "PylonApi.CreateIssueReply@0.1.0",
+  "description": "Create a reply to an existing issue.\n\nUse this tool to add a comment or response to an existing issue when interaction or follow-up is required.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_id",
+        "required": true,
+        "description": "The unique identifier of the issue to which you want to reply.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the issue."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "issue_reply_details",
+        "required": false,
+        "description": "JSON object containing details like body_html, attachment URLs, and optional user or contact IDs for posting the reply. Also includes email information for cc, bcc, and to fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "attachment_urls": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of attachment URLs to attach to this issue."
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The body of the message in HTML."
+            },
+            "contact_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional contact ID to post the message as. Only one of user_id or contact_id can be provided."
+            },
+            "email_info": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "bcc_emails": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "cc_emails": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "to_emails": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "message_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the message to reply to."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional user ID to post the message as. Only one of user_id or contact_id can be provided."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateIssueReply'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/issues/{id}/reply",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "issue_id",
+        "description": "The ID of the issue.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the issue."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "issue_reply_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "attachment_urls": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of attachment URLs to attach to this issue."
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The body of the message in HTML."
+            },
+            "contact_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional contact ID to post the message as. Only one of user_id or contact_id can be provided."
+            },
+            "email_info": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "bcc_emails": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "cc_emails": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "to_emails": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "message_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the message to reply to."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional user ID to post the message as. Only one of user_id or contact_id can be provided."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"attachment_urls\": {\n            \"description\": \"An array of attachment URLs to attach to this issue.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"AttachmentURLs\"\n          },\n          \"body_html\": {\n            \"description\": \"The body of the message in HTML.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"BodyHTML\"\n          },\n          \"contact_id\": {\n            \"description\": \"Optional contact ID to post the message as. Only one of user_id or contact_id can be provided.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ContactID\"\n          },\n          \"email_info\": {\n            \"properties\": {\n              \"bcc_emails\": {\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\",\n                \"x-go-name\": \"BccEmails\"\n              },\n              \"cc_emails\": {\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\",\n                \"x-go-name\": \"CcEmails\"\n              },\n              \"to_emails\": {\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\",\n                \"x-go-name\": \"ToEmails\"\n              }\n            },\n            \"type\": \"object\",\n            \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n          },\n          \"message_id\": {\n            \"description\": \"The ID of the message to reply to.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"MessageID\"\n          },\n          \"user_id\": {\n            \"description\": \"Optional user ID to post the message as. Only one of user_id or contact_id can be provided.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"UserID\"\n          }\n        },\n        \"required\": [\n          \"body_html\",\n          \"message_id\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "name": "SearchContacts",
+  "fully_qualified_name": "PylonApi.SearchContacts@0.1.0",
+  "description": "Search for contacts using various filter criteria.\n\nThis tool allows you to search for contacts by applying filters on fields such as id, email, custom fields, and account_id. Use it to find specific contacts based on these criteria.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "contact_search_filters",
+        "required": false,
+        "description": "A JSON object specifying the search filters for contacts, including pagination, filtering fields, operator types, and limits.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The cursor to use for pagination."
+            },
+            "filter": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The field for this filter.  For allowed fields, see the documentation for\n\nthe specific endpoint you are using.\n\nFor non-compound filters (any operators other than \"and\" or \"or\"),\n\nField must be set, along with either Value or Values, depending on the operator."
+                },
+                "operator": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "equals",
+                    "not_equals",
+                    "contains",
+                    "does_not_contain",
+                    "in",
+                    "not_in",
+                    "and",
+                    "or",
+                    "time_is_after",
+                    "time_is_before",
+                    "time_range",
+                    "string_contains",
+                    "string_does_not_contain",
+                    "is_set",
+                    "is_unset"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The operator for this filter.\n\n* equals FilterOperatorEquals  Matches objects that are exactly equal to the value in the field.\n\n* not_equals FilterOperatorNotEquals  Matches objects that are not exactly equal to the value in the field.\n\n* contains FilterOperatorContains  For a multi-valued field, such as tags, this operator will match  objects that contain any of the values in the field.\n\n* does_not_contain FilterOperatorDoesNotContain  For a multi-valued field, such as tags, this operator will match  objects that do not contain any of the values in the field.\n\n* in FilterOperatorIn  Matches objects if the field is one of several possible values,  as specified in the values array.\n\n* not_in FilterOperatorNotIn  Matches objects if the field is none of several possible values,  as specified in the values array.\n\n* and FilterOperatorAnd  Matches objects only if all subfilters match.\n\n* or FilterOperatorOr  Matches objects if any subfilter matches.\n\n* time_is_after FilterOperatorTimeIsAfter  Matches objects if the field is after the given time.\n\n* time_is_before FilterOperatorTimeIsBefore  Matches objects if the field is before the given time.\n\n* time_range FilterOperatorTimeRange  Matches objects if the field is between the given times.\n\n* string_contains FilterOperatorStringContains  Matches objects if the field contains the given string.\n\n* string_does_not_contain FilterOperatorStringDoesNotContain  Matches objects if the field does not contain the given string.\n\n* is_set FilterOperatorIsSet  FilterOperatorIsSet matches objects if the field is set.\n\n* is_unset FilterOperatorIsUnset  FilterOperatorIsUnset matches objects if the field is unset."
+                },
+                "subfilters": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "Sub-filters for this filter.  Valid only when operator is \"and\" or \"or\".\n\nThe maximum allowed depth for a tree of filters is 3."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value for this filter. Only used for single-valued operators\n\n(\"equals\", \"not_equals\", \"contains\", \"does_not_contain\")"
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values for this filter. Only used for multi-valued operators (\"in\", \"not_in\")."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The number of contacts to fetch. Defaults to 100. Must be greater than 0 and less than 1000."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchContacts'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/contacts/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "contact_search_filters",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The cursor to use for pagination."
+            },
+            "filter": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The field for this filter.  For allowed fields, see the documentation for\n\nthe specific endpoint you are using.\n\nFor non-compound filters (any operators other than \"and\" or \"or\"),\n\nField must be set, along with either Value or Values, depending on the operator."
+                },
+                "operator": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "equals",
+                    "not_equals",
+                    "contains",
+                    "does_not_contain",
+                    "in",
+                    "not_in",
+                    "and",
+                    "or",
+                    "time_is_after",
+                    "time_is_before",
+                    "time_range",
+                    "string_contains",
+                    "string_does_not_contain",
+                    "is_set",
+                    "is_unset"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The operator for this filter.\n\n* equals FilterOperatorEquals  Matches objects that are exactly equal to the value in the field.\n\n* not_equals FilterOperatorNotEquals  Matches objects that are not exactly equal to the value in the field.\n\n* contains FilterOperatorContains  For a multi-valued field, such as tags, this operator will match  objects that contain any of the values in the field.\n\n* does_not_contain FilterOperatorDoesNotContain  For a multi-valued field, such as tags, this operator will match  objects that do not contain any of the values in the field.\n\n* in FilterOperatorIn  Matches objects if the field is one of several possible values,  as specified in the values array.\n\n* not_in FilterOperatorNotIn  Matches objects if the field is none of several possible values,  as specified in the values array.\n\n* and FilterOperatorAnd  Matches objects only if all subfilters match.\n\n* or FilterOperatorOr  Matches objects if any subfilter matches.\n\n* time_is_after FilterOperatorTimeIsAfter  Matches objects if the field is after the given time.\n\n* time_is_before FilterOperatorTimeIsBefore  Matches objects if the field is before the given time.\n\n* time_range FilterOperatorTimeRange  Matches objects if the field is between the given times.\n\n* string_contains FilterOperatorStringContains  Matches objects if the field contains the given string.\n\n* string_does_not_contain FilterOperatorStringDoesNotContain  Matches objects if the field does not contain the given string.\n\n* is_set FilterOperatorIsSet  FilterOperatorIsSet matches objects if the field is set.\n\n* is_unset FilterOperatorIsUnset  FilterOperatorIsUnset matches objects if the field is unset."
+                },
+                "subfilters": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "Sub-filters for this filter.  Valid only when operator is \"and\" or \"or\".\n\nThe maximum allowed depth for a tree of filters is 3."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value for this filter. Only used for single-valued operators\n\n(\"equals\", \"not_equals\", \"contains\", \"does_not_contain\")"
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values for this filter. Only used for multi-valued operators (\"in\", \"not_in\")."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The number of contacts to fetch. Defaults to 100. Must be greater than 0 and less than 1000."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"cursor\": {\n            \"description\": \"The cursor to use for pagination.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Cursor\"\n          },\n          \"filter\": {\n            \"properties\": {\n              \"field\": {\n                \"description\": \"The field for this filter.  For allowed fields, see the documentation for\\n\\nthe specific endpoint you are using.\\n\\nFor non-compound filters (any operators other than \\\"and\\\" or \\\"or\\\"),\\n\\nField must be set, along with either Value or Values, depending on the operator.\",\n                \"type\": \"string\",\n                \"x-go-name\": \"Field\"\n              },\n              \"operator\": {\n                \"description\": \"The operator for this filter.\\n\\n* equals FilterOperatorEquals  Matches objects that are exactly equal to the value in the field.\\n\\n* not_equals FilterOperatorNotEquals  Matches objects that are not exactly equal to the value in the field.\\n\\n* contains FilterOperatorContains  For a multi-valued field, such as tags, this operator will match  objects that contain any of the values in the field.\\n\\n* does_not_contain FilterOperatorDoesNotContain  For a multi-valued field, such as tags, this operator will match  objects that do not contain any of the values in the field.\\n\\n* in FilterOperatorIn  Matches objects if the field is one of several possible values,  as specified in the values array.\\n\\n* not_in FilterOperatorNotIn  Matches objects if the field is none of several possible values,  as specified in the values array.\\n\\n* and FilterOperatorAnd  Matches objects only if all subfilters match.\\n\\n* or FilterOperatorOr  Matches objects if any subfilter matches.\\n\\n* time_is_after FilterOperatorTimeIsAfter  Matches objects if the field is after the given time.\\n\\n* time_is_before FilterOperatorTimeIsBefore  Matches objects if the field is before the given time.\\n\\n* time_range FilterOperatorTimeRange  Matches objects if the field is between the given times.\\n\\n* string_contains FilterOperatorStringContains  Matches objects if the field contains the given string.\\n\\n* string_does_not_contain FilterOperatorStringDoesNotContain  Matches objects if the field does not contain the given string.\\n\\n* is_set FilterOperatorIsSet  FilterOperatorIsSet matches objects if the field is set.\\n\\n* is_unset FilterOperatorIsUnset  FilterOperatorIsUnset matches objects if the field is unset.\",\n                \"enum\": [\n                  \"equals\",\n                  \"not_equals\",\n                  \"contains\",\n                  \"does_not_contain\",\n                  \"in\",\n                  \"not_in\",\n                  \"and\",\n                  \"or\",\n                  \"time_is_after\",\n                  \"time_is_before\",\n                  \"time_range\",\n                  \"string_contains\",\n                  \"string_does_not_contain\",\n                  \"is_set\",\n                  \"is_unset\"\n                ],\n                \"type\": \"string\",\n                \"x-go-enum-desc\": \"equals FilterOperatorEquals  Matches objects that are exactly equal to the value in the field.\\nnot_equals FilterOperatorNotEquals  Matches objects that are not exactly equal to the value in the field.\\ncontains FilterOperatorContains  For a multi-valued field, such as tags, this operator will match  objects that contain any of the values in the field.\\ndoes_not_contain FilterOperatorDoesNotContain  For a multi-valued field, such as tags, this operator will match  objects that do not contain any of the values in the field.\\nin FilterOperatorIn  Matches objects if the field is one of several possible values,  as specified in the values array.\\nnot_in FilterOperatorNotIn  Matches objects if the field is none of several possible values,  as specified in the values array.\\nand FilterOperatorAnd  Matches objects only if all subfilters match.\\nor FilterOperatorOr  Matches objects if any subfilter matches.\\ntime_is_after FilterOperatorTimeIsAfter  Matches objects if the field is after the given time.\\ntime_is_before FilterOperatorTimeIsBefore  Matches objects if the field is before the given time.\\ntime_range FilterOperatorTimeRange  Matches objects if the field is between the given times.\\nstring_contains FilterOperatorStringContains  Matches objects if the field contains the given string.\\nstring_does_not_contain FilterOperatorStringDoesNotContain  Matches objects if the field does not contain the given string.\\nis_set FilterOperatorIsSet  FilterOperatorIsSet matches objects if the field is set.\\nis_unset FilterOperatorIsUnset  FilterOperatorIsUnset matches objects if the field is unset.\",\n                \"x-go-name\": \"Operator\"\n              },\n              \"subfilters\": {\n                \"description\": \"Sub-filters for this filter.  Valid only when operator is \\\"and\\\" or \\\"or\\\".\\n\\nThe maximum allowed depth for a tree of filters is 3.\",\n                \"items\": {\n                  \"$ref\": \"#/components/schemas/Filter\",\n                  \"has_circular_reference\": true\n                },\n                \"type\": \"array\",\n                \"x-go-name\": \"Subfilters\"\n              },\n              \"value\": {\n                \"description\": \"The value for this filter. Only used for single-valued operators\\n\\n(\\\"equals\\\", \\\"not_equals\\\", \\\"contains\\\", \\\"does_not_contain\\\")\",\n                \"type\": \"string\",\n                \"x-go-name\": \"Value\"\n              },\n              \"values\": {\n                \"description\": \"The values for this filter. Only used for multi-valued operators (\\\"in\\\", \\\"not_in\\\").\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\",\n                \"x-go-name\": \"Values\"\n              }\n            },\n            \"required\": [\n              \"field\",\n              \"operator\"\n            ],\n            \"type\": \"object\",\n            \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n          },\n          \"limit\": {\n            \"description\": \"The number of contacts to fetch. Defaults to 100. Must be greater than 0 and less than 1000.\",\n            \"format\": \"int64\",\n            \"type\": \"integer\",\n            \"x-go-name\": \"Limit\"\n          }\n        },\n        \"required\": [\n          \"filter\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,482 @@
+{
+  "name": "UpdateProject",
+  "fully_qualified_name": "PylonApi.UpdateProject@0.1.0",
+  "description": "Update the details of an existing project.\n\nUse this tool to modify the information of an existing project by providing the project ID and necessary updates.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The unique identifier of the project to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the project to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_name",
+        "required": false,
+        "description": "The new name for this project. Provide a descriptive title to identify the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for this project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "project_description_html",
+        "required": false,
+        "description": "HTML formatted description for the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description HTML for this project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description_html"
+      },
+      {
+        "name": "start_date_rfc3339",
+        "required": false,
+        "description": "The start date for the project, formatted in RFC 3339. This specifies when the project begins.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date for this project, in RFC 3339 format"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_date"
+      },
+      {
+        "name": "project_end_date",
+        "required": false,
+        "description": "The end date for the project in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for this project, in RFC 3339 format"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_date"
+      },
+      {
+        "name": "project_owner_id",
+        "required": false,
+        "description": "The unique identifier of the owner of this project. Required to assign an owner when updating a project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Owner ID for this project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner_id"
+      },
+      {
+        "name": "project_update_details",
+        "required": false,
+        "description": "A JSON object containing the project's update details such as name, description, visibility, dates, owner ID, and archive status.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_portal_visible": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Customer portal visible for this project"
+            },
+            "description_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description HTML for this project"
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End date for this project, in RFC 3339 format"
+            },
+            "is_archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the project is archived"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name for this project"
+            },
+            "owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Owner ID for this project"
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date for this project, in RFC 3339 format"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "is_customer_portal_visible",
+        "required": false,
+        "description": "Indicate if the project should be visible in the customer portal (true for visible, false for hidden).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Customer portal visible for this project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_portal_visible"
+      },
+      {
+        "name": "is_project_archived",
+        "required": false,
+        "description": "Set to True if the project is archived, False if it is active.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the project is archived"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateProject'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/projects/{id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "project_name",
+        "description": "Name for this project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for this project"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description_html",
+        "tool_parameter_name": "project_description_html",
+        "description": "Description HTML for this project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description HTML for this project"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_portal_visible",
+        "tool_parameter_name": "is_customer_portal_visible",
+        "description": "Customer portal visible for this project",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Customer portal visible for this project"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_date",
+        "tool_parameter_name": "start_date_rfc3339",
+        "description": "Start date for this project, in RFC 3339 format",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date for this project, in RFC 3339 format"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_date",
+        "tool_parameter_name": "project_end_date",
+        "description": "End date for this project, in RFC 3339 format",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for this project, in RFC 3339 format"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "owner_id",
+        "tool_parameter_name": "project_owner_id",
+        "description": "Owner ID for this project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Owner ID for this project"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_archived",
+        "tool_parameter_name": "is_project_archived",
+        "description": "Whether the project is archived",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the project is archived"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "project_id",
+        "description": "The ID of the project to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the project to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "project_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_portal_visible": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Customer portal visible for this project"
+            },
+            "description_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description HTML for this project"
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End date for this project, in RFC 3339 format"
+            },
+            "is_archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the project is archived"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name for this project"
+            },
+            "owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Owner ID for this project"
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date for this project, in RFC 3339 format"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"customer_portal_visible\": {\n            \"description\": \"Customer portal visible for this project\",\n            \"type\": \"boolean\",\n            \"x-go-name\": \"CustomerPortalVisible\"\n          },\n          \"description_html\": {\n            \"description\": \"Description HTML for this project\",\n            \"type\": \"string\",\n            \"x-go-name\": \"DescriptionHTML\"\n          },\n          \"end_date\": {\n            \"description\": \"End date for this project, in RFC 3339 format\",\n            \"type\": \"string\",\n            \"x-go-name\": \"EndDate\"\n          },\n          \"is_archived\": {\n            \"description\": \"Whether the project is archived\",\n            \"type\": \"boolean\",\n            \"x-go-name\": \"IsArchived\"\n          },\n          \"name\": {\n            \"description\": \"Name for this project\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Name\"\n          },\n          \"owner_id\": {\n            \"description\": \"Owner ID for this project\",\n            \"type\": \"string\",\n            \"x-go-name\": \"OwnerID\"\n          },\n          \"start_date\": {\n            \"description\": \"Start date for this project, in RFC 3339 format\",\n            \"type\": \"string\",\n            \"x-go-name\": \"StartDate\"\n          }\n        },\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
