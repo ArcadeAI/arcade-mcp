@@ -1,0 +1,203 @@
+{
+  "name": "UpdateIssueFollowers",
+  "fully_qualified_name": "PylonApi.UpdateIssueFollowers@0.1.0",
+  "description": "Add or remove followers for an issue.\n\nThis tool allows you to add or remove followers to a specific issue. Use it when managing the users who should receive notifications about updates on an issue. Set the operation field to \"remove\" to remove followers.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_id",
+        "required": true,
+        "description": "The ID or number of the issue to add or remove followers from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or number of the issue to add followers to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "contact_ids_to_add",
+        "required": false,
+        "description": "An array of contact IDs to add as followers to the issue. Each ID should be a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of contacts to add as followers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contact_ids"
+      },
+      {
+        "name": "update_operation",
+        "required": false,
+        "description": "Specify 'add' to add followers or 'remove' to remove them.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Operation to perform. Use \"add\" to add followers (default) or \"remove\" to remove followers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "operation"
+      },
+      {
+        "name": "user_ids_to_add_as_followers",
+        "required": false,
+        "description": "List of user IDs to add as followers to a specific issue.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of users to add as followers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'AddIssueFollowers'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/issues/{id}/followers",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "issue_id",
+        "description": "The ID or number of the issue to add followers to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or number of the issue to add followers to."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "contact_ids",
+        "tool_parameter_name": "contact_ids_to_add",
+        "description": "The IDs of contacts to add as followers.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of contacts to add as followers."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "operation",
+        "tool_parameter_name": "update_operation",
+        "description": "Operation to perform. Use \"add\" to add followers (default) or \"remove\" to remove followers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Operation to perform. Use \"add\" to add followers (default) or \"remove\" to remove followers."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_ids",
+        "tool_parameter_name": "user_ids_to_add_as_followers",
+        "description": "The IDs of users to add as followers.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of users to add as followers."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"contact_ids\": {\n            \"description\": \"The IDs of contacts to add as followers.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"ContactIDs\"\n          },\n          \"operation\": {\n            \"description\": \"Operation to perform. Use \\\"add\\\" to add followers (default) or \\\"remove\\\" to remove followers.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Operation\"\n          },\n          \"user_ids\": {\n            \"description\": \"The IDs of users to add as followers.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"UserIDs\"\n          }\n        },\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

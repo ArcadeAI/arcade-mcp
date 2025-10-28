@@ -1,0 +1,253 @@
+{
+  "name": "ImportMessagesToIssue",
+  "fully_qualified_name": "PylonApi.ImportMessagesToIssue@0.1.0",
+  "description": "Import messages into an existing issue.\n\nUse this tool to import new messages onto an existing issue, facilitating better organization and tracking within issue management systems.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_id",
+        "required": true,
+        "description": "The unique ID of the existing issue to which messages will be imported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the issue."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "imported_messages",
+        "required": false,
+        "description": "A JSON array of messages to import, each containing fields like body_html, contact_id or user_id (one is required), created_at, is_private, and optional attachment_urls.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "attachment_urls": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of attachment URLs to attach to this message."
+                },
+                "body_html": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The HTML content of the message."
+                },
+                "contact_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The contact that sent the message. Only one of user_id or contact_id can be specified."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "CreatedAt is the time the message was created (RFC3339)."
+                },
+                "is_private": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the message is private."
+                },
+                "user_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The user that sent the message. Only one of user_id or contact_id can be specified."
+                }
+              },
+              "description": "Messages to be imported for this issue. At least one message is required."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ImportMessages'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/import/issues/{id}/messages",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "issue_id",
+        "description": "The ID of the issue.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the issue."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "imported_messages",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "attachment_urls": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of attachment URLs to attach to this message."
+                },
+                "body_html": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The HTML content of the message."
+                },
+                "contact_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The contact that sent the message. Only one of user_id or contact_id can be specified."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "CreatedAt is the time the message was created (RFC3339)."
+                },
+                "is_private": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the message is private."
+                },
+                "user_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The user that sent the message. Only one of user_id or contact_id can be specified."
+                }
+              },
+              "description": "Messages to be imported for this issue. At least one message is required."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"messages\": {\n            \"description\": \"Messages to be imported for this issue. At least one message is required.\",\n            \"items\": {\n              \"properties\": {\n                \"attachment_urls\": {\n                  \"description\": \"An array of attachment URLs to attach to this message.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": \"array\",\n                  \"x-go-name\": \"AttachmentURLs\"\n                },\n                \"body_html\": {\n                  \"description\": \"The HTML content of the message.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"BodyHTML\"\n                },\n                \"contact_id\": {\n                  \"description\": \"The contact that sent the message. Only one of user_id or contact_id can be specified.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"ContactID\"\n                },\n                \"created_at\": {\n                  \"description\": \"CreatedAt is the time the message was created (RFC3339).\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"CreatedAt\"\n                },\n                \"is_private\": {\n                  \"description\": \"Whether the message is private.\",\n                  \"type\": \"boolean\",\n                  \"x-go-name\": \"IsPrivate\"\n                },\n                \"user_id\": {\n                  \"description\": \"The user that sent the message. Only one of user_id or contact_id can be specified.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"UserID\"\n                }\n              },\n              \"required\": [\n                \"body_html\",\n                \"is_private\"\n              ],\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Messages\"\n          }\n        },\n        \"required\": [\n          \"messages\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

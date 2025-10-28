@@ -1,0 +1,520 @@
+{
+  "name": "CreateNewIssue",
+  "fully_qualified_name": "PylonApi.CreateNewIssue@0.1.0",
+  "description": "Create a new issue in the system.\n\nThis tool is used to create a new issue in the system. It should be called whenever there's a need to log or track a new issue or task.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_details",
+        "required": false,
+        "description": "A JSON object containing issue details including account_id, assignee_id, attachment_urls, body_html, contact_id, and other optional fields. This data structures the issue to be created, indicating ownership, assignment, and any additional contextual information like attachments or destination preferences.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account that this issue belongs to."
+            },
+            "assignee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The user the issue should be assigned to."
+            },
+            "attachment_urls": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of attachment URLs to attach to this issue."
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The HTML content of the body of the issue."
+            },
+            "contact_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional contact ID to post the message as. Only one of user_id or contact_id can be provided."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp of when the issue was created. If not specified, the current time will be used. (RFC3339)"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be used on this issue."
+            },
+            "destination_metadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "chat_widget_app_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the chat widget app to use for in-app chat."
+                },
+                "destination": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "slack",
+                    "email",
+                    "in_app_chat",
+                    "internal"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The destination type of the issue. Can be \"email\", \"slack\", \"in_app_chat\", or \"internal\". Defaults to \"internal\".\n\n* slack APIIssueDestinationSlack  Deliver to the issue's account's Slack channel.\n\n* email APIIssueDestinationEmail  Deliver messages to the issue requester via email.\n\n* in_app_chat APIIssueDestinationChatWidget  Deliver messages to the issue requester via in-app chat.\n\n* internal APIIssueDestinationInternal  Keep the issue internal and don't contact the requester at all."
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email that emails to the requester will be sent from. You must configure an email app in Pylon with this address."
+                },
+                "email_bccs": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Emails that will be BCCed on emails to the requester."
+                },
+                "email_ccs": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Emails that will be CCed on emails to the requester."
+                }
+              },
+              "inner_properties": null,
+              "description": "You can configure the issue to contact the requester via email, Slack, in-app chat, or not at all.\n\nIf a destination other than `internal` is specified, a message with the issue's BodyHTML will be delivered to the requester. If you don't wish to immediately contact the requester, you can specify the `internal` destination."
+            },
+            "priority": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The priority of the issue. Can be one of: urgent, high, medium, or low."
+            },
+            "requester_avatar_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL of an avatar of the requester."
+            },
+            "requester_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email of the user that this issue is on behalf of. Include one of requester_id or requester_email to create an issue with a requester."
+            },
+            "requester_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The requester that this issue is on behalf of. Include one of requester_id or requester_email to create an issue with a requester."
+            },
+            "requester_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The full name of the user that this issue is on behalf of."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of strings to use as tags on this issue. If provided, the issue tags will be updated to the given tags."
+            },
+            "team_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the team this issue should be assigned to."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of the issue."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional user ID to post the message as. Only one of user_id or contact_id can be provided."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateIssue'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/issues",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "issue_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account that this issue belongs to."
+            },
+            "assignee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The user the issue should be assigned to."
+            },
+            "attachment_urls": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of attachment URLs to attach to this issue."
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The HTML content of the body of the issue."
+            },
+            "contact_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional contact ID to post the message as. Only one of user_id or contact_id can be provided."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp of when the issue was created. If not specified, the current time will be used. (RFC3339)"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be used on this issue."
+            },
+            "destination_metadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "chat_widget_app_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the chat widget app to use for in-app chat."
+                },
+                "destination": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "slack",
+                    "email",
+                    "in_app_chat",
+                    "internal"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The destination type of the issue. Can be \"email\", \"slack\", \"in_app_chat\", or \"internal\". Defaults to \"internal\".\n\n* slack APIIssueDestinationSlack  Deliver to the issue's account's Slack channel.\n\n* email APIIssueDestinationEmail  Deliver messages to the issue requester via email.\n\n* in_app_chat APIIssueDestinationChatWidget  Deliver messages to the issue requester via in-app chat.\n\n* internal APIIssueDestinationInternal  Keep the issue internal and don't contact the requester at all."
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email that emails to the requester will be sent from. You must configure an email app in Pylon with this address."
+                },
+                "email_bccs": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Emails that will be BCCed on emails to the requester."
+                },
+                "email_ccs": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Emails that will be CCed on emails to the requester."
+                }
+              },
+              "inner_properties": null,
+              "description": "You can configure the issue to contact the requester via email, Slack, in-app chat, or not at all.\n\nIf a destination other than `internal` is specified, a message with the issue's BodyHTML will be delivered to the requester. If you don't wish to immediately contact the requester, you can specify the `internal` destination."
+            },
+            "priority": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The priority of the issue. Can be one of: urgent, high, medium, or low."
+            },
+            "requester_avatar_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL of an avatar of the requester."
+            },
+            "requester_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email of the user that this issue is on behalf of. Include one of requester_id or requester_email to create an issue with a requester."
+            },
+            "requester_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The requester that this issue is on behalf of. Include one of requester_id or requester_email to create an issue with a requester."
+            },
+            "requester_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The full name of the user that this issue is on behalf of."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of strings to use as tags on this issue. If provided, the issue tags will be updated to the given tags."
+            },
+            "team_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the team this issue should be assigned to."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of the issue."
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional user ID to post the message as. Only one of user_id or contact_id can be provided."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"account_id\": {\n            \"description\": \"The account that this issue belongs to.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AccountID\"\n          },\n          \"assignee_id\": {\n            \"description\": \"The user the issue should be assigned to.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AssigneeID\"\n          },\n          \"attachment_urls\": {\n            \"description\": \"An array of attachment URLs to attach to this issue.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"AttachmentURLs\"\n          },\n          \"body_html\": {\n            \"description\": \"The HTML content of the body of the issue.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"BodyHTML\"\n          },\n          \"contact_id\": {\n            \"description\": \"Optional contact ID to post the message as. Only one of user_id or contact_id can be provided.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ContactID\"\n          },\n          \"created_at\": {\n            \"description\": \"Timestamp of when the issue was created. If not specified, the current time will be used. (RFC3339)\",\n            \"type\": \"string\",\n            \"x-go-name\": \"CreatedAt\"\n          },\n          \"custom_fields\": {\n            \"description\": \"An array of custom fields to be used on this issue.\",\n            \"items\": {\n              \"properties\": {\n                \"slug\": {\n                  \"description\": \"The slug of the custom field.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Slug\"\n                },\n                \"value\": {\n                  \"description\": \"The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Value\"\n                },\n                \"values\": {\n                  \"description\": \"The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": \"array\",\n                  \"x-go-name\": \"Values\"\n                }\n              },\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"CustomFields\"\n          },\n          \"destination_metadata\": {\n            \"description\": \"You can configure the issue to contact the requester via email, Slack, in-app chat, or not at all.\\n\\nIf a destination other than `internal` is specified, a message with the issue's BodyHTML will be delivered to the requester. If you don't wish to immediately contact the requester, you can specify the `internal` destination.\",\n            \"properties\": {\n              \"chat_widget_app_id\": {\n                \"description\": \"The ID of the chat widget app to use for in-app chat.\",\n                \"type\": \"string\",\n                \"x-go-name\": \"ChatWidgetAppID\"\n              },\n              \"destination\": {\n                \"description\": \"The destination type of the issue. Can be \\\"email\\\", \\\"slack\\\", \\\"in_app_chat\\\", or \\\"internal\\\". Defaults to \\\"internal\\\".\\n\\n* slack APIIssueDestinationSlack  Deliver to the issue's account's Slack channel.\\n\\n* email APIIssueDestinationEmail  Deliver messages to the issue requester via email.\\n\\n* in_app_chat APIIssueDestinationChatWidget  Deliver messages to the issue requester via in-app chat.\\n\\n* internal APIIssueDestinationInternal  Keep the issue internal and don't contact the requester at all.\",\n                \"enum\": [\n                  \"slack\",\n                  \"email\",\n                  \"in_app_chat\",\n                  \"internal\"\n                ],\n                \"type\": \"string\",\n                \"x-go-enum-desc\": \"slack APIIssueDestinationSlack  Deliver to the issue's account's Slack channel.\\nemail APIIssueDestinationEmail  Deliver messages to the issue requester via email.\\nin_app_chat APIIssueDestinationChatWidget  Deliver messages to the issue requester via in-app chat.\\ninternal APIIssueDestinationInternal  Keep the issue internal and don't contact the requester at all.\",\n                \"x-go-name\": \"Destination\"\n              },\n              \"email\": {\n                \"description\": \"The email that emails to the requester will be sent from. You must configure an email app in Pylon with this address.\",\n                \"type\": \"string\",\n                \"x-go-name\": \"Email\"\n              },\n              \"email_bccs\": {\n                \"description\": \"Emails that will be BCCed on emails to the requester.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\",\n                \"x-go-name\": \"EmailBCCs\"\n              },\n              \"email_ccs\": {\n                \"description\": \"Emails that will be CCed on emails to the requester.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\",\n                \"x-go-name\": \"EmailCCs\"\n              }\n            },\n            \"title\": \"DestinationMetadata specifies if/how communication will be delivered to the customer.\",\n            \"type\": \"object\",\n            \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n          },\n          \"priority\": {\n            \"description\": \"The priority of the issue. Can be one of: urgent, high, medium, or low.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Priority\"\n          },\n          \"requester_avatar_url\": {\n            \"description\": \"The URL of an avatar of the requester.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"RequesterAvatarUrl\"\n          },\n          \"requester_email\": {\n            \"description\": \"The email of the user that this issue is on behalf of. Include one of requester_id or requester_email to create an issue with a requester.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"RequesterEmail\"\n          },\n          \"requester_id\": {\n            \"description\": \"The requester that this issue is on behalf of. Include one of requester_id or requester_email to create an issue with a requester.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"RequesterID\"\n          },\n          \"requester_name\": {\n            \"description\": \"The full name of the user that this issue is on behalf of.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"RequesterName\"\n          },\n          \"tags\": {\n            \"description\": \"An array of strings to use as tags on this issue. If provided, the issue tags will be updated to the given tags.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Tags\"\n          },\n          \"team_id\": {\n            \"description\": \"The ID of the team this issue should be assigned to.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"TeamID\"\n          },\n          \"title\": {\n            \"description\": \"The title of the issue.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Title\"\n          },\n          \"user_id\": {\n            \"description\": \"Optional user ID to post the message as. Only one of user_id or contact_id can be provided.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"UserID\"\n          }\n        },\n        \"required\": [\n          \"body_html\",\n          \"title\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
