@@ -99,7 +99,7 @@ def get_deployment_status(engine_url: str, api_key: str, server_name: str) -> st
 
     Returns:
         The status of the deployment.
-        Possible values are: "pending", "updating", "unknown", "running", "error".
+        Possible values are: "pending", "updating", "unknown", "running", "failed".
     """
     client = httpx.Client(
         base_url=engine_url,
@@ -124,7 +124,7 @@ async def _poll_deployment_status(
         try:
             status = get_deployment_status(engine_url, api_key, server_name)
             state["status"] = status
-            if status in ["running", "error"]:
+            if status in ["running", "failed"]:
                 break
         except Exception as e:
             if debug:
@@ -172,7 +172,7 @@ async def _monitor_deployment_with_logs(
     api_key: str,
     server_name: str,
     debug: bool = False,
-) -> tuple[Literal["running", "error"], list[str]]:
+) -> tuple[Literal["running", "failed"], list[str]]:
     """
     Monitor deployment with live status and streaming logs display.
 
@@ -260,7 +260,7 @@ async def _monitor_deployment_with_logs(
 
     all_logs = list(log_deque)
 
-    return cast(Literal["running", "error"], state["status"]), all_logs
+    return cast(Literal["running", "failed"], state["status"]), all_logs
 
 
 # Create Deployment Functions
@@ -827,7 +827,7 @@ def deploy_server_logic(
 
     if final_status == "running":
         console.print("\n✓ Deployment successful! Server is running.", style="bold green")
-    elif final_status == "error":
+    elif final_status == "failed":
         console.print("\n✗ Deployment failed. Check logs for details.", style="bold red")
 
     # Offer to view full deployment logs
