@@ -2,7 +2,7 @@
 
 This is a generalized Docker setup template that can be applied to any MCP server built with Arcade MCP
 
-This template assumes your server's entrypoint file is located at `your_server_name/src/your_server_name/server.py`. If this is not the case, then you will need to alter the path to your entrypoint file in the Dockerfile.
+The Dockerfile automatically detects your package name from `pyproject.toml` and expects your server file at `src/<package_name>/server.py`.
 
 ## Quick Setup
 
@@ -36,24 +36,27 @@ cd your-server-name
 # Build and run with docker-compose
 docker-compose -f docker/docker-compose.yml up --build
 
-# Or build manually
+# Or build and run manually
 docker build -f docker/Dockerfile -t your-server .
-docker run -p 8001:8001 -e PACKAGE_NAME=your-package-name your-server
+docker run -p 8001:8001 your-server
 ```
+
+The package name is automatically detected from `pyproject.toml`
 
 ## Configuration
 
 Edit `docker/docker-compose.yml` to configure:
-- `PACKAGE_NAME`: Your package name from `pyproject.toml`
-- `PORT`: Server port (default: 8001)
-- `HOST`: Bind host (default: 0.0.0.0)
+- `ARCADE_SERVER_PORT`: Server port (default: 8001)
+- `ARCADE_SERVER_HOST`: Bind host (default: 0.0.0.0)
+- `ARCADE_SERVER_TRANSPORT`: Transport type (default: http)
+
+The package name is automatically detected from `pyproject.toml`
 
 ## What Gets Copied
 
 The setup script copies these files to your MCP server:
 - `docker/Dockerfile` - Docker image build instructions
 - `docker/docker-compose.yml` - Docker Compose configuration
-- `docker/start.sh` - Server startup script
 - `docker/README.md` - Detailed usage documentation
 - `.dockerignore` - Files to exclude from Docker build
 
@@ -61,4 +64,4 @@ The setup script copies these files to your MCP server:
 
 - Docker and Docker Compose installed
 - MCP server with `pyproject.toml` and `uv.lock`
-- Server file at `src/<package>/server.py` or root-level `server.py`
+- Server file at `src/<package>/server.py`

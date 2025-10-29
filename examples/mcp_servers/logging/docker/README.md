@@ -11,15 +11,7 @@ This directory contains a generalized Docker configuration template that can be 
    cp examples/docker-template/.dockerignore your-mcp-server/
    ```
 
-2. **Determine your package name:**
-   - Check `pyproject.toml` for the `name` field (e.g., `name = "logging"`)
-   - Or look at your `src/` directory structure (e.g., `src/logging/` means package is `logging`)
-
-3. **Update the Dockerfile:**
-   - If your server is at `src/<package>/server.py`, set `PACKAGE_NAME`
-   - If your server is at the root (`server.py`), you can leave `PACKAGE_NAME` empty
-
-4. **Build and run:**
+2. **Build and run:**
 
    ```bash
    cd your-mcp-server
@@ -28,11 +20,14 @@ This directory contains a generalized Docker configuration template that can be 
 
 ## Configuration
 
+### Package Detection
+
+The Dockerfile uses the package name from `pyproject.toml` by reading the `[project] name` field. It expects your server file at `src/<package_name>/server.py` (where `<package_name>` is from `pyproject.toml`).
+
+If the server file is not found at this location, then the build will fail with an error message showing the detected package name and available directories in `src/`.
+
 ### Environment Variables
 
-- `PACKAGE_NAME`: The name of your package (from `pyproject.toml` or `src/` structure)
-  - Default: `logging`
-  - Example: For `src/simple/`, set `PACKAGE_NAME=simple`
 - `ARCADE_SERVER_TRANSPORT`: The transport protocol to use
   - Default: `http`
   - Options: `http`, `stdio`
@@ -45,7 +40,6 @@ This directory contains a generalized Docker configuration template that can be 
 
 ```bash
 # From examples/mcp_servers/simple/
-export PACKAGE_NAME=simple
 docker-compose -f docker/docker-compose.yml up --build
 ```
 
@@ -56,7 +50,6 @@ You can customize the port by editing `docker/docker-compose.yml` and changing b
 ```bash
 docker build \
   -f docker/Dockerfile \
-  --build-arg PACKAGE_NAME=your-package-name \
   -t your-mcp-server \
   .
 ```
@@ -73,6 +66,9 @@ docker run -p 8001:8001 \
 
 ## Features
 
+- **Automatic package detection**: Reads package name from `pyproject.toml`
+- **Standard server location**: Expects server file at `src/<package>/server.py`
+- **Secure by default**: Runs as non-root user
 - **Arcade environment variable support**: Uses `ARCADE_SERVER_*` environment variables
 - **Environment-based config**: Easy customization via environment variables
 - **uv integration**: Uses uv for fast dependency management

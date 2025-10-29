@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from arcade_mcp_server import Context, MCPApp
+from loguru import logger
 
 app = MCPApp("Logging server")
 
@@ -19,4 +20,6 @@ async def log_message(context: Context, message: Annotated[str, "The message to 
 
 
 if __name__ == "__main__":
+    logger.info("Just about to start running the server...")
     app.run(transport="http")
+    logger.info("Server has finished running...")

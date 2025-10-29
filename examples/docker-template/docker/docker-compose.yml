@@ -3,8 +3,6 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-      args:
-        PACKAGE_NAME: ${PACKAGE_NAME:-logging}
     ports:
       - "8001:8001"
     environment:
