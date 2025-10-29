@@ -1,0 +1,185 @@
+telemetry:
+  environment: local
+  version: ${env:VERSION}
+  logging:
+    level: debug # debug, info, warn, error
+    encoding: console
+
+api:
+  development: true
+  host: 0.0.0.0
+  port: 9099
+  analytics:
+    enabled: false
+  # Uncomment to enable rate limiter
+  # rate_limit:
+  #   redis:
+  #     addr: "localhost:6379"
+  #     password: ""
+  #     db: 2
+  #     time_unit: m
+  #     limit: 2
+  #     write_timeout: 10
+  #     read_timeout: 10
+
+llm:
+  models:
+    - id: oai
+      openai:
+        api_key: ${env:OPENAI_API_KEY}
+    # - id: anthropic
+    #   anthropic:
+    #     api_key: ${env:ANTHROPIC_API_KEY}
+    #     #    model: "claude-3-5-sonnet-20240620"
+    #- id: ollama
+    #  openai:
+    #    base_url: "http://localhost:11434/v1"
+    #    api_key: "ollama"
+
+tools:
+  directors:
+    - id: default
+      enabled: true
+      max_tools: 64
+      workers:
+        - id: "localworker"
+          enabled: true
+          http:
+            uri: ${env:WORKER_URL}
+            timeout: 30
+            retry: 3
+            secret: ${env:ARCADE_WORKER_SECRET} # If not set, defaults to "dev" in development mode only
+          # Uncomment mock and comment http to start engine without live worker
+          # mock:
+          #   enabled: true
+
+security:
+  root_keys:
+    - id: key1
+      default: true
+      value: ${env:ROOT_KEY_1}
+    # - id: key2
+    #   value: ${env:ROOT_KEY_2}
+
+storage:
+  # postgres:
+  #   user: postgres
+  #   password: 123456
+  #   host: localhost
+  #   port: 5432
+  #   db: arcade_engine
+  #   sslmode: disable
+  sqlite: # Default for local development
+    connection_string: "/app/arcade-engine.sqlite3"
+
+cache:
+  api_key_ttl: "10s"
+  redis:
+    addr: ${env:REDIS_HOST}:${env:REDIS_PORT}
+    password: ${env:REDIS_PASSWORD}
+
+auth:
+  token_store:
+    redis:
+      addr: ${env:REDIS_HOST}:${env:REDIS_PORT}
+      password: ${env:REDIS_PASSWORD}
+
+  providers:
+    - id: default-atlassian
+      description: "The default Atlassian provider"
+      enabled: false
+      type: oauth2
+      provider_id: atlassian
+      client_id: ${env:ATLASSIAN_CLIENT_ID}
+      client_secret: ${env:ATLASSIAN_CLIENT_SECRET}
+
+    - id: default-discord
+      description: "The default Discord provider"
+      enabled: false
+      type: oauth2
+      provider_id: discord
+      client_id: ${env:DISCORD_CLIENT_ID}
+      client_secret: ${env:DISCORD_CLIENT_SECRET}
+
+    - id: default-dropbox
+      description: "The default Dropbox provider"
+      enabled: false
+      type: oauth2
+      provider_id: dropbox
+      client_id: ${env:DROPBOX_CLIENT_ID}
+      client_secret: ${env:DROPBOX_CLIENT_SECRET}
+
+    - id: default-github
+      description: "The default GitHub provider"
+      enabled: false
+      type: oauth2
+      provider_id: github
+      client_id: ${env:GITHUB_CLIENT_ID}
+      client_secret: ${env:GITHUB_CLIENT_SECRET}
+
+    - id: default-google
+      description: "The default Google provider"
+      enabled: false
+      type: oauth2
+      provider_id: google
+      client_id: ${env:GOOGLE_CLIENT_ID}
+      client_secret: ${env:GOOGLE_CLIENT_SECRET}
+
+    - id: default-linkedin
+      description: "The default LinkedIn provider"
+      enabled: false
+      type: oauth2
+      provider_id: linkedin
+      client_id: ${env:LINKEDIN_CLIENT_ID}
+      client_secret: ${env:LINKEDIN_CLIENT_SECRET}
+
+    - id: arcade-linear
+      description: "The Linear provider for Arcade"
+      enabled: false
+      type: oauth2
+      provider_id: linear
+      client_id: ${env:LINEAR_CLIENT_ID}
+      client_secret: ${env:LINEAR_CLIENT_SECRET}
+
+    - id: default-microsoft
+      description: "The default Microsoft provider"
+      enabled: false
+      type: oauth2
+      provider_id: microsoft
+      client_id: ${env:MICROSOFT_CLIENT_ID}
+      client_secret: ${env:MICROSOFT_CLIENT_SECRET}
+
+    - id: default-slack
+      description: "The default Slack provider"
+      enabled: false
+      type: oauth2
+      provider_id: slack
+      client_id: ${env:SLACK_CLIENT_ID}
+      client_secret: ${env:SLACK_CLIENT_SECRET}
+
+    - id: default-spotify
+      description: "The default Spotify provider"
+      enabled: false
+      type: oauth2
+      provider_id: spotify
+      client_id: ${env:SPOTIFY_CLIENT_ID}
+      client_secret: ${env:SPOTIFY_CLIENT_SECRET}
+
+    - id: default-x
+      description: "The default X provider"
+      enabled: false
+      type: oauth2
+      provider_id: x
+      client_id: ${env:X_CLIENT_ID}
+      client_secret: ${env:X_CLIENT_SECRET}
+
+    - id: default-zoom
+      description: "The default Zoom provider"
+      enabled: false
+      type: oauth2
+      provider_id: zoom
+      client_id: ${env:ZOOM_CLIENT_ID}
+      client_secret: ${env:ZOOM_CLIENT_SECRET}
+
+dashboard:
+  redirect_uri: "http://localhost:9099/dashboard"
