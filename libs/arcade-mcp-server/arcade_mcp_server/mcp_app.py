@@ -23,9 +23,10 @@ from loguru import logger
 from watchfiles import watch
 
 from arcade_mcp_server.exceptions import ServerError
+from arcade_mcp_server.lifespan import compose_lifespans
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
-from arcade_mcp_server.types import Prompt, PromptMessage, Resource
+from arcade_mcp_server.types import Prompt, PromptArgument, PromptMessage, Resource
 from arcade_mcp_server.usage import ServerTracker
 from arcade_mcp_server.worker import create_arcade_mcp
 
@@ -104,6 +105,9 @@ class MCPApp:
         # Tool collection (build-time)
         self._catalog = ToolCatalog()
         self._toolkit_name = name
+
+        # Prompt collection (build-time)
+        self._prompts: list[tuple[Prompt, Callable[[dict[str, str]], list[PromptMessage]]]] = []
 
         # Public handle to the MCPServer (set by caller for runtime ops)
         self.server: MCPServer | None = None
@@ -217,6 +221,129 @@ class MCPApp:
             return decorator(func)
         return decorator
 
+    def prompt(
+        self,
+        func: Callable[[dict[str, str]], list[PromptMessage]] | None = None,
+        *,
+        name: str | None = None,
+        description: str | None = None,
+        title: str | None = None,
+        arguments: list[PromptArgument] | None = None,
+    ) -> (
+        Callable[
+            [Callable[[dict[str, str]], list[PromptMessage]]],
+            Callable[[dict[str, str]], list[PromptMessage]],
+        ]
+        | Callable[[dict[str, str]], list[PromptMessage]]
+    ):
+        """Decorator for adding prompts with optional parameters.
+
+        The decorated function should take a dict[str, str] of arguments
+        and return a list[PromptMessage].
+
+        Args:
+            func: The prompt handler function
+            name: Prompt name (defaults to function name)
+            description: Prompt description (defaults to docstring)
+            title: Prompt title for display (optional)
+            arguments: List of prompt arguments (auto-detected from function signature if not provided)
+
+        Example:
+            ```python
+            @app.prompt
+            def code_review(args: dict[str, str]) -> list[PromptMessage]:
+                '''Review code for quality and best practices'''
+                return [PromptMessage(
+                    role="user",
+                    content={"type": "text", "text": f"Review: {args['code']}"}
+                )]
+
+            @app.prompt(
+                name="custom_name",
+                description="Custom description",
+                arguments=[
+                    PromptArgument(name="input", description="Input text", required=True)
+                ]
+            )
+            def my_prompt(args: dict[str, str]) -> list[PromptMessage]:
+                return [PromptMessage(role="user", content={"type": "text", "text": args["input"]})]
+            ```
+        """
+
+        def decorator(
+            f: Callable[[dict[str, str]], list[PromptMessage]],
+        ) -> Callable[[dict[str, str]], list[PromptMessage]]:
+            # Extract metadata
+            prompt_name = name or f.__name__
+            prompt_desc = description or (f.__doc__ or "").strip()
+            prompt_title = title
+
+            # Auto-detect arguments from function signature if not provided
+            prompt_args = arguments
+            if prompt_args is None:
+                prompt_args = self._extract_prompt_arguments(f)
+
+            # Create the Prompt object
+            prompt = Prompt(
+                name=prompt_name,
+                description=prompt_desc,
+                title=prompt_title,
+                arguments=prompt_args,
+            )
+
+            # Store for later loading
+            self._prompts.append((prompt, f))
+            logger.debug(f"Added prompt: {prompt_name}")
+
+            return f
+
+        if func is not None:
+            return decorator(func)
+        return decorator
+
+    def _extract_prompt_arguments(
+        self, func: Callable[[dict[str, str]], list[PromptMessage]]
+    ) -> list[PromptArgument]:
+        """Extract argument definitions from a prompt function's docstring or annotations.
+
+        Since prompt functions take dict[str, str], we look for structured docstring
+        or return empty list. Users should explicitly define arguments for better UX.
+        """
+        # For now, return empty list - users should explicitly define arguments
+        # In the future, we could parse Google/NumPy style docstrings
+        return []
+
+    def _create_prompt_loader_lifespan(self) -> Callable:
+        """Create a lifespan function that loads prompts into the server on startup."""
+        from contextlib import asynccontextmanager
+
+        @asynccontextmanager
+        async def prompt_loader_lifespan(server: Any):
+            """Load prompts when server starts."""
+            # Startup: Load all prompts
+            if self._prompts:
+                logger.info(f"Loading {len(self._prompts)} prompts into server")
+                for prompt, handler in self._prompts:
+                    await server.prompts.add_prompt(prompt, handler)
+                logger.debug(f"✓ Loaded {len(self._prompts)} prompts")
+
+            yield {}
+
+            # Shutdown: nothing to do for prompts
+
+        return prompt_loader_lifespan
+
+    def _get_composed_lifespan(self) -> Callable | None:
+        """Get the composed lifespan including prompt loading and user lifespan."""
+        user_lifespan = self.server_kwargs.get("lifespan")
+        prompt_lifespan = self._create_prompt_loader_lifespan()
+
+        if user_lifespan is not None:
+            # Compose: run prompt loader first, then user lifespan
+            return compose_lifespans(prompt_lifespan, user_lifespan)
+        else:
+            return prompt_lifespan
+
     def run(
         self,
         host: str = "127.0.0.1",
@@ -242,11 +369,15 @@ class MCPApp:
 
         logger.info(f"Starting {self.name} v{self.version} with {len(self._catalog)} tools")
 
+        # Prepare server kwargs with composed lifespan
+        composed_lifespan = self._get_composed_lifespan()
+        server_kwargs = {**self.server_kwargs, "lifespan": composed_lifespan}
+
         if transport in ["http", "streamable-http", "streamable"]:
             if reload:
-                self._run_with_reload(host, port)
+                self._run_with_reload(host, port, server_kwargs)
             else:
-                self._create_and_run_server(host, port)
+                self._create_and_run_server(host, port, server_kwargs)
         elif transport == "stdio":
             from arcade_mcp_server.__main__ import run_stdio_server
 
@@ -261,13 +392,15 @@ class MCPApp:
                 run_stdio_server(
                     catalog=self._catalog,
                     settings=self._mcp_settings,
-                    **self.server_kwargs,
+                    **server_kwargs,
                 )
             )
         else:
             raise ServerError(f"Invalid transport: {transport}")
 
-    def _run_with_reload(self, host: str, port: int) -> None:
+    def _run_with_reload(
+        self, host: str, port: int, server_kwargs: dict[str, Any] | None = None
+    ) -> None:
         """
         Run with file watching for auto-reload.
 
@@ -320,7 +453,9 @@ class MCPApp:
             shutdown_server_process(process, reason="shutdown")
             logger.info("File watcher stopped")
 
-    def _create_and_run_server(self, host: str, port: int) -> None:
+    def _create_and_run_server(
+        self, host: str, port: int, server_kwargs: dict[str, Any] | None = None
+    ) -> None:
         """
         Create and run the server directly without reload.
 
@@ -329,11 +464,13 @@ class MCPApp:
         debug = self.log_level == "DEBUG"
         log_level = "debug" if debug else "info"
 
+        kwargs = server_kwargs if server_kwargs is not None else self.server_kwargs
+
         app = create_arcade_mcp(
             catalog=self._catalog,
             mcp_settings=self._mcp_settings,
             debug=debug,
-            **self.server_kwargs,
+            **kwargs,
         )
 
         tracker = ServerTracker()
