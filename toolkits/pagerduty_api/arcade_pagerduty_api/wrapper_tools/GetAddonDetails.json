@@ -1,18 +1,18 @@
 {
   "name": "GetAddonDetails",
-  "fully_qualified_name": "PagerdutyApi.GetAddonDetails@0.1.0",
-  "description": "Retrieve details of a specific Pagerduty Add-on.\n\nThis tool retrieves information about an existing Add-on integrated into Pagerduty's UI. Use it when you need to view specific details of an Add-on by providing its ID.",
+  "fully_qualified_name": "PagerdutyApi.GetAddonDetails@2.0.0",
+  "description": "Retrieve detailed information about a PagerDuty add-on.\n\nThis tool retrieves details about a specific add-on within PagerDuty. Add-ons are extensions that add new functionality to PagerDuty's UI. Use this tool when you need information about a particular add-on. Requires `addons.read` OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "addon_id",
         "required": true,
-        "description": "The unique ID of the Pagerduty Add-on to retrieve details for.",
+        "description": "The unique ID of the PagerDuty add-on to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_version_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specifies the version of the API to accept. Used for versioning the response format.",
+        "description": "Specify the `Accept` header to determine the API version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type_json",
         "required": true,
-        "description": "Specify the content type for the request. Use 'application/json'.",
+        "description": "Specifies the format of the request body. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/addons/{id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type_json",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

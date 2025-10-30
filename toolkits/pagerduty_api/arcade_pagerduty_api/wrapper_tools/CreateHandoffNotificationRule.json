@@ -1,0 +1,300 @@
+{
+  "name": "CreateHandoffNotificationRule",
+  "fully_qualified_name": "PagerdutyApi.CreateHandoffNotificationRule@2.0.0",
+  "description": "Create a handoff notification rule for PagerDuty users.\n\nThis tool allows you to create a new handoff notification rule for users in PagerDuty. It should be called when you need to set a notification rule for on-call handoff events for a specific user. Requires `users.write` OAuth scope.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier for the user or resource for which the handoff notification rule will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "api_accept_header",
+        "required": true,
+        "description": "The versioning header for the API, typically specifying \"application/vnd.pagerduty+json;version=2\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type for the content. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "handoff_notification_rule",
+        "required": false,
+        "description": "JSON object defining the handoff notification rule, including ID, advance notification time, type, and contact method.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "oncall_handoff_notification_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "notify_advance_in_minutes": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The delay before firing the rule, in minutes."
+                },
+                "handoff_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "both",
+                    "oncall",
+                    "offcall"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of handoff being created."
+                },
+                "contact_method": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "A rule for contacting the user for Handoff Notifications."
+            }
+          },
+          "inner_properties": null,
+          "description": "The Handoff Notification Rule to be created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createUserHandoffNotificationRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/users/{id}/oncall_handoff_notification_rules",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "api_accept_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "handoff_notification_rule",
+        "description": "The Handoff Notification Rule to be created.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "oncall_handoff_notification_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "notify_advance_in_minutes": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The delay before firing the rule, in minutes."
+                },
+                "handoff_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "both",
+                    "oncall",
+                    "offcall"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of handoff being created."
+                },
+                "contact_method": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "A rule for contacting the user for Handoff Notifications."
+            }
+          },
+          "inner_properties": null,
+          "description": "The Handoff Notification Rule to be created."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"oncall_handoff_notification_rule\": {\n            \"type\": \"object\",\n            \"description\": \"A rule for contacting the user for Handoff Notifications.\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"readOnly\": true\n              },\n              \"notify_advance_in_minutes\": {\n                \"type\": \"integer\",\n                \"description\": \"The delay before firing the rule, in minutes.\",\n                \"minimum\": 0\n              },\n              \"handoff_type\": {\n                \"type\": \"string\",\n                \"description\": \"The type of handoff being created.\",\n                \"default\": \"both\",\n                \"enum\": [\n                  \"both\",\n                  \"oncall\",\n                  \"offcall\"\n                ]\n              },\n              \"contact_method\": {\n                \"allOf\": [\n                  {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true\n                          },\n                          \"summary\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                          },\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"readOnly\": true,\n                            \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                          },\n                          \"self\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"the API show URL at which the object is accessible\"\n                          },\n                          \"html_url\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"readOnly\": true,\n                            \"format\": \"url\",\n                            \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                          }\n                        }\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"required\": [\n                          \"type\",\n                          \"id\"\n                        ]\n                      }\n                    ]\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"email_contact_method_reference\",\n                          \"phone_contact_method_reference\",\n                          \"push_notification_contact_method_reference\",\n                          \"sms_contact_method_reference\"\n                        ]\n                      }\n                    }\n                  }\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"handoff_type\",\n              \"contact_method\"\n            ],\n            \"example\": {\n              \"id\": \"PXPGF42\",\n              \"notify_advance_in_minutes\": 180,\n              \"handoff_type\": \"both\",\n              \"contact_method\": {\n                \"id\": \"PXPGF42\",\n                \"type\": \"email_contact_method_reference\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"oncall_handoff_notification_rule\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"oncall_handoff_notification_rule\": {\n              \"id\": \"PXPGF43\",\n              \"handoff_type\": \"both\",\n              \"notify_advance_in_minutes\": 180,\n              \"contact_method\": {\n                \"id\": \"PXPGF42\",\n                \"type\": \"email_contact_method_reference\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The Handoff Notification Rule to be created.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

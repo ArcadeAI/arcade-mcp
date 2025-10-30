@@ -1,0 +1,171 @@
+{
+  "name": "CreateAccountHighlight",
+  "fully_qualified_name": "PylonApi.CreateAccountHighlight@0.1.0",
+  "description": "Create a highlight for a specified account.\n\nThis tool is used to create a highlight for an account, using either an internal account ID in UUID format or an external ID in string format. It should be called when there is a need to add or update a highlight for an account.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "account_identifier",
+        "required": true,
+        "description": "The ID (UUID) or external ID (string) of the account for the highlight.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or external ID of the account that the highlight belongs to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "highlight_details",
+        "required": false,
+        "description": "A JSON object containing 'content_html' for the highlight's HTML content, and 'expires_at' for the expiration timestamp (optional, RFC3339 format).",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "content_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The HTML content for this highlight."
+            },
+            "expires_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional RFC3339 timestamp of when this highlight will expire."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateAccountHighlight'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/accounts/{account_id}/highlights",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "account_id",
+        "tool_parameter_name": "account_identifier",
+        "description": "The ID or external ID of the account that the highlight belongs to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or external ID of the account that the highlight belongs to."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "highlight_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "content_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The HTML content for this highlight."
+            },
+            "expires_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional RFC3339 timestamp of when this highlight will expire."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"content_html\": {\n            \"description\": \"The HTML content for this highlight.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ContentHTML\"\n          },\n          \"expires_at\": {\n            \"description\": \"Optional RFC3339 timestamp of when this highlight will expire.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ExpiresAt\"\n          }\n        },\n        \"required\": [\n          \"content_html\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

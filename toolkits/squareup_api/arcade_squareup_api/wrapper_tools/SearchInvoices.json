@@ -1,0 +1,284 @@
+{
+  "name": "SearchInvoices",
+  "fully_qualified_name": "SquareupApi.SearchInvoices@2.0.0",
+  "description": "Search for invoices based on location and optional customer.\n\nThis tool searches for invoices from a specified location and can filter by customer. It supports pagination; if results are truncated, a cursor is provided for retrieving more invoices.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "location_id",
+        "required": true,
+        "description": "Specify the location ID to limit the invoice search. Only one location ID can be provided.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limits the search to the specified locations. A location is required. \nIn the current implementation, only one location can be specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.location_ids"
+      },
+      {
+        "name": "customer_id",
+        "required": false,
+        "description": "Specify the customer ID to limit the search to invoices for that customer. Only one customer can be specified.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limits the search to the specified customers, within the specified locations. \nSpecifying a customer is optional. In the current implementation, \na maximum of one customer can be specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.customer_ids"
+      },
+      {
+        "name": "sort_by_field",
+        "required": false,
+        "description": "Specify the field for sorting results. Default is 'INVOICE_SORT_DATE'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "INVOICE_SORT_DATE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The field to use for sorting."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.sort.field"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "The order in which results are returned, either 'DESC' for descending or 'ASC' for ascending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.sort.order"
+      },
+      {
+        "name": "maximum_invoice_count",
+        "required": false,
+        "description": "The maximum number of invoices to return, up to 200. Defaults to 100 if not specified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of invoices to return (200 is the maximum `limit`). \nIf not provided, the server uses a default limit of 100 invoices."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A cursor to retrieve the next set of results for pagination. Use the cursor from the previous response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint. \nProvide this cursor to retrieve the next set of results for your original query.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchInvoices'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVOICES_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/invoices/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "query.filter.location_ids",
+        "tool_parameter_name": "location_id",
+        "description": "Limits the search to the specified locations. A location is required. \nIn the current implementation, only one location can be specified.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limits the search to the specified locations. A location is required. \nIn the current implementation, only one location can be specified."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.customer_ids",
+        "tool_parameter_name": "customer_id",
+        "description": "Limits the search to the specified customers, within the specified locations. \nSpecifying a customer is optional. In the current implementation, \na maximum of one customer can be specified.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limits the search to the specified customers, within the specified locations. \nSpecifying a customer is optional. In the current implementation, \na maximum of one customer can be specified."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.sort.field",
+        "tool_parameter_name": "sort_by_field",
+        "description": "The field to use for sorting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "INVOICE_SORT_DATE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The field to use for sorting."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.sort.order",
+        "tool_parameter_name": "sort_order",
+        "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_invoice_count",
+        "description": "The maximum number of invoices to return (200 is the maximum `limit`). \nIf not provided, the server uses a default limit of 100 invoices.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of invoices to return (200 is the maximum `limit`). \nIf not provided, the server uses a default limit of 100 invoices."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint. \nProvide this cursor to retrieve the next set of results for your original query.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint. \nProvide this cursor to retrieve the next set of results for your original query.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Describes a `SearchInvoices` request.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"query\"\n        ],\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"Describes query criteria for searching invoices.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"filter\"\n            ],\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"Describes query filters to apply.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"location_ids\"\n                ],\n                \"properties\": {\n                  \"location_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Limits the search to the specified locations. A location is required. \\nIn the current implementation, only one location can be specified.\"\n                  },\n                  \"customer_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Limits the search to the specified customers, within the specified locations. \\nSpecifying a customer is optional. In the current implementation, \\na maximum of one customer can be specified.\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"sort\": {\n                \"type\": \"object\",\n                \"description\": \"Identifies the sort field and sort order.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"field\"\n                ],\n                \"properties\": {\n                  \"field\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"INVOICE_SORT_DATE\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"INVOICE_SORT_DATE\",\n                        \"description\": \"The field works as follows:\\n\\n- If the invoice is a draft, it uses the invoice `created_at` date.\\n- If the invoice is scheduled for publication, it uses the `scheduled_at` date.\\n- If the invoice is published, it uses the invoice publication date.\"\n                      }\n                    ],\n                    \"description\": \"The field to use for sorting.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  },\n                  \"order\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"DESC\",\n                      \"ASC\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"DESC\",\n                        \"description\": \"The results are returned in descending (e.g., newest-first or Z-A) order.\"\n                      },\n                      {\n                        \"name\": \"ASC\",\n                        \"description\": \"The results are returned in ascending (e.g., oldest-first or A-Z) order.\"\n                      }\n                    ],\n                    \"description\": \"The order (e.g., chronological or alphabetical) in which results from a request are returned.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  }\n                }\n              }\n            }\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The maximum number of invoices to return (200 is the maximum `limit`). \\nIf not provided, the server uses a default limit of 100 invoices.\"\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"A pagination cursor returned by a previous call to this endpoint. \\nProvide this cursor to retrieve the next set of results for your original query.\\n\\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\"\n          }\n        },\n        \"example\": {\n          \"limit\": 100,\n          \"query\": {\n            \"filter\": {\n              \"customer_ids\": [\n                \"JDKYHBWT1D4F8MFH63DBMEN8Y4\"\n              ],\n              \"location_ids\": [\n                \"ES0RJRZYEC39A\"\n              ]\n            },\n            \"sort\": {\n              \"field\": \"INVOICE_SORT_DATE\",\n              \"order\": \"DESC\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

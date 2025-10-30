@@ -1,18 +1,18 @@
 {
   "name": "DeleteExtension",
-  "fully_qualified_name": "PagerdutyApi.DeleteExtension@0.1.0",
-  "description": "Delete an existing extension in Pagerduty.\n\nUse this tool to delete an extension in Pagerduty. Once deleted, the extension becomes inaccessible from the web UI, and new incidents can't be created for it. This is useful for cleaning up or managing extensions attached to services.",
+  "fully_qualified_name": "PagerdutyApi.DeleteExtension@2.0.0",
+  "description": "Delete an existing extension in PagerDuty.\n\nThis tool deletes an existing extension in PagerDuty, making it inaccessible from the web UI and preventing new incidents from being created for this extension.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "extension_id",
+        "name": "resource_id",
         "required": true,
-        "description": "The unique identifier for the extension to be deleted. This is necessary to specify which extension to remove.",
+        "description": "The unique identifier of the extension to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_versioning_header",
         "required": true,
-        "description": "Set the `Accept` header for versioning. Specify the API version to use.",
+        "description": "Specify the 'Accept' header to use for API versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "The Content-Type header must be set to 'application/json'.",
+        "description": "Specifies the media type of the request. This should be set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/extensions/{id}",
@@ -102,7 +102,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "extension_id",
+        "tool_parameter_name": "resource_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

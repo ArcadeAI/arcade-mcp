@@ -1,0 +1,419 @@
+{
+  "name": "UpdateProjectTask",
+  "fully_qualified_name": "PosthogApi.UpdateProjectTask@0.1.0",
+  "description": "Update task details within a project.\n\nUse this tool to update the details of a specific task within a project. It's useful for modifying task attributes to reflect changes in work requirements or progress.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_uuid",
+        "required": true,
+        "description": "A UUID string identifying the task to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this task."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The ID of the project being accessed. Use /api/projects/ to find project IDs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "task_update_details",
+        "required": true,
+        "description": "JSON object containing task update details such as `id`, `task_number`, `slug`, `title`, `description`, `origin_product`, `position`, `github_integration`, `repository_config`, `repository_list`, `primary_repository`, `latest_run`, `created_at`, `updated_at`. Use this for modifying task attributes to reflect changes.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "task_number": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "origin_product": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "error_tracking",
+                "eval_clusters",
+                "user_created",
+                "support_queue",
+                "session_summaries"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `error_tracking` - Error Tracking\n* `eval_clusters` - Eval Clusters\n* `user_created` - User Created\n* `support_queue` - Support Queue\n* `session_summaries` - Session Summaries"
+            },
+            "position": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "github_integration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "GitHub integration for this task"
+            },
+            "repository_config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Repository configuration with organization and repository fields"
+            },
+            "repository_list": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "primary_repository": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "latest_run": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'tasks_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/tasks/{id}/",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "task_uuid",
+        "description": "A UUID string identifying this task.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this task."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "task_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "task_number": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "origin_product": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "error_tracking",
+                "eval_clusters",
+                "user_created",
+                "support_queue",
+                "session_summaries"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `error_tracking` - Error Tracking\n* `eval_clusters` - Eval Clusters\n* `user_created` - User Created\n* `support_queue` - Support Queue\n* `session_summaries` - Session Summaries"
+            },
+            "position": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "github_integration": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "GitHub integration for this task"
+            },
+            "repository_config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Repository configuration with organization and repository fields"
+            },
+            "repository_list": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "primary_repository": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "latest_run": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"task_number\": {\n            \"type\": \"integer\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"slug\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"maxLength\": 255\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"origin_product\": {\n            \"enum\": [\n              \"error_tracking\",\n              \"eval_clusters\",\n              \"user_created\",\n              \"support_queue\",\n              \"session_summaries\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `error_tracking` - Error Tracking\\n* `eval_clusters` - Eval Clusters\\n* `user_created` - User Created\\n* `support_queue` - Support Queue\\n* `session_summaries` - Session Summaries\"\n          },\n          \"position\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648\n          },\n          \"github_integration\": {\n            \"type\": \"integer\",\n            \"nullable\": true,\n            \"description\": \"GitHub integration for this task\"\n          },\n          \"repository_config\": {\n            \"description\": \"Repository configuration with organization and repository fields\"\n          },\n          \"repository_list\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"primary_repository\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"latest_run\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"description\",\n          \"id\",\n          \"latest_run\",\n          \"origin_product\",\n          \"primary_repository\",\n          \"repository_list\",\n          \"slug\",\n          \"task_number\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"task_number\": {\n            \"type\": \"integer\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"slug\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"maxLength\": 255\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"origin_product\": {\n            \"enum\": [\n              \"error_tracking\",\n              \"eval_clusters\",\n              \"user_created\",\n              \"support_queue\",\n              \"session_summaries\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `error_tracking` - Error Tracking\\n* `eval_clusters` - Eval Clusters\\n* `user_created` - User Created\\n* `support_queue` - Support Queue\\n* `session_summaries` - Session Summaries\"\n          },\n          \"position\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648\n          },\n          \"github_integration\": {\n            \"type\": \"integer\",\n            \"nullable\": true,\n            \"description\": \"GitHub integration for this task\"\n          },\n          \"repository_config\": {\n            \"description\": \"Repository configuration with organization and repository fields\"\n          },\n          \"repository_list\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"primary_repository\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"latest_run\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"description\",\n          \"id\",\n          \"latest_run\",\n          \"origin_product\",\n          \"primary_repository\",\n          \"repository_list\",\n          \"slug\",\n          \"task_number\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"task_number\": {\n            \"type\": \"integer\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"slug\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"maxLength\": 255\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"origin_product\": {\n            \"enum\": [\n              \"error_tracking\",\n              \"eval_clusters\",\n              \"user_created\",\n              \"support_queue\",\n              \"session_summaries\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `error_tracking` - Error Tracking\\n* `eval_clusters` - Eval Clusters\\n* `user_created` - User Created\\n* `support_queue` - Support Queue\\n* `session_summaries` - Session Summaries\"\n          },\n          \"position\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648\n          },\n          \"github_integration\": {\n            \"type\": \"integer\",\n            \"nullable\": true,\n            \"description\": \"GitHub integration for this task\"\n          },\n          \"repository_config\": {\n            \"description\": \"Repository configuration with organization and repository fields\"\n          },\n          \"repository_list\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"primary_repository\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"latest_run\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"description\",\n          \"id\",\n          \"latest_run\",\n          \"origin_product\",\n          \"primary_repository\",\n          \"repository_list\",\n          \"slug\",\n          \"task_number\",\n          \"updated_at\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "DisassociateRunnerFromTeam",
-  "fully_qualified_name": "PagerdutyApi.DisassociateRunnerFromTeam@0.1.0",
-  "description": "Disassociates a runner from a team in Pagerduty.\n\nThis tool removes the association between a specified runner and a team in Pagerduty's automation actions. Use it to manage runner and team assignments efficiently.",
+  "fully_qualified_name": "PagerdutyApi.DisassociateRunnerFromTeam@2.0.0",
+  "description": "Disassociate a runner from a team in PagerDuty.\n\nCall this tool to remove the association between a runner and a team within the PagerDuty platform.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "runner_resource_id",
+        "name": "resource_id",
         "required": true,
-        "description": "The unique ID of the runner resource to be disassociated from the team.",
+        "description": "The unique ID of the resource to be disassociated from the team. This is required to identify the runner.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "team_id",
         "required": true,
-        "description": "The ID of the team to disassociate the runner from.",
+        "description": "The unique identifier for the team from which the runner will be disassociated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "team_id"
       },
       {
-        "name": "versioning_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specifies the version of the API to use via the `Accept` header. Format usually like 'application/vnd.pagerduty+json;version=2'.",
+        "description": "Versioning header required for API requests to specify the accepted response format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "set_content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the Content-Type header for the request. Use 'application/json' as the value.",
+        "description": "Set to 'application/json' to specify the format of the request body.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/automation_actions/runners/{id}/teams/{team_id}",
@@ -117,7 +117,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "runner_resource_id",
+        "tool_parameter_name": "resource_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -153,7 +153,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -171,7 +171,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "set_content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

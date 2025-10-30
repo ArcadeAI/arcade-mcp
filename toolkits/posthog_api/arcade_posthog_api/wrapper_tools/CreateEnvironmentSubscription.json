@@ -1,0 +1,472 @@
+{
+  "name": "CreateEnvironmentSubscription",
+  "fully_qualified_name": "PosthogApi.CreateEnvironmentSubscription@0.1.0",
+  "description": "Create a new subscription for an environment.\n\nThis tool is used to create a new subscription for a specific environment in a project. It is useful when you need to set up notification or monitoring preferences for the environment within the Datadog service.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "Project ID to access the specific project. Use /api/projects/ to find this ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "environment_subscription_details",
+        "required": true,
+        "description": "JSON object detailing the subscription. Includes fields like id, dashboard, insight, target_type (email, slack, webhook), target_value, frequency (daily, weekly, monthly, yearly), interval, and more to configure the subscription setup.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "insight": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "target_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "email",
+                "slack",
+                "webhook"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `email` - Email\n* `slack` - Slack\n* `webhook` - Webhook"
+            },
+            "target_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "frequency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "daily",
+                "weekly",
+                "monthly",
+                "yearly"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `daily` - Daily\n* `weekly` - Weekly\n* `monthly` - Monthly\n* `yearly` - Yearly"
+            },
+            "interval": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "byweekday": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "bysetpos": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "count": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "until_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "summary": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "next_delivery_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "invite_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'environments_subscriptions_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/environments/{project_id}/subscriptions/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "environment_subscription_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "insight": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "target_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "email",
+                "slack",
+                "webhook"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `email` - Email\n* `slack` - Slack\n* `webhook` - Webhook"
+            },
+            "target_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "frequency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "daily",
+                "weekly",
+                "monthly",
+                "yearly"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `daily` - Daily\n* `weekly` - Weekly\n* `monthly` - Monthly\n* `yearly` - Yearly"
+            },
+            "interval": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "byweekday": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "bysetpos": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "count": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "until_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "summary": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "next_delivery_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "invite_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Standard Subscription serializer.\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"dashboard\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"insight\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"target_type\": {\n            \"enum\": [\n              \"email\",\n              \"slack\",\n              \"webhook\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `email` - Email\\n* `slack` - Slack\\n* `webhook` - Webhook\"\n          },\n          \"target_value\": {\n            \"type\": \"string\"\n          },\n          \"frequency\": {\n            \"enum\": [\n              \"daily\",\n              \"weekly\",\n              \"monthly\",\n              \"yearly\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `daily` - Daily\\n* `weekly` - Weekly\\n* `monthly` - Monthly\\n* `yearly` - Yearly\"\n          },\n          \"interval\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648\n          },\n          \"byweekday\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"enum\": [\n                \"monday\",\n                \"tuesday\",\n                \"wednesday\",\n                \"thursday\",\n                \"friday\",\n                \"saturday\",\n                \"sunday\"\n              ],\n              \"type\": \"string\",\n              \"description\": \"* `monday` - Monday\\n* `tuesday` - Tuesday\\n* `wednesday` - Wednesday\\n* `thursday` - Thursday\\n* `friday` - Friday\\n* `saturday` - Saturday\\n* `sunday` - Sunday\"\n            },\n            \"nullable\": true\n          },\n          \"bysetpos\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648,\n            \"nullable\": true\n          },\n          \"count\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648,\n            \"nullable\": true\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"until_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 100\n          },\n          \"summary\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"next_delivery_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"invite_message\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"frequency\",\n          \"id\",\n          \"next_delivery_date\",\n          \"start_date\",\n          \"summary\",\n          \"target_type\",\n          \"target_value\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Standard Subscription serializer.\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"dashboard\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"insight\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"target_type\": {\n            \"enum\": [\n              \"email\",\n              \"slack\",\n              \"webhook\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `email` - Email\\n* `slack` - Slack\\n* `webhook` - Webhook\"\n          },\n          \"target_value\": {\n            \"type\": \"string\"\n          },\n          \"frequency\": {\n            \"enum\": [\n              \"daily\",\n              \"weekly\",\n              \"monthly\",\n              \"yearly\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `daily` - Daily\\n* `weekly` - Weekly\\n* `monthly` - Monthly\\n* `yearly` - Yearly\"\n          },\n          \"interval\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648\n          },\n          \"byweekday\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"enum\": [\n                \"monday\",\n                \"tuesday\",\n                \"wednesday\",\n                \"thursday\",\n                \"friday\",\n                \"saturday\",\n                \"sunday\"\n              ],\n              \"type\": \"string\",\n              \"description\": \"* `monday` - Monday\\n* `tuesday` - Tuesday\\n* `wednesday` - Wednesday\\n* `thursday` - Thursday\\n* `friday` - Friday\\n* `saturday` - Saturday\\n* `sunday` - Sunday\"\n            },\n            \"nullable\": true\n          },\n          \"bysetpos\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648,\n            \"nullable\": true\n          },\n          \"count\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648,\n            \"nullable\": true\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"until_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 100\n          },\n          \"summary\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"next_delivery_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"invite_message\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"frequency\",\n          \"id\",\n          \"next_delivery_date\",\n          \"start_date\",\n          \"summary\",\n          \"target_type\",\n          \"target_value\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Standard Subscription serializer.\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"dashboard\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"insight\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"target_type\": {\n            \"enum\": [\n              \"email\",\n              \"slack\",\n              \"webhook\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `email` - Email\\n* `slack` - Slack\\n* `webhook` - Webhook\"\n          },\n          \"target_value\": {\n            \"type\": \"string\"\n          },\n          \"frequency\": {\n            \"enum\": [\n              \"daily\",\n              \"weekly\",\n              \"monthly\",\n              \"yearly\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `daily` - Daily\\n* `weekly` - Weekly\\n* `monthly` - Monthly\\n* `yearly` - Yearly\"\n          },\n          \"interval\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648\n          },\n          \"byweekday\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"enum\": [\n                \"monday\",\n                \"tuesday\",\n                \"wednesday\",\n                \"thursday\",\n                \"friday\",\n                \"saturday\",\n                \"sunday\"\n              ],\n              \"type\": \"string\",\n              \"description\": \"* `monday` - Monday\\n* `tuesday` - Tuesday\\n* `wednesday` - Wednesday\\n* `thursday` - Thursday\\n* `friday` - Friday\\n* `saturday` - Saturday\\n* `sunday` - Sunday\"\n            },\n            \"nullable\": true\n          },\n          \"bysetpos\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648,\n            \"nullable\": true\n          },\n          \"count\": {\n            \"type\": \"integer\",\n            \"maximum\": 2147483647,\n            \"minimum\": -2147483648,\n            \"nullable\": true\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"until_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 100\n          },\n          \"summary\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"next_delivery_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"invite_message\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"frequency\",\n          \"id\",\n          \"next_delivery_date\",\n          \"start_date\",\n          \"summary\",\n          \"target_type\",\n          \"target_value\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

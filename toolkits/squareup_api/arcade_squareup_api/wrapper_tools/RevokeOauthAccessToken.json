@@ -1,0 +1,204 @@
+{
+  "name": "RevokeOauthAccessToken",
+  "fully_qualified_name": "SquareupApi.RevokeOauthAccessToken@2.0.0",
+  "description": "Revoke all OAuth access tokens for an account.\n\nThis tool revokes all OAuth access tokens for a given account associated with your application. It should be called when you need to invalidate the access tokens generated through the OAuth flow. Note that all tokens will be revoked regardless of which one is specified.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "application_client_id",
+        "required": false,
+        "description": "The Square-issued ID for your application, found on the OAuth page in the Developer Dashboard.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-issued ID for your application, which is available on the **OAuth** page in the\n[Developer Dashboard](https://developer.squareup.com/apps)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "client_id"
+      },
+      {
+        "name": "merchant_access_token",
+        "required": false,
+        "description": "The access token of the merchant whose token you want to revoke. Cannot be used with `merchant_id`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The access token of the merchant whose token you want to revoke.\nDo not provide a value for `merchant_id` if you provide this parameter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "access_token"
+      },
+      {
+        "name": "merchant_id_to_revoke",
+        "required": false,
+        "description": "The merchant ID whose token you want to revoke. Do not use if 'access_token' is provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the merchant whose token you want to revoke.\nDo not provide a value for `access_token` if you provide this parameter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "merchant_id"
+      },
+      {
+        "name": "terminate_single_access_token",
+        "required": false,
+        "description": "If true, terminate only the specified access token without revoking the entire authorization. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, terminate the given single access token, but do not\nterminate the entire authorization.\nDefault: `false`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "revoke_only_access_token"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'RevokeToken'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/oauth2/revoke",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "client_id",
+        "tool_parameter_name": "application_client_id",
+        "description": "The Square-issued ID for your application, which is available on the **OAuth** page in the\n[Developer Dashboard](https://developer.squareup.com/apps).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-issued ID for your application, which is available on the **OAuth** page in the\n[Developer Dashboard](https://developer.squareup.com/apps)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "access_token",
+        "tool_parameter_name": "merchant_access_token",
+        "description": "The access token of the merchant whose token you want to revoke.\nDo not provide a value for `merchant_id` if you provide this parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The access token of the merchant whose token you want to revoke.\nDo not provide a value for `merchant_id` if you provide this parameter."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "merchant_id",
+        "tool_parameter_name": "merchant_id_to_revoke",
+        "description": "The ID of the merchant whose token you want to revoke.\nDo not provide a value for `access_token` if you provide this parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the merchant whose token you want to revoke.\nDo not provide a value for `access_token` if you provide this parameter."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "revoke_only_access_token",
+        "tool_parameter_name": "terminate_single_access_token",
+        "description": "If `true`, terminate the given single access token, but do not\nterminate the entire authorization.\nDefault: `false`",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, terminate the given single access token, but do not\nterminate the entire authorization.\nDefault: `false`"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"client_id\": {\n            \"type\": \"string\",\n            \"description\": \"The Square-issued ID for your application, which is available on the **OAuth** page in the\\n[Developer Dashboard](https://developer.squareup.com/apps).\",\n            \"maxLength\": 191,\n            \"nullable\": true\n          },\n          \"access_token\": {\n            \"type\": \"string\",\n            \"description\": \"The access token of the merchant whose token you want to revoke.\\nDo not provide a value for `merchant_id` if you provide this parameter.\",\n            \"minLength\": 2,\n            \"maxLength\": 1024,\n            \"nullable\": true\n          },\n          \"merchant_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the merchant whose token you want to revoke.\\nDo not provide a value for `access_token` if you provide this parameter.\",\n            \"nullable\": true\n          },\n          \"revoke_only_access_token\": {\n            \"type\": \"boolean\",\n            \"description\": \"If `true`, terminate the given single access token, but do not\\nterminate the entire authorization.\\nDefault: `false`\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"access_token\": \"ACCESS_TOKEN\",\n          \"client_id\": \"CLIENT_ID\"\n        },\n        \"x-sq-sdk-sample-code\": {\n          \"csharp\": \"/sdk_samples/RevokeToken/RevokeTokenRequest.csharp\",\n          \"java\": \"/sdk_samples/RevokeToken/RevokeTokenRequest.java\",\n          \"javascript\": \"/sdk_samples/RevokeToken/RevokeTokenRequest.javascript\",\n          \"php\": \"/sdk_samples/RevokeToken/RevokeTokenRequest.php\",\n          \"python\": \"/sdk_samples/RevokeToken/RevokeTokenRequest.python\",\n          \"ruby\": \"/sdk_samples/RevokeToken/RevokeTokenRequest.ruby\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

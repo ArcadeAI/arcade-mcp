@@ -1,18 +1,18 @@
 {
   "name": "DeleteExternalDataCacheVariable",
-  "fully_qualified_name": "PagerdutyApi.DeleteExternalDataCacheVariable@0.1.0",
-  "description": "Deletes data for a cache variable in Global Event Orchestration.\n\nUse this tool to delete data stored in an `external_data` type cache variable within a Global Event Orchestration. This is essential for managing values used in orchestration rules, such as conditions or actions. Requires scoped OAuth with `event_orchestrations.write` permission.",
+  "fully_qualified_name": "PagerdutyApi.DeleteExternalDataCacheVariable@2.0.0",
+  "description": "Deletes external data cache variable for event orchestration.\n\nUse this tool to delete data stored in an external data type cache variable within a global event orchestration. This action affects the cache variables used in conditions or actions in event orchestration rules. Requires appropriate OAuth permissions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "event_orchestration_id",
         "required": true,
-        "description": "The unique identifier for an Event Orchestration. Required for specifying which orchestration's cache variable to delete.",
+        "description": "The unique identifier for the Event Orchestration to target for cache variable deletion.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "cache_variable_id",
         "required": true,
-        "description": "The unique identifier for the specific cache variable to be deleted.",
+        "description": "The ID of the cache variable to delete within the event orchestration.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "accept_version_header",
         "required": true,
-        "description": "Specify the API version with the Accept header for versioning.",
+        "description": "Specifies the version of the API to use. Use the 'Accept' header for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the Content-Type header for requests. Only 'application/json' is valid.",
+        "description": "The format of the content. Must be set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/event_orchestrations/{id}/cache_variables/{cache_variable_id}/data",
@@ -171,7 +171,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,109 @@
+{
+  "name": "RetrieveVendors",
+  "fully_qualified_name": "SquareupApi.RetrieveVendors@2.0.0",
+  "description": "Retrieve detailed information about specific vendors.\n\nUse this tool to obtain detailed information for vendors by their IDs. Ideal for managing vendor relationships or verifying vendor details.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "vendor_ids",
+        "required": false,
+        "description": "List of vendor IDs to retrieve details for. Provide the IDs as an array of strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "IDs of the [Vendor](entity:Vendor) objects to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BulkRetrieveVendors'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "VENDOR_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/vendors/bulk-retrieve",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "vendor_ids",
+        "tool_parameter_name": "vendor_ids",
+        "description": "IDs of the [Vendor](entity:Vendor) objects to retrieve.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "IDs of the [Vendor](entity:Vendor) objects to retrieve."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents an input to a call to [BulkRetrieveVendors](api-endpoint:Vendors-BulkRetrieveVendors).\",\n        \"x-release-status\": \"BETA\",\n        \"properties\": {\n          \"vendor_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"IDs of the [Vendor](entity:Vendor) objects to retrieve.\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"vendor_ids\": [\n            \"INV_V_JDKYHBWT1D4F8MFH63DBMEN8Y4\"\n          ]\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "DismissTrelloMessage",
-  "fully_qualified_name": "TrelloApi.DismissTrelloMessage@0.1.0",
-  "description": "Dismiss a specific message for a Trello member.\n\nUse this tool to dismiss a one-time message for a Trello member by their ID.",
+  "fully_qualified_name": "TrelloApi.DismissTrelloMessage@2.0.0",
+  "description": "Dismiss a specific message in Trello for a member.\n\nUse this tool to dismiss a one-time message for a Trello member. It should be called when a user wants to acknowledge and dismiss a notification or message within Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "message_to_dismiss",
         "required": true,
-        "description": "The content of the Trello message to be dismissed for the member.",
+        "description": "The specific message to dismiss for a Trello member.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member for whom the message will be dismissed.",
+        "description": "The ID or username of the Trello member whose message is being dismissed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/oneTimeMessagesDismissed",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

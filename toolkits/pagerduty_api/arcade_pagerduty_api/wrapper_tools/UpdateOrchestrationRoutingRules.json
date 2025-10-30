@@ -1,0 +1,208 @@
+{
+  "name": "UpdateOrchestrationRoutingRules",
+  "fully_qualified_name": "PagerdutyApi.UpdateOrchestrationRoutingRules@2.0.0",
+  "description": "Update rules for routing events in Global Orchestration.\n\nThis tool updates the routing rules for a Global Orchestration in PagerDuty. It evaluates events against rules to determine routing to specific services. Use this tool when you need to modify how events are routed within a global orchestration. Requires necessary OAuth permissions.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_orchestration_id",
+        "required": true,
+        "description": "The unique identifier for the Event Orchestration to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of an Event Orchestration."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_header_versioning",
+        "required": true,
+        "description": "The versioning header used for the API request. Specify the API version to expect in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the request. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "orchestration_router_updates",
+        "required": false,
+        "description": "JSON object detailing updates to Orchestration Router. Omitted details will be deleted.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Updates to Orchestration Router details. Omitted rules and rule details are deleted."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateOrchPathRouter'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/event_orchestrations/{id}/router",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "event_orchestration_id",
+        "description": "The ID of an Event Orchestration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of an Event Orchestration."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_versioning",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "orchestration_router_updates",
+        "description": "Updates to Orchestration Router details. Omitted rules and rule details are deleted.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Updates to Orchestration Router details. Omitted rules and rule details are deleted."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Updates to Orchestration Router details. Omitted rules and rule details are deleted.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"allOf\": [\n          {\n            \"type\": \"object\",\n            \"properties\": {\n              \"orchestration_path\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"default\": \"service\",\n                    \"readOnly\": true\n                  },\n                  \"parent\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"id\": {\n                        \"type\": \"string\",\n                        \"description\": \"ID of the object these Orchestration Rules belongs to.\",\n                        \"readOnly\": true\n                      },\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"description\": \"A string that determines the schema of the parent object\",\n                        \"readOnly\": true\n                      },\n                      \"self\": {\n                        \"type\": \"string\",\n                        \"format\": \"url\",\n                        \"description\": \"The API show URL at which the parent object is accessible\",\n                        \"readOnly\": true\n                      }\n                    },\n                    \"readOnly\": true\n                  },\n                  \"sets\": {\n                    \"type\": \"array\",\n                    \"description\": \"Must contain at least a \\\"start\\\" set, but can contain any number of additional sets that are routed to by other rules to form a directional graph of rules.\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"description\": \"A set of rules\",\n                      \"properties\": {\n                        \"id\": {\n                          \"type\": \"string\",\n                          \"description\": \"The ID of this set of rules. Rules in other sets can route events into this set using the \\\"route_to\\\" properties.\",\n                          \"default\": \"start\"\n                        },\n                        \"rules\": {\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"id\": {\n                                \"type\": \"string\",\n                                \"description\": \"ID of the rule\",\n                                \"readOnly\": true\n                              },\n                              \"label\": {\n                                \"type\": \"string\",\n                                \"description\": \"A description of this rule's purpose.\"\n                              },\n                              \"conditions\": {\n                                \"type\": \"array\",\n                                \"description\": \"Each of these conditions is evaluated to check if an event matches this rule. The rule is considered a match if **any** of these conditions match.\",\n                                \"items\": {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"expression\": {\n                                      \"type\": \"string\",\n                                      \"description\": \"A PCL condition string\",\n                                      \"example\": \"event.summary matches part 'my service error'\"\n                                    }\n                                  }\n                                }\n                              },\n                              \"actions\": {\n                                \"type\": \"object\",\n                                \"description\": \"When an event matches this rule, these are the actions that will be taken to change the resulting alert and incident.\"\n                              },\n                              \"disabled\": {\n                                \"type\": \"boolean\",\n                                \"description\": \"Indicates whether the rule is disabled and would therefore not be evaluated.\"\n                              }\n                            }\n                          }\n                        }\n                      }\n                    }\n                  },\n                  \"catch_all\": {\n                    \"type\": \"object\",\n                    \"description\": \"When none of the Rules in a set match an event, we apply the catch_all actions to the event.\",\n                    \"properties\": {\n                      \"actions\": {\n                        \"type\": \"object\",\n                        \"description\": \"These are the actions that will be taken to change the resulting alert and incident.\"\n                      }\n                    }\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"description\": \"The date/time the object was created.\",\n                    \"readOnly\": true\n                  },\n                  \"created_by\": {\n                    \"type\": \"object\",\n                    \"description\": \"Reference to the user that created the object.\",\n                    \"properties\": {\n                      \"id\": {\n                        \"type\": \"string\",\n                        \"readOnly\": true\n                      },\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\",\n                        \"readOnly\": true\n                      },\n                      \"self\": {\n                        \"type\": \"string\",\n                        \"format\": \"url\",\n                        \"description\": \"The API show URL at which the object is accessible\",\n                        \"readOnly\": true\n                      }\n                    },\n                    \"readOnly\": true\n                  },\n                  \"updated_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"description\": \"The date/time the object was last updated.\",\n                    \"readOnly\": true\n                  },\n                  \"updated_by\": {\n                    \"type\": \"object\",\n                    \"description\": \"Reference to the user that last updated the object.\",\n                    \"properties\": {\n                      \"id\": {\n                        \"type\": \"string\",\n                        \"readOnly\": true\n                      },\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\",\n                        \"readOnly\": true\n                      },\n                      \"self\": {\n                        \"type\": \"string\",\n                        \"format\": \"url\",\n                        \"description\": \"The API show URL at which the object is accessible\",\n                        \"readOnly\": true\n                      }\n                    },\n                    \"readOnly\": true\n                  },\n                  \"version\": {\n                    \"type\": \"string\",\n                    \"description\": \"Version of these Orchestration Rules\",\n                    \"readOnly\": true\n                  }\n                }\n              }\n            },\n            \"required\": [\n              \"orchestration_path\"\n            ]\n          },\n          {\n            \"type\": \"object\",\n            \"properties\": {\n              \"orchestration_path\": {\n                \"properties\": {\n                  \"type\": {\n                    \"description\": \"Indicates that these are a \\\"router\\\" type set of rules.\",\n                    \"default\": \"router\"\n                  },\n                  \"parent\": {\n                    \"properties\": {\n                      \"id\": {\n                        \"description\": \"ID of the Global Event Orchestration this Router belongs to.\"\n                      },\n                      \"type\": {\n                        \"enum\": [\n                          \"event_orchestration_reference\"\n                        ]\n                      }\n                    }\n                  },\n                  \"sets\": {\n                    \"description\": \"The Router contains a single set of rules (the \\\"start\\\" set). The Router evaluates Events against these Rules, one at a time, and routes each Event to a specific Service based on the first rule that matches.\",\n                    \"maxItems\": 1,\n                    \"minItems\": 1,\n                    \"items\": {\n                      \"properties\": {\n                        \"rules\": {\n                          \"items\": {\n                            \"properties\": {\n                              \"actions\": {\n                                \"properties\": {\n                                  \"route_to\": {\n                                    \"type\": \"string\",\n                                    \"description\": \"The ID of the target Service for the resulting alert. You can find the service you want to route to by calling the services endpoint.\",\n                                    \"example\": \"PSI2I2O\"\n                                  },\n                                  \"dynamic_route_to\": {\n                                    \"type\": \"object\",\n                                    \"description\": \"Use the contents of an event payload to dynamically route an event to the target service. Available to AIOps customers. Note it can only be used once in the Router, and only in the first rule. The dynamic_route_to rule cannot have conditions or a route_to action defined.\",\n                                    \"properties\": {\n                                      \"source\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"The path to a field in an event.\",\n                                        \"example\": \"event.summary\"\n                                      },\n                                      \"regex\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"A RE2 regular expression, used to extract a value from the source field.\",\n                                        \"example\": \"(.*)\"\n                                      },\n                                      \"lookup_by\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"Indicates whether the extracted value from the source is a service's name or ID.\",\n                                        \"enum\": [\n                                          \"service_name\",\n                                          \"service_id\"\n                                        ]\n                                      }\n                                    }\n                                  }\n                                }\n                              }\n                            }\n                          }\n                        }\n                      }\n                    }\n                  },\n                  \"catch_all\": {\n                    \"description\": \"When none of the rules match an event, the event will be routed according to the catch_all settings.\",\n                    \"properties\": {\n                      \"actions\": {\n                        \"properties\": {\n                          \"route_to\": {\n                            \"description\": \"With a value of 'unrouted', all events are sent to the Unrouted Orchestration.\",\n                            \"type\": \"string\",\n                            \"default\": \"unrouted\"\n                          }\n                        }\n                      }\n                    }\n                  }\n                }\n              }\n            },\n            \"example\": {\n              \"orchestration_path\": {\n                \"type\": \"router\",\n                \"parent\": {\n                  \"id\": \"b02e973d-9620-4e0a-9edc-00fedf7d4694\",\n                  \"self\": \"https://api.pagerduty.com/event_orchestrations/b02e973d-9620-4e0a-9edc-00fedf7d4694\",\n                  \"type\": \"event_orchestration_reference\"\n                },\n                \"self\": \"https://api.pagerduty.com/event_orchestrations/b02e973d-9620-4e0a-9edc-00fedf7d4694/router\",\n                \"sets\": [\n                  {\n                    \"id\": \"start\",\n                    \"rules\": [\n                      {\n                        \"label\": \"Events relating to our relational database\",\n                        \"id\": \"1c26698b\",\n                        \"conditions\": [\n                          {\n                            \"expression\": \"event.summary matches part 'database'\"\n                          },\n                          {\n                            \"expression\": \"event.source matches regex 'db[0-9]+-server'\"\n                          }\n                        ],\n                        \"actions\": {\n                          \"route_to\": \"PB31XBA\"\n                        }\n                      },\n                      {\n                        \"label\": \"Events relating to our www app server\",\n                        \"id\": \"d9801904\",\n                        \"conditions\": [\n                          {\n                            \"expression\": \"event.summary matches part 'www'\"\n                          }\n                        ],\n                        \"actions\": {\n                          \"route_to\": \"PC2D9ML\"\n                        }\n                      }\n                    ]\n                  }\n                ],\n                \"catch_all\": {\n                  \"actions\": {\n                    \"route_to\": \"unrouted\"\n                  }\n                },\n                \"created_at\": \"2021-11-18T16:42:01Z\",\n                \"created_by\": {\n                  \"id\": \"P8B9WR8\",\n                  \"self\": \"https://api.pagerduty.com/users/P8B9WR8\",\n                  \"type\": \"user_reference\"\n                },\n                \"updated_at\": \"2021-11-18T16:42:01Z\",\n                \"updated_by\": {\n                  \"id\": \"P8B9WR8\",\n                  \"self\": \"https://api.pagerduty.com/users/P8B9WR8\",\n                  \"type\": \"user_reference\"\n                },\n                \"version\": \"9co0z4b152oICsoV91_PW2.ww8ip_xap\"\n              }\n            }\n          }\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Example Request\",\n          \"value\": {\n            \"orchestration_path\": {\n              \"sets\": [\n                {\n                  \"id\": \"start\",\n                  \"rules\": [\n                    {\n                      \"label\": \"Dynamically route events\",\n                      \"id\": \"763110d0\",\n                      \"actions\": {\n                        \"dynamic_route_to\": {\n                          \"source\": \"event.custom_details.pd_service\",\n                          \"regex\": \".*\",\n                          \"lookup_by\": \"service_name\"\n                        }\n                      }\n                    },\n                    {\n                      \"label\": \"Events relating to our relational database\",\n                      \"id\": \"1c26698b\",\n                      \"conditions\": [\n                        {\n                          \"expression\": \"event.summary matches part 'database'\"\n                        },\n                        {\n                          \"expression\": \"event.source matches regex 'db[0-9]+-server'\"\n                        }\n                      ],\n                      \"actions\": {\n                        \"route_to\": \"PB31XBA\"\n                      }\n                    },\n                    {\n                      \"label\": \"Events relating to our www app server\",\n                      \"id\": \"d9801904\",\n                      \"conditions\": [\n                        {\n                          \"expression\": \"event.summary matches part 'www'\"\n                        }\n                      ],\n                      \"actions\": {\n                        \"route_to\": \"PC2D9ML\"\n                      }\n                    },\n                    {\n                      \"label\": \"Events relating to our delivery pipeline\",\n                      \"id\": \"ed624931\",\n                      \"conditions\": [\n                        {\n                          \"expression\": \"trigger_count over 1 minute > 3\"\n                        }\n                      ],\n                      \"actions\": {\n                        \"route_to\": \"PQSJBMA\"\n                      }\n                    }\n                  ]\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

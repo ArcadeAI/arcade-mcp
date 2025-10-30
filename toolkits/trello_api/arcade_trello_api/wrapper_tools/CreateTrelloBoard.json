@@ -1,18 +1,18 @@
 {
   "name": "CreateTrelloBoard",
-  "fully_qualified_name": "TrelloApi.CreateTrelloBoard@0.1.0",
-  "description": "Create a new board in Trello.\n\nUse this tool to create a new board on Trello. It should be called when there's a need to organize tasks or projects into a new board structure.",
+  "fully_qualified_name": "TrelloApi.CreateTrelloBoard@2.0.0",
+  "description": "Create a new board on Trello.\n\nUse this tool to create a new board on Trello when you need to organize tasks or projects. It will return the details of the newly created board, allowing further actions or adjustments.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_name",
         "required": true,
-        "description": "The name of the new Trello board. Must be 1 to 16384 characters long.",
+        "description": "The new name for the Trello board. Must be between 1 to 16384 characters.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "board_description",
         "required": false,
-        "description": "A new description for the board, ranging from 0 to 16384 characters.",
+        "description": "A description for the new board, ranging from 0 to 16384 characters in length.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "workspace_id_or_name",
         "required": false,
-        "description": "The ID or name of the Workspace where the board will be created.",
+        "description": "The ID or name of the Trello Workspace where the board will be created.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "source_board_id",
         "required": false,
-        "description": "The ID of the board to copy into the new board. If provided, the new board will be a copy of the specified board.",
+        "description": "The ID of the board to copy for creating a new board.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "idBoardSource"
       },
       {
-        "name": "keep_original_cards",
+        "name": "include_original_cards",
         "required": false,
-        "description": "Specify if cards from the original board should be retained in the new board. Use 'cards' to keep them or 'none' to exclude them.",
+        "description": "Specify 'cards' to keep cards from the original board when copying; otherwise, omit for none.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -88,9 +88,9 @@
         "http_endpoint_parameter_name": "keepFromSource"
       },
       {
-        "name": "enable_power_ups",
+        "name": "enabled_power_ups",
         "required": false,
-        "description": "Specifies which Power-Ups to enable on the new board. Options include: `all`, `calendar`, `cardAging`, `recap`, `voting`.",
+        "description": "Specify the Power-Ups to enable on the board. Options: all, calendar, cardAging, recap, voting.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -111,7 +111,7 @@
       {
         "name": "board_permission_level",
         "required": false,
-        "description": "Specifies the permission level of the board. Choose from 'org', 'private', or 'public'.",
+        "description": "Set the permission level of the board. Options are: `org`, `private`, `public`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -128,9 +128,9 @@
         "http_endpoint_parameter_name": "prefs_permissionLevel"
       },
       {
-        "name": "set_voting_permissions",
+        "name": "voting_permissions",
         "required": false,
-        "description": "Set who can vote on the board. Options: 'disabled', 'members', 'observers', 'org', 'public'.",
+        "description": "Specifies who can vote on the board: `disabled`, `members`, `observers`, `org`, or `public`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -149,9 +149,9 @@
         "http_endpoint_parameter_name": "prefs_voting"
       },
       {
-        "name": "comment_permissions",
+        "name": "comment_permission",
         "required": false,
-        "description": "Specifies who can comment on cards on this board. Options: `disabled`, `members`, `observers`, `org`, `public`.",
+        "description": "Specify who can comment on cards: `disabled`, `members`, `observers`, `org`, `public`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -170,9 +170,9 @@
         "http_endpoint_parameter_name": "prefs_comments"
       },
       {
-        "name": "invitation_permission_level",
+        "name": "invitation_permissions",
         "required": false,
-        "description": "Specifies who can invite users to join the board. Options: 'members' or 'admins'.",
+        "description": "Specifies who can invite users to join the board. Choose either `admins` or `members`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -190,7 +190,7 @@
       {
         "name": "board_background_color",
         "required": false,
-        "description": "Select a background color for the board. Options are: `blue`, `orange`, `green`, `red`, `purple`, `pink`, `lime`, `sky`, `grey`, or a custom background ID.",
+        "description": "Specify the custom background ID or choose from predefined colors: blue, orange, green, red, purple, pink, lime, sky, grey.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -215,7 +215,7 @@
       {
         "name": "card_aging_type",
         "required": false,
-        "description": "Type of card aging for the board. Choose 'pirate' or 'regular'.",
+        "description": "Type of card aging on the board: `pirate` or `regular`. Determines visual changes over time when enabled.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -233,7 +233,7 @@
       {
         "name": "use_default_labels",
         "required": false,
-        "description": "Set to true to use the default set of labels.",
+        "description": "Set to true to use the default set of labels on the new board; false to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -248,7 +248,7 @@
       {
         "name": "add_default_lists",
         "required": false,
-        "description": "Determines if the default lists (To Do, Doing, Done) should be added to the board. Ignored if `idBoardSource` is provided.",
+        "description": "Add the default lists (To Do, Doing, Done) to a new board. Ignored if `idBoardSource` is provided.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -263,7 +263,7 @@
       {
         "name": "allow_self_join",
         "required": false,
-        "description": "Set to true to allow users to join the board themselves; false requires an invitation.",
+        "description": "Set to `true` to allow users to join the board themselves. Set to `false` if they need an invitation.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -278,7 +278,7 @@
       {
         "name": "enable_card_covers",
         "required": false,
-        "description": "Set to true to enable card covers on the board.",
+        "description": "Boolean to determine whether card covers are enabled on the board.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -323,13 +323,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/",
@@ -351,6 +351,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -368,6 +369,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
@@ -385,6 +387,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
@@ -402,6 +405,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -419,6 +423,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -436,11 +441,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "keepFromSource",
-        "tool_parameter_name": "keep_original_cards",
+        "tool_parameter_name": "include_original_cards",
         "description": "To keep cards from the original board pass in the value `cards`",
         "value_schema": {
           "val_type": "string",
@@ -456,11 +462,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
         "name": "powerUps",
-        "tool_parameter_name": "enable_power_ups",
+        "tool_parameter_name": "enabled_power_ups",
         "description": "The Power-Ups that should be enabled on the new board. One of: `all`, `calendar`, `cardAging`, `recap`, `voting`.",
         "value_schema": {
           "val_type": "string",
@@ -479,6 +486,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -500,11 +508,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "private",
         "documentation_urls": []
       },
       {
         "name": "prefs_voting",
-        "tool_parameter_name": "set_voting_permissions",
+        "tool_parameter_name": "voting_permissions",
         "description": "Who can vote on this board. One of `disabled`, `members`, `observers`, `org`, `public`.",
         "value_schema": {
           "val_type": "string",
@@ -523,11 +532,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "disabled",
         "documentation_urls": []
       },
       {
         "name": "prefs_comments",
-        "tool_parameter_name": "comment_permissions",
+        "tool_parameter_name": "comment_permission",
         "description": "Who can comment on cards on this board. One of: `disabled`, `members`, `observers`, `org`, `public`.",
         "value_schema": {
           "val_type": "string",
@@ -546,11 +556,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "members",
         "documentation_urls": []
       },
       {
         "name": "prefs_invitations",
-        "tool_parameter_name": "invitation_permission_level",
+        "tool_parameter_name": "invitation_permissions",
         "description": "Determines what types of members can invite users to join. One of: `admins`, `members`.",
         "value_schema": {
           "val_type": "string",
@@ -566,6 +577,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "members",
         "documentation_urls": []
       },
       {
@@ -583,6 +595,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
@@ -600,6 +613,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
@@ -627,6 +641,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "blue",
         "documentation_urls": []
       },
       {
@@ -647,6 +662,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "regular",
         "documentation_urls": []
       }
     ],
@@ -668,6 +684,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

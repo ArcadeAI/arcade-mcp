@@ -1,0 +1,369 @@
+{
+  "name": "CreateClickupList",
+  "fully_qualified_name": "ClickupApi.CreateClickupList@0.1.0",
+  "description": "Create a new list in a ClickUp folder.\n\nUse this tool to add a new list to a specified folder in ClickUp. Ideal for organizing tasks or projects within a folder.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "folder_id",
+        "required": true,
+        "description": "The unique integer identifier for the folder where the new list will be added.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folder_id"
+      },
+      {
+        "name": "list_name",
+        "required": true,
+        "description": "The name of the new list to be created within the specified ClickUp folder.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "list_description",
+        "required": false,
+        "description": "A plain text description for the list. Use this to provide details about the list's purpose.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "content"
+      },
+      {
+        "name": "formatted_list_description",
+        "required": false,
+        "description": "Provide a markdown-formatted description for the List. Use this instead of plain text content.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use `markdown_content` instead of `content` to format your List description."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "markdown_content"
+      },
+      {
+        "name": "due_date_timestamp",
+        "required": false,
+        "description": "The due date for the list in Unix timestamp format. Determines when the list should be completed.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date"
+      },
+      {
+        "name": "list_priority",
+        "required": false,
+        "description": "An integer value indicating the priority of the list, where a higher number typically means higher priority.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "priority"
+      },
+      {
+        "name": "list_assignee_user_id",
+        "required": false,
+        "description": "The user ID to assign this list to a specific user. This identifies who will be responsible for the list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include a `user_id` to assign this List."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignee"
+      },
+      {
+        "name": "list_color",
+        "required": false,
+        "description": "Specifies the color of the List, not related to task statuses.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Status** refers to the List color rather than the task Statuses available in the List."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "include_time_in_due_date",
+        "required": false,
+        "description": "Set to true to include a specific time with the due date.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date_time"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateList'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/folder/{folder_id}/list",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "folder_id",
+        "tool_parameter_name": "folder_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "list_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "content",
+        "tool_parameter_name": "list_description",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "markdown_content",
+        "tool_parameter_name": "formatted_list_description",
+        "description": "Use `markdown_content` instead of `content` to format your List description.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use `markdown_content` instead of `content` to format your List description."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date",
+        "tool_parameter_name": "due_date_timestamp",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date_time",
+        "tool_parameter_name": "include_time_in_due_date",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "priority",
+        "tool_parameter_name": "list_priority",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assignee",
+        "tool_parameter_name": "list_assignee_user_id",
+        "description": "Include a `user_id` to assign this List.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include a `user_id` to assign this List."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "list_color",
+        "description": "**Status** refers to the List color rather than the task Statuses available in the List.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Status** refers to the List color rather than the task Statuses available in the List."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateListrequest\",\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"content\": {\n            \"type\": \"string\"\n          },\n          \"markdown_content\": {\n            \"type\": \"string\",\n            \"description\": \"Use `markdown_content` instead of `content` to format your List description.\"\n          },\n          \"due_date\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int64\"\n          },\n          \"due_date_time\": {\n            \"type\": \"boolean\"\n          },\n          \"priority\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          },\n          \"assignee\": {\n            \"description\": \"Include a `user_id` to assign this List.\",\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          },\n          \"status\": {\n            \"description\": \"**Status** refers to the List color rather than the task Statuses available in the List.\",\n            \"type\": \"string\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"New List Name\",\n            \"content\": \"New List Content\",\n            \"markdown_content\": \"# This is markdown\\n ***bold and italicized text***\",\n            \"due_date\": 1567780450202,\n            \"due_date_time\": false,\n            \"priority\": 1,\n            \"assignee\": 183,\n            \"status\": \"red\"\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"New List Name\",\n        \"content\": \"New List Content\",\n        \"markdown_content\": \"# This is markdown\\n ***bold and italicized text***\",\n        \"due_date\": 1567780450202,\n        \"due_date_time\": false,\n        \"priority\": 1,\n        \"assignee\": 183,\n        \"status\": \"red\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

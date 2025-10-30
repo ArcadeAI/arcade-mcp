@@ -1,0 +1,175 @@
+{
+  "name": "UpdateItemTaxes",
+  "fully_qualified_name": "SquareupApi.UpdateItemTaxes@2.0.0",
+  "description": "Update tax settings for specified catalog items.\n\nUse this tool to update the CatalogTax objects applied to specific CatalogItems without performing a full upsert. Ideal for making quick tax configuration changes to existing items in the catalog.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "catalog_item_ids",
+        "required": true,
+        "description": "List of IDs for the CatalogItems associated with the CatalogTax objects being updated. Maximum of 1,000 IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "IDs for the CatalogItems associated with the CatalogTax objects being updated.\nNo more than 1,000 IDs may be provided."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_ids"
+      },
+      {
+        "name": "tax_ids_to_enable",
+        "required": false,
+        "description": "List of CatalogTax object IDs to enable. Must specify at least one if 'tax_ids_to_disable' is not provided.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "IDs of the CatalogTax objects to enable.\nAt least one of `taxes_to_enable` or `taxes_to_disable` must be specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "taxes_to_enable"
+      },
+      {
+        "name": "catalog_tax_ids_to_disable",
+        "required": false,
+        "description": "List of CatalogTax object IDs to disable. Specify either this or taxes_to_enable.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "IDs of the CatalogTax objects to disable.\nAt least one of `taxes_to_enable` or `taxes_to_disable` must be specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "taxes_to_disable"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateItemTaxes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ITEMS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/catalog/update-item-taxes",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "item_ids",
+        "tool_parameter_name": "catalog_item_ids",
+        "description": "IDs for the CatalogItems associated with the CatalogTax objects being updated.\nNo more than 1,000 IDs may be provided.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "IDs for the CatalogItems associated with the CatalogTax objects being updated.\nNo more than 1,000 IDs may be provided."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "taxes_to_enable",
+        "tool_parameter_name": "tax_ids_to_enable",
+        "description": "IDs of the CatalogTax objects to enable.\nAt least one of `taxes_to_enable` or `taxes_to_disable` must be specified.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "IDs of the CatalogTax objects to enable.\nAt least one of `taxes_to_enable` or `taxes_to_disable` must be specified."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "taxes_to_disable",
+        "tool_parameter_name": "catalog_tax_ids_to_disable",
+        "description": "IDs of the CatalogTax objects to disable.\nAt least one of `taxes_to_enable` or `taxes_to_disable` must be specified.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "IDs of the CatalogTax objects to disable.\nAt least one of `taxes_to_enable` or `taxes_to_disable` must be specified."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"item_ids\"\n        ],\n        \"properties\": {\n          \"item_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"IDs for the CatalogItems associated with the CatalogTax objects being updated.\\nNo more than 1,000 IDs may be provided.\"\n          },\n          \"taxes_to_enable\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"IDs of the CatalogTax objects to enable.\\nAt least one of `taxes_to_enable` or `taxes_to_disable` must be specified.\",\n            \"nullable\": true\n          },\n          \"taxes_to_disable\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"IDs of the CatalogTax objects to disable.\\nAt least one of `taxes_to_enable` or `taxes_to_disable` must be specified.\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"item_ids\": [\n            \"H42BRLUJ5KTZTTMPVSLFAACQ\",\n            \"2JXOBJIHCWBQ4NZ3RIXQGJA6\"\n          ],\n          \"taxes_to_disable\": [\n            \"AQCEGCEBBQONINDOHRGZISEX\"\n          ],\n          \"taxes_to_enable\": [\n            \"4WRCNHCJZDVLSNDQ35PP6YAD\"\n          ]\n        },\n        \"x-sq-sdk-sample-code\": {\n          \"csharp\": \"/sdk_samples/Catalog/UpdateItemTaxes/UpdateItemTaxesRequest.csharp\",\n          \"java\": \"/sdk_samples/Catalog/UpdateItemTaxes/UpdateItemTaxesRequest.java\",\n          \"javascript\": \"/sdk_samples/Catalog/UpdateItemTaxes/UpdateItemTaxesRequest.javascript\",\n          \"php\": \"/sdk_samples/Catalog/UpdateItemTaxes/UpdateItemTaxesRequest.php\",\n          \"python\": \"/sdk_samples/Catalog/UpdateItemTaxes/UpdateItemTaxesRequest.python\",\n          \"ruby\": \"/sdk_samples/Catalog/UpdateItemTaxes/UpdateItemTaxesRequest.ruby\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

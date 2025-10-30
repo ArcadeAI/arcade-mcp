@@ -1,0 +1,215 @@
+{
+  "name": "SwapSubscriptionPlan",
+  "fully_qualified_name": "SquareupApi.SwapSubscriptionPlan@2.0.0",
+  "description": "Swap a subscription plan variation for an existing subscription.\n\nThis tool schedules a SWAP_PLAN action to change the plan variation for an existing subscription. It should be called when a user wants to update the current plan of their subscription. For detailed guidance, refer to the Swap Subscription Plan Variations documentation.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "required": true,
+        "description": "The ID of the subscription to swap the plan for. This is required to identify which subscription will have its plan changed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the subscription to swap the subscription plan for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription_id"
+      },
+      {
+        "name": "swap_plan_details",
+        "required": true,
+        "description": "JSON object with 'new_plan_variation_id' and 'phases' for the swap. 'new_plan_variation_id' is required, 'phases' is a list of phase-specific info.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "new_plan_variation_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the new subscription plan variation.\n\nThis field is required."
+            },
+            "phases": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "ordinal": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "index of phase in total subscription plan"
+                },
+                "order_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "id of order to be used in billing"
+                }
+              },
+              "description": "A list of PhaseInputs, to pass phase-specific information used in the swap."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SwapPlan'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ITEMS_READ",
+          "INVOICES_WRITE",
+          "CUSTOMERS_READ",
+          "SUBSCRIPTIONS_WRITE",
+          "ORDERS_WRITE",
+          "PAYMENTS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/subscriptions/{subscription_id}/swap-plan",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "tool_parameter_name": "subscription_id",
+        "description": "The ID of the subscription to swap the subscription plan for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the subscription to swap the subscription plan for."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "swap_plan_details",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "new_plan_variation_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the new subscription plan variation.\n\nThis field is required."
+            },
+            "phases": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "ordinal": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "index of phase in total subscription plan"
+                },
+                "order_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "id of order to be used in billing"
+                }
+              },
+              "description": "A list of PhaseInputs, to pass phase-specific information used in the swap."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines input parameters in a call to the\\n[SwapPlan](api-endpoint:Subscriptions-SwapPlan) endpoint.\",\n        \"x-release-status\": \"BETA\",\n        \"properties\": {\n          \"new_plan_variation_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the new subscription plan variation.\\n\\nThis field is required.\",\n            \"nullable\": true\n          },\n          \"phases\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"Represents the arguments used to construct a new phase.\",\n              \"x-release-status\": \"PUBLIC\",\n              \"required\": [\n                \"ordinal\"\n              ],\n              \"properties\": {\n                \"ordinal\": {\n                  \"type\": \"integer\",\n                  \"description\": \"index of phase in total subscription plan\",\n                  \"format\": \"int64\"\n                },\n                \"order_template_id\": {\n                  \"type\": \"string\",\n                  \"description\": \"id of order to be used in billing\",\n                  \"nullable\": true\n                }\n              }\n            },\n            \"description\": \"A list of PhaseInputs, to pass phase-specific information used in the swap.\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"new_plan_variation_id\": \"FQ7CDXXWSLUJRPM3GFJSJGZ7\",\n          \"phases\": [\n            {\n              \"order_template_id\": \"uhhnjH9osVv3shUADwaC0b3hNxQZY\",\n              \"ordinal\": 0\n            }\n          ]\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

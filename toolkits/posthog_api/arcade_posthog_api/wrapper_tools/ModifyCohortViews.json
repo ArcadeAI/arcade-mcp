@@ -1,0 +1,471 @@
+{
+  "name": "ModifyCohortViews",
+  "fully_qualified_name": "PosthogApi.ModifyCohortViews@0.1.0",
+  "description": "Update cohort views to track new file system accesses.\n\nThis tool updates the views of a specified cohort within a project. It logs a new file system access each time the resource is accessed, helping to track usage.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "cohort_identifier",
+        "required": true,
+        "description": "A unique integer identifying the specific cohort to update.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique integer value identifying this cohort."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The unique ID of the project being accessed. Call /api/projects/ to obtain this ID if unknown.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "cohort_details",
+        "required": false,
+        "description": "JSON object containing properties like id, name, description, groups, and filters for the cohort.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "groups": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Filters for the cohort. Examples:\n\n        # Behavioral filter (performed event)\n        {\n            \"properties\": {\n                \"type\": \"OR\",\n                \"values\": [{\n                    \"type\": \"OR\",\n                    \"values\": [{\n                        \"key\": \"address page viewed\",\n                        \"type\": \"behavioral\",\n                        \"value\": \"performed_event\",\n                        \"negation\": false,\n                        \"event_type\": \"events\",\n                        \"time_value\": \"30\",\n                        \"time_interval\": \"day\"\n                    }]\n                }]\n            }\n        }\n\n        # Person property filter\n        {\n            \"properties\": {\n                \"type\": \"OR\",\n                \"values\": [{\n                    \"type\": \"AND\",\n                    \"values\": [{\n                        \"key\": \"promoCodes\",\n                        \"type\": \"person\",\n                        \"value\": [\"1234567890\"],\n                        \"negation\": false,\n                        \"operator\": \"exact\"\n                    }]\n                }]\n            }\n        }\n\n        # Cohort filter\n        {\n            \"properties\": {\n                \"type\": \"OR\",\n                \"values\": [{\n                    \"type\": \"AND\",\n                    \"values\": [{\n                        \"key\": \"id\",\n                        \"type\": \"cohort\",\n                        \"value\": 8814,\n                        \"negation\": false\n                    }]\n                }]\n            }\n        }"
+            },
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_calculating": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "last_calculation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "errors_calculating": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "count": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_static": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "cohort_type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of cohort based on filter complexity\n\n* `static` - static\n* `person_property` - person_property\n* `behavioral` - behavioral\n* `analytical` - analytical"
+            },
+            "experiment_set": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_static_person_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'cohorts_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/cohorts/{id}/",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "cohort_identifier",
+        "description": "A unique integer value identifying this cohort.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique integer value identifying this cohort."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "cohort_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "groups": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Filters for the cohort. Examples:\n\n        # Behavioral filter (performed event)\n        {\n            \"properties\": {\n                \"type\": \"OR\",\n                \"values\": [{\n                    \"type\": \"OR\",\n                    \"values\": [{\n                        \"key\": \"address page viewed\",\n                        \"type\": \"behavioral\",\n                        \"value\": \"performed_event\",\n                        \"negation\": false,\n                        \"event_type\": \"events\",\n                        \"time_value\": \"30\",\n                        \"time_interval\": \"day\"\n                    }]\n                }]\n            }\n        }\n\n        # Person property filter\n        {\n            \"properties\": {\n                \"type\": \"OR\",\n                \"values\": [{\n                    \"type\": \"AND\",\n                    \"values\": [{\n                        \"key\": \"promoCodes\",\n                        \"type\": \"person\",\n                        \"value\": [\"1234567890\"],\n                        \"negation\": false,\n                        \"operator\": \"exact\"\n                    }]\n                }]\n            }\n        }\n\n        # Cohort filter\n        {\n            \"properties\": {\n                \"type\": \"OR\",\n                \"values\": [{\n                    \"type\": \"AND\",\n                    \"values\": [{\n                        \"key\": \"id\",\n                        \"type\": \"cohort\",\n                        \"value\": 8814,\n                        \"negation\": false\n                    }]\n                }]\n            }\n        }"
+            },
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_calculating": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "last_calculation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "errors_calculating": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "count": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_static": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "cohort_type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of cohort based on filter complexity\n\n* `static` - static\n* `person_property` - person_property\n* `behavioral` - behavioral\n* `analytical` - analytical"
+            },
+            "experiment_set": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_static_person_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"maxLength\": 1000\n          },\n          \"groups\": {},\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"filters\": {\n            \"nullable\": true,\n            \"description\": \"Filters for the cohort. Examples:\\n\\n        # Behavioral filter (performed event)\\n        {\\n            \\\"properties\\\": {\\n                \\\"type\\\": \\\"OR\\\",\\n                \\\"values\\\": [{\\n                    \\\"type\\\": \\\"OR\\\",\\n                    \\\"values\\\": [{\\n                        \\\"key\\\": \\\"address page viewed\\\",\\n                        \\\"type\\\": \\\"behavioral\\\",\\n                        \\\"value\\\": \\\"performed_event\\\",\\n                        \\\"negation\\\": false,\\n                        \\\"event_type\\\": \\\"events\\\",\\n                        \\\"time_value\\\": \\\"30\\\",\\n                        \\\"time_interval\\\": \\\"day\\\"\\n                    }]\\n                }]\\n            }\\n        }\\n\\n        # Person property filter\\n        {\\n            \\\"properties\\\": {\\n                \\\"type\\\": \\\"OR\\\",\\n                \\\"values\\\": [{\\n                    \\\"type\\\": \\\"AND\\\",\\n                    \\\"values\\\": [{\\n                        \\\"key\\\": \\\"promoCodes\\\",\\n                        \\\"type\\\": \\\"person\\\",\\n                        \\\"value\\\": [\\\"1234567890\\\"],\\n                        \\\"negation\\\": false,\\n                        \\\"operator\\\": \\\"exact\\\"\\n                    }]\\n                }]\\n            }\\n        }\\n\\n        # Cohort filter\\n        {\\n            \\\"properties\\\": {\\n                \\\"type\\\": \\\"OR\\\",\\n                \\\"values\\\": [{\\n                    \\\"type\\\": \\\"AND\\\",\\n                    \\\"values\\\": [{\\n                        \\\"key\\\": \\\"id\\\",\\n                        \\\"type\\\": \\\"cohort\\\",\\n                        \\\"value\\\": 8814,\\n                        \\\"negation\\\": false\\n                    }]\\n                }]\\n            }\\n        }\"\n          },\n          \"query\": {\n            \"nullable\": true\n          },\n          \"is_calculating\": {\n            \"type\": \"boolean\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"last_calculation\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"errors_calculating\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"count\": {\n            \"type\": \"integer\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"is_static\": {\n            \"type\": \"boolean\"\n          },\n          \"cohort_type\": {\n            \"nullable\": true,\n            \"description\": \"Type of cohort based on filter complexity\\n\\n* `static` - static\\n* `person_property` - person_property\\n* `behavioral` - behavioral\\n* `analytical` - analytical\",\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"static\",\n                  \"person_property\",\n                  \"behavioral\",\n                  \"analytical\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `static` - static\\n* `person_property` - person_property\\n* `behavioral` - behavioral\\n* `analytical` - analytical\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"experiment_set\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\"\n            },\n            \"readOnly\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          },\n          \"_create_static_person_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"writeOnly\": true,\n            \"title\": \" create static person ids\"\n          }\n        },\n        \"required\": [\n          \"count\",\n          \"created_at\",\n          \"created_by\",\n          \"errors_calculating\",\n          \"experiment_set\",\n          \"id\",\n          \"is_calculating\",\n          \"last_calculation\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"maxLength\": 1000\n          },\n          \"groups\": {},\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"filters\": {\n            \"nullable\": true,\n            \"description\": \"Filters for the cohort. Examples:\\n\\n        # Behavioral filter (performed event)\\n        {\\n            \\\"properties\\\": {\\n                \\\"type\\\": \\\"OR\\\",\\n                \\\"values\\\": [{\\n                    \\\"type\\\": \\\"OR\\\",\\n                    \\\"values\\\": [{\\n                        \\\"key\\\": \\\"address page viewed\\\",\\n                        \\\"type\\\": \\\"behavioral\\\",\\n                        \\\"value\\\": \\\"performed_event\\\",\\n                        \\\"negation\\\": false,\\n                        \\\"event_type\\\": \\\"events\\\",\\n                        \\\"time_value\\\": \\\"30\\\",\\n                        \\\"time_interval\\\": \\\"day\\\"\\n                    }]\\n                }]\\n            }\\n        }\\n\\n        # Person property filter\\n        {\\n            \\\"properties\\\": {\\n                \\\"type\\\": \\\"OR\\\",\\n                \\\"values\\\": [{\\n                    \\\"type\\\": \\\"AND\\\",\\n                    \\\"values\\\": [{\\n                        \\\"key\\\": \\\"promoCodes\\\",\\n                        \\\"type\\\": \\\"person\\\",\\n                        \\\"value\\\": [\\\"1234567890\\\"],\\n                        \\\"negation\\\": false,\\n                        \\\"operator\\\": \\\"exact\\\"\\n                    }]\\n                }]\\n            }\\n        }\\n\\n        # Cohort filter\\n        {\\n            \\\"properties\\\": {\\n                \\\"type\\\": \\\"OR\\\",\\n                \\\"values\\\": [{\\n                    \\\"type\\\": \\\"AND\\\",\\n                    \\\"values\\\": [{\\n                        \\\"key\\\": \\\"id\\\",\\n                        \\\"type\\\": \\\"cohort\\\",\\n                        \\\"value\\\": 8814,\\n                        \\\"negation\\\": false\\n                    }]\\n                }]\\n            }\\n        }\"\n          },\n          \"query\": {\n            \"nullable\": true\n          },\n          \"is_calculating\": {\n            \"type\": \"boolean\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"last_calculation\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"errors_calculating\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"count\": {\n            \"type\": \"integer\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"is_static\": {\n            \"type\": \"boolean\"\n          },\n          \"cohort_type\": {\n            \"nullable\": true,\n            \"description\": \"Type of cohort based on filter complexity\\n\\n* `static` - static\\n* `person_property` - person_property\\n* `behavioral` - behavioral\\n* `analytical` - analytical\",\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"static\",\n                  \"person_property\",\n                  \"behavioral\",\n                  \"analytical\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `static` - static\\n* `person_property` - person_property\\n* `behavioral` - behavioral\\n* `analytical` - analytical\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"experiment_set\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\"\n            },\n            \"readOnly\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          },\n          \"_create_static_person_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"writeOnly\": true,\n            \"title\": \" create static person ids\"\n          }\n        },\n        \"required\": [\n          \"count\",\n          \"created_at\",\n          \"created_by\",\n          \"errors_calculating\",\n          \"experiment_set\",\n          \"id\",\n          \"is_calculating\",\n          \"last_calculation\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"maxLength\": 1000\n          },\n          \"groups\": {},\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"filters\": {\n            \"nullable\": true,\n            \"description\": \"Filters for the cohort. Examples:\\n\\n        # Behavioral filter (performed event)\\n        {\\n            \\\"properties\\\": {\\n                \\\"type\\\": \\\"OR\\\",\\n                \\\"values\\\": [{\\n                    \\\"type\\\": \\\"OR\\\",\\n                    \\\"values\\\": [{\\n                        \\\"key\\\": \\\"address page viewed\\\",\\n                        \\\"type\\\": \\\"behavioral\\\",\\n                        \\\"value\\\": \\\"performed_event\\\",\\n                        \\\"negation\\\": false,\\n                        \\\"event_type\\\": \\\"events\\\",\\n                        \\\"time_value\\\": \\\"30\\\",\\n                        \\\"time_interval\\\": \\\"day\\\"\\n                    }]\\n                }]\\n            }\\n        }\\n\\n        # Person property filter\\n        {\\n            \\\"properties\\\": {\\n                \\\"type\\\": \\\"OR\\\",\\n                \\\"values\\\": [{\\n                    \\\"type\\\": \\\"AND\\\",\\n                    \\\"values\\\": [{\\n                        \\\"key\\\": \\\"promoCodes\\\",\\n                        \\\"type\\\": \\\"person\\\",\\n                        \\\"value\\\": [\\\"1234567890\\\"],\\n                        \\\"negation\\\": false,\\n                        \\\"operator\\\": \\\"exact\\\"\\n                    }]\\n                }]\\n            }\\n        }\\n\\n        # Cohort filter\\n        {\\n            \\\"properties\\\": {\\n                \\\"type\\\": \\\"OR\\\",\\n                \\\"values\\\": [{\\n                    \\\"type\\\": \\\"AND\\\",\\n                    \\\"values\\\": [{\\n                        \\\"key\\\": \\\"id\\\",\\n                        \\\"type\\\": \\\"cohort\\\",\\n                        \\\"value\\\": 8814,\\n                        \\\"negation\\\": false\\n                    }]\\n                }]\\n            }\\n        }\"\n          },\n          \"query\": {\n            \"nullable\": true\n          },\n          \"is_calculating\": {\n            \"type\": \"boolean\",\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"last_calculation\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"errors_calculating\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"count\": {\n            \"type\": \"integer\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"is_static\": {\n            \"type\": \"boolean\"\n          },\n          \"cohort_type\": {\n            \"nullable\": true,\n            \"description\": \"Type of cohort based on filter complexity\\n\\n* `static` - static\\n* `person_property` - person_property\\n* `behavioral` - behavioral\\n* `analytical` - analytical\",\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"static\",\n                  \"person_property\",\n                  \"behavioral\",\n                  \"analytical\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `static` - static\\n* `person_property` - person_property\\n* `behavioral` - behavioral\\n* `analytical` - analytical\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"experiment_set\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\"\n            },\n            \"readOnly\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          },\n          \"_create_static_person_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"writeOnly\": true,\n            \"title\": \" create static person ids\"\n          }\n        },\n        \"required\": [\n          \"count\",\n          \"created_at\",\n          \"created_by\",\n          \"errors_calculating\",\n          \"experiment_set\",\n          \"id\",\n          \"is_calculating\",\n          \"last_calculation\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

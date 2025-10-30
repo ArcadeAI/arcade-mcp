@@ -1,0 +1,414 @@
+{
+  "name": "CreateLoyaltyReward",
+  "fully_qualified_name": "SquareupApi.CreateLoyaltyReward@2.0.0",
+  "description": "Create a loyalty reward by locking points for a customer.\n\nThis tool creates a loyalty reward by using a specified reward tier ID to lock points. Optionally, it can add the reward and related discount to an existing order if an order ID is provided. After creation, the points are locked and unavailable for redemption.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "loyalty_account_id",
+        "required": true,
+        "description": "The Square-assigned ID of the loyalty account to which the reward belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the [loyalty account](entity:LoyaltyAccount) to which the reward belongs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward.loyalty_account_id"
+      },
+      {
+        "name": "reward_tier_id",
+        "required": true,
+        "description": "The Square-assigned ID of the reward tier used to create the loyalty reward.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the [reward tier](entity:LoyaltyProgramRewardTier) used to create the reward."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward.reward_tier_id"
+      },
+      {
+        "name": "unique_request_key",
+        "required": true,
+        "description": "A unique string that identifies this CreateLoyaltyReward request. Must be unique for each request to prevent duplication.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this `CreateLoyaltyReward` request. \nKeys can be any valid string, but must be unique for every request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "loyalty_reward_id",
+        "required": false,
+        "description": "The Square-assigned ID of the loyalty reward to be created or referenced.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the loyalty reward."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward.id"
+      },
+      {
+        "name": "loyalty_reward_status",
+        "required": false,
+        "description": "The status of the loyalty reward. Possible values: 'ISSUED', 'REDEEMED', 'DELETED'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ISSUED",
+            "REDEEMED",
+            "DELETED"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The status of the loyalty reward."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward.status"
+      },
+      {
+        "name": "number_of_loyalty_points",
+        "required": false,
+        "description": "The number of loyalty points to use for creating the reward.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of loyalty points used for the reward."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward.points"
+      },
+      {
+        "name": "order_id",
+        "required": false,
+        "description": "The Square-assigned ID of the order to which the reward is attached. Optional if no order is involved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the [order](entity:Order) to which the reward is attached."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward.order_id"
+      },
+      {
+        "name": "reward_creation_timestamp",
+        "required": false,
+        "description": "The timestamp when the reward was created, in RFC 3339 format. This indicates the date and time of reward creation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the reward was created, in RFC 3339 format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward.created_at"
+      },
+      {
+        "name": "reward_last_updated_timestamp",
+        "required": false,
+        "description": "The timestamp when the reward was last updated, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the reward was last updated, in RFC 3339 format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward.updated_at"
+      },
+      {
+        "name": "reward_redeemed_timestamp",
+        "required": false,
+        "description": "The timestamp when the reward was redeemed, in RFC 3339 format. This value indicates the moment the reward was used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the reward was redeemed, in RFC 3339 format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward.redeemed_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateLoyaltyReward'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/rewards",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "reward.id",
+        "tool_parameter_name": "loyalty_reward_id",
+        "description": "The Square-assigned ID of the loyalty reward.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the loyalty reward."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reward.status",
+        "tool_parameter_name": "loyalty_reward_status",
+        "description": "The status of the loyalty reward.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ISSUED",
+            "REDEEMED",
+            "DELETED"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The status of the loyalty reward."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reward.loyalty_account_id",
+        "tool_parameter_name": "loyalty_account_id",
+        "description": "The Square-assigned ID of the [loyalty account](entity:LoyaltyAccount) to which the reward belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the [loyalty account](entity:LoyaltyAccount) to which the reward belongs."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reward.reward_tier_id",
+        "tool_parameter_name": "reward_tier_id",
+        "description": "The Square-assigned ID of the [reward tier](entity:LoyaltyProgramRewardTier) used to create the reward.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the [reward tier](entity:LoyaltyProgramRewardTier) used to create the reward."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reward.points",
+        "tool_parameter_name": "number_of_loyalty_points",
+        "description": "The number of loyalty points used for the reward.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of loyalty points used for the reward."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reward.order_id",
+        "tool_parameter_name": "order_id",
+        "description": "The Square-assigned ID of the [order](entity:Order) to which the reward is attached.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-assigned ID of the [order](entity:Order) to which the reward is attached."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reward.created_at",
+        "tool_parameter_name": "reward_creation_timestamp",
+        "description": "The timestamp when the reward was created, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the reward was created, in RFC 3339 format."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reward.updated_at",
+        "tool_parameter_name": "reward_last_updated_timestamp",
+        "description": "The timestamp when the reward was last updated, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the reward was last updated, in RFC 3339 format."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reward.redeemed_at",
+        "tool_parameter_name": "reward_redeemed_timestamp",
+        "description": "The timestamp when the reward was redeemed, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the reward was redeemed, in RFC 3339 format."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_request_key",
+        "description": "A unique string that identifies this `CreateLoyaltyReward` request. \nKeys can be any valid string, but must be unique for every request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this `CreateLoyaltyReward` request. \nKeys can be any valid string, but must be unique for every request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to create a loyalty reward.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"reward\",\n          \"idempotency_key\"\n        ],\n        \"properties\": {\n          \"reward\": {\n            \"type\": \"object\",\n            \"description\": \"Represents a contract to redeem loyalty points for a [reward tier](entity:LoyaltyProgramRewardTier) discount. Loyalty rewards can be in an ISSUED, REDEEMED, or DELETED state. \\nFor more information, see [Manage loyalty rewards](https://developer.squareup.com/docs/loyalty-api/loyalty-rewards).\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"loyalty_account_id\",\n              \"reward_tier_id\"\n            ],\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"The Square-assigned ID of the loyalty reward.\",\n                \"maxLength\": 36,\n                \"readOnly\": true\n              },\n              \"status\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"ISSUED\",\n                  \"REDEEMED\",\n                  \"DELETED\"\n                ],\n                \"x-enum-elements\": [\n                  {\n                    \"name\": \"ISSUED\",\n                    \"description\": \"The reward is issued.\"\n                  },\n                  {\n                    \"name\": \"REDEEMED\",\n                    \"description\": \"The reward is redeemed.\"\n                  },\n                  {\n                    \"name\": \"DELETED\",\n                    \"description\": \"The reward is deleted.\"\n                  }\n                ],\n                \"description\": \"The status of the loyalty reward.\",\n                \"x-release-status\": \"PUBLIC\"\n              },\n              \"loyalty_account_id\": {\n                \"type\": \"string\",\n                \"description\": \"The Square-assigned ID of the [loyalty account](entity:LoyaltyAccount) to which the reward belongs.\",\n                \"minLength\": 1,\n                \"maxLength\": 36\n              },\n              \"reward_tier_id\": {\n                \"type\": \"string\",\n                \"description\": \"The Square-assigned ID of the [reward tier](entity:LoyaltyProgramRewardTier) used to create the reward.\",\n                \"minLength\": 1,\n                \"maxLength\": 36\n              },\n              \"points\": {\n                \"type\": \"integer\",\n                \"description\": \"The number of loyalty points used for the reward.\",\n                \"minimum\": 1,\n                \"readOnly\": true\n              },\n              \"order_id\": {\n                \"type\": \"string\",\n                \"description\": \"The Square-assigned ID of the [order](entity:Order) to which the reward is attached.\",\n                \"nullable\": true\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the reward was created, in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the reward was last updated, in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"redeemed_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the reward was redeemed, in RFC 3339 format.\",\n                \"readOnly\": true\n              }\n            }\n          },\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this `CreateLoyaltyReward` request. \\nKeys can be any valid string, but must be unique for every request.\",\n            \"minLength\": 1,\n            \"maxLength\": 128\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"18c2e5ea-a620-4b1f-ad60-7b167285e451\",\n          \"reward\": {\n            \"loyalty_account_id\": \"5adcb100-07f1-4ee7-b8c6-6bb9ebc474bd\",\n            \"order_id\": \"RFZfrdtm3mhO1oGzf5Cx7fEMsmGZY\",\n            \"reward_tier_id\": \"e1b39225-9da5-43d1-a5db-782cdd8ad94f\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

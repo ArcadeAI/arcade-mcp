@@ -1,0 +1,171 @@
+{
+  "name": "EditChecklist",
+  "fully_qualified_name": "ClickupApi.EditChecklist@0.1.0",
+  "description": "Rename or reorder a task checklist in ClickUp.\n\nUse this tool to rename a checklist or change its order within a task in ClickUp. It is suitable when you need to update the checklist name or adjust its position in relation to other checklists in a specific task.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "checklist_id",
+        "required": true,
+        "description": "The unique identifier (UUID) of the checklist to be edited or reordered.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checklist_id"
+      },
+      {
+        "name": "checklist_name",
+        "required": false,
+        "description": "The new name for the checklist. Leave empty if you do not wish to rename.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "checklist_position",
+        "required": false,
+        "description": "Specify the order in which the checklist should appear on a task. Use 0 to place it at the top.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Position refers to the order of appearance of checklists on a task.\\\n \\\nTo set a checklist to appear at the top of the checklists section of a task, use `\"position\": 0`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'EditChecklist'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/checklist/{checklist_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "checklist_id",
+        "tool_parameter_name": "checklist_id",
+        "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "b8a8-48d8-a0c6-b4200788a683 (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "checklist_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "position",
+        "tool_parameter_name": "checklist_position",
+        "description": "Position refers to the order of appearance of checklists on a task.\\\n \\\nTo set a checklist to appear at the top of the checklists section of a task, use `\"position\": 0`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Position refers to the order of appearance of checklists on a task.\\\n \\\nTo set a checklist to appear at the top of the checklists section of a task, use `\"position\": 0`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"EditChecklistrequest\",\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"position\": {\n            \"description\": \"Position refers to the order of appearance of checklists on a task.\\\\\\n \\\\\\nTo set a checklist to appear at the top of the checklists section of a task, use `\\\"position\\\": 0`.\",\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"Updated Checklist\",\n            \"position\": 1\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"Updated Checklist\",\n        \"position\": 1\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

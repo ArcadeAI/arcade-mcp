@@ -1,0 +1,694 @@
+{
+  "name": "AddConnectorToBoard",
+  "fully_qualified_name": "MiroApi.AddConnectorToBoard@2.0.0",
+  "description": "Adds a connector to a specified Miro board.\n\nUse this tool to add a connector to a specified Miro board. Requires 'boards:write' scope and is subject to Level 2 rate limiting.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_unique_id",
+        "required": true,
+        "description": "Unique identifier for the Miro board where the connector will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board for which you want to create the connector."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "connector_request_body",
+        "required": true,
+        "description": "JSON object defining the connector's details, including startItem, endItem, shape, captions, and style.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "startItem": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier (ID) of the item to which you want to attach the connector. Note that Frames are not supported at the moment."
+                },
+                "position": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "x": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "X-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%."
+                    },
+                    "y": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Y-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The relative position of the point on an item where the connector is attached. Position with x=0% and y=0% correspond to the top-left corner of the item, x=100% and y=100% correspond to the right-bottom corner."
+                },
+                "snapTo": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "auto",
+                    "top",
+                    "right",
+                    "bottom",
+                    "left"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The side of the item connector should be attached to, the connection point will be placed in the middle of that side. Option `auto` allows to pick a connection point automatically. Only either `position` or `snapTo` parameter is allowed to be set, if neither provided `snapTo: auto` will be used by default."
+                }
+              },
+              "inner_properties": null,
+              "description": "The end point of the connector. endItem.id must be different from startItem.id"
+            },
+            "endItem": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier (ID) of the item to which you want to attach the connector. Note that Frames are not supported at the moment."
+                },
+                "position": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "x": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "X-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%."
+                    },
+                    "y": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Y-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The relative position of the point on an item where the connector is attached. Position with x=0% and y=0% correspond to the top-left corner of the item, x=100% and y=100% correspond to the right-bottom corner."
+                },
+                "snapTo": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "auto",
+                    "top",
+                    "right",
+                    "bottom",
+                    "left"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The side of the item connector should be attached to, the connection point will be placed in the middle of that side. Option `auto` allows to pick a connection point automatically. Only either `position` or `snapTo` parameter is allowed to be set, if neither provided `snapTo: auto` will be used by default."
+                }
+              },
+              "inner_properties": null,
+              "description": "The end point of the connector. endItem.id must be different from startItem.id"
+            },
+            "shape": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "straight",
+                "elbowed",
+                "curved"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The path type of the connector line, defines curvature. Default: curved."
+            },
+            "captions": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The text you want to display on the connector. Supports inline HTML tags."
+                },
+                "position": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The relative position of the text on the connector, in percentage, minimum 0%, maximum 100%. With 50% value, the text will be placed in the middle of the connector line. Default: 50%"
+                },
+                "textAlignVertical": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "top",
+                    "middle",
+                    "bottom"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The vertical position of the text on the connector. Default: middle"
+                }
+              },
+              "description": "Blocks of text you want to display on the connector."
+            },
+            "style": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "color": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hex value representing the color for the captions on the connector. Default: `#1a1a1a`"
+                },
+                "endStrokeCap": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "stealth",
+                    "rounded_stealth",
+                    "diamond",
+                    "filled_diamond",
+                    "oval",
+                    "filled_oval",
+                    "arrow",
+                    "triangle",
+                    "filled_triangle",
+                    "erd_one",
+                    "erd_many",
+                    "erd_only_one",
+                    "erd_zero_or_one",
+                    "erd_one_or_many",
+                    "erd_zero_or_many",
+                    "unknown"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The decoration cap of the connector end, like an arrow or circle. Default: stealth."
+                },
+                "fontSize": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the font size, in dp, for the captions on the connector. Default: 14"
+                },
+                "startStrokeCap": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "stealth",
+                    "rounded_stealth",
+                    "diamond",
+                    "filled_diamond",
+                    "oval",
+                    "filled_oval",
+                    "arrow",
+                    "triangle",
+                    "filled_triangle",
+                    "erd_one",
+                    "erd_many",
+                    "erd_only_one",
+                    "erd_zero_or_one",
+                    "erd_one_or_many",
+                    "erd_zero_or_many",
+                    "unknown"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The decoration cap of the connector end, like an arrow or circle. Default: none."
+                },
+                "strokeColor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hex value of the color of the connector line. Default: #000000."
+                },
+                "strokeStyle": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "normal",
+                    "dotted",
+                    "dashed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The stroke pattern of the connector line. Default: normal."
+                },
+                "strokeWidth": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The thickness of the connector line, in dp. Default: 1.0."
+                },
+                "textOrientation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "horizontal",
+                    "aligned"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The captions orientation relatively to the connector line curvature. Default: aligned."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the style of a connector, such as the color or caption font size"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-connector'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/connectors",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_unique_id",
+        "description": "Unique identifier (ID) of the board for which you want to create the connector.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board for which you want to create the connector."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "connector_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "startItem": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier (ID) of the item to which you want to attach the connector. Note that Frames are not supported at the moment."
+                },
+                "position": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "x": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "X-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%."
+                    },
+                    "y": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Y-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The relative position of the point on an item where the connector is attached. Position with x=0% and y=0% correspond to the top-left corner of the item, x=100% and y=100% correspond to the right-bottom corner."
+                },
+                "snapTo": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "auto",
+                    "top",
+                    "right",
+                    "bottom",
+                    "left"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The side of the item connector should be attached to, the connection point will be placed in the middle of that side. Option `auto` allows to pick a connection point automatically. Only either `position` or `snapTo` parameter is allowed to be set, if neither provided `snapTo: auto` will be used by default."
+                }
+              },
+              "inner_properties": null,
+              "description": "The end point of the connector. endItem.id must be different from startItem.id"
+            },
+            "endItem": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier (ID) of the item to which you want to attach the connector. Note that Frames are not supported at the moment."
+                },
+                "position": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "x": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "X-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%."
+                    },
+                    "y": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Y-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The relative position of the point on an item where the connector is attached. Position with x=0% and y=0% correspond to the top-left corner of the item, x=100% and y=100% correspond to the right-bottom corner."
+                },
+                "snapTo": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "auto",
+                    "top",
+                    "right",
+                    "bottom",
+                    "left"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The side of the item connector should be attached to, the connection point will be placed in the middle of that side. Option `auto` allows to pick a connection point automatically. Only either `position` or `snapTo` parameter is allowed to be set, if neither provided `snapTo: auto` will be used by default."
+                }
+              },
+              "inner_properties": null,
+              "description": "The end point of the connector. endItem.id must be different from startItem.id"
+            },
+            "shape": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "straight",
+                "elbowed",
+                "curved"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The path type of the connector line, defines curvature. Default: curved."
+            },
+            "captions": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The text you want to display on the connector. Supports inline HTML tags."
+                },
+                "position": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The relative position of the text on the connector, in percentage, minimum 0%, maximum 100%. With 50% value, the text will be placed in the middle of the connector line. Default: 50%"
+                },
+                "textAlignVertical": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "top",
+                    "middle",
+                    "bottom"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The vertical position of the text on the connector. Default: middle"
+                }
+              },
+              "description": "Blocks of text you want to display on the connector."
+            },
+            "style": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "color": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hex value representing the color for the captions on the connector. Default: `#1a1a1a`"
+                },
+                "endStrokeCap": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "stealth",
+                    "rounded_stealth",
+                    "diamond",
+                    "filled_diamond",
+                    "oval",
+                    "filled_oval",
+                    "arrow",
+                    "triangle",
+                    "filled_triangle",
+                    "erd_one",
+                    "erd_many",
+                    "erd_only_one",
+                    "erd_zero_or_one",
+                    "erd_one_or_many",
+                    "erd_zero_or_many",
+                    "unknown"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The decoration cap of the connector end, like an arrow or circle. Default: stealth."
+                },
+                "fontSize": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the font size, in dp, for the captions on the connector. Default: 14"
+                },
+                "startStrokeCap": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "stealth",
+                    "rounded_stealth",
+                    "diamond",
+                    "filled_diamond",
+                    "oval",
+                    "filled_oval",
+                    "arrow",
+                    "triangle",
+                    "filled_triangle",
+                    "erd_one",
+                    "erd_many",
+                    "erd_only_one",
+                    "erd_zero_or_one",
+                    "erd_one_or_many",
+                    "erd_zero_or_many",
+                    "unknown"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The decoration cap of the connector end, like an arrow or circle. Default: none."
+                },
+                "strokeColor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hex value of the color of the connector line. Default: #000000."
+                },
+                "strokeStyle": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "normal",
+                    "dotted",
+                    "dashed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The stroke pattern of the connector line. Default: normal."
+                },
+                "strokeWidth": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The thickness of the connector line, in dp. Default: 1.0."
+                },
+                "textOrientation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "horizontal",
+                    "aligned"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The captions orientation relatively to the connector line curvature. Default: aligned."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the style of a connector, such as the color or caption font size"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"startItem.id must be different from endItem.id\",\n        \"properties\": {\n          \"startItem\": {\n            \"type\": \"object\",\n            \"description\": \"The end point of the connector. endItem.id must be different from startItem.id\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"Unique identifier (ID) of the item to which you want to attach the connector. Note that Frames are not supported at the moment.\",\n                \"example\": \"3458764517517818867\"\n              },\n              \"position\": {\n                \"type\": \"object\",\n                \"description\": \"The relative position of the point on an item where the connector is attached. Position with x=0% and y=0% correspond to the top-left corner of the item, x=100% and y=100% correspond to the right-bottom corner.\",\n                \"properties\": {\n                  \"x\": {\n                    \"type\": \"string\",\n                    \"description\": \"X-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%.\",\n                    \"example\": \"50%\"\n                  },\n                  \"y\": {\n                    \"type\": \"string\",\n                    \"description\": \"Y-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%.\",\n                    \"example\": \"0%\"\n                  }\n                }\n              },\n              \"snapTo\": {\n                \"type\": \"string\",\n                \"description\": \"The side of the item connector should be attached to, the connection point will be placed in the middle of that side. Option `auto` allows to pick a connection point automatically. Only either `position` or `snapTo` parameter is allowed to be set, if neither provided `snapTo: auto` will be used by default.\",\n                \"enum\": [\n                  \"auto\",\n                  \"top\",\n                  \"right\",\n                  \"bottom\",\n                  \"left\"\n                ]\n              }\n            }\n          },\n          \"endItem\": {\n            \"type\": \"object\",\n            \"description\": \"The end point of the connector. endItem.id must be different from startItem.id\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"Unique identifier (ID) of the item to which you want to attach the connector. Note that Frames are not supported at the moment.\",\n                \"example\": \"3458764517517818867\"\n              },\n              \"position\": {\n                \"type\": \"object\",\n                \"description\": \"The relative position of the point on an item where the connector is attached. Position with x=0% and y=0% correspond to the top-left corner of the item, x=100% and y=100% correspond to the right-bottom corner.\",\n                \"properties\": {\n                  \"x\": {\n                    \"type\": \"string\",\n                    \"description\": \"X-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%.\",\n                    \"example\": \"50%\"\n                  },\n                  \"y\": {\n                    \"type\": \"string\",\n                    \"description\": \"Y-axis relative coordinate of the location where the connector connects with an item, in percentage, minimum 0%, maximum 100%.\",\n                    \"example\": \"0%\"\n                  }\n                }\n              },\n              \"snapTo\": {\n                \"type\": \"string\",\n                \"description\": \"The side of the item connector should be attached to, the connection point will be placed in the middle of that side. Option `auto` allows to pick a connection point automatically. Only either `position` or `snapTo` parameter is allowed to be set, if neither provided `snapTo: auto` will be used by default.\",\n                \"enum\": [\n                  \"auto\",\n                  \"top\",\n                  \"right\",\n                  \"bottom\",\n                  \"left\"\n                ]\n              }\n            }\n          },\n          \"shape\": {\n            \"type\": \"string\",\n            \"description\": \"The path type of the connector line, defines curvature. Default: curved.\",\n            \"enum\": [\n              \"straight\",\n              \"elbowed\",\n              \"curved\"\n            ]\n          },\n          \"captions\": {\n            \"type\": \"array\",\n            \"description\": \"Blocks of text you want to display on the connector.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"Contains the connector's caption data, such as content and its position.\",\n              \"properties\": {\n                \"content\": {\n                  \"type\": \"string\",\n                  \"description\": \"The text you want to display on the connector. Supports inline HTML tags.\",\n                  \"example\": \"<p>Caption text</p>\",\n                  \"maxLength\": 200,\n                  \"minLength\": 0\n                },\n                \"position\": {\n                  \"type\": \"string\",\n                  \"description\": \"The relative position of the text on the connector, in percentage, minimum 0%, maximum 100%. With 50% value, the text will be placed in the middle of the connector line. Default: 50%\",\n                  \"example\": \"50%\"\n                },\n                \"textAlignVertical\": {\n                  \"type\": \"string\",\n                  \"description\": \"The vertical position of the text on the connector. Default: middle\",\n                  \"enum\": [\n                    \"top\",\n                    \"middle\",\n                    \"bottom\"\n                  ]\n                }\n              },\n              \"required\": [\n                \"content\"\n              ]\n            },\n            \"maxItems\": 20,\n            \"maxLength\": 20,\n            \"minItems\": 0\n          },\n          \"style\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the style of a connector, such as the color or caption font size\",\n            \"properties\": {\n              \"color\": {\n                \"type\": \"string\",\n                \"description\": \"Hex value representing the color for the captions on the connector. Default: `#1a1a1a`\",\n                \"example\": \"#9510ac\"\n              },\n              \"endStrokeCap\": {\n                \"type\": \"string\",\n                \"description\": \"The decoration cap of the connector end, like an arrow or circle. Default: stealth.\",\n                \"enum\": [\n                  \"none\",\n                  \"stealth\",\n                  \"rounded_stealth\",\n                  \"diamond\",\n                  \"filled_diamond\",\n                  \"oval\",\n                  \"filled_oval\",\n                  \"arrow\",\n                  \"triangle\",\n                  \"filled_triangle\",\n                  \"erd_one\",\n                  \"erd_many\",\n                  \"erd_only_one\",\n                  \"erd_zero_or_one\",\n                  \"erd_one_or_many\",\n                  \"erd_zero_or_many\",\n                  \"unknown\"\n                ]\n              },\n              \"fontSize\": {\n                \"type\": \"string\",\n                \"description\": \"Defines the font size, in dp, for the captions on the connector. Default: 14\",\n                \"example\": \"15\",\n                \"maximum\": 288,\n                \"minimum\": 10\n              },\n              \"startStrokeCap\": {\n                \"type\": \"string\",\n                \"description\": \"The decoration cap of the connector end, like an arrow or circle. Default: none.\",\n                \"enum\": [\n                  \"none\",\n                  \"stealth\",\n                  \"rounded_stealth\",\n                  \"diamond\",\n                  \"filled_diamond\",\n                  \"oval\",\n                  \"filled_oval\",\n                  \"arrow\",\n                  \"triangle\",\n                  \"filled_triangle\",\n                  \"erd_one\",\n                  \"erd_many\",\n                  \"erd_only_one\",\n                  \"erd_zero_or_one\",\n                  \"erd_one_or_many\",\n                  \"erd_zero_or_many\",\n                  \"unknown\"\n                ]\n              },\n              \"strokeColor\": {\n                \"type\": \"string\",\n                \"description\": \"Hex value of the color of the connector line. Default: #000000.\",\n                \"example\": \"#2d9bf0\"\n              },\n              \"strokeStyle\": {\n                \"type\": \"string\",\n                \"description\": \"The stroke pattern of the connector line. Default: normal.\",\n                \"enum\": [\n                  \"normal\",\n                  \"dotted\",\n                  \"dashed\"\n                ]\n              },\n              \"strokeWidth\": {\n                \"type\": \"string\",\n                \"description\": \"The thickness of the connector line, in dp. Default: 1.0.\",\n                \"example\": \"2.0\",\n                \"maximum\": 24,\n                \"minimum\": 1\n              },\n              \"textOrientation\": {\n                \"type\": \"string\",\n                \"description\": \"The captions orientation relatively to the connector line curvature. Default: aligned.\",\n                \"enum\": [\n                  \"horizontal\",\n                  \"aligned\"\n                ]\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"endItem\",\n          \"startItem\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

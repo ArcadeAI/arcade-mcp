@@ -1,0 +1,303 @@
+{
+  "name": "UpdateGoalDetails",
+  "fully_qualified_name": "ClickupApi.UpdateGoalDetails@0.1.0",
+  "description": "Update goal details such as name, due date, and owners.\n\nUse this tool to rename a goal, set its due date, update its description, manage owners, or change its color in ClickUp.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "goal_id",
+        "required": true,
+        "description": "The unique identifier for the goal to be updated. This is a UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "900e-462d-a849-4a216b06d930 (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "goal_id"
+      },
+      {
+        "name": "goal_name",
+        "required": true,
+        "description": "The new name for the goal. This will replace the current goal name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "goal_due_date",
+        "required": true,
+        "description": "An integer representing the new due date for the goal, usually in Unix timestamp format.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date"
+      },
+      {
+        "name": "goal_description",
+        "required": true,
+        "description": "The new description for the goal. This should provide an overview or details of the goal's purpose.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "remove_owners_user_ids",
+        "required": true,
+        "description": "Array of user IDs to be removed as owners of the goal.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of user IDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rem_owners"
+      },
+      {
+        "name": "new_owners_to_add",
+        "required": true,
+        "description": "List of user IDs to add as new owners for the goal.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of user IDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "add_owners"
+      },
+      {
+        "name": "goal_color",
+        "required": true,
+        "description": "Set the color of the goal. Accepts a string representing the color, such as a hex code.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "color"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateGoal'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/goal/{goal_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "goal_id",
+        "tool_parameter_name": "goal_id",
+        "description": "900e-462d-a849-4a216b06d930 (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "900e-462d-a849-4a216b06d930 (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "goal_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date",
+        "tool_parameter_name": "goal_due_date",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "goal_description",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "rem_owners",
+        "tool_parameter_name": "remove_owners_user_ids",
+        "description": "Array of user IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of user IDs."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "add_owners",
+        "tool_parameter_name": "new_owners_to_add",
+        "description": "Array of user IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of user IDs."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "color",
+        "tool_parameter_name": "goal_color",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"UpdateGoalrequest\",\n        \"required\": [\n          \"name\",\n          \"due_date\",\n          \"description\",\n          \"rem_owners\",\n          \"add_owners\",\n          \"color\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"due_date\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int64\"\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"rem_owners\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\",\n              \"contentEncoding\": \"int32\"\n            },\n            \"description\": \"Array of user IDs.\"\n          },\n          \"add_owners\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\",\n              \"contentEncoding\": \"int32\"\n            },\n            \"description\": \"Array of user IDs.\"\n          },\n          \"color\": {\n            \"type\": \"string\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"Updated Goal Name\",\n            \"due_date\": 1568036964079,\n            \"description\": \"Updated Goal Description\",\n            \"rem_owners\": [\n              183\n            ],\n            \"add_owners\": [\n              184\n            ],\n            \"color\": \"#32a852\"\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"Updated Goal Name\",\n        \"due_date\": 1568036964079,\n        \"description\": \"Updated Goal Description\",\n        \"rem_owners\": [\n          183\n        ],\n        \"add_owners\": [\n          184\n        ],\n        \"color\": \"#32a852\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

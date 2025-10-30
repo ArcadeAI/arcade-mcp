@@ -1,18 +1,18 @@
 {
   "name": "GetUserWebhookSubscriptions",
-  "fully_qualified_name": "MiroApi.GetUserWebhookSubscriptions@0.1.0",
-  "description": "Retrieve webhook subscription details for a specific user.\n\nCall this tool to get information about all webhook subscriptions associated with a user. This is useful for managing webhook integrations. Requires 'boards:read' scope.",
+  "fully_qualified_name": "MiroApi.GetUserWebhookSubscriptions@2.0.0",
+  "description": "Retrieve all webhook subscriptions for a Miro user.\n\nUse this tool to obtain details about webhook subscriptions associated with a specific Miro user. Useful for managing or inspecting active webhooks. Requires 'boards:read' scope and adheres to Level 4 rate limiting.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "subscription_limit",
         "required": false,
-        "description": "Specify the maximum number of webhook subscriptions to retrieve. Use integer values.",
+        "description": "Specify the maximum number of webhook subscriptions to retrieve for the user.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A string used to paginate through large sets of webhook subscriptions. Use the cursor returned from a previous call to get the next set of results.",
+        "description": "A string token used to paginate through webhook subscriptions. If not provided, retrieves the first page.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2-experimental/webhooks/subscriptions",
@@ -98,6 +98,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "10",
         "documentation_urls": []
       },
       {
@@ -115,6 +116,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -128,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

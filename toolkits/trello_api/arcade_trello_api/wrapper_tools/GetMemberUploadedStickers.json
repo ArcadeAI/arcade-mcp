@@ -1,18 +1,18 @@
 {
   "name": "GetMemberUploadedStickers",
-  "fully_qualified_name": "TrelloApi.GetMemberUploadedStickers@0.1.0",
-  "description": "Retrieve a member's uploaded custom stickers on Trello.\n\nUse this tool to access all custom stickers uploaded by a specific member on Trello by providing their ID.",
+  "fully_qualified_name": "TrelloApi.GetMemberUploadedStickers@2.0.0",
+  "description": "Retrieve a Trello member's uploaded stickers.\n\nCall this tool to get the custom stickers uploaded by a Trello member using their member ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member to retrieve their uploaded stickers.",
+        "description": "The ID or username of the Trello member whose stickers you want to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/customStickers",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

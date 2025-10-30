@@ -1,0 +1,189 @@
+{
+  "name": "DeleteSpaceTag",
+  "fully_qualified_name": "ClickupApi.DeleteSpaceTag@0.1.0",
+  "description": "Delete a task tag from a space in ClickUp.\n\nUse this tool to delete a specific task tag from a designated space in ClickUp. Ideal for cleaning up or reorganizing tags within a space.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "space_identifier",
+        "required": true,
+        "description": "The unique identifier of the space from which the tag will be deleted. This should be an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "space_id"
+      },
+      {
+        "name": "tag_name_to_delete",
+        "required": true,
+        "description": "The name of the tag to be deleted from the specified space. Ensure this tag name exists in the target space.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag_name"
+      },
+      {
+        "name": "tag_to_delete",
+        "required": true,
+        "description": "JSON object specifying the tag to be deleted from the space.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "tag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1space~1%7Bspace_id%7D~1tag/post/requestBody/content/application~1json/schema/properties/tag"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteSpaceTag'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/space/{space_id}/tag/{tag_name}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "space_id",
+        "tool_parameter_name": "space_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag_name",
+        "tool_parameter_name": "tag_name_to_delete",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "tag_to_delete",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "tag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Schema reference broken: #/paths/~1v2~1space~1%7Bspace_id%7D~1tag/post/requestBody/content/application~1json/schema/properties/tag"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"DeleteSpaceTagrequest\",\n        \"required\": [\n          \"tag\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"tag\": {\n            \"type\": \"object\",\n            \"description\": \"Schema reference broken: #/paths/~1v2~1space~1%7Bspace_id%7D~1tag/post/requestBody/content/application~1json/schema/properties/tag\",\n            \"additionalProperties\": true,\n            \"x-moar-broken-reference\": \"#/paths/~1v2~1space~1%7Bspace_id%7D~1tag/post/requestBody/content/application~1json/schema/properties/tag\"\n          }\n        },\n        \"examples\": [\n          {\n            \"tag\": {\n              \"name\": \"Tag name\",\n              \"tag_fg\": \"#000000\",\n              \"tag_bg\": \"#000000\"\n            }\n          }\n        ]\n      },\n      \"example\": {\n        \"tag\": {\n          \"name\": \"Tag name\",\n          \"tag_fg\": \"#000000\",\n          \"tag_bg\": \"#000000\"\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

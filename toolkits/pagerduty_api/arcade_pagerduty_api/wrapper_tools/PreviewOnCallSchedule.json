@@ -1,0 +1,292 @@
+{
+  "name": "PreviewOnCallSchedule",
+  "fully_qualified_name": "PagerdutyApi.PreviewOnCallSchedule@2.0.0",
+  "description": "Generate a preview of an on-call schedule without saving it.\n\nThis tool previews an on-call schedule, allowing users to see time periods when team members are on-call without making any permanent changes. Useful for planning and adjustments before finalizing the schedule. Requires appropriate OAuth permissions.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "Specifies the version of the API to use. Typically set as a string like 'application/vnd.pagerduty+json;version=2'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "The content type of the request, should be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "start_date_range",
+        "required": false,
+        "description": "The start date and time for the schedule preview. Use ISO 8601 format (e.g., '2023-10-01T10:00:00Z').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "end_date",
+        "required": false,
+        "description": "The end date of the range for the on-call schedule preview. Format as ISO 8601 string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the date range over which you want to search."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "schedule_data",
+        "required": false,
+        "description": "JSON object representing the schedule to be previewed.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "schedule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The schedule to be previewed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_overflow_entries",
+        "required": false,
+        "description": "Set to true to allow schedule entries to overflow beyond the date range bounds. Defaults to false. True includes entries beyond specified dates.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any on-call schedule entries that pass the date range bounds will be truncated at the bounds, unless the parameter `overflow=true` is passed. This parameter defaults to false.\nFor instance, if your schedule is a rotation that changes daily at midnight UTC, and your date range is from `2011-06-01T10:00:00Z` to `2011-06-01T14:00:00Z`:\n\n\n- If you don't pass the `overflow=true` parameter, you will get one schedule entry returned with a start of `2011-06-01T10:00:00Z` and end of `2011-06-01T14:00:00Z`.\n- If you do pass the `overflow=true` parameter, you will get one schedule entry returned with a start of `2011-06-01T00:00:00Z` and end of `2011-06-02T00:00:00Z`.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "overflow"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createSchedulePreview'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/schedules/preview",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "since",
+        "tool_parameter_name": "start_date_range",
+        "description": "The start of the date range over which you want to search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "end_date",
+        "description": "The end of the date range over which you want to search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the date range over which you want to search."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "overflow",
+        "tool_parameter_name": "include_overflow_entries",
+        "description": "Any on-call schedule entries that pass the date range bounds will be truncated at the bounds, unless the parameter `overflow=true` is passed. This parameter defaults to false.\nFor instance, if your schedule is a rotation that changes daily at midnight UTC, and your date range is from `2011-06-01T10:00:00Z` to `2011-06-01T14:00:00Z`:\n\n\n- If you don't pass the `overflow=true` parameter, you will get one schedule entry returned with a start of `2011-06-01T10:00:00Z` and end of `2011-06-01T14:00:00Z`.\n- If you do pass the `overflow=true` parameter, you will get one schedule entry returned with a start of `2011-06-01T00:00:00Z` and end of `2011-06-02T00:00:00Z`.\n",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any on-call schedule entries that pass the date range bounds will be truncated at the bounds, unless the parameter `overflow=true` is passed. This parameter defaults to false.\nFor instance, if your schedule is a rotation that changes daily at midnight UTC, and your date range is from `2011-06-01T10:00:00Z` to `2011-06-01T14:00:00Z`:\n\n\n- If you don't pass the `overflow=true` parameter, you will get one schedule entry returned with a start of `2011-06-01T10:00:00Z` and end of `2011-06-01T14:00:00Z`.\n- If you do pass the `overflow=true` parameter, you will get one schedule entry returned with a start of `2011-06-01T00:00:00Z` and end of `2011-06-02T00:00:00Z`.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "schedule_data",
+        "description": "The schedule to be previewed.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "schedule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The schedule to be previewed."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"schedule\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"The type of object being created.\",\n                    \"default\": \"schedule\",\n                    \"enum\": [\n                      \"schedule\"\n                    ]\n                  },\n                  \"schedule_layers\": {\n                    \"type\": \"array\",\n                    \"description\": \"A list of schedule layers.\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"id\": {\n                          \"type\": \"string\"\n                        },\n                        \"start\": {\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"description\": \"The start time of this layer.\"\n                        },\n                        \"end\": {\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"description\": \"The end time of this layer. If `null`, the layer does not end.\"\n                        },\n                        \"users\": {\n                          \"type\": \"array\",\n                          \"description\": \"The ordered list of users on this layer. The position of the user on the list determines their order in the layer.\",\n                          \"items\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"user\": {\n                                \"allOf\": [\n                                  {\n                                    \"allOf\": [\n                                      {\n                                        \"type\": \"object\",\n                                        \"properties\": {\n                                          \"id\": {\n                                            \"type\": \"string\",\n                                            \"readOnly\": true\n                                          },\n                                          \"summary\": {\n                                            \"type\": \"string\",\n                                            \"nullable\": true,\n                                            \"readOnly\": true,\n                                            \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                          },\n                                          \"type\": {\n                                            \"type\": \"string\",\n                                            \"readOnly\": true,\n                                            \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                          },\n                                          \"self\": {\n                                            \"type\": \"string\",\n                                            \"nullable\": true,\n                                            \"readOnly\": true,\n                                            \"format\": \"url\",\n                                            \"description\": \"the API show URL at which the object is accessible\"\n                                          },\n                                          \"html_url\": {\n                                            \"type\": \"string\",\n                                            \"nullable\": true,\n                                            \"readOnly\": true,\n                                            \"format\": \"url\",\n                                            \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                          }\n                                        }\n                                      },\n                                      {\n                                        \"type\": \"object\",\n                                        \"required\": [\n                                          \"type\",\n                                          \"id\"\n                                        ]\n                                      }\n                                    ]\n                                  },\n                                  {\n                                    \"type\": \"object\",\n                                    \"properties\": {\n                                      \"type\": {\n                                        \"type\": \"string\",\n                                        \"enum\": [\n                                          \"user_reference\"\n                                        ]\n                                      }\n                                    }\n                                  }\n                                ]\n                              }\n                            },\n                            \"required\": [\n                              \"user\"\n                            ]\n                          }\n                        },\n                        \"restrictions\": {\n                          \"type\": \"array\",\n                          \"description\": \"An array of restrictions for the layer. A restriction is a limit on which period of the day or week the schedule layer can accept assignments. Restrictions respect the `time_zone` parameter of the request.\",\n                          \"items\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"description\": \"Specify the types of `restriction`.\",\n                                \"enum\": [\n                                  \"daily_restriction\",\n                                  \"weekly_restriction\"\n                                ]\n                              },\n                              \"duration_seconds\": {\n                                \"type\": \"integer\",\n                                \"description\": \"The duration of the restriction in seconds.\"\n                              },\n                              \"start_time_of_day\": {\n                                \"type\": \"string\",\n                                \"format\": \"partial-time\",\n                                \"description\": \"The start time in HH:mm:ss format.\"\n                              },\n                              \"start_day_of_week\": {\n                                \"type\": \"integer\",\n                                \"description\": \"Only required for use with a `weekly_restriction` restriction type. The first day of the weekly rotation schedule as [ISO 8601 day](https://en.wikipedia.org/wiki/ISO_week_date) (1 is Monday, etc.)\",\n                                \"minimum\": 1,\n                                \"maximum\": 7\n                              }\n                            },\n                            \"discriminator\": {\n                              \"propertyName\": \"type\"\n                            },\n                            \"required\": [\n                              \"type\",\n                              \"duration_seconds\",\n                              \"start_time_of_day\"\n                            ]\n                          }\n                        },\n                        \"rotation_virtual_start\": {\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"description\": \"The effective start time of the layer. This can be before the start time of the schedule.\"\n                        },\n                        \"rotation_turn_length_seconds\": {\n                          \"type\": \"integer\",\n                          \"description\": \"The duration of each on-call shift in seconds.\"\n                        },\n                        \"name\": {\n                          \"type\": \"string\",\n                          \"description\": \"The name of the schedule layer.\"\n                        },\n                        \"rendered_schedule_entries\": {\n                          \"type\": \"array\",\n                          \"readOnly\": true,\n                          \"description\": \"This is a list of entries on the computed layer for the current time range. Since or until must be set in order for this field to be populated.\",\n                          \"items\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"user\": {\n                                \"allOf\": [\n                                  {\n                                    \"allOf\": [\n                                      {\n                                        \"type\": \"object\",\n                                        \"properties\": {\n                                          \"id\": {\n                                            \"type\": \"string\",\n                                            \"readOnly\": true\n                                          },\n                                          \"summary\": {\n                                            \"type\": \"string\",\n                                            \"nullable\": true,\n                                            \"readOnly\": true,\n                                            \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                          },\n                                          \"type\": {\n                                            \"type\": \"string\",\n                                            \"readOnly\": true,\n                                            \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                          },\n                                          \"self\": {\n                                            \"type\": \"string\",\n                                            \"nullable\": true,\n                                            \"readOnly\": true,\n                                            \"format\": \"url\",\n                                            \"description\": \"the API show URL at which the object is accessible\"\n                                          },\n                                          \"html_url\": {\n                                            \"type\": \"string\",\n                                            \"nullable\": true,\n                                            \"readOnly\": true,\n                                            \"format\": \"url\",\n                                            \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                          }\n                                        }\n                                      },\n                                      {\n                                        \"type\": \"object\",\n                                        \"required\": [\n                                          \"type\",\n                                          \"id\"\n                                        ]\n                                      }\n                                    ]\n                                  },\n                                  {\n                                    \"type\": \"object\",\n                                    \"properties\": {\n                                      \"type\": {\n                                        \"type\": \"string\",\n                                        \"enum\": [\n                                          \"user_reference\"\n                                        ]\n                                      }\n                                    }\n                                  }\n                                ]\n                              },\n                              \"start\": {\n                                \"type\": \"string\",\n                                \"format\": \"date-time\",\n                                \"readOnly\": true,\n                                \"description\": \"The start time of this entry.\"\n                              },\n                              \"end\": {\n                                \"type\": \"string\",\n                                \"format\": \"date-time\",\n                                \"readOnly\": true,\n                                \"description\": \"The end time of this entry. If null, the entry does not end.\"\n                              }\n                            },\n                            \"required\": [\n                              \"start\",\n                              \"end\"\n                            ]\n                          }\n                        },\n                        \"rendered_coverage_percentage\": {\n                          \"type\": \"number\",\n                          \"readOnly\": true,\n                          \"description\": \"The percentage of the time range covered by this layer. Returns null unless since or until are set.\"\n                        }\n                      },\n                      \"required\": [\n                        \"start\",\n                        \"users\",\n                        \"rotation_virtual_start\",\n                        \"rotation_turn_length_seconds\"\n                      ]\n                    }\n                  },\n                  \"time_zone\": {\n                    \"type\": \"string\",\n                    \"format\": \"activesupport-time-zone\",\n                    \"description\": \"The time zone of the schedule.\"\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the schedule\"\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"description\": \"The description of the schedule\"\n                  },\n                  \"final_schedule\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"name\": {\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"description\": \"The name of the subschedule\",\n                        \"enum\": [\n                          \"Final Schedule\",\n                          \"Overrides\"\n                        ]\n                      },\n                      \"rendered_schedule_entries\": {\n                        \"type\": \"array\",\n                        \"readOnly\": true,\n                        \"description\": \"This is a list of entries on the computed layer for the current time range. Since or until must be set in order for this field to be populated.\",\n                        \"items\": {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"user\": {\n                              \"allOf\": [\n                                {\n                                  \"allOf\": [\n                                    {\n                                      \"type\": \"object\",\n                                      \"properties\": {\n                                        \"id\": {\n                                          \"type\": \"string\",\n                                          \"readOnly\": true\n                                        },\n                                        \"summary\": {\n                                          \"type\": \"string\",\n                                          \"nullable\": true,\n                                          \"readOnly\": true,\n                                          \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                        },\n                                        \"type\": {\n                                          \"type\": \"string\",\n                                          \"readOnly\": true,\n                                          \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                        },\n                                        \"self\": {\n                                          \"type\": \"string\",\n                                          \"nullable\": true,\n                                          \"readOnly\": true,\n                                          \"format\": \"url\",\n                                          \"description\": \"the API show URL at which the object is accessible\"\n                                        },\n                                        \"html_url\": {\n                                          \"type\": \"string\",\n                                          \"nullable\": true,\n                                          \"readOnly\": true,\n                                          \"format\": \"url\",\n                                          \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                        }\n                                      }\n                                    },\n                                    {\n                                      \"type\": \"object\",\n                                      \"required\": [\n                                        \"type\",\n                                        \"id\"\n                                      ]\n                                    }\n                                  ]\n                                },\n                                {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"type\": {\n                                      \"type\": \"string\",\n                                      \"enum\": [\n                                        \"user_reference\"\n                                      ]\n                                    }\n                                  }\n                                }\n                              ]\n                            },\n                            \"start\": {\n                              \"type\": \"string\",\n                              \"format\": \"date-time\",\n                              \"readOnly\": true,\n                              \"description\": \"The start time of this entry.\"\n                            },\n                            \"end\": {\n                              \"type\": \"string\",\n                              \"format\": \"date-time\",\n                              \"readOnly\": true,\n                              \"description\": \"The end time of this entry. If null, the entry does not end.\"\n                            }\n                          },\n                          \"required\": [\n                            \"start\",\n                            \"end\"\n                          ]\n                        }\n                      },\n                      \"rendered_coverage_percentage\": {\n                        \"type\": \"number\",\n                        \"readOnly\": true,\n                        \"description\": \"The percentage of the time range covered by this layer. Returns null unless since or until are set.\"\n                      }\n                    },\n                    \"required\": [\n                      \"name\"\n                    ]\n                  },\n                  \"overrides_subschedule\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"name\": {\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"description\": \"The name of the subschedule\",\n                        \"enum\": [\n                          \"Final Schedule\",\n                          \"Overrides\"\n                        ]\n                      },\n                      \"rendered_schedule_entries\": {\n                        \"type\": \"array\",\n                        \"readOnly\": true,\n                        \"description\": \"This is a list of entries on the computed layer for the current time range. Since or until must be set in order for this field to be populated.\",\n                        \"items\": {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"user\": {\n                              \"allOf\": [\n                                {\n                                  \"allOf\": [\n                                    {\n                                      \"type\": \"object\",\n                                      \"properties\": {\n                                        \"id\": {\n                                          \"type\": \"string\",\n                                          \"readOnly\": true\n                                        },\n                                        \"summary\": {\n                                          \"type\": \"string\",\n                                          \"nullable\": true,\n                                          \"readOnly\": true,\n                                          \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                        },\n                                        \"type\": {\n                                          \"type\": \"string\",\n                                          \"readOnly\": true,\n                                          \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                        },\n                                        \"self\": {\n                                          \"type\": \"string\",\n                                          \"nullable\": true,\n                                          \"readOnly\": true,\n                                          \"format\": \"url\",\n                                          \"description\": \"the API show URL at which the object is accessible\"\n                                        },\n                                        \"html_url\": {\n                                          \"type\": \"string\",\n                                          \"nullable\": true,\n                                          \"readOnly\": true,\n                                          \"format\": \"url\",\n                                          \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                        }\n                                      }\n                                    },\n                                    {\n                                      \"type\": \"object\",\n                                      \"required\": [\n                                        \"type\",\n                                        \"id\"\n                                      ]\n                                    }\n                                  ]\n                                },\n                                {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"type\": {\n                                      \"type\": \"string\",\n                                      \"enum\": [\n                                        \"user_reference\"\n                                      ]\n                                    }\n                                  }\n                                }\n                              ]\n                            },\n                            \"start\": {\n                              \"type\": \"string\",\n                              \"format\": \"date-time\",\n                              \"readOnly\": true,\n                              \"description\": \"The start time of this entry.\"\n                            },\n                            \"end\": {\n                              \"type\": \"string\",\n                              \"format\": \"date-time\",\n                              \"readOnly\": true,\n                              \"description\": \"The end time of this entry. If null, the entry does not end.\"\n                            }\n                          },\n                          \"required\": [\n                            \"start\",\n                            \"end\"\n                          ]\n                        }\n                      },\n                      \"rendered_coverage_percentage\": {\n                        \"type\": \"number\",\n                        \"readOnly\": true,\n                        \"description\": \"The percentage of the time range covered by this layer. Returns null unless since or until are set.\"\n                      }\n                    },\n                    \"required\": [\n                      \"name\"\n                    ]\n                  },\n                  \"escalation_policies\": {\n                    \"type\": \"array\",\n                    \"readOnly\": true,\n                    \"description\": \"An array of all of the escalation policies that uses this schedule.\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"escalation_policy_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  },\n                  \"users\": {\n                    \"type\": \"array\",\n                    \"readOnly\": true,\n                    \"description\": \"An array of all of the users on the schedule.\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"user_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  },\n                  \"teams\": {\n                    \"type\": \"array\",\n                    \"readOnly\": true,\n                    \"description\": \"An array of all of the teams on the schedule.\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"team_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  },\n                  \"next_oncall_for_user\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"start\": {\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"description\": \"The start date for the User shift\"\n                      },\n                      \"end\": {\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"description\": \"The end date for the User shift\"\n                      },\n                      \"user\": {\n                        \"allOf\": [\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"id\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true\n                              },\n                              \"summary\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                              },\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true,\n                                \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                              },\n                              \"self\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"the API show URL at which the object is accessible\"\n                              },\n                              \"html_url\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                              }\n                            }\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"required\": [\n                              \"type\",\n                              \"id\"\n                            ]\n                          }\n                        ]\n                      }\n                    }\n                  }\n                },\n                \"required\": [\n                  \"time_zone\",\n                  \"type\"\n                ],\n                \"example\": {\n                  \"name\": \"Daily Engineering Rotation\",\n                  \"type\": \"schedule\",\n                  \"time_zone\": \"America/New_York\",\n                  \"description\": \"Rotation schedule for engineering\",\n                  \"schedule_layers\": [\n                    {\n                      \"name\": \"Night Shift\",\n                      \"start\": \"2015-11-06T20:00:00-05:00\",\n                      \"end\": \"2016-11-06T20:00:00-05:00\",\n                      \"rotation_virtual_start\": \"2015-11-06T20:00:00-05:00\",\n                      \"rotation_turn_length_seconds\": 86400,\n                      \"users\": [\n                        {\n                          \"user\": {\n                            \"id\": \"PXPGF42\",\n                            \"type\": \"user_reference\"\n                          }\n                        }\n                      ],\n                      \"restrictions\": [\n                        {\n                          \"type\": \"daily_restriction\",\n                          \"start_time_of_day\": \"08:00:00\",\n                          \"duration_seconds\": 32400\n                        }\n                      ]\n                    }\n                  ]\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"schedule\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"schedule\": {\n              \"name\": \"Daily Engineering Rotation\",\n              \"type\": \"schedule\",\n              \"time_zone\": \"America/New_York\",\n              \"description\": \"Rotation schedule for engineering\",\n              \"schedule_layers\": [\n                {\n                  \"name\": \"Night Shift\",\n                  \"start\": \"2015-11-06T20:00:00-05:00\",\n                  \"end\": \"2016-11-06T20:00:00-05:00\",\n                  \"rotation_virtual_start\": \"2015-11-06T20:00:00-05:00\",\n                  \"rotation_turn_length_seconds\": 86400,\n                  \"users\": [\n                    {\n                      \"user\": {\n                        \"id\": \"PXPGF42\",\n                        \"type\": \"user_reference\"\n                      }\n                    }\n                  ],\n                  \"restrictions\": [\n                    {\n                      \"type\": \"daily_restriction\",\n                      \"start_time_of_day\": \"08:00:00\",\n                      \"duration_seconds\": 32400\n                    }\n                  ]\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The schedule to be previewed.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

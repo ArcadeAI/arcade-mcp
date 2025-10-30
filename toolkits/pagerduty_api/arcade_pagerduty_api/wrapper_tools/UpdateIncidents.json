@@ -1,0 +1,625 @@
+{
+  "name": "UpdateIncidents",
+  "fully_qualified_name": "PagerdutyApi.UpdateIncidents@2.0.0",
+  "description": "Manage the status of multiple incidents.\n\nUse this tool to acknowledge, resolve, escalate, or reassign up to 250 incidents simultaneously. It is useful for addressing and managing problems that need immediate attention. Ensure to stay within the rate limits and have the required 'incidents.write' OAuth permission.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "response_version_header",
+        "required": true,
+        "description": "Specifies the API versioning in the `Accept` header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the request body. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "user_email",
+        "required": true,
+        "description": "The email address of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "From"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specifies the maximum number of incident results to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_start_offset",
+        "required": false,
+        "description": "Offset from where to start paginated search results. This is used to navigate search results effectively.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset to start pagination search results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "incident_updates",
+        "required": false,
+        "description": "A JSON array detailing incidents to update, including status, type, resolution, title, priority, etc. Max 250 incidents.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "incidents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the incident to update."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident",
+                    "incident_reference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident type."
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "resolved",
+                    "acknowledged",
+                    "triggered"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The new status of the incident. If the incident is currently resolved, setting the status to \"triggered\" or \"acknowledged\" will reopen it. When reopening an incident to the \"triggered\" status, it will be assigned based on the assignees or escalation_policy fields in the request, otherwise it will be assigned to the current Escalation Policy. When reopening an incident to the \"acknowledged\" status, it will be assigned to the current user."
+                },
+                "resolution": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The resolution for this incident. This field is used only when setting the incident status to resolved.\nThe value provided here is added to the incident\u2019s 'Resolve' log entry as a note and will not be displayed directly in the UI.\n"
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A succinct description of the nature, symptoms, cause, or effect of the incident."
+                },
+                "priority": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The priority of the incident. Can be provided as a priority object or a string matching a priority name. If a string is provided, the highest priority with a matching name will be used."
+                },
+                "escalation_level": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Escalate the incident to this level in the escalation policy."
+                },
+                "assignments": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "assignee": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "description": "Assign the incident to these assignees."
+                },
+                "incident_type": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the Incident Type."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "escalation_policy": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "urgency": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "high",
+                    "low"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The urgency of the incident."
+                },
+                "conference_bridge": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conference_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The phone number of the conference call for the conference bridge. Phone numbers should be formatted like +1 415-555-1212,,,,1234#, where a comma (,) represents a one-second wait and pound (#) completes access code input."
+                    },
+                    "conference_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An URL for the conference bridge. This could be a link to a web conference or Slack channel."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "An array of incidents, including the parameters to update."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_total_in_pagination",
+        "required": false,
+        "description": "Set to true to populate the 'total' field in pagination responses. Otherwise, it remains null for faster response times.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateIncidents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "The number of results per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "pagination_start_offset",
+        "description": "Offset to start pagination search results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset to start pagination search results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "include_total_in_pagination",
+        "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "response_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "From",
+        "tool_parameter_name": "user_email",
+        "description": "The email address of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_updates",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "incidents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the incident to update."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident",
+                    "incident_reference"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident type."
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "resolved",
+                    "acknowledged",
+                    "triggered"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The new status of the incident. If the incident is currently resolved, setting the status to \"triggered\" or \"acknowledged\" will reopen it. When reopening an incident to the \"triggered\" status, it will be assigned based on the assignees or escalation_policy fields in the request, otherwise it will be assigned to the current Escalation Policy. When reopening an incident to the \"acknowledged\" status, it will be assigned to the current user."
+                },
+                "resolution": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The resolution for this incident. This field is used only when setting the incident status to resolved.\nThe value provided here is added to the incident\u2019s 'Resolve' log entry as a note and will not be displayed directly in the UI.\n"
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A succinct description of the nature, symptoms, cause, or effect of the incident."
+                },
+                "priority": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The priority of the incident. Can be provided as a priority object or a string matching a priority name. If a string is provided, the highest priority with a matching name will be used."
+                },
+                "escalation_level": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Escalate the incident to this level in the escalation policy."
+                },
+                "assignments": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "assignee": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "description": "Assign the incident to these assignees."
+                },
+                "incident_type": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the Incident Type."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "escalation_policy": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "urgency": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "high",
+                    "low"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The urgency of the incident."
+                },
+                "conference_bridge": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conference_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The phone number of the conference call for the conference bridge. Phone numbers should be formatted like +1 415-555-1212,,,,1234#, where a comma (,) represents a one-second wait and pound (#) completes access code input."
+                    },
+                    "conference_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An URL for the conference bridge. This could be a link to a web conference or Slack channel."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "An array of incidents, including the parameters to update."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"incidents\": {\n            \"type\": \"array\",\n            \"description\": \"An array of incidents, including the parameters to update.\",\n            \"items\": {\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\",\n                  \"description\": \"The id of the incident to update.\"\n                },\n                \"type\": {\n                  \"type\": \"string\",\n                  \"description\": \"The incident type.\",\n                  \"enum\": [\n                    \"incident\",\n                    \"incident_reference\"\n                  ]\n                },\n                \"status\": {\n                  \"type\": \"string\",\n                  \"description\": \"The new status of the incident. If the incident is currently resolved, setting the status to \\\"triggered\\\" or \\\"acknowledged\\\" will reopen it. When reopening an incident to the \\\"triggered\\\" status, it will be assigned based on the assignees or escalation_policy fields in the request, otherwise it will be assigned to the current Escalation Policy. When reopening an incident to the \\\"acknowledged\\\" status, it will be assigned to the current user.\",\n                  \"enum\": [\n                    \"resolved\",\n                    \"acknowledged\",\n                    \"triggered\"\n                  ]\n                },\n                \"resolution\": {\n                  \"type\": \"string\",\n                  \"description\": \"The resolution for this incident. This field is used only when setting the incident status to resolved.\\nThe value provided here is added to the incident\\u2019s 'Resolve' log entry as a note and will not be displayed directly in the UI.\\n\"\n                },\n                \"title\": {\n                  \"type\": \"string\",\n                  \"description\": \"A succinct description of the nature, symptoms, cause, or effect of the incident.\"\n                },\n                \"priority\": {\n                  \"description\": \"The priority of the incident. Can be provided as a priority object or a string matching a priority name. If a string is provided, the highest priority with a matching name will be used.\",\n                  \"oneOf\": [\n                    {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"id\": {\n                          \"type\": \"string\",\n                          \"description\": \"The ID of the priority.\"\n                        },\n                        \"name\": {\n                          \"type\": \"string\",\n                          \"description\": \"The user-provided short name of the priority.\"\n                        },\n                        \"type\": {\n                          \"type\": \"string\",\n                          \"description\": \"The type of the reference.\",\n                          \"enum\": [\n                            \"priority\",\n                            \"priority_reference\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"id\",\n                        \"type\"\n                      ]\n                    },\n                    {\n                      \"type\": \"string\",\n                      \"description\": \"A string matching the name of a priority. If provided, the highest priority with a matching name will be used.\"\n                    }\n                  ]\n                },\n                \"escalation_level\": {\n                  \"type\": \"integer\",\n                  \"description\": \"Escalate the incident to this level in the escalation policy.\"\n                },\n                \"assignments\": {\n                  \"type\": \"array\",\n                  \"description\": \"Assign the incident to these assignees.\",\n                  \"items\": {\n                    \"properties\": {\n                      \"assignee\": {\n                        \"allOf\": [\n                          {\n                            \"allOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"id\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true\n                                  },\n                                  \"summary\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                  },\n                                  \"type\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true,\n                                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                  },\n                                  \"self\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"the API show URL at which the object is accessible\"\n                                  },\n                                  \"html_url\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                  }\n                                }\n                              },\n                              {\n                                \"type\": \"object\",\n                                \"required\": [\n                                  \"type\",\n                                  \"id\"\n                                ]\n                              }\n                            ]\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"user_reference\"\n                                ]\n                              }\n                            }\n                          }\n                        ]\n                      }\n                    }\n                  }\n                },\n                \"incident_type\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"readOnly\": true\n                    },\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"description\": \"The name of the Incident Type.\"\n                    }\n                  }\n                },\n                \"escalation_policy\": {\n                  \"allOf\": [\n                    {\n                      \"allOf\": [\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"id\": {\n                              \"type\": \"string\",\n                              \"readOnly\": true\n                            },\n                            \"summary\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"readOnly\": true,\n                              \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                            },\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"readOnly\": true,\n                              \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                            },\n                            \"self\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"readOnly\": true,\n                              \"format\": \"url\",\n                              \"description\": \"the API show URL at which the object is accessible\"\n                            },\n                            \"html_url\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"readOnly\": true,\n                              \"format\": \"url\",\n                              \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"required\": [\n                            \"type\",\n                            \"id\"\n                          ]\n                        }\n                      ]\n                    },\n                    {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"type\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"escalation_policy_reference\"\n                          ]\n                        }\n                      }\n                    }\n                  ]\n                },\n                \"urgency\": {\n                  \"type\": \"string\",\n                  \"description\": \"The urgency of the incident.\",\n                  \"enum\": [\n                    \"high\",\n                    \"low\"\n                  ]\n                },\n                \"conference_bridge\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"conference_number\": {\n                      \"type\": \"string\",\n                      \"description\": \"The phone number of the conference call for the conference bridge. Phone numbers should be formatted like +1 415-555-1212,,,,1234#, where a comma (,) represents a one-second wait and pound (#) completes access code input.\"\n                    },\n                    \"conference_url\": {\n                      \"type\": \"string\",\n                      \"format\": \"url\",\n                      \"description\": \"An URL for the conference bridge. This could be a link to a web conference or Slack channel.\"\n                    }\n                  }\n                }\n              },\n              \"required\": [\n                \"id\",\n                \"type\"\n              ]\n            }\n          }\n        },\n        \"required\": [\n          \"incidents\"\n        ]\n      },\n      \"examples\": {\n        \"incidents\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"incidents\": [\n              {\n                \"id\": \"PT4KHLK\",\n                \"type\": \"incident_reference\",\n                \"status\": \"acknowledged\"\n              },\n              {\n                \"id\": \"PQMF62U\",\n                \"type\": \"incident_reference\",\n                \"priority\": {\n                  \"id\": \"P53ZZH5\",\n                  \"type\": \"priority_reference\"\n                }\n              },\n              {\n                \"id\": \"PPVZH9X\",\n                \"type\": \"incident_reference\",\n                \"status\": \"resolved\"\n              },\n              {\n                \"id\": \"P8JOGX7\",\n                \"type\": \"incident_reference\",\n                \"assignments\": [\n                  {\n                    \"assignee\": {\n                      \"id\": \"PXPGF42\",\n                      \"type\": \"user_reference\"\n                    }\n                  }\n                ]\n              },\n              {\n                \"id\": \"PYJ9K7I\",\n                \"type\": \"incident_reference\",\n                \"incident_type\": {\n                  \"name\": \"major_incident\"\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

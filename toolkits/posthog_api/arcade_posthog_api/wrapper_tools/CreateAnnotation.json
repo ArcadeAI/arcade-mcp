@@ -1,0 +1,408 @@
+{
+  "name": "CreateAnnotation",
+  "fully_qualified_name": "PosthogApi.CreateAnnotation@0.1.0",
+  "description": "Create a new annotation for a project.\n\nUse this tool to create a new annotation within a specified project in Datadog. This can be used to track important events or notes related to project data.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The ID of the project where the annotation will be created. Obtain it via /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "annotation_details",
+        "required": false,
+        "description": "The details of the annotation to be created, including ID, content, date, creation type, and related dashboard/insight information.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "content": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "date_marker": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "creation_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "USR",
+                "GIT"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `USR` - user\n* `GIT` - GitHub"
+            },
+            "dashboard_item": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "insight_short_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "insight_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "insight_derived_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "scope": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "dashboard_item",
+                "dashboard",
+                "project",
+                "organization",
+                "recording"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `dashboard_item` - insight\n* `dashboard` - dashboard\n* `project` - project\n* `organization` - organization\n* `recording` - recording"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'annotations_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/annotations/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "annotation_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "content": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "date_marker": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "creation_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "USR",
+                "GIT"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `USR` - user\n* `GIT` - GitHub"
+            },
+            "dashboard_item": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "dashboard_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "insight_short_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "insight_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "insight_derived_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "scope": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "dashboard_item",
+                "dashboard",
+                "project",
+                "organization",
+                "recording"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "* `dashboard_item` - insight\n* `dashboard` - dashboard\n* `project` - project\n* `organization` - organization\n* `recording` - recording"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"content\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"date_marker\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"creation_type\": {\n            \"enum\": [\n              \"USR\",\n              \"GIT\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `USR` - user\\n* `GIT` - GitHub\"\n          },\n          \"dashboard_item\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"dashboard_id\": {\n            \"type\": \"integer\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"dashboard_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"insight_short_id\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"insight_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"insight_derived_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"scope\": {\n            \"enum\": [\n              \"dashboard_item\",\n              \"dashboard\",\n              \"project\",\n              \"organization\",\n              \"recording\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `dashboard_item` - insight\\n* `dashboard` - dashboard\\n* `project` - project\\n* `organization` - organization\\n* `recording` - recording\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"dashboard_id\",\n          \"dashboard_name\",\n          \"id\",\n          \"insight_derived_name\",\n          \"insight_name\",\n          \"insight_short_id\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"content\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"date_marker\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"creation_type\": {\n            \"enum\": [\n              \"USR\",\n              \"GIT\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `USR` - user\\n* `GIT` - GitHub\"\n          },\n          \"dashboard_item\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"dashboard_id\": {\n            \"type\": \"integer\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"dashboard_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"insight_short_id\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"insight_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"insight_derived_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"scope\": {\n            \"enum\": [\n              \"dashboard_item\",\n              \"dashboard\",\n              \"project\",\n              \"organization\",\n              \"recording\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `dashboard_item` - insight\\n* `dashboard` - dashboard\\n* `project` - project\\n* `organization` - organization\\n* `recording` - recording\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"dashboard_id\",\n          \"dashboard_name\",\n          \"id\",\n          \"insight_derived_name\",\n          \"insight_name\",\n          \"insight_short_id\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"content\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"date_marker\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"creation_type\": {\n            \"enum\": [\n              \"USR\",\n              \"GIT\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `USR` - user\\n* `GIT` - GitHub\"\n          },\n          \"dashboard_item\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"dashboard_id\": {\n            \"type\": \"integer\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"dashboard_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"insight_short_id\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"insight_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"insight_derived_name\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"deleted\": {\n            \"type\": \"boolean\"\n          },\n          \"scope\": {\n            \"enum\": [\n              \"dashboard_item\",\n              \"dashboard\",\n              \"project\",\n              \"organization\",\n              \"recording\"\n            ],\n            \"type\": \"string\",\n            \"description\": \"* `dashboard_item` - insight\\n* `dashboard` - dashboard\\n* `project` - project\\n* `organization` - organization\\n* `recording` - recording\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"dashboard_id\",\n          \"dashboard_name\",\n          \"id\",\n          \"insight_derived_name\",\n          \"insight_name\",\n          \"insight_short_id\",\n          \"updated_at\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

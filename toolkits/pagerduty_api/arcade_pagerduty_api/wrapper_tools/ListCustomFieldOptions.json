@@ -1,18 +1,18 @@
 {
   "name": "ListCustomFieldOptions",
-  "fully_qualified_name": "PagerdutyApi.ListCustomFieldOptions@0.1.0",
-  "description": "List available options for a custom incident field.\n\nUse this tool to retrieve the options for a custom field associated with a specific incident type in Pagerduty. Useful for contexts requiring customized filtering, search, or analytics based on incident-specific data.",
+  "fully_qualified_name": "PagerdutyApi.ListCustomFieldOptions@2.0.0",
+  "description": "Retrieve options for a custom field in an incident type.\n\nThis tool retrieves a list of field options for a custom field associated with a specific incident type. It helps in extending incidents with custom data for better filtering, search, and analytics.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "incident_type_id_or_name",
+        "name": "incident_type_identifier",
         "required": true,
-        "description": "The ID or name of the Incident Type to list custom field options for.",
+        "description": "The ID or name of the Incident Type for which to retrieve custom field options.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "field_identifier",
         "required": true,
-        "description": "The unique identifier for the custom field whose options are being retrieved.",
+        "description": "The unique identifier for the custom field.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "field_id"
       },
       {
-        "name": "accept_header_version",
+        "name": "accept_header",
         "required": true,
-        "description": "Specifies the API versioning for the request using the Accept header. Ensure this matches the required version format.",
+        "description": "Specifies the versioning header for the request. Use format 'application/vnd.pagerduty+json;version=2'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "The format of the requested response, typically 'application/json'.",
+        "description": "Specify the content type as 'application/json'. This header is required for processing the request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incidents/types/{type_id_or_name}/custom_fields/{field_id}/field_options",
@@ -117,7 +117,7 @@
     "parameters": [
       {
         "name": "type_id_or_name",
-        "tool_parameter_name": "incident_type_id_or_name",
+        "tool_parameter_name": "incident_type_identifier",
         "description": "The ID or name of the Incident Type.",
         "value_schema": {
           "val_type": "string",
@@ -153,7 +153,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -171,7 +171,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

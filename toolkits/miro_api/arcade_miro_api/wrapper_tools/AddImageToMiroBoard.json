@@ -1,0 +1,369 @@
+{
+  "name": "AddImageToMiroBoard",
+  "fully_qualified_name": "MiroApi.AddImageToMiroBoard@2.0.0",
+  "description": "Add an image to a Miro board using a URL.\n\nThis tool is used to add an image to a specific Miro board by providing an image URL. It requires the 'boards:write' scope for authorization. Ideal for users who want to enhance their Miro boards with visual content by specifying image links.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_unique_identifier",
+        "required": true,
+        "description": "The unique identifier for the board where the image will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to create the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "image_url",
+        "required": true,
+        "description": "URL of the image to be added to the Miro board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "URL of the image."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.url"
+      },
+      {
+        "name": "image_title",
+        "required": false,
+        "description": "A short text header to identify the image on the Miro board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short text header to identify the image."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.title"
+      },
+      {
+        "name": "x_axis_coordinate",
+        "required": false,
+        "description": "X-axis coordinate for the image location on the Miro board. Center is at x: 0. Default is 0.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position.x"
+      },
+      {
+        "name": "y_axis_coordinate",
+        "required": false,
+        "description": "Y-axis coordinate of the item's location on the board. Default is 0, centered on the board.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position.y"
+      },
+      {
+        "name": "image_height_pixels",
+        "required": false,
+        "description": "Height of the image in pixels to be added to the Miro board.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Height of the item, in pixels."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "geometry.height"
+      },
+      {
+        "name": "image_width_pixels",
+        "required": false,
+        "description": "The width of the image in pixels to be added to the board.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Width of the item, in pixels."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "geometry.width"
+      },
+      {
+        "name": "rotation_angle_degrees",
+        "required": false,
+        "description": "Rotation angle of the image, in degrees, relative to the board. Use positive for clockwise and negative for counterclockwise.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "geometry.rotation"
+      },
+      {
+        "name": "parent_frame_id",
+        "required": false,
+        "description": "Unique identifier for the parent frame where the image will be added. Use this to specify a frame within the board if needed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the parent frame for the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parent.id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-image-item-using-url'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/images",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_unique_identifier",
+        "description": "Unique identifier (ID) of the board where you want to create the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to create the item."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.title",
+        "tool_parameter_name": "image_title",
+        "description": "A short text header to identify the image.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short text header to identify the image."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.url",
+        "tool_parameter_name": "image_url",
+        "description": "URL of the image.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "URL of the image."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "https://miro.com/static/images/page/mr-index/localization/en/slider/ideation_brainstorming.png",
+        "documentation_urls": []
+      },
+      {
+        "name": "position.x",
+        "tool_parameter_name": "x_axis_coordinate",
+        "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "position.y",
+        "tool_parameter_name": "y_axis_coordinate",
+        "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "geometry.height",
+        "tool_parameter_name": "image_height_pixels",
+        "description": "Height of the item, in pixels.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Height of the item, in pixels."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "geometry.width",
+        "tool_parameter_name": "image_width_pixels",
+        "description": "Width of the item, in pixels.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Width of the item, in pixels."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "geometry.rotation",
+        "tool_parameter_name": "rotation_angle_degrees",
+        "description": "Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "parent.id",
+        "tool_parameter_name": "parent_frame_id",
+        "description": "Unique identifier (ID) of the parent frame for the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the parent frame for the item."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the image URL.\",\n            \"properties\": {\n              \"title\": {\n                \"type\": \"string\",\n                \"description\": \"A short text header to identify the image.\",\n                \"example\": \"Sample image title\"\n              },\n              \"url\": {\n                \"type\": \"string\",\n                \"default\": \"https://miro.com/static/images/page/mr-index/localization/en/slider/ideation_brainstorming.png\",\n                \"description\": \"URL of the image.\",\n                \"example\": \"https://miro.com/static/images/page/mr-index/localization/en/slider/ideation_brainstorming.png\"\n              }\n            },\n            \"required\": [\n              \"url\"\n            ]\n          },\n          \"position\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates.\",\n            \"properties\": {\n              \"x\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"X-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              },\n              \"y\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Y-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              }\n            }\n          },\n          \"geometry\": {\n            \"type\": \"object\",\n            \"description\": \"Contains geometrical information about the item, such as its width or rotation. You can set either the width or height, you cannot set both the width and height at the same time.\",\n            \"properties\": {\n              \"height\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Height of the item, in pixels.\"\n              },\n              \"width\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Width of the item, in pixels.\"\n              },\n              \"rotation\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively.\"\n              }\n            }\n          },\n          \"parent\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the parent frame for the item.\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"format\": \"int64\",\n                \"description\": \"Unique identifier (ID) of the parent frame for the item.\",\n                \"example\": \"3074457362577955300\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"data\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

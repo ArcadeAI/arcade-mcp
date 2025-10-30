@@ -1,0 +1,172 @@
+{
+  "name": "RemoveTagsFromTimeEntries",
+  "fully_qualified_name": "ClickupApi.RemoveTagsFromTimeEntries@0.1.0",
+  "description": "Remove labels from specific time entries.\n\nUse this tool to remove labels from time entries without affecting the labels in the Workspace.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The unique ID of the Workspace from which to remove labels from time entries. Must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "time_entry_tags_payload",
+        "required": true,
+        "description": "A JSON object containing the IDs of the time entries and the tags to be removed. The object should have two fields: `time_entry_ids` (an array of strings for the IDs) and `tags` (an array of objects for tags to be removed).",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "time_entry_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": ""
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": ""
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'Removetagsfromtimeentries'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_id}/time_entries/tags",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "time_entry_tags_payload",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "time_entry_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": ""
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": ""
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"Removetagsfromtimeentriesrequest\",\n        \"required\": [\n          \"time_entry_ids\",\n          \"tags\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"time_entry_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"\"\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"Schema reference broken: #/paths/~1v2~1team~1%7Bteam_Id%7D~1time_entries~1start/post/requestBody/content/application~1json/schema/properties/tags/items\",\n              \"additionalProperties\": true,\n              \"x-moar-broken-reference\": \"#/paths/~1v2~1team~1%7Bteam_Id%7D~1time_entries~1start/post/requestBody/content/application~1json/schema/properties/tags/items\"\n            },\n            \"description\": \"\"\n          }\n        },\n        \"examples\": [\n          {\n            \"time_entry_ids\": [\n              \"timer_id\"\n            ],\n            \"tags\": [\n              {\n                \"name\": \"name of tag\"\n              }\n            ]\n          }\n        ]\n      },\n      \"example\": {\n        \"time_entry_ids\": [\n          \"timer_id\"\n        ],\n        \"tags\": [\n          {\n            \"name\": \"name of tag\"\n          }\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

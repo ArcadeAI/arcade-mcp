@@ -1,18 +1,18 @@
 {
   "name": "GetBoardStars",
-  "fully_qualified_name": "TrelloApi.GetBoardStars@0.1.0",
-  "description": "Retrieve board star details from Trello.\n\nThis tool is used to get information about the stars on a specific Trello board. It should be called when you want to check which users have starred a board or to manage board recognition.",
+  "fully_qualified_name": "TrelloApi.GetBoardStars@2.0.0",
+  "description": "Retrieve star count for a Trello board.\n\nThis tool retrieves the number of stars (boardStars) associated with a specified Trello board. It should be called when users want to know how popular or favored a board is by examining its star rating.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_id",
         "required": true,
-        "description": "The unique identifier for the Trello board to retrieve star information from.",
+        "description": "The unique identifier of the Trello board for which to retrieve star count.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "boardId"
       },
       {
-        "name": "filter_by_board_stars",
+        "name": "board_star_filter",
         "required": false,
-        "description": "Specify the filter for board stars. Valid values are 'mine' to select boards starred by the current user, or 'none' for no filtering.",
+        "description": "Specify whose stars to include: 'mine' for personal stars, 'none' for no filtering.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{boardId}/boardStars",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "filter",
-        "tool_parameter_name": "filter_by_board_stars",
+        "tool_parameter_name": "board_star_filter",
         "description": "Valid values: mine, none",
         "value_schema": {
           "val_type": "string",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "mine",
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "UpdateSavedSearch",
-  "fully_qualified_name": "TrelloApi.UpdateSavedSearch@0.1.0",
-  "description": "Update a saved search in Trello for a specific member.\n\nThis tool updates an existing saved search for a Trello member. Use it when you need to change details of a saved search, like search terms or settings.",
+  "fully_qualified_name": "TrelloApi.UpdateSavedSearch@2.0.0",
+  "description": "Update the details of a saved search in Trello.\n\nUse this tool to update the information of an existing saved search for a specific member in Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member for whom the saved search will be updated.",
+        "description": "The ID or username of the member whose saved search is being updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "saved_search_id",
         "required": true,
-        "description": "The ID of the saved search to be updated in Trello.",
+        "description": "The unique identifier of the saved search to be updated in Trello.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "new_saved_search_name",
         "required": false,
-        "description": "The updated name for the saved search in Trello.",
+        "description": "The new name for the saved search.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "new_search_query",
         "required": false,
-        "description": "The updated search query for the saved search.",
+        "description": "The new search query to update the saved search in Trello.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "query"
       },
       {
-        "name": "new_search_position",
+        "name": "new_position_for_saved_search",
         "required": false,
-        "description": "Specifies the new position for the saved search: `top`, `bottom`, or a positive float for custom positioning.",
+        "description": "Specify the new position for the saved search: 'top', 'bottom', or a positive float for a custom placement.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,13 +117,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/savedSearches/{idSearch}",
@@ -145,6 +145,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -162,11 +163,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "pos",
-        "tool_parameter_name": "new_search_position",
+        "tool_parameter_name": "new_position_for_saved_search",
         "description": "New position for saves search. `top`, `bottom`, or a positive float.",
         "value_schema": {
           "val_type": "string",
@@ -179,6 +181,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -196,6 +199,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -213,6 +217,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -234,6 +239,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

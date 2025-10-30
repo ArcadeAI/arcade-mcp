@@ -1,0 +1,336 @@
+{
+  "name": "ListEventTypes",
+  "fully_qualified_name": "CalendlyApi.ListEventTypes@2.0.0",
+  "description": "Fetches event types for a specified user or organization.\n\nThis tool retrieves all event types associated with a specified user or organization in Calendly. Use it when you need to get a list of event types for scheduling or management purposes.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_uri",
+        "required": false,
+        "description": "URI to view available personal, team, and organization event types.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "View available personal, team, and organization event types associated with the organization's URI."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization"
+      },
+      {
+        "name": "user_uri",
+        "required": false,
+        "description": "The user's URI to view associated personal, team, and organization event types.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "View available personal, team, and organization event types associated with the user's URI."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user"
+      },
+      {
+        "name": "user_availability_schedule_filter",
+        "required": false,
+        "description": "Filters event types by the given primary availability schedule when used with the 'user' parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used in conjunction with `user` parameter, returns a filtered list of Event Types that use the given primary availability schedule."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_availability_schedule"
+      },
+      {
+        "name": "sort_event_types_by",
+        "required": false,
+        "description": "Specify field and direction to order results. Use {field}:{asc/desc}. Fields: name, position, created_at, updated_at.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.Supported fields are: name, position, created_at, updated_at. Sort direction is specified as: asc, desc."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "Token to retrieve the next or previous set of event types in pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_token"
+      },
+      {
+        "name": "number_of_event_types_to_return",
+        "required": false,
+        "description": "The number of event types to return. Specify the desired count of returned rows.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "return_active_event_types_only",
+        "required": false,
+        "description": "Set to true to return only active event types, false for only inactive, or omit to include all event types.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only active event types if true, only inactive if false, or all event types if this parameter is omitted."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "active"
+      },
+      {
+        "name": "only_admin_managed",
+        "required": false,
+        "description": "Return only admin managed event types if true, exclude them if false, or include all if omitted.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only admin managed event types if true, exclude admin managed event types if false, or include all event types if this parameter is omitted."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "admin_managed"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-event-types'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/event_types",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "active",
+        "tool_parameter_name": "return_active_event_types_only",
+        "description": "Return only active event types if true, only inactive if false, or all event types if this parameter is omitted.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only active event types if true, only inactive if false, or all event types if this parameter is omitted."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization",
+        "tool_parameter_name": "organization_uri",
+        "description": "View available personal, team, and organization event types associated with the organization's URI.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "View available personal, team, and organization event types associated with the organization's URI."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user",
+        "tool_parameter_name": "user_uri",
+        "description": "View available personal, team, and organization event types associated with the user's URI.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "View available personal, team, and organization event types associated with the user's URI."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_availability_schedule",
+        "tool_parameter_name": "user_availability_schedule_filter",
+        "description": "Used in conjunction with `user` parameter, returns a filtered list of Event Types that use the given primary availability schedule.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used in conjunction with `user` parameter, returns a filtered list of Event Types that use the given primary availability schedule."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_event_types_by",
+        "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.Supported fields are: name, position, created_at, updated_at. Sort direction is specified as: asc, desc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.Supported fields are: name, position, created_at, updated_at. Sort direction is specified as: asc, desc."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "name:asc",
+        "documentation_urls": []
+      },
+      {
+        "name": "admin_managed",
+        "tool_parameter_name": "only_admin_managed",
+        "description": "Return only admin managed event types if true, exclude admin managed event types if false, or include all event types if this parameter is omitted.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only admin managed event types if true, exclude admin managed event types if false, or include all event types if this parameter is omitted."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "The token to pass to get the next or previous portion of the collection",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "number_of_event_types_to_return",
+        "description": "The number of rows to return",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 20,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

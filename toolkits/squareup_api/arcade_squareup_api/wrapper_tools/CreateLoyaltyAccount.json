@@ -1,0 +1,389 @@
+{
+  "name": "CreateLoyaltyAccount",
+  "fully_qualified_name": "SquareupApi.CreateLoyaltyAccount@2.0.0",
+  "description": "Create a loyalty account for a buyer.\n\nCreate a loyalty account by providing a program ID and buyer's phone number mapping.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "loyalty_account_data",
+        "required": true,
+        "description": "A JSON object containing fields required for creating a loyalty account, with details such as program ID, buyer's phone number mapping, and optional fields like balance and timestamps.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "loyalty_account": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Square-assigned ID of the loyalty account."
+                },
+                "program_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Square-assigned ID of the [loyalty program](entity:LoyaltyProgram) to which the account belongs."
+                },
+                "balance": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The available point balance in the loyalty account. If points are scheduled to expire, they are listed in the `expiring_point_deadlines` field.\n\nYour application should be able to handle loyalty accounts that have a negative point balance (`balance` is less than 0). This might occur if a seller makes a manual adjustment or as a result of a refund or exchange."
+                },
+                "lifetime_points": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The total points accrued during the lifetime of the account."
+                },
+                "customer_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Square-assigned ID of the [customer](entity:Customer) that is associated with the account."
+                },
+                "enrolled_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp when the buyer joined the loyalty program, in RFC 3339 format. This field is used to display the **Enrolled On** or **Member Since** date in first-party Square products.\n\nIf this field is not set in a `CreateLoyaltyAccount` request, Square populates it after the buyer's first action on their account \n(when `AccumulateLoyaltyPoints` or `CreateLoyaltyReward` is called). In first-party flows, Square populates the field when the buyer agrees to the terms of service on Square Point of Sale. \n\nIf this field is set in a `CreateLoyaltyAccount` request, it is meant to be used when there is a loyalty migration from another system and into Square.\nIn that case, the timestamp can reflect when the buyer originally enrolled in the previous system. It may represent a current or past date, but cannot be set in the future.\nNote: Setting this field in this scenario does not, by itself, impact the first-party enrollment flow on Square Point of Sale."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp when the loyalty account was created, in RFC 3339 format."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp when the loyalty account was last updated, in RFC 3339 format."
+                },
+                "mapping": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Square-assigned ID of the mapping."
+                    },
+                    "created_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the mapping was created, in RFC 3339 format."
+                    },
+                    "phone_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The phone number of the buyer, in E.164 format. For example, \"+14155551111\"."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents the mapping that associates a loyalty account with a buyer. \n\nCurrently, a loyalty account can only be mapped to a buyer by phone number. For more information, see \n[Loyalty Overview](https://developer.squareup.com/docs/loyalty/overview)."
+                },
+                "expiring_point_deadlines": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "points": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The number of points scheduled to expire at the `expires_at` timestamp."
+                    },
+                    "expires_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp of when the points are scheduled to expire, in RFC 3339 format."
+                    }
+                  },
+                  "description": "The schedule for when points expire in the loyalty account balance. This field is present only if the account has points that are scheduled to expire. \n\nThe total number of points in this field equals the number of points in the `balance` field."
+                }
+              },
+              "inner_properties": null,
+              "description": "Describes a loyalty account in a [loyalty program](entity:LoyaltyProgram). For more information, see\n[Create and Retrieve Loyalty Accounts](https://developer.squareup.com/docs/loyalty-api/loyalty-accounts)."
+            },
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this `CreateLoyaltyAccount` request. \nKeys can be any valid string, but must be unique for every request."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateLoyaltyAccount'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/accounts",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "loyalty_account_data",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "loyalty_account": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Square-assigned ID of the loyalty account."
+                },
+                "program_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Square-assigned ID of the [loyalty program](entity:LoyaltyProgram) to which the account belongs."
+                },
+                "balance": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The available point balance in the loyalty account. If points are scheduled to expire, they are listed in the `expiring_point_deadlines` field.\n\nYour application should be able to handle loyalty accounts that have a negative point balance (`balance` is less than 0). This might occur if a seller makes a manual adjustment or as a result of a refund or exchange."
+                },
+                "lifetime_points": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The total points accrued during the lifetime of the account."
+                },
+                "customer_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Square-assigned ID of the [customer](entity:Customer) that is associated with the account."
+                },
+                "enrolled_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp when the buyer joined the loyalty program, in RFC 3339 format. This field is used to display the **Enrolled On** or **Member Since** date in first-party Square products.\n\nIf this field is not set in a `CreateLoyaltyAccount` request, Square populates it after the buyer's first action on their account \n(when `AccumulateLoyaltyPoints` or `CreateLoyaltyReward` is called). In first-party flows, Square populates the field when the buyer agrees to the terms of service on Square Point of Sale. \n\nIf this field is set in a `CreateLoyaltyAccount` request, it is meant to be used when there is a loyalty migration from another system and into Square.\nIn that case, the timestamp can reflect when the buyer originally enrolled in the previous system. It may represent a current or past date, but cannot be set in the future.\nNote: Setting this field in this scenario does not, by itself, impact the first-party enrollment flow on Square Point of Sale."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp when the loyalty account was created, in RFC 3339 format."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp when the loyalty account was last updated, in RFC 3339 format."
+                },
+                "mapping": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Square-assigned ID of the mapping."
+                    },
+                    "created_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the mapping was created, in RFC 3339 format."
+                    },
+                    "phone_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The phone number of the buyer, in E.164 format. For example, \"+14155551111\"."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents the mapping that associates a loyalty account with a buyer. \n\nCurrently, a loyalty account can only be mapped to a buyer by phone number. For more information, see \n[Loyalty Overview](https://developer.squareup.com/docs/loyalty/overview)."
+                },
+                "expiring_point_deadlines": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "points": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The number of points scheduled to expire at the `expires_at` timestamp."
+                    },
+                    "expires_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp of when the points are scheduled to expire, in RFC 3339 format."
+                    }
+                  },
+                  "description": "The schedule for when points expire in the loyalty account balance. This field is present only if the account has points that are scheduled to expire. \n\nThe total number of points in this field equals the number of points in the `balance` field."
+                }
+              },
+              "inner_properties": null,
+              "description": "Describes a loyalty account in a [loyalty program](entity:LoyaltyProgram). For more information, see\n[Create and Retrieve Loyalty Accounts](https://developer.squareup.com/docs/loyalty-api/loyalty-accounts)."
+            },
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this `CreateLoyaltyAccount` request. \nKeys can be any valid string, but must be unique for every request."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to create a new loyalty account.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"loyalty_account\",\n          \"idempotency_key\"\n        ],\n        \"properties\": {\n          \"loyalty_account\": {\n            \"type\": \"object\",\n            \"description\": \"Describes a loyalty account in a [loyalty program](entity:LoyaltyProgram). For more information, see\\n[Create and Retrieve Loyalty Accounts](https://developer.squareup.com/docs/loyalty-api/loyalty-accounts).\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"program_id\"\n            ],\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"The Square-assigned ID of the loyalty account.\",\n                \"maxLength\": 36,\n                \"readOnly\": true\n              },\n              \"program_id\": {\n                \"type\": \"string\",\n                \"description\": \"The Square-assigned ID of the [loyalty program](entity:LoyaltyProgram) to which the account belongs.\",\n                \"minLength\": 1,\n                \"maxLength\": 36\n              },\n              \"balance\": {\n                \"type\": \"integer\",\n                \"description\": \"The available point balance in the loyalty account. If points are scheduled to expire, they are listed in the `expiring_point_deadlines` field.\\n\\nYour application should be able to handle loyalty accounts that have a negative point balance (`balance` is less than 0). This might occur if a seller makes a manual adjustment or as a result of a refund or exchange.\",\n                \"readOnly\": true\n              },\n              \"lifetime_points\": {\n                \"type\": \"integer\",\n                \"description\": \"The total points accrued during the lifetime of the account.\",\n                \"readOnly\": true\n              },\n              \"customer_id\": {\n                \"type\": \"string\",\n                \"description\": \"The Square-assigned ID of the [customer](entity:Customer) that is associated with the account.\",\n                \"nullable\": true\n              },\n              \"enrolled_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the buyer joined the loyalty program, in RFC 3339 format. This field is used to display the **Enrolled On** or **Member Since** date in first-party Square products.\\n\\nIf this field is not set in a `CreateLoyaltyAccount` request, Square populates it after the buyer's first action on their account \\n(when `AccumulateLoyaltyPoints` or `CreateLoyaltyReward` is called). In first-party flows, Square populates the field when the buyer agrees to the terms of service on Square Point of Sale. \\n\\nIf this field is set in a `CreateLoyaltyAccount` request, it is meant to be used when there is a loyalty migration from another system and into Square.\\nIn that case, the timestamp can reflect when the buyer originally enrolled in the previous system. It may represent a current or past date, but cannot be set in the future.\\nNote: Setting this field in this scenario does not, by itself, impact the first-party enrollment flow on Square Point of Sale.\",\n                \"nullable\": true\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the loyalty account was created, in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the loyalty account was last updated, in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"mapping\": {\n                \"type\": \"object\",\n                \"description\": \"Represents the mapping that associates a loyalty account with a buyer. \\n\\nCurrently, a loyalty account can only be mapped to a buyer by phone number. For more information, see \\n[Loyalty Overview](https://developer.squareup.com/docs/loyalty/overview).\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The Square-assigned ID of the mapping.\",\n                    \"maxLength\": 36,\n                    \"readOnly\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"description\": \"The timestamp when the mapping was created, in RFC 3339 format.\",\n                    \"readOnly\": true\n                  },\n                  \"phone_number\": {\n                    \"type\": \"string\",\n                    \"description\": \"The phone number of the buyer, in E.164 format. For example, \\\"+14155551111\\\".\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"expiring_point_deadlines\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"description\": \"Represents a set of points for a loyalty account that are scheduled to expire on a specific date.\",\n                  \"x-release-status\": \"PUBLIC\",\n                  \"required\": [\n                    \"points\",\n                    \"expires_at\"\n                  ],\n                  \"properties\": {\n                    \"points\": {\n                      \"type\": \"integer\",\n                      \"description\": \"The number of points scheduled to expire at the `expires_at` timestamp.\"\n                    },\n                    \"expires_at\": {\n                      \"type\": \"string\",\n                      \"description\": \"The timestamp of when the points are scheduled to expire, in RFC 3339 format.\",\n                      \"minLength\": 1\n                    }\n                  }\n                },\n                \"description\": \"The schedule for when points expire in the loyalty account balance. This field is present only if the account has points that are scheduled to expire. \\n\\nThe total number of points in this field equals the number of points in the `balance` field.\",\n                \"nullable\": true\n              }\n            }\n          },\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this `CreateLoyaltyAccount` request. \\nKeys can be any valid string, but must be unique for every request.\",\n            \"minLength\": 1,\n            \"maxLength\": 128\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"ec78c477-b1c3-4899-a209-a4e71337c996\",\n          \"loyalty_account\": {\n            \"mapping\": {\n              \"phone_number\": \"+14155551234\"\n            },\n            \"program_id\": \"d619f755-2d17-41f3-990d-c04ecedd64dd\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

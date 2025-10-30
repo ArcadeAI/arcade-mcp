@@ -1,0 +1,137 @@
+{
+  "name": "CreateTrainingDataConfig",
+  "fully_qualified_name": "PylonApi.CreateTrainingDataConfig@0.1.0",
+  "description": "Create a new training data configuration.\n\nCall this tool to set up a new training data configuration for your application. It is used when you need to initialize or update your training data setup.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "training_data_name",
+        "required": false,
+        "description": "The name of the training data container to be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the training data container."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "training_data_name"
+      },
+      {
+        "name": "training_data_visibility",
+        "required": false,
+        "description": "Specifies who can access the training data. Valid options: \"everyone\", \"user_only\", \"ai_agent_only\". Defaults to \"everyone\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The visibility of the training data. Defaults to \"everyone\".\n\nValid values: \"everyone\", \"user_only\", \"ai_agent_only\""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "visibility"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateTrainingData'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/training-data",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "training_data_name",
+        "tool_parameter_name": "training_data_name",
+        "description": "The name of the training data container.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the training data container."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "visibility",
+        "tool_parameter_name": "training_data_visibility",
+        "description": "The visibility of the training data. Defaults to \"everyone\".\n\nValid values: \"everyone\", \"user_only\", \"ai_agent_only\"",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The visibility of the training data. Defaults to \"everyone\".\n\nValid values: \"everyone\", \"user_only\", \"ai_agent_only\""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"training_data_name\": {\n            \"description\": \"The name of the training data container.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"TrainingDataName\"\n          },\n          \"visibility\": {\n            \"description\": \"The visibility of the training data. Defaults to \\\"everyone\\\".\\n\\nValid values: \\\"everyone\\\", \\\"user_only\\\", \\\"ai_agent_only\\\"\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Visibility\"\n          }\n        },\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

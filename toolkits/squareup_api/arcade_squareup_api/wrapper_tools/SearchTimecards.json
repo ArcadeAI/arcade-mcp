@@ -1,0 +1,507 @@
+{
+  "name": "SearchTimecards",
+  "fully_qualified_name": "SquareupApi.SearchTimecards@2.0.0",
+  "description": "Retrieve filtered and sorted timecard records for a business.\n\nUse to get a list of timecard records filtered by location IDs, team member IDs, status, start and end times, or workday details. The records can also be sorted by start, end, creation, or update times.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "search_timecards_query",
+        "required": true,
+        "description": "A JSON object containing filters and sorting options for retrieving timecard records. Includes location IDs, team member IDs, status, start and end times, workday details, sorting fields, sort order, page limit, and cursor for pagination.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "location_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Fetch timecards for the specified location."
+                    },
+                    "status": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "OPEN",
+                        "CLOSED"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specifies the `status` of `Timecard` records to be returned."
+                    },
+                    "start": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "end": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "workday": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "date_range": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_date": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\nextended format for calendar dates.\nThe beginning of a date range (inclusive)."
+                            },
+                            "end_date": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\nextended format for calendar dates.\nThe end of a date range (inclusive)."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A range defined by two dates. Used for filtering a query for Connect v2\nobjects that have date properties."
+                        },
+                        "match_timecards_by": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "START_AT",
+                            "END_AT",
+                            "INTERSECTION"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines the logic used to apply a workday filter."
+                        },
+                        "default_timezone": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Location-specific timezones convert workdays to datetime filters.\nEvery location included in the query must have a timezone or this field\nmust be provided as a fallback. Format: the IANA timezone database\nidentifier for the relevant timezone."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A `Timecard` search query filter parameter that sets a range of days that\na `Timecard` must start or end in before passing the filter condition."
+                    },
+                    "team_member_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Fetch timecards for the specified team members."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines a filter used in a search for `Timecard` records. `AND` logic is\nused by Square's servers to apply each filter property specified."
+                },
+                "sort": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "START_AT",
+                        "END_AT",
+                        "CREATED_AT",
+                        "UPDATED_AT"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Enumerates the `Timecard` fields to sort on."
+                    },
+                    "order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "DESC",
+                        "ASC"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Sets the sort order of search results."
+                }
+              },
+              "inner_properties": null,
+              "description": "The parameters of a `Timecard` search query, which includes filter and sort options."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The number of resources in a page (200 by default)."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An opaque cursor for fetching the next page."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchTimecards'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "TIMECARDS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/labor/timecards/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "search_timecards_query",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "location_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Fetch timecards for the specified location."
+                    },
+                    "status": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "OPEN",
+                        "CLOSED"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specifies the `status` of `Timecard` records to be returned."
+                    },
+                    "start": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "end": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "workday": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "date_range": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_date": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\nextended format for calendar dates.\nThe beginning of a date range (inclusive)."
+                            },
+                            "end_date": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\nextended format for calendar dates.\nThe end of a date range (inclusive)."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A range defined by two dates. Used for filtering a query for Connect v2\nobjects that have date properties."
+                        },
+                        "match_timecards_by": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "START_AT",
+                            "END_AT",
+                            "INTERSECTION"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines the logic used to apply a workday filter."
+                        },
+                        "default_timezone": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Location-specific timezones convert workdays to datetime filters.\nEvery location included in the query must have a timezone or this field\nmust be provided as a fallback. Format: the IANA timezone database\nidentifier for the relevant timezone."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A `Timecard` search query filter parameter that sets a range of days that\na `Timecard` must start or end in before passing the filter condition."
+                    },
+                    "team_member_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Fetch timecards for the specified team members."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines a filter used in a search for `Timecard` records. `AND` logic is\nused by Square's servers to apply each filter property specified."
+                },
+                "sort": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "START_AT",
+                        "END_AT",
+                        "CREATED_AT",
+                        "UPDATED_AT"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Enumerates the `Timecard` fields to sort on."
+                    },
+                    "order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "DESC",
+                        "ASC"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Sets the sort order of search results."
+                }
+              },
+              "inner_properties": null,
+              "description": "The parameters of a `Timecard` search query, which includes filter and sort options."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The number of resources in a page (200 by default)."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An opaque cursor for fetching the next page."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request for a filtered and sorted set of `Timecard` objects.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"The parameters of a `Timecard` search query, which includes filter and sort options.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"Defines a filter used in a search for `Timecard` records. `AND` logic is\\nused by Square's servers to apply each filter property specified.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"location_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Fetch timecards for the specified location.\",\n                    \"nullable\": true\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"OPEN\",\n                      \"CLOSED\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"OPEN\",\n                        \"description\": \"Timecards that have been started and not ended.\"\n                      },\n                      {\n                        \"name\": \"CLOSED\",\n                        \"description\": \"Timecards that have been started and ended.\"\n                      }\n                    ],\n                    \"description\": \"Specifies the `status` of `Timecard` records to be returned.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  },\n                  \"start\": {\n                    \"type\": \"object\",\n                    \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"start_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                        \"nullable\": true\n                      },\n                      \"end_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"end\": {\n                    \"type\": \"object\",\n                    \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"start_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                        \"nullable\": true\n                      },\n                      \"end_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"workday\": {\n                    \"type\": \"object\",\n                    \"description\": \"A `Timecard` search query filter parameter that sets a range of days that\\na `Timecard` must start or end in before passing the filter condition.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"date_range\": {\n                        \"type\": \"object\",\n                        \"description\": \"A range defined by two dates. Used for filtering a query for Connect v2\\nobjects that have date properties.\",\n                        \"x-release-status\": \"PUBLIC\",\n                        \"properties\": {\n                          \"start_date\": {\n                            \"type\": \"string\",\n                            \"description\": \"A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\\nextended format for calendar dates.\\nThe beginning of a date range (inclusive).\",\n                            \"nullable\": true\n                          },\n                          \"end_date\": {\n                            \"type\": \"string\",\n                            \"description\": \"A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\\nextended format for calendar dates.\\nThe end of a date range (inclusive).\",\n                            \"nullable\": true\n                          }\n                        }\n                      },\n                      \"match_timecards_by\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"START_AT\",\n                          \"END_AT\",\n                          \"INTERSECTION\"\n                        ],\n                        \"x-enum-elements\": [\n                          {\n                            \"name\": \"START_AT\",\n                            \"description\": \"All timecards that start on or after the specified workday\"\n                          },\n                          {\n                            \"name\": \"END_AT\",\n                            \"description\": \"All timecards that end on or before the specified workday\"\n                          },\n                          {\n                            \"name\": \"INTERSECTION\",\n                            \"description\": \"All timecards that start between the start and end workdays (inclusive)\"\n                          }\n                        ],\n                        \"description\": \"Defines the logic used to apply a workday filter.\",\n                        \"x-release-status\": \"PUBLIC\"\n                      },\n                      \"default_timezone\": {\n                        \"type\": \"string\",\n                        \"description\": \"Location-specific timezones convert workdays to datetime filters.\\nEvery location included in the query must have a timezone or this field\\nmust be provided as a fallback. Format: the IANA timezone database\\nidentifier for the relevant timezone.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"team_member_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Fetch timecards for the specified team members.\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"sort\": {\n                \"type\": \"object\",\n                \"description\": \"Sets the sort order of search results.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"field\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"START_AT\",\n                      \"END_AT\",\n                      \"CREATED_AT\",\n                      \"UPDATED_AT\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"START_AT\",\n                        \"description\": \"The start date/time of a `Timecard`\"\n                      },\n                      {\n                        \"name\": \"END_AT\",\n                        \"description\": \"The end date/time of a `Timecard`\"\n                      },\n                      {\n                        \"name\": \"CREATED_AT\",\n                        \"description\": \"The date/time that a `Timecard` is created\"\n                      },\n                      {\n                        \"name\": \"UPDATED_AT\",\n                        \"description\": \"The most recent date/time that a `Timecard` is updated\"\n                      }\n                    ],\n                    \"description\": \"Enumerates the `Timecard` fields to sort on.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  },\n                  \"order\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"DESC\",\n                      \"ASC\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"DESC\",\n                        \"description\": \"The results are returned in descending (e.g., newest-first or Z-A) order.\"\n                      },\n                      {\n                        \"name\": \"ASC\",\n                        \"description\": \"The results are returned in ascending (e.g., oldest-first or A-Z) order.\"\n                      }\n                    ],\n                    \"description\": \"The order (e.g., chronological or alphabetical) in which results from a request are returned.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  }\n                }\n              }\n            }\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The number of resources in a page (200 by default).\",\n            \"minimum\": 1,\n            \"maximum\": 200\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"An opaque cursor for fetching the next page.\"\n          }\n        },\n        \"example\": {\n          \"limit\": 100,\n          \"query\": {\n            \"filter\": {\n              \"workday\": {\n                \"date_range\": {\n                  \"end_date\": \"2019-02-03\",\n                  \"start_date\": \"2019-01-20\"\n                },\n                \"default_timezone\": \"America/Los_Angeles\",\n                \"match_timecards_by\": \"START_AT\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

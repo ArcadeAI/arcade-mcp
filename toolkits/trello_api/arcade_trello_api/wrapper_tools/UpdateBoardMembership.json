@@ -1,18 +1,18 @@
 {
   "name": "UpdateBoardMembership",
-  "fully_qualified_name": "TrelloApi.UpdateBoardMembership@0.1.0",
-  "description": "Update an existing membership on a Trello board.\n\nUse this tool to modify details of a membership on a Trello board. It requires specifying the board ID and the membership ID to update.",
+  "fully_qualified_name": "TrelloApi.UpdateBoardMembership@2.0.0",
+  "description": "Update a specific board membership by ID.\n\nUse this tool to update the membership details of a specific board in Trello by providing the board ID and membership ID. It allows modification of existing membership properties on a board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "membership_type",
         "required": true,
-        "description": "Specifies the role of the member on the board: 'admin', 'normal', or 'observer'.",
+        "description": "Specifies the role of the member on the board. Choose one of: admin, normal, observer.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -31,7 +31,7 @@
       {
         "name": "board_id",
         "required": true,
-        "description": "The ID of the Trello board to update the membership for. This is required to specify which board is being modified.",
+        "description": "The ID of the Trello board you want to update the membership for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,9 +44,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "membership_id_to_add",
+        "name": "membership_id",
         "required": true,
-        "description": "The ID of the membership to add to the board.",
+        "description": "The ID of a membership to be updated on the board.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,9 +59,9 @@
         "http_endpoint_parameter_name": "idMembership"
       },
       {
-        "name": "membership_field_type",
+        "name": "member_fields_to_update",
         "required": false,
-        "description": "Specify the type of membership field to update. Valid values include all, avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username.",
+        "description": "Specify the member fields to update, such as avatarHash, bio, fullName, or all. Valid values include: all, avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -120,13 +120,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{id}/memberships/{idMembership}",
@@ -152,11 +152,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "member_fields",
-        "tool_parameter_name": "membership_field_type",
+        "tool_parameter_name": "member_fields_to_update",
         "description": "Valid values: all, avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username",
         "value_schema": {
           "val_type": "string",
@@ -183,6 +184,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "fullName, username",
         "documentation_urls": []
       },
       {
@@ -200,11 +202,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "idMembership",
-        "tool_parameter_name": "membership_id_to_add",
+        "tool_parameter_name": "membership_id",
         "description": "The id of a membership that should be added to this board.",
         "value_schema": {
           "val_type": "string",
@@ -217,6 +220,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -238,6 +242,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

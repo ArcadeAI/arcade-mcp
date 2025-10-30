@@ -1,18 +1,18 @@
 {
   "name": "ListDeviceCodes",
-  "fully_qualified_name": "SquareupApi.ListDeviceCodes@0.1.0",
-  "description": "Retrieve all device codes for the merchant.\n\nThis tool retrieves all device codes associated with a merchant account on Square. It should be called when there's a need to list or manage the devices linked to a merchant.",
+  "fully_qualified_name": "SquareupApi.ListDeviceCodes@2.0.0",
+  "description": "List all device codes for a merchant.\n\nFetches all device codes linked to a merchant, providing access to their associated data.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A pagination cursor from a previous call, used to retrieve the next set of results.",
+        "description": "A pagination cursor from a previous call. Use to get the next set of results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "filter_by_location_id",
+        "name": "location_id_filter",
         "required": false,
-        "description": "Specify a location to return only its DeviceCodes. Leave empty to return codes from all locations.",
+        "description": "Filter to return only DeviceCodes from the specified location. Returns data from all locations if not provided.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "location_id"
       },
       {
-        "name": "filter_by_product_type",
+        "name": "product_type_filter",
         "required": false,
-        "description": "Specify a product type to target specific DeviceCodes. Use 'TERMINAL_API' or leave empty for all types.",
+        "description": "Specify the product type to filter DeviceCodes. Defaults to all if empty. Options include 'TERMINAL_API'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "device_code_status",
         "required": false,
-        "description": "Specifies the status of DeviceCodes to return. Options: UNKNOWN, UNPAIRED, PAIRED, EXPIRED. Returns PAIRED and UNPAIRED if empty.",
+        "description": "Filter DeviceCodes by statuses: 'UNKNOWN', 'UNPAIRED', 'PAIRED', or 'EXPIRED'. Defaults to 'PAIRED' and 'UNPAIRED' if empty.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -111,13 +111,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/devices/codes",
@@ -139,11 +139,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "location_id",
-        "tool_parameter_name": "filter_by_location_id",
+        "tool_parameter_name": "location_id_filter",
         "description": "If specified, only returns DeviceCodes of the specified location.\nReturns DeviceCodes of all locations if empty.",
         "value_schema": {
           "val_type": "string",
@@ -156,11 +157,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "product_type",
-        "tool_parameter_name": "filter_by_product_type",
+        "tool_parameter_name": "product_type_filter",
         "description": "If specified, only returns DeviceCodes targeting the specified product type.\nReturns DeviceCodes of all product types if empty.",
         "value_schema": {
           "val_type": "string",
@@ -175,6 +177,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -197,6 +200,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -210,6 +214,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

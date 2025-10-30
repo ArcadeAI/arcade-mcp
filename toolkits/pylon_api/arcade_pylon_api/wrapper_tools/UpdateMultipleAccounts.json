@@ -1,0 +1,236 @@
+{
+  "name": "UpdateMultipleAccounts",
+  "fully_qualified_name": "PylonApi.UpdateMultipleAccounts@0.1.0",
+  "description": "Update multiple accounts simultaneously.\n\nUse this tool to update details for multiple accounts in one request. It is helpful for batch processing of account modifications.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "update_accounts_request_body",
+        "required": false,
+        "description": "JSON object containing account IDs, custom fields, owner ID, tags, and tags apply mode for updating multiple accounts.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account IDs to update. The number of accounts to update must be between 1 and 100."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be updated on the accounts."
+            },
+            "owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the new owner. If empty string is passed in, the owner will be removed."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of tags to be updated on the accounts."
+            },
+            "tags_apply_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The mode for applying tags. Valid values: \"append_only\", \"remove_only\", \"replace\". Defaults to \"replace\"."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateAccounts'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/accounts",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "update_accounts_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account IDs to update. The number of accounts to update must be between 1 and 100."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be updated on the accounts."
+            },
+            "owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the new owner. If empty string is passed in, the owner will be removed."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An array of tags to be updated on the accounts."
+            },
+            "tags_apply_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The mode for applying tags. Valid values: \"append_only\", \"remove_only\", \"replace\". Defaults to \"replace\"."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"account_ids\": {\n            \"description\": \"The account IDs to update. The number of accounts to update must be between 1 and 100.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"AccountIDs\"\n          },\n          \"custom_fields\": {\n            \"description\": \"An array of custom fields to be updated on the accounts.\",\n            \"items\": {\n              \"properties\": {\n                \"slug\": {\n                  \"description\": \"The slug of the custom field.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Slug\"\n                },\n                \"value\": {\n                  \"description\": \"The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Value\"\n                },\n                \"values\": {\n                  \"description\": \"The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": \"array\",\n                  \"x-go-name\": \"Values\"\n                }\n              },\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"CustomFields\"\n          },\n          \"owner_id\": {\n            \"description\": \"The ID of the new owner. If empty string is passed in, the owner will be removed.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"OwnerID\"\n          },\n          \"tags\": {\n            \"description\": \"An array of tags to be updated on the accounts.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"Tags\"\n          },\n          \"tags_apply_mode\": {\n            \"description\": \"The mode for applying tags. Valid values: \\\"append_only\\\", \\\"remove_only\\\", \\\"replace\\\". Defaults to \\\"replace\\\".\",\n            \"type\": \"string\",\n            \"x-go-name\": \"TagsApplyMode\"\n          }\n        },\n        \"required\": [\n          \"account_ids\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "UpdateBoardBackground",
-  "fully_qualified_name": "TrelloApi.UpdateBoardBackground@0.1.0",
-  "description": "Update a Trello board background for a member.\n\nUse this tool to update the background of a Trello board for a specified member. Ideal for personalizing or managing board appearances.",
+  "fully_qualified_name": "TrelloApi.UpdateBoardBackground@2.0.0",
+  "description": "Update the background of a Trello board.\n\nUse this tool to update the background image or color of a specific Trello board associated with a member.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the member whose board background is being updated.",
+        "description": "The ID or username of the Trello member associated with the board to update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "board_background_id",
         "required": true,
-        "description": "The unique identifier for the board background to be updated.",
+        "description": "ID of the board background to update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "background_brightness",
         "required": false,
-        "description": "Set the brightness of the board background. Accepted values: 'dark', 'light', 'unknown'.",
+        "description": "Set the brightness level for the board background. Options are `dark`, `light`, or `unknown`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -61,7 +61,7 @@
       {
         "name": "tile_background",
         "required": false,
-        "description": "Set to true if you want the board background to be tiled.",
+        "description": "Set to true to tile the board background. False to not tile it.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -106,13 +106,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}",
@@ -138,6 +138,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -155,6 +156,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -172,6 +174,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -189,6 +192,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -210,6 +214,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

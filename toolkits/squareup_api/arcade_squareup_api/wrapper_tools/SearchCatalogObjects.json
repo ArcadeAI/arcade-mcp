@@ -1,0 +1,699 @@
+{
+  "name": "SearchCatalogObjects",
+  "fully_qualified_name": "SquareupApi.SearchCatalogObjects@2.0.0",
+  "description": "Search for catalog objects using specified query filters.\n\nUse this tool to search for any type of catalog object through the Squareup API by matching supported search attribute values. This tool is ideal for retrieving catalog objects, including deleted ones, based on provided query filters. It's useful for comprehensive catalog searches excluding custom attribute values.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "catalog_search_filters",
+        "required": true,
+        "description": "JSON object with search filters such as object types, query expressions, and pagination settings for catalog objects.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The pagination cursor returned in the previous response. Leave unset for an initial request.\nSee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination) for more information."
+            },
+            "object_types": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired set of object types to appear in the search results.\n\nIf this is unspecified, the operation returns objects of all the top level types at the version\nof the Square API used to make the request. Object types that are nested onto other object types\nare not included in the defaults.\n\nAt the current API version the default object types are:\nITEM, CATEGORY, TAX, DISCOUNT, MODIFIER_LIST, \nPRICING_RULE, PRODUCT_SET, TIME_PERIOD, MEASUREMENT_UNIT,\nSUBSCRIPTION_PLAN, ITEM_OPTION, CUSTOM_ATTRIBUTE_DEFINITION, QUICK_AMOUNT_SETTINGS.\n\nNote that if you wish for the query to return objects belonging to nested types (i.e., COMPONENT, IMAGE,\nITEM_OPTION_VAL, ITEM_VARIATION, or MODIFIER), you must explicitly include all the types of interest\nin this field."
+            },
+            "include_deleted_objects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If `true`, deleted objects will be included in the results. Defaults to `false`. Deleted objects will have their `is_deleted` field set to `true`. If `include_deleted_objects` is `true`, then the `include_category_path_to_root` request parameter must be `false`. Both properties cannot be `true` at the same time."
+            },
+            "include_related_objects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If `true`, the response will include additional objects that are related to the\nrequested objects. Related objects are objects that are referenced by object ID by the objects\nin the response. This is helpful if the objects are being fetched for immediate display to a user.\nThis process only goes one level deep. Objects referenced by the related objects will not be included.\nFor example:\n\nIf the `objects` field of the response contains a CatalogItem, its associated\nCatalogCategory objects, CatalogTax objects, CatalogImage objects and\nCatalogModifierLists will be returned in the `related_objects` field of the\nresponse. If the `objects` field of the response contains a CatalogItemVariation,\nits parent CatalogItem will be returned in the `related_objects` field of\nthe response.\n\nDefault value: `false`"
+            },
+            "begin_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Return objects modified after this [timestamp](https://developer.squareup.com/docs/build-basics/working-with-dates), in RFC 3339\nformat, e.g., `2016-09-04T23:59:33.123Z`. The timestamp is exclusive - objects with a\ntimestamp equal to `begin_time` will not be included in the response."
+            },
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "sorted_attribute_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The attribute whose value is used as the sort key."
+                    },
+                    "initial_attribute_value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The first attribute value to be returned by the query. Ascending sorts will return only\nobjects with this value or greater, while descending sorts will return only objects with this value\nor less. If unset, start at the beginning (for ascending sorts) or end (for descending sorts)."
+                    },
+                    "sort_order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "DESC",
+                        "ASC"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query expression to specify the key to sort search results."
+                },
+                "exact_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the attribute to be searched. Matching of the attribute name is exact."
+                    },
+                    "attribute_value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired value of the search attribute. Matching of the attribute value is case insensitive and can be partial.\nFor example, if a specified value of \"sma\", objects with the named attribute value of \"Small\", \"small\" are both matched."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result by exact match of the specified attribute name and value."
+                },
+                "set_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the attribute to be searched. Matching of the attribute name is exact."
+                    },
+                    "attribute_values": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired values of the search attribute. Matching of the attribute values is exact and case insensitive.\nA maximum of 250 values may be searched in a request."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result(s) by exact match of the specified `attribute_name` and any of\nthe `attribute_values`."
+                },
+                "prefix_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the attribute to be searched."
+                    },
+                    "attribute_prefix": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired prefix of the search attribute value."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result whose named attribute values are prefixed by the specified attribute value."
+                },
+                "range_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the attribute to be searched."
+                    },
+                    "attribute_min_value": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired minimum value for the search attribute (inclusive)."
+                    },
+                    "attribute_max_value": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired maximum value for the search attribute (inclusive)."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result whose named attribute values fall between the specified range."
+                },
+                "text_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "keywords": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A list of 1, 2, or 3 search keywords. Keywords with fewer than 3 alphanumeric characters are ignored."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result whose searchable attribute values contain all of the specified keywords or tokens, independent of the token order or case."
+                },
+                "items_for_tax_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "tax_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A set of `CatalogTax` IDs to be used to find associated `CatalogItem`s."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the items containing the specified tax IDs."
+                },
+                "items_for_modifier_list_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "modifier_list_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A set of `CatalogModifierList` IDs to be used to find associated `CatalogItem`s."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the items containing the specified modifier list IDs."
+                },
+                "items_for_item_options_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "item_option_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A set of `CatalogItemOption` IDs to be used to find associated\n`CatalogItem`s. All Items that contain all of the given Item Options (in any order)\nwill be returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the items containing the specified item option IDs."
+                },
+                "item_variations_for_item_option_values_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "item_option_value_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A set of `CatalogItemOptionValue` IDs to be used to find associated\n`CatalogItemVariation`s. All ItemVariations that contain all of the given\nItem Option Values (in any order) will be returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the item variations containing the specified item option value IDs."
+                }
+              },
+              "inner_properties": null,
+              "description": "A query composed of one or more different types of filters to narrow the scope of targeted objects when calling the `SearchCatalogObjects` endpoint.\n\nAlthough a query can have multiple filters, only certain query types can be combined per call to [SearchCatalogObjects](api-endpoint:Catalog-SearchCatalogObjects).\nAny combination of the following types may be used together:\n- [exact_query](entity:CatalogQueryExact)\n- [prefix_query](entity:CatalogQueryPrefix)\n- [range_query](entity:CatalogQueryRange)\n- [sorted_attribute_query](entity:CatalogQuerySortedAttribute)\n- [text_query](entity:CatalogQueryText)\n\nAll other query types cannot be combined with any others.\n\nWhen a query filter is based on an attribute, the attribute must be searchable.\nSearchable attributes are listed as follows, along their parent types that can be searched for with applicable query filters.\n\nSearchable attribute and objects queryable by searchable attributes:\n- `name`:  `CatalogItem`, `CatalogItemVariation`, `CatalogCategory`, `CatalogTax`, `CatalogDiscount`, `CatalogModifier`, `CatalogModifierList`, `CatalogItemOption`, `CatalogItemOptionValue`\n- `description`: `CatalogItem`, `CatalogItemOptionValue`\n- `abbreviation`: `CatalogItem`\n- `upc`: `CatalogItemVariation`\n- `sku`: `CatalogItemVariation`\n- `caption`: `CatalogImage`\n- `display_name`: `CatalogItemOption`\n\nFor example, to search for [CatalogItem](entity:CatalogItem) objects by searchable attributes, you can use\nthe `\"name\"`, `\"description\"`, or `\"abbreviation\"` attribute in an applicable query filter."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A limit on the number of results to be returned in a single page. The limit is advisory -\nthe implementation may return more or fewer results. If the supplied limit is negative, zero, or\nis higher than the maximum limit of 1,000, it will be ignored."
+            },
+            "include_category_path_to_root": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether or not to include the `path_to_root` list for each returned category instance. The `path_to_root` list consists of `CategoryPathToRootNode` objects and specifies the path that starts with the immediate parent category of the returned category and ends with its root category. If the returned category is a top-level category, the `path_to_root` list is empty and is not returned in the response payload. If `include_category_path_to_root` is `true`, then the `include_deleted_objects` request parameter must be `false`. Both properties cannot be `true` at the same time."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchCatalogObjects'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ITEMS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/catalog/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "catalog_search_filters",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The pagination cursor returned in the previous response. Leave unset for an initial request.\nSee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination) for more information."
+            },
+            "object_types": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired set of object types to appear in the search results.\n\nIf this is unspecified, the operation returns objects of all the top level types at the version\nof the Square API used to make the request. Object types that are nested onto other object types\nare not included in the defaults.\n\nAt the current API version the default object types are:\nITEM, CATEGORY, TAX, DISCOUNT, MODIFIER_LIST, \nPRICING_RULE, PRODUCT_SET, TIME_PERIOD, MEASUREMENT_UNIT,\nSUBSCRIPTION_PLAN, ITEM_OPTION, CUSTOM_ATTRIBUTE_DEFINITION, QUICK_AMOUNT_SETTINGS.\n\nNote that if you wish for the query to return objects belonging to nested types (i.e., COMPONENT, IMAGE,\nITEM_OPTION_VAL, ITEM_VARIATION, or MODIFIER), you must explicitly include all the types of interest\nin this field."
+            },
+            "include_deleted_objects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If `true`, deleted objects will be included in the results. Defaults to `false`. Deleted objects will have their `is_deleted` field set to `true`. If `include_deleted_objects` is `true`, then the `include_category_path_to_root` request parameter must be `false`. Both properties cannot be `true` at the same time."
+            },
+            "include_related_objects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If `true`, the response will include additional objects that are related to the\nrequested objects. Related objects are objects that are referenced by object ID by the objects\nin the response. This is helpful if the objects are being fetched for immediate display to a user.\nThis process only goes one level deep. Objects referenced by the related objects will not be included.\nFor example:\n\nIf the `objects` field of the response contains a CatalogItem, its associated\nCatalogCategory objects, CatalogTax objects, CatalogImage objects and\nCatalogModifierLists will be returned in the `related_objects` field of the\nresponse. If the `objects` field of the response contains a CatalogItemVariation,\nits parent CatalogItem will be returned in the `related_objects` field of\nthe response.\n\nDefault value: `false`"
+            },
+            "begin_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Return objects modified after this [timestamp](https://developer.squareup.com/docs/build-basics/working-with-dates), in RFC 3339\nformat, e.g., `2016-09-04T23:59:33.123Z`. The timestamp is exclusive - objects with a\ntimestamp equal to `begin_time` will not be included in the response."
+            },
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "sorted_attribute_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The attribute whose value is used as the sort key."
+                    },
+                    "initial_attribute_value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The first attribute value to be returned by the query. Ascending sorts will return only\nobjects with this value or greater, while descending sorts will return only objects with this value\nor less. If unset, start at the beginning (for ascending sorts) or end (for descending sorts)."
+                    },
+                    "sort_order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "DESC",
+                        "ASC"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query expression to specify the key to sort search results."
+                },
+                "exact_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the attribute to be searched. Matching of the attribute name is exact."
+                    },
+                    "attribute_value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired value of the search attribute. Matching of the attribute value is case insensitive and can be partial.\nFor example, if a specified value of \"sma\", objects with the named attribute value of \"Small\", \"small\" are both matched."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result by exact match of the specified attribute name and value."
+                },
+                "set_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the attribute to be searched. Matching of the attribute name is exact."
+                    },
+                    "attribute_values": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired values of the search attribute. Matching of the attribute values is exact and case insensitive.\nA maximum of 250 values may be searched in a request."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result(s) by exact match of the specified `attribute_name` and any of\nthe `attribute_values`."
+                },
+                "prefix_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the attribute to be searched."
+                    },
+                    "attribute_prefix": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired prefix of the search attribute value."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result whose named attribute values are prefixed by the specified attribute value."
+                },
+                "range_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the attribute to be searched."
+                    },
+                    "attribute_min_value": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired minimum value for the search attribute (inclusive)."
+                    },
+                    "attribute_max_value": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The desired maximum value for the search attribute (inclusive)."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result whose named attribute values fall between the specified range."
+                },
+                "text_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "keywords": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A list of 1, 2, or 3 search keywords. Keywords with fewer than 3 alphanumeric characters are ignored."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the search result whose searchable attribute values contain all of the specified keywords or tokens, independent of the token order or case."
+                },
+                "items_for_tax_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "tax_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A set of `CatalogTax` IDs to be used to find associated `CatalogItem`s."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the items containing the specified tax IDs."
+                },
+                "items_for_modifier_list_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "modifier_list_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A set of `CatalogModifierList` IDs to be used to find associated `CatalogItem`s."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the items containing the specified modifier list IDs."
+                },
+                "items_for_item_options_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "item_option_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A set of `CatalogItemOption` IDs to be used to find associated\n`CatalogItem`s. All Items that contain all of the given Item Options (in any order)\nwill be returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the items containing the specified item option IDs."
+                },
+                "item_variations_for_item_option_values_query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "item_option_value_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A set of `CatalogItemOptionValue` IDs to be used to find associated\n`CatalogItemVariation`s. All ItemVariations that contain all of the given\nItem Option Values (in any order) will be returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The query filter to return the item variations containing the specified item option value IDs."
+                }
+              },
+              "inner_properties": null,
+              "description": "A query composed of one or more different types of filters to narrow the scope of targeted objects when calling the `SearchCatalogObjects` endpoint.\n\nAlthough a query can have multiple filters, only certain query types can be combined per call to [SearchCatalogObjects](api-endpoint:Catalog-SearchCatalogObjects).\nAny combination of the following types may be used together:\n- [exact_query](entity:CatalogQueryExact)\n- [prefix_query](entity:CatalogQueryPrefix)\n- [range_query](entity:CatalogQueryRange)\n- [sorted_attribute_query](entity:CatalogQuerySortedAttribute)\n- [text_query](entity:CatalogQueryText)\n\nAll other query types cannot be combined with any others.\n\nWhen a query filter is based on an attribute, the attribute must be searchable.\nSearchable attributes are listed as follows, along their parent types that can be searched for with applicable query filters.\n\nSearchable attribute and objects queryable by searchable attributes:\n- `name`:  `CatalogItem`, `CatalogItemVariation`, `CatalogCategory`, `CatalogTax`, `CatalogDiscount`, `CatalogModifier`, `CatalogModifierList`, `CatalogItemOption`, `CatalogItemOptionValue`\n- `description`: `CatalogItem`, `CatalogItemOptionValue`\n- `abbreviation`: `CatalogItem`\n- `upc`: `CatalogItemVariation`\n- `sku`: `CatalogItemVariation`\n- `caption`: `CatalogImage`\n- `display_name`: `CatalogItemOption`\n\nFor example, to search for [CatalogItem](entity:CatalogItem) objects by searchable attributes, you can use\nthe `\"name\"`, `\"description\"`, or `\"abbreviation\"` attribute in an applicable query filter."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A limit on the number of results to be returned in a single page. The limit is advisory -\nthe implementation may return more or fewer results. If the supplied limit is negative, zero, or\nis higher than the maximum limit of 1,000, it will be ignored."
+            },
+            "include_category_path_to_root": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether or not to include the `path_to_root` list for each returned category instance. The `path_to_root` list consists of `CategoryPathToRootNode` objects and specifies the path that starts with the immediate parent category of the returned category and ends with its root category. If the returned category is a top-level category, the `path_to_root` list is empty and is not returned in the response payload. If `include_category_path_to_root` is `true`, then the `include_deleted_objects` request parameter must be `false`. Both properties cannot be `true` at the same time."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"The pagination cursor returned in the previous response. Leave unset for an initial request.\\nSee [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination) for more information.\"\n          },\n          \"object_types\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"ITEM\",\n                \"IMAGE\",\n                \"CATEGORY\",\n                \"ITEM_VARIATION\",\n                \"TAX\",\n                \"DISCOUNT\",\n                \"MODIFIER_LIST\",\n                \"MODIFIER\",\n                \"PRICING_RULE\",\n                \"PRODUCT_SET\",\n                \"TIME_PERIOD\",\n                \"MEASUREMENT_UNIT\",\n                \"SUBSCRIPTION_PLAN_VARIATION\",\n                \"ITEM_OPTION\",\n                \"ITEM_OPTION_VAL\",\n                \"CUSTOM_ATTRIBUTE_DEFINITION\",\n                \"QUICK_AMOUNTS_SETTINGS\",\n                \"SUBSCRIPTION_PLAN\",\n                \"AVAILABILITY_PERIOD\"\n              ],\n              \"x-enum-elements\": [\n                {\n                  \"name\": \"ITEM\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogItem](entity:CatalogItem) type and represents an item. The item-specific data\\nmust be set on the `item_data` field.\"\n                },\n                {\n                  \"name\": \"IMAGE\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogImage](entity:CatalogImage) type and represents an image. The image-specific data\\nmust be set on the `image_data` field.\"\n                },\n                {\n                  \"name\": \"CATEGORY\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogCategory](entity:CatalogCategory) type and represents a category. The category-specific data\\nmust be set on the `category_data` field.\"\n                },\n                {\n                  \"name\": \"ITEM_VARIATION\",\n                  \"description\": \"The `CatalogObject` instance is of the  [CatalogItemVariation](entity:CatalogItemVariation) type and represents an item variation, also referred to as variation.\\nThe item variation-specific data must be set on the `item_variation_data` field.\"\n                },\n                {\n                  \"name\": \"TAX\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogTax](entity:CatalogTax) type and represents a tax. The tax-specific data\\nmust be set on the `tax_data` field.\"\n                },\n                {\n                  \"name\": \"DISCOUNT\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogDiscount](entity:CatalogDiscount) type and represents a discount. The discount-specific data\\nmust be set on the `discount_data` field.\"\n                },\n                {\n                  \"name\": \"MODIFIER_LIST\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogModifierList](entity:CatalogModifierList) type and represents a modifier list.\\nThe modifier-list-specific data must be set on the `modifier_list_data` field.\"\n                },\n                {\n                  \"name\": \"MODIFIER\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogModifier](entity:CatalogModifier) type and represents a modifier. The modifier-specific data\\nmust be set on the `modifier_data` field.\"\n                },\n                {\n                  \"name\": \"PRICING_RULE\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogPricingRule](entity:CatalogPricingRule) type and represents a pricing rule. The pricing-rule-specific data\\nmust be set on the `pricing_rule_data` field.\"\n                },\n                {\n                  \"name\": \"PRODUCT_SET\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogProductSet](entity:CatalogProductSet) type and represents a product set.\\nThe product-set-specific data will be stored in the `product_set_data` field.\"\n                },\n                {\n                  \"name\": \"TIME_PERIOD\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogTimePeriod](entity:CatalogTimePeriod) type and represents a time period.\\nThe time-period-specific data must be set on the `time_period_data` field.\"\n                },\n                {\n                  \"name\": \"MEASUREMENT_UNIT\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogMeasurementUnit](entity:CatalogMeasurementUnit) type and represents a measurement unit specifying the unit of\\nmeasure and precision in which an item variation is sold. The measurement-unit-specific data must set on the `measurement_unit_data` field.\"\n                },\n                {\n                  \"name\": \"SUBSCRIPTION_PLAN_VARIATION\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogSubscriptionPlan](entity:CatalogSubscriptionPlan) type and represents a subscription plan.\\nThe subscription-plan-specific data must be stored on the `subscription_plan_data` field.\"\n                },\n                {\n                  \"name\": \"ITEM_OPTION\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogItemOption](entity:CatalogItemOption) type and represents a list of options (such as a color or size of a T-shirt)\\nthat can be assigned to item variations. The item-option-specific data must be on the `item_option_data` field.\"\n                },\n                {\n                  \"name\": \"ITEM_OPTION_VAL\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogItemOptionValue](entity:CatalogItemOptionValue) type and represents a value associated with one or more item options.\\nFor example, an item option of \\\"Size\\\" may have item option values such as \\\"Small\\\" or \\\"Medium\\\".\\nThe item-option-value-specific data must be on the `item_option_value_data` field.\"\n                },\n                {\n                  \"name\": \"CUSTOM_ATTRIBUTE_DEFINITION\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogCustomAttributeDefinition](entity:CatalogCustomAttributeDefinition) type and represents the definition of a custom attribute.\\nThe custom-attribute-definition-specific data must be set on the `custom_attribute_definition_data` field.\"\n                },\n                {\n                  \"name\": \"QUICK_AMOUNTS_SETTINGS\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogQuickAmountsSettings](entity:CatalogQuickAmountsSettings) type and represents settings to configure preset charges for quick payments at each location.\\nFor example, a location may have a list of both AUTO and MANUAL quick amounts that are set to DISABLED.\\nThe quick-amounts-settings-specific data must be set on the `quick_amounts_settings_data` field.\"\n                },\n                {\n                  \"name\": \"SUBSCRIPTION_PLAN\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogSubscriptionPlan](entity:CatalogSubscriptionPlan) type and represents a subscription plan.\\nThe subscription plan specific data must be stored on the `subscription_plan_data` field.\"\n                },\n                {\n                  \"name\": \"AVAILABILITY_PERIOD\",\n                  \"description\": \"The `CatalogObject` instance is of the [CatalogAvailabilityPeriod](entity:CatalogAvailabilityPeriod) type and represents an availability period.\\nThe availability period specific data must be stored on the `availability_period_data` field.\"\n                }\n              ],\n              \"description\": \"Possible types of CatalogObjects returned from the catalog, each\\ncontaining type-specific properties in the `*_data` field corresponding to the specified object type.\",\n              \"x-release-status\": \"PUBLIC\"\n            },\n            \"description\": \"The desired set of object types to appear in the search results.\\n\\nIf this is unspecified, the operation returns objects of all the top level types at the version\\nof the Square API used to make the request. Object types that are nested onto other object types\\nare not included in the defaults.\\n\\nAt the current API version the default object types are:\\nITEM, CATEGORY, TAX, DISCOUNT, MODIFIER_LIST, \\nPRICING_RULE, PRODUCT_SET, TIME_PERIOD, MEASUREMENT_UNIT,\\nSUBSCRIPTION_PLAN, ITEM_OPTION, CUSTOM_ATTRIBUTE_DEFINITION, QUICK_AMOUNT_SETTINGS.\\n\\nNote that if you wish for the query to return objects belonging to nested types (i.e., COMPONENT, IMAGE,\\nITEM_OPTION_VAL, ITEM_VARIATION, or MODIFIER), you must explicitly include all the types of interest\\nin this field.\"\n          },\n          \"include_deleted_objects\": {\n            \"type\": \"boolean\",\n            \"description\": \"If `true`, deleted objects will be included in the results. Defaults to `false`. Deleted objects will have their `is_deleted` field set to `true`. If `include_deleted_objects` is `true`, then the `include_category_path_to_root` request parameter must be `false`. Both properties cannot be `true` at the same time.\"\n          },\n          \"include_related_objects\": {\n            \"type\": \"boolean\",\n            \"description\": \"If `true`, the response will include additional objects that are related to the\\nrequested objects. Related objects are objects that are referenced by object ID by the objects\\nin the response. This is helpful if the objects are being fetched for immediate display to a user.\\nThis process only goes one level deep. Objects referenced by the related objects will not be included.\\nFor example:\\n\\nIf the `objects` field of the response contains a CatalogItem, its associated\\nCatalogCategory objects, CatalogTax objects, CatalogImage objects and\\nCatalogModifierLists will be returned in the `related_objects` field of the\\nresponse. If the `objects` field of the response contains a CatalogItemVariation,\\nits parent CatalogItem will be returned in the `related_objects` field of\\nthe response.\\n\\nDefault value: `false`\"\n          },\n          \"begin_time\": {\n            \"type\": \"string\",\n            \"description\": \"Return objects modified after this [timestamp](https://developer.squareup.com/docs/build-basics/working-with-dates), in RFC 3339\\nformat, e.g., `2016-09-04T23:59:33.123Z`. The timestamp is exclusive - objects with a\\ntimestamp equal to `begin_time` will not be included in the response.\"\n          },\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"A query composed of one or more different types of filters to narrow the scope of targeted objects when calling the `SearchCatalogObjects` endpoint.\\n\\nAlthough a query can have multiple filters, only certain query types can be combined per call to [SearchCatalogObjects](api-endpoint:Catalog-SearchCatalogObjects).\\nAny combination of the following types may be used together:\\n- [exact_query](entity:CatalogQueryExact)\\n- [prefix_query](entity:CatalogQueryPrefix)\\n- [range_query](entity:CatalogQueryRange)\\n- [sorted_attribute_query](entity:CatalogQuerySortedAttribute)\\n- [text_query](entity:CatalogQueryText)\\n\\nAll other query types cannot be combined with any others.\\n\\nWhen a query filter is based on an attribute, the attribute must be searchable.\\nSearchable attributes are listed as follows, along their parent types that can be searched for with applicable query filters.\\n\\nSearchable attribute and objects queryable by searchable attributes:\\n- `name`:  `CatalogItem`, `CatalogItemVariation`, `CatalogCategory`, `CatalogTax`, `CatalogDiscount`, `CatalogModifier`, `CatalogModifierList`, `CatalogItemOption`, `CatalogItemOptionValue`\\n- `description`: `CatalogItem`, `CatalogItemOptionValue`\\n- `abbreviation`: `CatalogItem`\\n- `upc`: `CatalogItemVariation`\\n- `sku`: `CatalogItemVariation`\\n- `caption`: `CatalogImage`\\n- `display_name`: `CatalogItemOption`\\n\\nFor example, to search for [CatalogItem](entity:CatalogItem) objects by searchable attributes, you can use\\nthe `\\\"name\\\"`, `\\\"description\\\"`, or `\\\"abbreviation\\\"` attribute in an applicable query filter.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"sorted_attribute_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query expression to specify the key to sort search results.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"attribute_name\"\n                ],\n                \"properties\": {\n                  \"attribute_name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The attribute whose value is used as the sort key.\",\n                    \"minLength\": 1\n                  },\n                  \"initial_attribute_value\": {\n                    \"type\": \"string\",\n                    \"description\": \"The first attribute value to be returned by the query. Ascending sorts will return only\\nobjects with this value or greater, while descending sorts will return only objects with this value\\nor less. If unset, start at the beginning (for ascending sorts) or end (for descending sorts).\",\n                    \"nullable\": true\n                  },\n                  \"sort_order\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"DESC\",\n                      \"ASC\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"DESC\",\n                        \"description\": \"The results are returned in descending (e.g., newest-first or Z-A) order.\"\n                      },\n                      {\n                        \"name\": \"ASC\",\n                        \"description\": \"The results are returned in ascending (e.g., oldest-first or A-Z) order.\"\n                      }\n                    ],\n                    \"description\": \"The order (e.g., chronological or alphabetical) in which results from a request are returned.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  }\n                }\n              },\n              \"exact_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query filter to return the search result by exact match of the specified attribute name and value.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"attribute_name\",\n                  \"attribute_value\"\n                ],\n                \"properties\": {\n                  \"attribute_name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the attribute to be searched. Matching of the attribute name is exact.\",\n                    \"minLength\": 1\n                  },\n                  \"attribute_value\": {\n                    \"type\": \"string\",\n                    \"description\": \"The desired value of the search attribute. Matching of the attribute value is case insensitive and can be partial.\\nFor example, if a specified value of \\\"sma\\\", objects with the named attribute value of \\\"Small\\\", \\\"small\\\" are both matched.\"\n                  }\n                }\n              },\n              \"set_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query filter to return the search result(s) by exact match of the specified `attribute_name` and any of\\nthe `attribute_values`.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"attribute_name\",\n                  \"attribute_values\"\n                ],\n                \"properties\": {\n                  \"attribute_name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the attribute to be searched. Matching of the attribute name is exact.\",\n                    \"minLength\": 1\n                  },\n                  \"attribute_values\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"The desired values of the search attribute. Matching of the attribute values is exact and case insensitive.\\nA maximum of 250 values may be searched in a request.\"\n                  }\n                }\n              },\n              \"prefix_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query filter to return the search result whose named attribute values are prefixed by the specified attribute value.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"attribute_name\",\n                  \"attribute_prefix\"\n                ],\n                \"properties\": {\n                  \"attribute_name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the attribute to be searched.\",\n                    \"minLength\": 1\n                  },\n                  \"attribute_prefix\": {\n                    \"type\": \"string\",\n                    \"description\": \"The desired prefix of the search attribute value.\",\n                    \"minLength\": 1\n                  }\n                }\n              },\n              \"range_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query filter to return the search result whose named attribute values fall between the specified range.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"attribute_name\"\n                ],\n                \"properties\": {\n                  \"attribute_name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the attribute to be searched.\",\n                    \"minLength\": 1\n                  },\n                  \"attribute_min_value\": {\n                    \"type\": \"integer\",\n                    \"description\": \"The desired minimum value for the search attribute (inclusive).\",\n                    \"format\": \"int64\",\n                    \"nullable\": true\n                  },\n                  \"attribute_max_value\": {\n                    \"type\": \"integer\",\n                    \"description\": \"The desired maximum value for the search attribute (inclusive).\",\n                    \"format\": \"int64\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"text_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query filter to return the search result whose searchable attribute values contain all of the specified keywords or tokens, independent of the token order or case.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"keywords\"\n                ],\n                \"properties\": {\n                  \"keywords\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"A list of 1, 2, or 3 search keywords. Keywords with fewer than 3 alphanumeric characters are ignored.\"\n                  }\n                }\n              },\n              \"items_for_tax_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query filter to return the items containing the specified tax IDs.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"tax_ids\"\n                ],\n                \"properties\": {\n                  \"tax_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"A set of `CatalogTax` IDs to be used to find associated `CatalogItem`s.\"\n                  }\n                }\n              },\n              \"items_for_modifier_list_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query filter to return the items containing the specified modifier list IDs.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"modifier_list_ids\"\n                ],\n                \"properties\": {\n                  \"modifier_list_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"A set of `CatalogModifierList` IDs to be used to find associated `CatalogItem`s.\"\n                  }\n                }\n              },\n              \"items_for_item_options_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query filter to return the items containing the specified item option IDs.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"item_option_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"A set of `CatalogItemOption` IDs to be used to find associated\\n`CatalogItem`s. All Items that contain all of the given Item Options (in any order)\\nwill be returned.\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"item_variations_for_item_option_values_query\": {\n                \"type\": \"object\",\n                \"description\": \"The query filter to return the item variations containing the specified item option value IDs.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"item_option_value_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"A set of `CatalogItemOptionValue` IDs to be used to find associated\\n`CatalogItemVariation`s. All ItemVariations that contain all of the given\\nItem Option Values (in any order) will be returned.\",\n                    \"nullable\": true\n                  }\n                }\n              }\n            }\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"A limit on the number of results to be returned in a single page. The limit is advisory -\\nthe implementation may return more or fewer results. If the supplied limit is negative, zero, or\\nis higher than the maximum limit of 1,000, it will be ignored.\"\n          },\n          \"include_category_path_to_root\": {\n            \"type\": \"boolean\",\n            \"description\": \"Specifies whether or not to include the `path_to_root` list for each returned category instance. The `path_to_root` list consists of `CategoryPathToRootNode` objects and specifies the path that starts with the immediate parent category of the returned category and ends with its root category. If the returned category is a top-level category, the `path_to_root` list is empty and is not returned in the response payload. If `include_category_path_to_root` is `true`, then the `include_deleted_objects` request parameter must be `false`. Both properties cannot be `true` at the same time.\"\n          }\n        },\n        \"example\": {\n          \"limit\": 100,\n          \"object_types\": [\n            \"ITEM\"\n          ],\n          \"query\": {\n            \"prefix_query\": {\n              \"attribute_name\": \"name\",\n              \"attribute_prefix\": \"tea\"\n            }\n          }\n        },\n        \"x-sq-sdk-sample-code\": {\n          \"csharp\": \"/sdk_samples/Catalog/SearchCatalogObjects/SearchCatalogObjectsRequest.csharp\",\n          \"java\": \"/sdk_samples/Catalog/SearchCatalogObjects/SearchCatalogObjectsRequest.java\",\n          \"javascript\": \"/sdk_samples/Catalog/SearchCatalogObjects/SearchCatalogObjectsRequest.javascript\",\n          \"php\": \"/sdk_samples/Catalog/SearchCatalogObjects/SearchCatalogObjectsRequest.php\",\n          \"python\": \"/sdk_samples/Catalog/SearchCatalogObjects/SearchCatalogObjectsRequest.python\",\n          \"ruby\": \"/sdk_samples/Catalog/SearchCatalogObjects/SearchCatalogObjectsRequest.ruby\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

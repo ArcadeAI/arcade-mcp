@@ -1,18 +1,18 @@
 {
   "name": "DeleteBookingCustomAttributeDefinition",
-  "fully_qualified_name": "SquareupApi.DeleteBookingCustomAttributeDefinition@0.1.0",
-  "description": "Deletes a bookings custom attribute definition.\n\nUse to delete a custom attribute definition for bookings. Requires specific OAuth scopes depending on permission level: `APPOINTMENTS_WRITE` for buyer-level or both `APPOINTMENTS_ALL_WRITE` and `APPOINTMENTS_WRITE` for seller-level. Seller-level calls require an Appointments Plus or Premium subscription.",
+  "fully_qualified_name": "SquareupApi.DeleteBookingCustomAttributeDefinition@2.0.0",
+  "description": "Deletes a booking's custom attribute definition.\n\nUse this tool to delete a custom attribute definition for bookings. Ensure appropriate OAuth scopes are set: 'APPOINTMENTS_WRITE' for buyer-level permissions, or 'APPOINTMENTS_ALL_WRITE' and 'APPOINTMENTS_WRITE' for seller-level permissions. Seller-level permissions require a subscription to Appointments Plus or Premium.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "custom_attribute_definition_key",
+        "name": "custom_attribute_key",
         "required": true,
-        "description": "The unique key of the custom attribute definition to be deleted.",
+        "description": "The key of the custom attribute definition to delete for bookings.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/bookings/custom-attribute-definitions/{key}",
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "key",
-        "tool_parameter_name": "custom_attribute_definition_key",
+        "tool_parameter_name": "custom_attribute_key",
         "description": "The key of the custom attribute definition to delete.",
         "value_schema": {
           "val_type": "string",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

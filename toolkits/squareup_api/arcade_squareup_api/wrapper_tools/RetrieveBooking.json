@@ -1,18 +1,18 @@
 {
   "name": "RetrieveBooking",
-  "fully_qualified_name": "SquareupApi.RetrieveBooking@0.1.0",
-  "description": "Retrieve details of a specific booking.\n\nUse this tool to get information about a particular booking using its ID. Appropriate OAuth scopes are required depending on whether buyer or seller permissions are needed.",
+  "fully_qualified_name": "SquareupApi.RetrieveBooking@2.0.0",
+  "description": "Retrieve detailed information about a booking.\n\nUse this tool to get comprehensive details of a specific booking by providing the booking ID. It requires appropriate OAuth permissions to access booking data.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "booking_id",
         "required": true,
-        "description": "The unique identifier for the booking to retrieve details.",
+        "description": "The ID of the Booking object to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/bookings/{booking_id}",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

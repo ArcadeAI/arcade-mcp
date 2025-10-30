@@ -1,18 +1,18 @@
 {
   "name": "ListCustomerSegments",
-  "fully_qualified_name": "SquareupApi.ListCustomerSegments@0.1.0",
-  "description": "Retrieve the list of customer segments for a business.\n\nCall this tool to obtain the customer segments associated with a business. This can be useful for understanding customer classifications and targeting specific groups in marketing or service strategies.",
+  "fully_qualified_name": "SquareupApi.ListCustomerSegments@2.0.0",
+  "description": "Retrieve customer segments for a business.\n\nUse this tool to get the current list of customer segments associated with a business. Ideal for understanding customer categorization and segmentation.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A pagination cursor for retrieving the next set of customer segment results.",
+        "description": "A pagination cursor for retrieving the next set of customer segment results. Use a cursor returned from a previous call to continue listing.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "max_results_per_page",
         "required": false,
-        "description": "Maximum number of results to return per page. Must be between 1 and 50. Default is 50. If outside this range, an error is returned.",
+        "description": "The maximum number of results to return in a single page. Value must be between 1 and 50. Default is 50.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/customers/segments",
@@ -102,6 +102,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -119,6 +120,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

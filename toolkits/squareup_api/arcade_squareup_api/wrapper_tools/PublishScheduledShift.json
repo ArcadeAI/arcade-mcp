@@ -1,0 +1,216 @@
+{
+  "name": "PublishScheduledShift",
+  "fully_qualified_name": "SquareupApi.PublishScheduledShift@2.0.0",
+  "description": "Publish a scheduled shift to make it official.\n\nUse this tool to publish a scheduled shift, confirming its details. The draft shift details are finalized and moved to the published shift details, marking the shift as official.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "scheduled_shift_id",
+        "required": true,
+        "description": "The ID of the scheduled shift to publish.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the scheduled shift to publish."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "unique_idempotency_key",
+        "required": true,
+        "description": "A unique identifier for ensuring the idempotency of the publish request. Prevents duplicate operations if the request is retried.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the `PublishScheduledShift` request, used to ensure the\n[idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)\nof the operation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "current_shift_version",
+        "required": false,
+        "description": "The current version of the scheduled shift for optimistic concurrency control. If it doesn't match the server version, the request fails.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The current version of the scheduled shift, used to enable [optimistic concurrency](https://developer.squareup.com/docs/build-basics/common-api-patterns/optimistic-concurrency)\ncontrol. If the provided version doesn't match the server version, the request fails.\nIf omitted, Square executes a blind write, potentially overwriting data from another publish request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      },
+      {
+        "name": "notification_audience",
+        "required": false,
+        "description": "Specify who receives email notifications when a scheduled shift is published. Options are: ALL, AFFECTED, NONE.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ALL",
+            "AFFECTED",
+            "NONE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether Square sends an email notification to team members\nwhen a scheduled shift is published and which team members receive the notification."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scheduled_shift_notification_audience"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'PublishScheduledShift'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "TIMECARDS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/labor/scheduled-shifts/{id}/publish",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "scheduled_shift_id",
+        "description": "The ID of the scheduled shift to publish.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the scheduled shift to publish."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_idempotency_key",
+        "description": "A unique identifier for the `PublishScheduledShift` request, used to ensure the\n[idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)\nof the operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the `PublishScheduledShift` request, used to ensure the\n[idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)\nof the operation."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "version",
+        "tool_parameter_name": "current_shift_version",
+        "description": "The current version of the scheduled shift, used to enable [optimistic concurrency](https://developer.squareup.com/docs/build-basics/common-api-patterns/optimistic-concurrency)\ncontrol. If the provided version doesn't match the server version, the request fails.\nIf omitted, Square executes a blind write, potentially overwriting data from another publish request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The current version of the scheduled shift, used to enable [optimistic concurrency](https://developer.squareup.com/docs/build-basics/common-api-patterns/optimistic-concurrency)\ncontrol. If the provided version doesn't match the server version, the request fails.\nIf omitted, Square executes a blind write, potentially overwriting data from another publish request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "scheduled_shift_notification_audience",
+        "tool_parameter_name": "notification_audience",
+        "description": "Indicates whether Square sends an email notification to team members\nwhen a scheduled shift is published and which team members receive the notification.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ALL",
+            "AFFECTED",
+            "NONE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether Square sends an email notification to team members\nwhen a scheduled shift is published and which team members receive the notification."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents a [PublishScheduledShift](api-endpoint:Labor-PublishScheduledShift) request.\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"idempotency_key\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique identifier for the `PublishScheduledShift` request, used to ensure the\\n[idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)\\nof the operation.\",\n            \"minLength\": 1,\n            \"maxLength\": 128\n          },\n          \"version\": {\n            \"type\": \"integer\",\n            \"description\": \"The current version of the scheduled shift, used to enable [optimistic concurrency](https://developer.squareup.com/docs/build-basics/common-api-patterns/optimistic-concurrency)\\ncontrol. If the provided version doesn't match the server version, the request fails.\\nIf omitted, Square executes a blind write, potentially overwriting data from another publish request.\"\n          },\n          \"scheduled_shift_notification_audience\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"ALL\",\n              \"AFFECTED\",\n              \"NONE\"\n            ],\n            \"x-enum-elements\": [\n              {\n                \"name\": \"ALL\",\n                \"description\": \"Notify all active team members. Note that republishing an unchanged\\nshift with this setting resends the notification.\"\n              },\n              {\n                \"name\": \"AFFECTED\",\n                \"description\": \"Notify the team member assigned to the shift. If the shift assignment\\nchanges, notify both the newly assigned and previously assigned team members.\"\n              },\n              {\n                \"name\": \"NONE\",\n                \"description\": \"Do not send a notification.\"\n              }\n            ],\n            \"description\": \"Indicates whether Square sends an email notification to team members\\nwhen a scheduled shift is published and which team members receive the notification.\",\n            \"x-release-status\": \"BETA\"\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"HIDSNG5KS478L\",\n          \"scheduled_shift_notification_audience\": \"ALL\",\n          \"version\": 2\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

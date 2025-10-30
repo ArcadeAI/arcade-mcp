@@ -1,18 +1,18 @@
 {
   "name": "GetSampleWebhookData",
-  "fully_qualified_name": "CalendlyApi.GetSampleWebhookData@0.1.0",
-  "description": "Retrieve sample webhook data for testing purposes.\n\nUse this tool to access sample data for testing your Calendly webhook subscription.",
+  "fully_qualified_name": "CalendlyApi.GetSampleWebhookData@2.0.0",
+  "description": "Retrieve sample webhook data for testing integrations.\n\nUse this tool to obtain a sample webhook payload from Calendly for testing your webhook subscription integration. This is useful for developers who want to ensure their systems can properly handle the data structure and content sent by Calendly webhooks before going live.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "event_type",
+        "name": "webhook_event_type",
         "required": true,
-        "description": "Specifies the type of event for which you want to retrieve sample webhook data. Options include 'invitee.created', 'invitee.canceled', 'invitee_no_show.created', 'invitee_no_show.deleted', and 'routing_form_submission.created'.",
+        "description": "Specify the type of webhook event to simulate, such as 'invitee.created' or 'invitee.canceled'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -33,7 +33,7 @@
       {
         "name": "organization_identifier",
         "required": true,
-        "description": "The unique identifier of the organization in Calendly for which you want to retrieve sample webhook data.",
+        "description": "The unique identifier for the organization. It specifies which organization the sample webhook data belongs to.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -46,9 +46,9 @@
         "http_endpoint_parameter_name": "organization"
       },
       {
-        "name": "scope",
+        "name": "webhook_scope",
         "required": true,
-        "description": "Defines the scope of the webhook data to fetch: 'user', 'organization', or 'group'.",
+        "description": "Specify the scope for the sample webhook data. Options are 'user', 'organization', or 'group'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -67,7 +67,7 @@
       {
         "name": "user_identifier",
         "required": false,
-        "description": "The unique identifier for the Calendly user whose webhook data is being tested. Provide a valid user ID or username.",
+        "description": "The unique identifier for a user in Calendly whose webhook data you want to test.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -80,9 +80,9 @@
         "http_endpoint_parameter_name": "user"
       },
       {
-        "name": "event_group_identifier",
+        "name": "webhook_event_group",
         "required": false,
-        "description": "Specify the group identifier to test webhook data for a specific group. This helps categorize or organize the webhook data samples.",
+        "description": "Specify the group for the webhook event to categorize and filter data. Typically used for organizing related webhooks.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -125,13 +125,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/sample_webhook_data",
@@ -140,7 +140,7 @@
     "parameters": [
       {
         "name": "event",
-        "tool_parameter_name": "event_type",
+        "tool_parameter_name": "webhook_event_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -159,6 +159,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -176,6 +177,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -193,11 +195,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "scope",
-        "tool_parameter_name": "scope",
+        "tool_parameter_name": "webhook_scope",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -214,11 +217,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "group",
-        "tool_parameter_name": "event_group_identifier",
+        "tool_parameter_name": "webhook_event_group",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -231,6 +235,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -244,6 +249,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

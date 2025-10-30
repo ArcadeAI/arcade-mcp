@@ -1,0 +1,109 @@
+{
+  "name": "RetrieveTeamBookingProfiles",
+  "fully_qualified_name": "SquareupApi.RetrieveTeamBookingProfiles@2.0.0",
+  "description": "Retrieve booking profiles for one or more team members.\n\nUse this tool to get booking profiles of specified team members. Useful for accessing and managing team members' booking information.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_member_ids",
+        "required": true,
+        "description": "A non-empty list of team member IDs to retrieve booking profiles for.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A non-empty list of IDs of team members whose booking profiles you want to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_member_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BulkRetrieveTeamMemberBookingProfiles'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "APPOINTMENTS_BUSINESS_SETTINGS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/bookings/team-member-booking-profiles/bulk-retrieve",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_member_ids",
+        "tool_parameter_name": "team_member_ids",
+        "description": "A non-empty list of IDs of team members whose booking profiles you want to retrieve.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A non-empty list of IDs of team members whose booking profiles you want to retrieve."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Request payload for the [BulkRetrieveTeamMemberBookingProfiles](api-endpoint:Bookings-BulkRetrieveTeamMemberBookingProfiles) endpoint.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"team_member_ids\"\n        ],\n        \"properties\": {\n          \"team_member_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"A non-empty list of IDs of team members whose booking profiles you want to retrieve.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

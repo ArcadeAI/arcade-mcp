@@ -1,18 +1,18 @@
 {
   "name": "RemoveInvoiceAttachment",
-  "fully_qualified_name": "SquareupApi.RemoveInvoiceAttachment@0.1.0",
-  "description": "Remove an attachment from an invoice and delete the file.\n\nUse this tool to permanently delete an attachment from an invoice. It is applicable only for invoices in the DRAFT, SCHEDULED, UNPAID, or PARTIALLY_PAID state.",
+  "fully_qualified_name": "SquareupApi.RemoveInvoiceAttachment@2.0.0",
+  "description": "Removes an attachment from an invoice.\n\nUse this tool to permanently delete an attachment from an invoice. Applicable only for invoices in 'DRAFT', 'SCHEDULED', 'UNPAID', or 'PARTIALLY_PAID' states.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "invoice_id",
+        "name": "invoice_identifier",
         "required": true,
-        "description": "The unique identifier of the invoice to remove the attachment from. Applicable for invoices in specific states (DRAFT, SCHEDULED, UNPAID, PARTIALLY_PAID).",
+        "description": "The unique ID of the invoice from which to delete the attachment. Applicable for specific invoice states.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "attachment_id",
         "required": true,
-        "description": "The unique identifier of the attachment to delete from the invoice. It should be a string corresponding to the attachment's ID.",
+        "description": "The unique identifier for the invoice attachment to be deleted. Required for removing the specified file from the invoice.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/invoices/{invoice_id}/attachments/{attachment_id}",
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "invoice_id",
-        "tool_parameter_name": "invoice_id",
+        "tool_parameter_name": "invoice_identifier",
         "description": "The ID of the [invoice](entity:Invoice) to delete the attachment from.",
         "value_schema": {
           "val_type": "string",
@@ -102,6 +102,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -119,6 +120,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

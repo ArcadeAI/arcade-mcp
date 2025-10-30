@@ -1,18 +1,18 @@
 {
   "name": "ListPagerdutyUsers",
-  "fully_qualified_name": "PagerdutyApi.ListPagerdutyUsers@0.1.0",
-  "description": "Retrieve a list of users from your PagerDuty account.\n\nUse this tool to get a list of users in your PagerDuty account. You can optionally filter users by a search query. This is useful for managing account members and their interactions with Incidents and other data.",
+  "fully_qualified_name": "PagerdutyApi.ListPagerdutyUsers@2.0.0",
+  "description": "Retrieve users from your PagerDuty account.\n\nUse this tool to list all users in your PagerDuty account, with the option to filter by a search query. Users are those who can interact with incidents and data within the account.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_version_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "The `Accept` header for versioning the API response. Specify the version of the API you want to use.",
+        "description": "Specify the version of the API to use. This is set using the `Accept` header as a versioning header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the response. Use 'application/json'.",
+        "description": "Sets the media type for the request. Use \"application/json\" for JSON formatted responses.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "user_name_filter",
         "required": false,
-        "description": "Filter results to show only users whose names match this query. Use a string to specify the filter.",
+        "description": "String to filter users by name in the PagerDuty account.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "team_ids",
         "required": false,
-        "description": "Array of team IDs to filter results. Requires 'teams' ability.",
+        "description": "An array of team IDs to filter the user results. Requires the account to have the 'teams' ability.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -74,7 +74,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "The number of user records to return per page of results.",
+        "description": "Specify the number of user results to be returned per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -87,9 +87,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "pagination_offset_start",
+        "name": "pagination_offset",
         "required": false,
-        "description": "Offset to start pagination search results. Use this to skip a specified number of results when retrieving the list of users.",
+        "description": "Offset to start pagination in search results. Specify the number of items to skip.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "include_additional_models",
+        "name": "additional_models_to_include",
         "required": false,
-        "description": "Array specifying which additional models to include in the response, such as 'contact_methods', 'notification_rules', 'teams', or 'subdomains'.",
+        "description": "Array of additional models to include in the response, such as 'contact_methods', 'notification_rules', 'teams', or 'subdomains'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -124,7 +124,7 @@
       {
         "name": "include_total_in_response",
         "required": false,
-        "description": "Set to true to include the total count of records in the response. This may slow down response time.",
+        "description": "Set to true to include the total count in pagination responses, which may slow down the response time.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -167,13 +167,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users",
@@ -236,7 +236,7 @@
       },
       {
         "name": "offset",
-        "tool_parameter_name": "pagination_offset_start",
+        "tool_parameter_name": "pagination_offset",
         "description": "Offset to start pagination search results.",
         "value_schema": {
           "val_type": "integer",
@@ -267,12 +267,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "include[]",
-        "tool_parameter_name": "include_additional_models",
+        "tool_parameter_name": "additional_models_to_include",
         "description": "Array of additional Models to include in response.",
         "value_schema": {
           "val_type": "string",
@@ -295,7 +295,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -342,6 +342,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

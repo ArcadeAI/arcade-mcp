@@ -1,0 +1,203 @@
+{
+  "name": "UpdateAccountHighlight",
+  "fully_qualified_name": "PylonApi.UpdateAccountHighlight@0.1.0",
+  "description": "Updates the highlight for a specified account.\n\nUse this tool to update the highlight information for a given account by specifying either the internal account ID or an external ID. Appropriate when modifications to account highlights are needed.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "highlight_id",
+        "required": true,
+        "description": "The unique identifier of the highlight you wish to update. Ensure this accurately corresponds to the highlight needing modification.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the highlight to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "highlight_id"
+      },
+      {
+        "name": "account_identifier",
+        "required": true,
+        "description": "The internal account ID (UUID) or external ID (any string) of the account associated with the highlight.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or external ID of the account that the highlight belongs to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "updated_html_content",
+        "required": false,
+        "description": "The updated HTML content for the account highlight.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The updated HTML content for this highlight."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "content_html"
+      },
+      {
+        "name": "updated_expiration_timestamp",
+        "required": false,
+        "description": "The new expiration timestamp for the highlight in RFC3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The updated expires at timestamp (RFC3339)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expires_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateAccountHighlight'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/accounts/{account_id}/highlights/{highlight_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "highlight_id",
+        "tool_parameter_name": "highlight_id",
+        "description": "The ID of the highlight to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the highlight to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_id",
+        "tool_parameter_name": "account_identifier",
+        "description": "The ID or external ID of the account that the highlight belongs to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or external ID of the account that the highlight belongs to."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "content_html",
+        "tool_parameter_name": "updated_html_content",
+        "description": "The updated HTML content for this highlight.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The updated HTML content for this highlight."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "expires_at",
+        "tool_parameter_name": "updated_expiration_timestamp",
+        "description": "The updated expires at timestamp (RFC3339).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The updated expires at timestamp (RFC3339)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"content_html\": {\n            \"description\": \"The updated HTML content for this highlight.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ContentHTML\"\n          },\n          \"expires_at\": {\n            \"description\": \"The updated expires at timestamp (RFC3339).\",\n            \"type\": \"string\",\n            \"x-go-name\": \"ExpiresAt\"\n          }\n        },\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "UnsubscribeFromBusinessService",
-  "fully_qualified_name": "PagerdutyApi.UnsubscribeFromBusinessService@0.1.0",
-  "description": "Unsubscribe an account from a business service.\n\nThis tool is used to remove an account's subscription from a specified business service in Pagerduty. It should be called when you want to unsubscribe your account. Ensure the necessary OAuth permissions (`subscribers.write`) are in place.",
+  "fully_qualified_name": "PagerdutyApi.UnsubscribeFromBusinessService@2.0.0",
+  "description": "Unsubscribe an account from a business service.\n\nUse this tool to remove your account's subscription from a specified business service. This action requires appropriate OAuth permissions ('subscribers.write').",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "business_service_id",
         "required": true,
-        "description": "The ID of the resource to unsubscribe from. This identifies the specific business service in Pagerduty.",
+        "description": "The unique identifier of the business service to unsubscribe from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "versioning_header",
+        "name": "api_version_header",
         "required": true,
-        "description": "Specify the version of the API to accept. This is used for versioning the request.",
+        "description": "The versioning format for the `Accept` header, specifying the API version to use.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/business_services/{id}/account_subscription",
@@ -85,7 +85,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "business_service_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -103,7 +103,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "api_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -130,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

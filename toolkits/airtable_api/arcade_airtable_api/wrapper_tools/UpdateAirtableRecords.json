@@ -1,0 +1,275 @@
+{
+  "name": "UpdateAirtableRecords",
+  "fully_qualified_name": "AirtableApi.UpdateAirtableRecords@2.0.0",
+  "description": "Update or upsert multiple records in an Airtable table.\n\nUse this tool to update up to 10 records in an Airtable table, or to upsert them by setting the `performUpsert` option. The tool is ideal when you want to make changes to specific fields without affecting others. By default, only included fields are updated. Use `PUT` instead of `PATCH` for destructive updates, which clear unincluded fields. Upserts enable the creation of new records if no match is found or update them if a match is found. Typecasting can be enabled to convert strings to appropriate cell values.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "airtable_base_id",
+        "required": true,
+        "description": "The unique identifier for the Airtable base where the records will be updated or upserted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "baseId"
+      },
+      {
+        "name": "airtable_table_id_or_name",
+        "required": true,
+        "description": "The ID or name of the Airtable table where records will be updated or upserted. Using the table ID is recommended for less disruption if the table name changes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tableIdOrName"
+      },
+      {
+        "name": "airtable_records_update_payload",
+        "required": false,
+        "description": "A JSON object containing details for upserting or updating records. Set `performUpsert` for upserts and define records with `fields` and optional `id`. Use `returnFieldsByFieldId` and `typecast` as needed.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "performUpsert": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enables upsert behavior when set.\n\n**fieldsToMergeOn** will be used as an external ID to match records for updates. For records\nwhere no match is found, a new Airtable record will be created."
+            },
+            "records": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the record to update. Required when **performUpsert** is undefined."
+                }
+              },
+              "description": null
+            },
+            "returnFieldsByFieldId": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set to `true`, records in the API response will key the **fields** object by field ID.\n\nDefaults to `false` when unset, which returns **fields** objects keyed by field name."
+            },
+            "typecast": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set to `true`, Airtable will try to convert string values into the appropriate\ncell value. This conversion is only performed on a best-effort basis. To ensure your data's\nintegrity, this should only be used when necessary.\n\nDefaults to `false` when unset."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-multiple-records'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "data.records:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/{baseId}/{tableIdOrName}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "baseId",
+        "tool_parameter_name": "airtable_base_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tableIdOrName",
+        "tool_parameter_name": "airtable_table_id_or_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "airtable_records_update_payload",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "performUpsert": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enables upsert behavior when set.\n\n**fieldsToMergeOn** will be used as an external ID to match records for updates. For records\nwhere no match is found, a new Airtable record will be created."
+            },
+            "records": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the record to update. Required when **performUpsert** is undefined."
+                }
+              },
+              "description": null
+            },
+            "returnFieldsByFieldId": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set to `true`, records in the API response will key the **fields** object by field ID.\n\nDefaults to `false` when unset, which returns **fields** objects keyed by field name."
+            },
+            "typecast": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set to `true`, Airtable will try to convert string values into the appropriate\ncell value. This conversion is only performed on a best-effort basis. To ensure your data's\nintegrity, this should only be used when necessary.\n\nDefaults to `false` when unset."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success response patch (update only)\": {\n          \"description\": \"Success Response Patch (update only)\",\n          \"summary\": \"Success response patch (update only)\",\n          \"value\": {\n            \"records\": [\n              {\n                \"fields\": {\n                  \"Address\": \"501 Twin Peaks Blvd\",\n                  \"Name\": \"Twin Peaks\",\n                  \"Visited\": true\n                },\n                \"id\": \"rec560UJdUtocSouk\"\n              },\n              {\n                \"fields\": {\n                  \"Visited\": true\n                },\n                \"id\": \"rec3lbPRG4aVqkeOQ\"\n              }\n            ]\n          }\n        },\n        \"Success response patch (upsert)\": {\n          \"description\": \"Success Response Patch (upsert)\",\n          \"summary\": \"Success response patch (upsert)\",\n          \"value\": {\n            \"performUpsert\": {\n              \"fieldsToMergeOn\": [\n                \"Name\"\n              ]\n            },\n            \"records\": [\n              {\n                \"fields\": {\n                  \"Address\": \"501 Twin Peaks Blvd\",\n                  \"Name\": \"Twin Peaks\",\n                  \"Visited\": true\n                }\n              },\n              {\n                \"fields\": {\n                  \"Name\": \"New Park\",\n                  \"Visited\": true\n                }\n              }\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"performUpsert\": {\n            \"anyOf\": [\n              {\n                \"properties\": {\n                  \"fieldsToMergeOn\": {\n                    \"description\": \"An array with at least one and at most three field names or IDs. IDs must uniquely identify\\na single record. These cannot be computed fields (formulas, lookups, rollups), and must be\\none of the following types: number, text, long text, single select, multiple select, date.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"fieldsToMergeOn\"\n                ],\n                \"type\": \"object\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Enables upsert behavior when set.\\n\\n**fieldsToMergeOn** will be used as an external ID to match records for updates. For records\\nwhere no match is found, a new Airtable record will be created.\",\n            \"x-airtable-hide-null\": true\n          },\n          \"records\": {\n            \"items\": {\n              \"properties\": {\n                \"fields\": {\n                  \"additionalProperties\": {\n                    \"anyOf\": [\n                      {\n                        \"properties\": {\n                          \"isStale\": {\n                            \"description\": \"If the cell should be recomputed due to a dependency change.\\nThis can either be a dependent field or the field configuration.\",\n                            \"type\": \"boolean\"\n                          },\n                          \"state\": {\n                            \"description\": \"The current state of the cell.\",\n                            \"enum\": [\n                              \"empty\",\n                              \"loading\",\n                              \"generated\"\n                            ],\n                            \"type\": \"string\"\n                          },\n                          \"value\": {\n                            \"description\": \"The value that is shown to the user inside of the cell\",\n                            \"type\": [\n                              \"string\",\n                              \"null\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"isStale\",\n                          \"state\",\n                          \"value\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"properties\": {\n                          \"errorType\": {\n                            \"description\": \"A short string that describes the error.\",\n                            \"type\": \"string\"\n                          },\n                          \"isStale\": {\n                            \"description\": \"If the cell should be recomputed due to a dependency change.\\nThis can either be a dependent field or the field configuration.\",\n                            \"type\": \"boolean\"\n                          },\n                          \"state\": {\n                            \"const\": \"error\",\n                            \"description\": \"Whether the cell is currently in an error state.\",\n                            \"type\": \"string\"\n                          },\n                          \"value\": {\n                            \"description\": \"The value that is shown to the user inside of the cell\",\n                            \"type\": [\n                              \"string\",\n                              \"null\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"errorType\",\n                          \"isStale\",\n                          \"state\",\n                          \"value\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"description\": \"The barcode object may contain the following two properties, both of which are optional.\",\n                        \"properties\": {\n                          \"text\": {\n                            \"description\": \"Barcode data\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"description\": \"Barcode symbology, e.g. \\\"upce\\\" or \\\"code39\\\"\",\n                            \"type\": [\n                              \"string\",\n                              \"null\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"text\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"Object providing details about the button configuration.\",\n                        \"properties\": {\n                          \"label\": {\n                            \"description\": \"Button label\",\n                            \"type\": \"string\"\n                          },\n                          \"url\": {\n                            \"description\": \"For \\\"Open URL\\\" actions, the computed url value\",\n                            \"type\": [\n                              \"string\",\n                              \"null\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"label\",\n                          \"url\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"const\": true,\n                        \"description\": \"This field is \\\"true\\\" when checked and otherwise empty.\\n\\nYou can write to the cell with \\\"false\\\", but the read value will be still be \\\"empty\\\" (unchecked).\",\n                        \"type\": \"boolean\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"anyOf\": [\n                          {\n                            \"type\": \"string\"\n                          },\n                          {\n                            \"type\": \"number\"\n                          },\n                          {\n                            \"const\": true,\n                            \"type\": \"boolean\"\n                          },\n                          {\n                            \"items\": {\n                              \"type\": [\n                                \"string\",\n                                \"number\"\n                              ]\n                            },\n                            \"type\": \"array\"\n                          }\n                        ],\n                        \"description\": \"Computed value - Check options.result to know the resulting field type.\"\n                      },\n                      {\n                        \"description\": \"Multiple lines of text, which may contain \\\"mention tokens\\\", e.g.\\n`<airtable:mention id=\\\"menE1i9oBaGX3DseR\\\">@Alex</airtable:mention>`\",\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"items\": {\n                          \"properties\": {\n                            \"filename\": {\n                              \"description\": \"Filename, e.g. \\\"foo.jpg\\\"\",\n                              \"type\": \"string\"\n                            },\n                            \"height\": {\n                              \"description\": \"Height, in pixels (these may be available if the attachment is an image)\",\n                              \"type\": \"number\"\n                            },\n                            \"id\": {\n                              \"description\": \"Unique attachment id\",\n                              \"type\": \"string\"\n                            },\n                            \"size\": {\n                              \"description\": \"File size, in bytes\",\n                              \"type\": \"number\"\n                            },\n                            \"thumbnails\": {\n                              \"description\": \"These small, large, and full thumbnails may be available if attachment is an image or document\",\n                              \"properties\": {\n                                \"full\": {\n                                  \"properties\": {\n                                    \"height\": {\n                                      \"type\": \"number\"\n                                    },\n                                    \"url\": {\n                                      \"description\": \"These may be available if the attachment is an image or document. See notes under `url` about the lifetime of these URLs.\",\n                                      \"type\": \"string\"\n                                    },\n                                    \"width\": {\n                                      \"type\": \"number\"\n                                    }\n                                  },\n                                  \"required\": [\n                                    \"url\",\n                                    \"width\",\n                                    \"height\"\n                                  ],\n                                  \"type\": \"object\"\n                                },\n                                \"large\": {\n                                  \"properties\": {\n                                    \"height\": {\n                                      \"type\": \"number\"\n                                    },\n                                    \"url\": {\n                                      \"description\": \"These may be available if the attachment is an image or document. See notes under `url` about the lifetime of these URLs.\",\n                                      \"type\": \"string\"\n                                    },\n                                    \"width\": {\n                                      \"type\": \"number\"\n                                    }\n                                  },\n                                  \"required\": [\n                                    \"url\",\n                                    \"width\",\n                                    \"height\"\n                                  ],\n                                  \"type\": \"object\"\n                                },\n                                \"small\": {\n                                  \"properties\": {\n                                    \"height\": {\n                                      \"type\": \"number\"\n                                    },\n                                    \"url\": {\n                                      \"description\": \"These may be available if the attachment is an image or document. See notes under `url` about the lifetime of these URLs.\",\n                                      \"type\": \"string\"\n                                    },\n                                    \"width\": {\n                                      \"type\": \"number\"\n                                    }\n                                  },\n                                  \"required\": [\n                                    \"url\",\n                                    \"width\",\n                                    \"height\"\n                                  ],\n                                  \"type\": \"object\"\n                                }\n                              },\n                              \"type\": \"object\"\n                            },\n                            \"type\": {\n                              \"description\": \"Content type, e.g. \\\"image/jpeg\\\"\",\n                              \"type\": \"string\"\n                            },\n                            \"url\": {\n                              \"description\": \"url, e.g. \\\"https://v5.airtableusercontent.com/foo\\\".\\n\\nURLs returned will expire 2 hours after being returned from our API.\\nIf you want to persist the attachments, we recommend downloading them instead of saving the URL.\\nSee [our support article](https://support.airtable.com/docs/airtable-attachment-url-behavior)\\nfor more information.\",\n                              \"type\": \"string\"\n                            },\n                            \"width\": {\n                              \"description\": \"Width, in pixels (these may be available if the attachment is an image)\",\n                              \"type\": \"number\"\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"url\",\n                            \"filename\",\n                            \"size\",\n                            \"type\",\n                            \"width\",\n                            \"height\",\n                            \"thumbnails\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"description\": \"Object providing details about the user collaborator in this field.\",\n                        \"properties\": {\n                          \"email\": {\n                            \"description\": \"User's email address\",\n                            \"type\": \"string\"\n                          },\n                          \"id\": {\n                            \"description\": \"User id or group id\",\n                            \"type\": \"string\"\n                          },\n                          \"name\": {\n                            \"description\": \"User's display name (may be omitted if the user hasn't created an account)\",\n                            \"type\": \"string\"\n                          },\n                          \"permissionLevel\": {\n                            \"description\": \"User's collaborator permission Level\\n\\nThis is only included if you're observing a webhooks response.\",\n                            \"enum\": [\n                              \"none\",\n                              \"read\",\n                              \"comment\",\n                              \"edit\",\n                              \"create\"\n                            ],\n                            \"type\": \"string\"\n                          },\n                          \"profilePicUrl\": {\n                            \"description\": \"User's profile picture\\n\\nThis is only included if it exists for the user **and** you're observing a webhooks response.\",\n                            \"type\": \"string\"\n                          }\n                        },\n                        \"required\": [\n                          \"id\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"Object providing details about the user collaborator in this field.\",\n                        \"properties\": {\n                          \"email\": {\n                            \"description\": \"User's email address\",\n                            \"type\": \"string\"\n                          },\n                          \"id\": {\n                            \"description\": \"User id or group id\",\n                            \"type\": \"string\"\n                          },\n                          \"name\": {\n                            \"description\": \"User's display name (may be omitted if the user hasn't created an account)\",\n                            \"type\": \"string\"\n                          },\n                          \"permissionLevel\": {\n                            \"description\": \"User's collaborator permission Level\\n\\nThis is only included if you're observing a webhooks response.\",\n                            \"enum\": [\n                              \"none\",\n                              \"read\",\n                              \"comment\",\n                              \"edit\",\n                              \"create\"\n                            ],\n                            \"type\": \"string\"\n                          },\n                          \"profilePicUrl\": {\n                            \"description\": \"User's profile picture\\n\\nThis is only included if it exists for the user **and** you're observing a webhooks response.\",\n                            \"type\": \"string\"\n                          }\n                        },\n                        \"required\": [\n                          \"id\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"Object providing details about the user collaborator in this field.\",\n                        \"properties\": {\n                          \"email\": {\n                            \"description\": \"User's email address\",\n                            \"type\": \"string\"\n                          },\n                          \"id\": {\n                            \"description\": \"User id or group id\",\n                            \"type\": \"string\"\n                          },\n                          \"name\": {\n                            \"description\": \"User's display name (may be omitted if the user hasn't created an account)\",\n                            \"type\": \"string\"\n                          },\n                          \"permissionLevel\": {\n                            \"description\": \"User's collaborator permission Level\\n\\nThis is only included if you're observing a webhooks response.\",\n                            \"enum\": [\n                              \"none\",\n                              \"read\",\n                              \"comment\",\n                              \"edit\",\n                              \"create\"\n                            ],\n                            \"type\": \"string\"\n                          },\n                          \"profilePicUrl\": {\n                            \"description\": \"User's profile picture\\n\\nThis is only included if it exists for the user **and** you're observing a webhooks response.\",\n                            \"type\": \"string\"\n                          }\n                        },\n                        \"required\": [\n                          \"id\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"The sync source name.\",\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"description\": \"Array of linked records IDs from the linked table.\",\n                        \"items\": {\n                          \"description\": \"Record ID\",\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      {\n                        \"description\": \"Array of cell values from a field in the linked table.\",\n                        \"items\": {\n                          \"anyOf\": [\n                            {\n                              \"type\": \"number\"\n                            },\n                            {\n                              \"type\": \"string\"\n                            },\n                            {\n                              \"type\": \"boolean\"\n                            },\n                            {}\n                          ]\n                        },\n                        \"type\": \"array\"\n                      },\n                      {\n                        \"items\": {\n                          \"description\": \"Object providing details about the user collaborator in this field.\",\n                          \"properties\": {\n                            \"email\": {\n                              \"description\": \"User's email address\",\n                              \"type\": \"string\"\n                            },\n                            \"id\": {\n                              \"description\": \"User id or group id\",\n                              \"type\": \"string\"\n                            },\n                            \"name\": {\n                              \"description\": \"User's display name (may be omitted if the user hasn't created an account)\",\n                              \"type\": \"string\"\n                            },\n                            \"permissionLevel\": {\n                              \"description\": \"User's collaborator permission Level\\n\\nThis is only included if you're observing a webhooks response.\",\n                              \"enum\": [\n                                \"none\",\n                                \"read\",\n                                \"comment\",\n                                \"edit\",\n                                \"create\"\n                              ],\n                              \"type\": \"string\"\n                            },\n                            \"profilePicUrl\": {\n                              \"description\": \"User's profile picture\\n\\nThis is only included if it exists for the user **and** you're observing a webhooks response.\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"id\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      {\n                        \"description\": \"Array of selected option names.\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"const\": true,\n                        \"type\": \"boolean\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      }\n                    ],\n                    \"x-airtable-name\": \"Cell value\",\n                    \"x-airtable-redirect-to-relative-path\": \"field-model\"\n                  },\n                  \"type\": \"object\"\n                },\n                \"id\": {\n                  \"description\": \"The ID of the record to update. Required when **performUpsert** is undefined.\",\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"fields\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"returnFieldsByFieldId\": {\n            \"description\": \"If set to `true`, records in the API response will key the **fields** object by field ID.\\n\\nDefaults to `false` when unset, which returns **fields** objects keyed by field name.\",\n            \"type\": [\n              \"boolean\",\n              \"null\"\n            ],\n            \"x-airtable-hide-null\": true\n          },\n          \"typecast\": {\n            \"description\": \"If set to `true`, Airtable will try to convert string values into the appropriate\\ncell value. This conversion is only performed on a best-effort basis. To ensure your data's\\nintegrity, this should only be used when necessary.\\n\\nDefaults to `false` when unset.\",\n            \"type\": [\n              \"boolean\",\n              \"null\"\n            ],\n            \"x-airtable-hide-null\": true\n          }\n        },\n        \"required\": [\n          \"records\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

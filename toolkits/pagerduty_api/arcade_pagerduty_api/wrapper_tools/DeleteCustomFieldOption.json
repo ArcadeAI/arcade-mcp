@@ -1,18 +1,18 @@
 {
   "name": "DeleteCustomFieldOption",
-  "fully_qualified_name": "PagerdutyApi.DeleteCustomFieldOption@0.1.0",
-  "description": "Delete a field option from a custom incident field.\n\nUse this tool to delete a specific field option for a custom field in Pagerduty incidents. This is useful for managing custom data associated with incidents, especially when you need to update filtering, search, or analytics capabilities. Requires `custom_fields.write` OAuth scope.",
+  "fully_qualified_name": "PagerdutyApi.DeleteCustomFieldOption@2.0.0",
+  "description": "Delete a custom field option for an incident type.\n\nUse this tool to delete a specific field option from a custom field in PagerDuty. This is useful for managing and organizing custom fields associated with different incident types. Requires appropriate OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "incident_type_id_or_name",
+        "name": "incident_type_identifier",
         "required": true,
-        "description": "The ID or name of the Incident Type to delete the custom field option from.",
+        "description": "The ID or name of the incident type for which the custom field option should be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "field_option_id",
         "required": true,
-        "description": "Specify the ID of the field option to delete from the custom field.",
+        "description": "The ID of the field option to be deleted. This is required for identifying which option to remove from the custom field.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "field_option_id"
       },
       {
-        "name": "field_id",
+        "name": "field_identifier",
         "required": true,
-        "description": "The unique identifier of the custom field associated with the incident type.",
+        "description": "The unique identifier of the custom field from which the option will be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "field_id"
       },
       {
-        "name": "accept_version_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specify the `Accept` header for API versioning.",
+        "description": "Specify the version for the API using the `Accept` header. This manages how the API handles requests and retrieves specific data versions.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "set_content_type",
+        "name": "set_content_type_header",
         "required": true,
-        "description": "Specify the media type of the request payload. Must be 'application/json'.",
+        "description": "Specify the Content-Type header for the request. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,13 +117,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incidents/types/{type_id_or_name}/custom_fields/{field_id}/field_options/{field_option_id}",
@@ -132,7 +132,7 @@
     "parameters": [
       {
         "name": "type_id_or_name",
-        "tool_parameter_name": "incident_type_id_or_name",
+        "tool_parameter_name": "incident_type_identifier",
         "description": "The ID or name of the Incident Type.",
         "value_schema": {
           "val_type": "string",
@@ -168,7 +168,7 @@
       },
       {
         "name": "field_id",
-        "tool_parameter_name": "field_id",
+        "tool_parameter_name": "field_identifier",
         "description": "The ID of the field.",
         "value_schema": {
           "val_type": "string",
@@ -186,7 +186,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -204,7 +204,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "set_content_type",
+        "tool_parameter_name": "set_content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -233,6 +233,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

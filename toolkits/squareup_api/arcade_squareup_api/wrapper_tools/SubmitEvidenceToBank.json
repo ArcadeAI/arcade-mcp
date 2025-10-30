@@ -1,0 +1,109 @@
+{
+  "name": "SubmitEvidenceToBank",
+  "fully_qualified_name": "SquareupApi.SubmitEvidenceToBank@2.0.0",
+  "description": "Submit evidence for a dispute to the cardholder's bank.\n\nUse this tool to submit evidence related to a cardholder dispute to their bank. It includes evidence from files, text submissions, and any automatically provided by Square. Evidence can't be removed once submitted.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "dispute_identifier",
+        "required": true,
+        "description": "The unique ID of the dispute for which evidence is being submitted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the dispute for which you want to submit evidence."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dispute_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SubmitEvidence'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "DISPUTES_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/disputes/{dispute_id}/submit-evidence",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "dispute_id",
+        "tool_parameter_name": "dispute_identifier",
+        "description": "The ID of the dispute for which you want to submit evidence.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the dispute for which you want to submit evidence."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

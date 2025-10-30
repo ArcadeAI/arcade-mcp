@@ -1,0 +1,234 @@
+{
+  "name": "UpdateGroupDetails",
+  "fully_qualified_name": "AirtableApi.UpdateGroupDetails@2.0.0",
+  "description": "Update group details using SCIM patch operations.\n\nThis tool allows you to apply a series of SCIM patch operations to update a group's details on Airtable. It applies the operations sequentially, following the SCIM specification.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_id",
+        "required": true,
+        "description": "A string representing the unique identifier of the group to be updated using SCIM patch operations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "groupId"
+      },
+      {
+        "name": "operations_list",
+        "required": false,
+        "description": "A list of SCIM patch operations to perform on the group. Each operation is a JSON object specifying the 'op' (operation type: 'add', 'replace', 'remove'), 'path' (field path), and 'value' (replacement value, not needed for 'remove').",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "Operations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "op": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "add",
+                    "replace",
+                    "remove"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Path for a [SCIM group](https://airtable.com/api/enterprise#scimGroupFieldTypes) field."
+                },
+                "value": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Replacment value. Not used when performing the `'remove'` operation."
+                }
+              },
+              "description": "A list of SCIM patch operations to perform.\n\nSee the [SCIM PATCH protocol](https://datatracker.ietf.org/doc/html/rfc7644#section-3.5.2) for details."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's PatchOp schema URI."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patch-scim-group'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.scim.usersAndGroups:manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/scim/v2/Groups/{groupId}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "groupId",
+        "tool_parameter_name": "group_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "operations_list",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "Operations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "op": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "add",
+                    "replace",
+                    "remove"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Path for a [SCIM group](https://airtable.com/api/enterprise#scimGroupFieldTypes) field."
+                },
+                "value": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Replacment value. Not used when performing the `'remove'` operation."
+                }
+              },
+              "description": "A list of SCIM patch operations to perform.\n\nSee the [SCIM PATCH protocol](https://datatracker.ietf.org/doc/html/rfc7644#section-3.5.2) for details."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A list of schemas, including at least SCIM's PatchOp schema URI."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Patch user group example\": {\n          \"description\": \"Newly put group\",\n          \"summary\": \"Patch user group example\",\n          \"value\": {\n            \"Operations\": [\n              {\n                \"op\": \"add\",\n                \"path\": \"members\",\n                \"value\": {\n                  \"value\": \"usrI7HMkO7sAefUHk\"\n                }\n              },\n              {\n                \"op\": \"remove\",\n                \"path\": \"members[value eq\\\"usrI7HMkO7sAefUHk\\\"]\"\n              },\n              {\n                \"op\": \"replace\",\n                \"path\": \"members\",\n                \"value\": [\n                  {\n                    \"value\": \"usrI7HMkO7sAefUHk\"\n                  }\n                ]\n              },\n              {\n                \"op\": \"replace\",\n                \"path\": \"displayName\",\n                \"value\": \"Updated Example Group\"\n              }\n            ],\n            \"schemas\": [\n              \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"Operations\": {\n            \"description\": \"A list of SCIM patch operations to perform.\\n\\nSee the [SCIM PATCH protocol](https://datatracker.ietf.org/doc/html/rfc7644#section-3.5.2) for details.\",\n            \"items\": {\n              \"properties\": {\n                \"op\": {\n                  \"enum\": [\n                    \"add\",\n                    \"replace\",\n                    \"remove\"\n                  ],\n                  \"type\": \"string\"\n                },\n                \"path\": {\n                  \"description\": \"Path for a [SCIM group](https://airtable.com/api/enterprise#scimGroupFieldTypes) field.\",\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"anyOf\": [\n                    {\n                      \"type\": \"string\"\n                    },\n                    {}\n                  ],\n                  \"description\": \"Replacment value. Not used when performing the `'remove'` operation.\"\n                }\n              },\n              \"required\": [\n                \"op\",\n                \"path\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"schemas\": {\n            \"description\": \"A list of schemas, including at least SCIM's PatchOp schema URI.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"schemas\",\n          \"Operations\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

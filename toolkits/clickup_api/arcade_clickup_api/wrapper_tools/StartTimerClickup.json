@@ -1,0 +1,288 @@
+{
+  "name": "StartTimerClickup",
+  "fully_qualified_name": "ClickupApi.StartTimerClickup@0.1.0",
+  "description": "Start a timer for the authenticated ClickUp user.\n\nUse this tool to initiate a timer for the authenticated user in ClickUp. It is ideal for tracking time on specific tasks or projects.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_identifier",
+        "required": true,
+        "description": "The Workspace ID required when custom task IDs are used.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_Id"
+      },
+      {
+        "name": "timer_request_body",
+        "required": true,
+        "description": "JSON object detailing the timer entry. Includes fields like `tid`, `description`, `tags`, and `billable`.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Users on the Business Plan and above can include a time tracking label."
+            },
+            "tid": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "For Workspaces on the Free Forever or Unlimited Plan, either the `timer_id` parameter or the `\"tid\"` field in the body of the request are required fields."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "workspace_id",
+        "required": false,
+        "description": "Provide the Workspace ID when `custom_task_ids` is `true`. Required for task referencing.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "use_custom_task_ids",
+        "required": false,
+        "description": "Set to true to reference a task by its custom task ID.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by it's custom task id, this value must be `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_task_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'StartatimeEntry'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_Id}/time_entries/start",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "custom_task_ids",
+        "tool_parameter_name": "use_custom_task_ids",
+        "description": "If you want to reference a task by it's custom task id, this value must be `true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by it's custom task id, this value must be `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_Id",
+        "tool_parameter_name": "workspace_identifier",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "timer_request_body",
+        "description": "For Workspaces on the Free Forever or Unlimited Plan, either the `timer_id` parameter or the `\"tid\"` field in the body of the request are required fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Users on the Business Plan and above can include a time tracking label."
+            },
+            "tid": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "For Workspaces on the Free Forever or Unlimited Plan, either the `timer_id` parameter or the `\"tid\"` field in the body of the request are required fields."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"For Workspaces on the Free Forever or Unlimited Plan, either the `timer_id` parameter or the `\\\"tid\\\"` field in the body of the request are required fields.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"StartatimeEntryrequest\",\n        \"type\": \"object\",\n        \"properties\": {\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"tags\": {\n            \"description\": \"Users on the Business Plan and above can include a time tracking label.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"title\": \"Tags10\",\n              \"required\": [\n                \"name\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"name\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"examples\": [\n                {\n                  \"name\": \"name of tag\"\n                }\n              ]\n            }\n          },\n          \"tid\": {\n            \"type\": \"string\"\n          },\n          \"billable\": {\n            \"type\": \"boolean\"\n          }\n        },\n        \"examples\": [\n          {\n            \"description\": \"from api\",\n            \"tags\": [\n              {\n                \"name\": \"tag1\"\n              }\n            ],\n            \"tid\": \"task_id\",\n            \"billable\": false\n          }\n        ]\n      },\n      \"example\": {\n        \"description\": \"from api\",\n        \"tags\": [\n          {\n            \"name\": \"tag1\"\n          }\n        ],\n        \"tid\": \"task_id\",\n        \"billable\": false\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,229 @@
+{
+  "name": "CreateTeamNotificationSubscriptions",
+  "fully_qualified_name": "PagerdutyApi.CreateTeamNotificationSubscriptions@2.0.0",
+  "description": "Create notification subscriptions for a specified team.\n\nUse this tool to create new notification subscriptions for a given team by specifying the team's ID. Requires appropriate OAuth permissions.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_id",
+        "required": true,
+        "description": "The ID of the team for which you want to create notification subscriptions. This is a required identifier.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "api_version_header",
+        "required": true,
+        "description": "Specify the API versioning header using `Accept` to ensure proper versioning of the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "entities_to_subscribe",
+        "required": false,
+        "description": "A JSON object containing an array of entities to subscribe to, each with an 'id' and 'type'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "subscribables": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "subscribable_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the entity to subscribe to"
+                },
+                "subscribable_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident",
+                    "business_service"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the entity being subscribed to"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The entities to subscribe to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createTeamNotificationSubscriptions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/teams/{id}/notification_subscriptions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "team_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "api_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "entities_to_subscribe",
+        "description": "The entities to subscribe to.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "subscribables": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "subscribable_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the entity to subscribe to"
+                },
+                "subscribable_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident",
+                    "business_service"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the entity being subscribed to"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The entities to subscribe to."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"subscribables\": {\n            \"type\": \"array\",\n            \"uniqueItems\": true,\n            \"minItems\": 1,\n            \"items\": {\n              \"title\": \"NotificationSubscribable\",\n              \"description\": \"A reference of a subscribable entity.\",\n              \"type\": \"object\",\n              \"properties\": {\n                \"subscribable_id\": {\n                  \"type\": \"string\",\n                  \"description\": \"The ID of the entity to subscribe to\"\n                },\n                \"subscribable_type\": {\n                  \"type\": \"string\",\n                  \"description\": \"The type of the entity being subscribed to\",\n                  \"enum\": [\n                    \"incident\",\n                    \"business_service\"\n                  ]\n                }\n              },\n              \"example\": {\n                \"subscribable_id\": \"PD1234\",\n                \"subscribable_type\": \"incident\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"subscribables\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"subscribables\": [\n              {\n                \"subscribable_type\": \"incident\",\n                \"subscribable_id\": \"PD1234\"\n              },\n              {\n                \"subscribable_type\": \"business_service\",\n                \"subscribable_id\": \"PD1234\"\n              },\n              {\n                \"subscribable_type\": \"business_service\",\n                \"subscribable_id\": \"PD1235\"\n              }\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The entities to subscribe to.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

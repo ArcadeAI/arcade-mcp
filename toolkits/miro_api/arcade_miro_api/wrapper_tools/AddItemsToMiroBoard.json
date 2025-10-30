@@ -1,0 +1,358 @@
+{
+  "name": "AddItemsToMiroBoard",
+  "fully_qualified_name": "MiroApi.AddItemsToMiroBoard@2.0.0",
+  "description": "Add up to 20 items to a Miro board in one transaction.\n\nUse this tool to add multiple items like shapes, cards, and sticky notes to a Miro board in one operation. The operation is transactional; if adding any item fails, no items will be added. Suitable for enhancing board content efficiently.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "miro_board_identifier",
+        "required": true,
+        "description": "The unique identifier of the Miro board where items will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to create the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "items_to_add",
+        "required": true,
+        "description": "A list of item specifications to be added to the Miro board. Each item includes type, data, style, position, geometry, and parent details.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "app_card",
+                "text",
+                "shape",
+                "sticky_note",
+                "image",
+                "document",
+                "card",
+                "frame",
+                "embed"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of item that you want to create."
+            },
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contains data information applicable for each item type."
+            },
+            "style": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contains information about item-specific styles."
+            },
+            "position": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "x": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                },
+                "y": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates."
+            },
+            "geometry": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "height": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Height of the item, in pixels."
+                },
+                "rotation": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively."
+                },
+                "width": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Width of the item, in pixels."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains geometrical information about the item, such as its width or height."
+            },
+            "parent": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier (ID) of the parent frame for the item."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the parent frame for the item."
+            }
+          },
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-items'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/items/bulk",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "miro_board_identifier",
+        "description": "Unique identifier (ID) of the board where you want to create the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to create the item."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "items_to_add",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "app_card",
+                "text",
+                "shape",
+                "sticky_note",
+                "image",
+                "document",
+                "card",
+                "frame",
+                "embed"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of item that you want to create."
+            },
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contains data information applicable for each item type."
+            },
+            "style": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contains information about item-specific styles."
+            },
+            "position": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "x": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                },
+                "y": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates."
+            },
+            "geometry": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "height": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Height of the item, in pixels."
+                },
+                "rotation": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively."
+                },
+                "width": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Width of the item, in pixels."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains geometrical information about the item, such as its width or height."
+            },
+            "parent": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier (ID) of the parent frame for the item."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the parent frame for the item."
+            }
+          },
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"object\",\n          \"description\": \"Creates one or more items in one request. You can create up to 20 items per request.\",\n          \"properties\": {\n            \"type\": {\n              \"type\": \"string\",\n              \"description\": \"Type of item that you want to create.\",\n              \"enum\": [\n                \"app_card\",\n                \"text\",\n                \"shape\",\n                \"sticky_note\",\n                \"image\",\n                \"document\",\n                \"card\",\n                \"frame\",\n                \"embed\"\n              ],\n              \"example\": \"text\"\n            },\n            \"data\": {\n              \"type\": \"object\",\n              \"description\": \"Contains data information applicable for each item type.\",\n              \"oneOf\": [\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains app card item data, such as the title, description, or fields.\",\n                  \"properties\": {\n                    \"description\": {\n                      \"type\": \"string\",\n                      \"description\": \"A short text description to add context about the app card.\",\n                      \"example\": \"Sample app card description\"\n                    },\n                    \"fields\": {\n                      \"type\": \"array\",\n                      \"description\": \"Array where each object represents a custom preview field. Preview fields are displayed on the bottom half of the app card in the compact view.\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"description\": \"Array where each object represents a custom preview field. Preview fields are displayed on the bottom half of the app card in the compact view.\",\n                        \"properties\": {\n                          \"fillColor\": {\n                            \"type\": \"string\",\n                            \"description\": \"Hex value representing the color that fills the background area of the preview field, when it's displayed on the app card.\",\n                            \"example\": \"#2fa9e3\"\n                          },\n                          \"iconShape\": {\n                            \"type\": \"string\",\n                            \"default\": \"round\",\n                            \"description\": \"The shape of the icon on the preview field.\",\n                            \"enum\": [\n                              \"round\",\n                              \"square\"\n                            ]\n                          },\n                          \"iconUrl\": {\n                            \"type\": \"string\",\n                            \"description\": \"A valid URL pointing to an image available online.\\nThe transport protocol must be HTTPS.\\nPossible image file formats: JPG/JPEG, PNG, SVG.\",\n                            \"example\": \"https://cdn-icons-png.flaticon.com/512/5695/5695864.png\"\n                          },\n                          \"textColor\": {\n                            \"type\": \"string\",\n                            \"description\": \"Hex value representing the color of the text string assigned to `value`.\",\n                            \"example\": \"#1a1a1a\"\n                          },\n                          \"tooltip\": {\n                            \"type\": \"string\",\n                            \"description\": \"A short text displayed in a tooltip when clicking or hovering over the preview field.\",\n                            \"example\": \"Completion status indicator\"\n                          },\n                          \"value\": {\n                            \"type\": \"string\",\n                            \"description\": \"The actual data value of the custom field.\\nIt can be any type of information that you want to convey.\",\n                            \"example\": \"Status: in progress\"\n                          }\n                        }\n                      }\n                    },\n                    \"owned\": {\n                      \"type\": \"boolean\",\n                      \"description\": \"Defines whether the card is owned by the application making the call.\"\n                    },\n                    \"status\": {\n                      \"type\": \"string\",\n                      \"description\": \"Status indicating whether an app card is connected and in sync with the source. When the source for the app card is deleted, the status returns `disabled`.\",\n                      \"enum\": [\n                        \"disconnected\",\n                        \"connected\",\n                        \"disabled\"\n                      ]\n                    },\n                    \"title\": {\n                      \"type\": \"string\",\n                      \"description\": \"A short text header to identify the app card.\",\n                      \"example\": \"sample app card item\"\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains card item data, such as the title, description, due date, or assignee ID.\",\n                  \"properties\": {\n                    \"assigneeId\": {\n                      \"type\": \"string\",\n                      \"format\": \"int64\",\n                      \"description\": \"Unique user identifier. In the GUI, the user ID is mapped to the name of the user who is assigned as the owner of the task or activity described in the card. The identifier is numeric, and it is automatically assigned to a user when they first sign up.\",\n                      \"example\": \"3074457362577955300\"\n                    },\n                    \"description\": {\n                      \"type\": \"string\",\n                      \"description\": \"A short text description to add context about the card.\",\n                      \"example\": \"sample card description\"\n                    },\n                    \"dueDate\": {\n                      \"type\": \"string\",\n                      \"format\": \"date-time\",\n                      \"description\": \"The date when the task or activity described in the card is due to be completed. In the GUI, users can select the due date from a calendar. Format: UTC, adheres to [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601), includes a [trailing Z offset](https://en.wikipedia.org/wiki/ISO_8601#Coordinated_Universal_Time_(UTC)).\",\n                      \"example\": \"2023-10-12T22:00:55.000Z\"\n                    },\n                    \"title\": {\n                      \"type\": \"string\",\n                      \"description\": \"A short text header for the card.\",\n                      \"example\": \"sample card item\"\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains information about the document URL.\",\n                  \"properties\": {\n                    \"title\": {\n                      \"type\": \"string\",\n                      \"description\": \"A short text header to identify the document.\",\n                      \"example\": \"Sample document title\"\n                    },\n                    \"url\": {\n                      \"type\": \"string\",\n                      \"default\": \"https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf\",\n                      \"description\": \"URL where the document is hosted.\",\n                      \"example\": \"https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf\"\n                    }\n                  },\n                  \"required\": [\n                    \"url\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains information about the embed URL.\",\n                  \"properties\": {\n                    \"mode\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines how the content in the embed item is displayed on the board.\\n`inline`: The embedded content is displayed directly on the board.\\n`modal`: The embedded content is displayed inside a modal overlay on the board.\",\n                      \"enum\": [\n                        \"inline\",\n                        \"modal\"\n                      ]\n                    },\n                    \"previewUrl\": {\n                      \"type\": \"string\",\n                      \"description\": \"URL of the image to be used as the preview image for the embedded item.\"\n                    },\n                    \"url\": {\n                      \"type\": \"string\",\n                      \"default\": \"https://www.youtube.com/watch?v=HlVSNEiFCBk\",\n                      \"description\": \"A [valid URL](https://developers.miro.com/reference/data#embeddata) pointing to the content resource that you want to embed in the board. Possible transport protocols: HTTP, HTTPS.\"\n                    }\n                  },\n                  \"required\": [\n                    \"url\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains information about the image URL.\",\n                  \"properties\": {\n                    \"title\": {\n                      \"type\": \"string\",\n                      \"description\": \"A short text header to identify the image.\",\n                      \"example\": \"Sample image title\"\n                    },\n                    \"url\": {\n                      \"type\": \"string\",\n                      \"default\": \"https://miro.com/static/images/page/mr-index/localization/en/slider/ideation_brainstorming.png\",\n                      \"description\": \"URL of the image.\",\n                      \"example\": \"https://miro.com/static/images/page/mr-index/localization/en/slider/ideation_brainstorming.png\"\n                    }\n                  },\n                  \"required\": [\n                    \"url\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains shape item data, such as the content or shape type of the shape.\",\n                  \"properties\": {\n                    \"content\": {\n                      \"type\": \"string\",\n                      \"description\": \"The text you want to display on the shape.\",\n                      \"example\": \"Hello\"\n                    },\n                    \"shape\": {\n                      \"type\": \"string\",\n                      \"default\": \"rectangle\",\n                      \"description\": \"Defines the geometric shape of the item when it is rendered on the board.\",\n                      \"enum\": [\n                        \"rectangle\",\n                        \"round_rectangle\",\n                        \"circle\",\n                        \"triangle\",\n                        \"rhombus\",\n                        \"parallelogram\",\n                        \"trapezoid\",\n                        \"pentagon\",\n                        \"hexagon\",\n                        \"octagon\",\n                        \"wedge_round_rectangle_callout\",\n                        \"star\",\n                        \"flow_chart_predefined_process\",\n                        \"cloud\",\n                        \"cross\",\n                        \"can\",\n                        \"right_arrow\",\n                        \"left_arrow\",\n                        \"left_right_arrow\",\n                        \"left_brace\",\n                        \"right_brace\"\n                      ]\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains sticky note item data, such as the content or shape of the sticky note.\",\n                  \"properties\": {\n                    \"content\": {\n                      \"type\": \"string\",\n                      \"description\": \"The actual text (content) that appears in the sticky note item.\",\n                      \"example\": \"Hello\"\n                    },\n                    \"shape\": {\n                      \"type\": \"string\",\n                      \"default\": \"square\",\n                      \"description\": \"Defines the geometric shape of the sticky note and aspect ratio for its dimensions.\",\n                      \"enum\": [\n                        \"square\",\n                        \"rectangle\"\n                      ]\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains text item data, such as the title, content, or description. For more information on the JSON properties, see [Data](https://developers.miro.com/reference/data).\",\n                  \"properties\": {\n                    \"content\": {\n                      \"type\": \"string\",\n                      \"description\": \"The actual text (content) that appears in the text item.\",\n                      \"example\": \"Hello\"\n                    }\n                  },\n                  \"required\": [\n                    \"content\"\n                  ]\n                }\n              ]\n            },\n            \"style\": {\n              \"type\": \"object\",\n              \"description\": \"Contains information about item-specific styles.\",\n              \"oneOf\": [\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains information about the style of an app card item, such as the fill color.\",\n                  \"properties\": {\n                    \"fillColor\": {\n                      \"type\": \"string\",\n                      \"description\": \"Hex value of the border color of the app card.\\nDefault: `#2d9bf0`.\",\n                      \"example\": \"#2d9bf0\"\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains information about the style of a card item, such as the card theme.\",\n                  \"properties\": {\n                    \"cardTheme\": {\n                      \"type\": \"string\",\n                      \"description\": \"Hex value of the border color of the card.\\nDefault: `#2d9bf0`.\",\n                      \"example\": \"#2d9bf0\"\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains information about the shape style, such as the border color or opacity.\",\n                  \"properties\": {\n                    \"borderColor\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines the color of the border of the shape.\\nDefault: `#1a1a1a` (dark gray).\"\n                    },\n                    \"borderOpacity\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines the opacity level of the shape border.\\nPossible values: any number between `0.0` and `1.0`, where:\\n`0.0`: the background color is completely transparent or invisible\\n`1.0`: the background color is completely opaque or solid\\nDefault: `1.0` (solid color).\",\n                      \"maximum\": 1,\n                      \"minimum\": 0\n                    },\n                    \"borderStyle\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines the style used to represent the border of the shape.\\nDefault: `normal`.\",\n                      \"enum\": [\n                        \"normal\",\n                        \"dotted\",\n                        \"dashed\"\n                      ]\n                    },\n                    \"borderWidth\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines the thickness of the shape border, in dp.\\nDefault: `2.0`.\",\n                      \"maximum\": 24,\n                      \"minimum\": 1\n                    },\n                    \"color\": {\n                      \"type\": \"string\",\n                      \"description\": \"Hex value representing the color for the text within the shape item.\\nDefault: `#1a1a1a`.\",\n                      \"example\": \"#1a1a1a\"\n                    },\n                    \"fillColor\": {\n                      \"type\": \"string\",\n                      \"description\": \"Fill color for the shape.\\nHex values: `#f5f6f8` `#d5f692` `#d0e17a` `#93d275` `#67c6c0` `#23bfe7` `#a6ccf5` `#7b92ff` `#fff9b1` `#f5d128` `#ff9d48` `#f16c7f` `#ea94bb` `#ffcee0` `#b384bb` `#000000`\\nDefault: #ffffff.\",\n                      \"example\": \"#8fd14f\"\n                    },\n                    \"fillOpacity\": {\n                      \"type\": \"string\",\n                      \"description\": \"Opacity level of the fill color.\\nPossible values: any number between `0` and `1`, where:\\n`0.0`: the background color is completely transparent or invisible.\\n`1.0`: the background color is completely opaque or solid.\\n\\n Default: `1.0` if `fillColor` is provided, `0.0` if `fillColor` is not provided.\\n\",\n                      \"maximum\": 1,\n                      \"minimum\": 0\n                    },\n                    \"fontFamily\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines the font type for the text in the shape item.\\nDefault: `arial`.\",\n                      \"enum\": [\n                        \"arial\",\n                        \"abril_fatface\",\n                        \"bangers\",\n                        \"eb_garamond\",\n                        \"georgia\",\n                        \"graduate\",\n                        \"gravitas_one\",\n                        \"fredoka_one\",\n                        \"nixie_one\",\n                        \"open_sans\",\n                        \"permanent_marker\",\n                        \"pt_sans\",\n                        \"pt_sans_narrow\",\n                        \"pt_serif\",\n                        \"rammetto_one\",\n                        \"roboto\",\n                        \"roboto_condensed\",\n                        \"roboto_slab\",\n                        \"caveat\",\n                        \"times_new_roman\",\n                        \"titan_one\",\n                        \"lemon_tuesday\",\n                        \"roboto_mono\",\n                        \"noto_sans\",\n                        \"plex_sans\",\n                        \"plex_serif\",\n                        \"plex_mono\",\n                        \"spoof\",\n                        \"tiempos_text\",\n                        \"formular\"\n                      ]\n                    },\n                    \"fontSize\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines the font size, in dp, for the text on the shape.\\nDefault: `14`.\",\n                      \"maximum\": 288,\n                      \"minimum\": 10\n                    },\n                    \"textAlign\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines how the sticky note text is horizontally aligned.\\nDefault: `center`.\",\n                      \"enum\": [\n                        \"left\",\n                        \"right\",\n                        \"center\"\n                      ]\n                    },\n                    \"textAlignVertical\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines how the sticky note text is vertically aligned.\\nDefault: `top`.\",\n                      \"enum\": [\n                        \"top\",\n                        \"middle\",\n                        \"bottom\"\n                      ]\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains information about the style of a sticky note item, such as the fill color or text alignment.\",\n                  \"properties\": {\n                    \"fillColor\": {\n                      \"type\": \"string\",\n                      \"description\": \"Fill color for the sticky note.\\nDefault: `light_yellow`.\",\n                      \"enum\": [\n                        \"gray\",\n                        \"light_yellow\",\n                        \"yellow\",\n                        \"orange\",\n                        \"light_green\",\n                        \"green\",\n                        \"dark_green\",\n                        \"cyan\",\n                        \"light_pink\",\n                        \"pink\",\n                        \"violet\",\n                        \"red\",\n                        \"light_blue\",\n                        \"blue\",\n                        \"dark_blue\",\n                        \"black\"\n                      ]\n                    },\n                    \"textAlign\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines how the sticky note text is horizontally aligned.\\nDefault: `center`.\",\n                      \"enum\": [\n                        \"left\",\n                        \"right\",\n                        \"center\"\n                      ]\n                    },\n                    \"textAlignVertical\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines how the sticky note text is vertically aligned.\\nDefault: `top`.\",\n                      \"enum\": [\n                        \"top\",\n                        \"middle\",\n                        \"bottom\"\n                      ]\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"Contains information about the style of a text item, such as the fill color or font family.\",\n                  \"properties\": {\n                    \"color\": {\n                      \"type\": \"string\",\n                      \"description\": \"Hex value representing the color for the text within the text item.\\nDefault: `#1a1a1a`.\",\n                      \"example\": \"#1a1a1a\"\n                    },\n                    \"fillColor\": {\n                      \"type\": \"string\",\n                      \"description\": \"Background color of the text item.\\nDefault: `#ffffff`.\",\n                      \"example\": \"#e6e6e6\"\n                    },\n                    \"fillOpacity\": {\n                      \"type\": \"string\",\n                      \"description\": \"Opacity level of the background color.\\nPossible values: any number between `0.0` and `1.0`, where:\\n`0.0`: the background color is completely transparent or invisible.\\n`1.0`: the background color is completely opaque or solid.\\nDefault: `1.0` if `fillColor` is provided, `0.0` if `fillColor` is not provided.\",\n                      \"maximum\": 1,\n                      \"minimum\": 0\n                    },\n                    \"fontFamily\": {\n                      \"type\": \"string\",\n                      \"description\": \"Font type for the text in the text item.\\nDefault: `arial`.\",\n                      \"enum\": [\n                        \"arial\",\n                        \"abril_fatface\",\n                        \"bangers\",\n                        \"eb_garamond\",\n                        \"georgia\",\n                        \"graduate\",\n                        \"gravitas_one\",\n                        \"fredoka_one\",\n                        \"nixie_one\",\n                        \"open_sans\",\n                        \"permanent_marker\",\n                        \"pt_sans\",\n                        \"pt_sans_narrow\",\n                        \"pt_serif\",\n                        \"rammetto_one\",\n                        \"roboto\",\n                        \"roboto_condensed\",\n                        \"roboto_slab\",\n                        \"caveat\",\n                        \"times_new_roman\",\n                        \"titan_one\",\n                        \"lemon_tuesday\",\n                        \"roboto_mono\",\n                        \"noto_sans\",\n                        \"plex_sans\",\n                        \"plex_serif\",\n                        \"plex_mono\",\n                        \"spoof\",\n                        \"tiempos_text\",\n                        \"formular\"\n                      ]\n                    },\n                    \"fontSize\": {\n                      \"type\": \"string\",\n                      \"description\": \"Font size, in dp.\\nDefault: `14`.\",\n                      \"minimum\": 1\n                    },\n                    \"textAlign\": {\n                      \"type\": \"string\",\n                      \"description\": \"Horizontal alignment for the item's content.\\nDefault: `center.`\",\n                      \"enum\": [\n                        \"left\",\n                        \"right\",\n                        \"center\"\n                      ]\n                    }\n                  }\n                }\n              ]\n            },\n            \"position\": {\n              \"type\": \"object\",\n              \"description\": \"Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates.\",\n              \"properties\": {\n                \"x\": {\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"description\": \"X-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                  \"default\": 0,\n                  \"example\": 100\n                },\n                \"y\": {\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"description\": \"Y-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                  \"default\": 0,\n                  \"example\": 100\n                }\n              }\n            },\n            \"geometry\": {\n              \"type\": \"object\",\n              \"description\": \"Contains geometrical information about the item, such as its width or height.\",\n              \"properties\": {\n                \"height\": {\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"description\": \"Height of the item, in pixels.\",\n                  \"example\": 60\n                },\n                \"rotation\": {\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"description\": \"Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively.\"\n                },\n                \"width\": {\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"description\": \"Width of the item, in pixels.\",\n                  \"example\": 320\n                }\n              }\n            },\n            \"parent\": {\n              \"type\": \"object\",\n              \"description\": \"Contains information about the parent frame for the item.\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\",\n                  \"format\": \"int64\",\n                  \"description\": \"Unique identifier (ID) of the parent frame for the item.\",\n                  \"example\": \"3074457362577955300\"\n                }\n              }\n            }\n          },\n          \"required\": [\n            \"type\"\n          ]\n        },\n        \"minItems\": 1,\n        \"maxItems\": 20\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

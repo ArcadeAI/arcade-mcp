@@ -1,18 +1,18 @@
 {
   "name": "GetServiceCustomFieldValues",
-  "fully_qualified_name": "PagerdutyApi.GetServiceCustomFieldValues@0.1.0",
-  "description": "Retrieve custom field values for a specified service in Pagerduty.\n\nUse this tool to obtain custom field values for a specific service in Pagerduty. This requires `services.read` permissions and is ideal when detailed configuration or metadata for a service is needed.",
+  "fully_qualified_name": "PagerdutyApi.GetServiceCustomFieldValues@2.0.0",
+  "description": "Retrieve custom field values for a specific service.\n\nUse this tool to get custom field values associated with a specific service in PagerDuty. This is useful for accessing additional information formatted as custom fields. Requires appropriate OAuth scopes.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "service_id",
         "required": true,
-        "description": "The ID of the Pagerduty service to retrieve custom field values for.",
+        "description": "The unique identifier for the PagerDuty service whose custom field values are to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_header",
         "required": true,
-        "description": "Specify the version of the API to use for this request. It's sent in the Accept header to control versioning.",
+        "description": "Specify the versioning format using the `Accept` header for the API response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specify the content type for the request, typically 'application/json'.",
+        "description": "Specifies the media type of the request. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/services/{id}/custom_fields/values",
@@ -102,7 +102,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "service_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

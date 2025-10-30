@@ -1,18 +1,18 @@
 {
   "name": "StartOrganizationCsvExport",
-  "fully_qualified_name": "TrelloApi.StartOrganizationCsvExport@0.1.0",
-  "description": "Initiate a CSV export for a Trello organization.\n\nUse this tool to trigger the export of a Trello organization's data into a CSV file. This is useful for archiving or analyzing organizational data outside of Trello.",
+  "fully_qualified_name": "TrelloApi.StartOrganizationCsvExport@2.0.0",
+  "description": "Initiate CSV export for a Trello organization.\n\nUse this tool to start exporting organization data into a CSV file in Trello. Call this when an organization needs its data exported for analysis or backup. Returns a confirmation of the export initiation.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "workspace_identifier",
+        "name": "workspace_id_or_name",
         "required": true,
-        "description": "The unique ID or name of the Trello Workspace to export.",
+        "description": "The ID or name of the Trello Workspace to export data from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "include_attachments",
         "required": false,
-        "description": "Set to true to include attachments in the CSV export, false to exclude.",
+        "description": "Set to true to include attachments in the CSV export, otherwise set to false.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/organizations/{id}/exports",
@@ -100,11 +100,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": true,
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "workspace_identifier",
+        "tool_parameter_name": "workspace_id_or_name",
         "description": "The ID or name of the Workspace",
         "value_schema": {
           "val_type": "string",
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

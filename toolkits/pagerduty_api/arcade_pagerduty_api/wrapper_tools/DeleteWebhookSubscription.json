@@ -1,18 +1,18 @@
 {
   "name": "DeleteWebhookSubscription",
-  "fully_qualified_name": "PagerdutyApi.DeleteWebhookSubscription@0.1.0",
-  "description": "Deletes a specified webhook subscription in Pagerduty.\n\nUse this tool to delete an existing webhook subscription in Pagerduty. It is applicable when a user wants to remove a webhook they no longer need or want to replace. The operation requires appropriate OAuth permissions.",
+  "fully_qualified_name": "PagerdutyApi.DeleteWebhookSubscription@2.0.0",
+  "description": "Delete a webhook subscription in PagerDuty.\n\nUse this tool to delete a webhook subscription in PagerDuty when it is no longer needed. Ensure you have the necessary OAuth scope (`webhook_subscriptions.write`) to perform this operation.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier of the webhook subscription to be deleted.",
+        "description": "The unique identifier for the webhook subscription to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_header_version",
+        "name": "accept_version_header",
         "required": true,
-        "description": "The `Accept` header specifying API version for webhook deletion.",
+        "description": "Specify the version of the API to use by setting this header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/webhook_subscriptions/{id}",
@@ -103,7 +103,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -130,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

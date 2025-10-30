@@ -1,18 +1,18 @@
 {
   "name": "ListSubscriptionEvents",
-  "fully_qualified_name": "SquareupApi.ListSubscriptionEvents@0.1.0",
-  "description": "Retrieve events for a specific subscription.\n\nCall this tool to retrieve all events related to a specific subscription using the Square API. Useful for tracking changes and updates within a subscription lifecycle.",
+  "fully_qualified_name": "SquareupApi.ListSubscriptionEvents@2.0.0",
+  "description": "Retrieve all events for a specific subscription.\n\nThis tool retrieves all events related to a specific subscription, providing insight into its activities and changes.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "subscription_id",
         "required": true,
-        "description": "The unique ID of the subscription to retrieve events for. Use this to specify which subscription's events to list.",
+        "description": "The unique identifier for the subscription whose events are to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Specify the cursor to fetch the next set of subscription events if results exceed the limit. Leave unset for the last page.",
+        "description": "Specify the cursor from a previous response to fetch the next page of subscription events. Leave unset to get the last page.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "max_events_per_page",
+        "name": "event_limit",
         "required": false,
-        "description": "The maximum number of subscription events to return in a single response page.",
+        "description": "The maximum number of subscription events to retrieve in the response.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -89,13 +89,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/subscriptions/{subscription_id}/events",
@@ -117,11 +117,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "max_events_per_page",
+        "tool_parameter_name": "event_limit",
         "description": "The upper limit on the number of subscription events to return\nin a paged response.",
         "value_schema": {
           "val_type": "integer",
@@ -134,6 +135,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -151,6 +153,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -164,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

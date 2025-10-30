@@ -1,18 +1,18 @@
 {
   "name": "DeleteWebhookSubscription",
-  "fully_qualified_name": "SquareupApi.DeleteWebhookSubscription@0.1.0",
-  "description": "Deletes a webhook subscription to stop receiving events.\n\nUse this tool to delete a specific webhook subscription by its ID, preventing further event notifications.",
+  "fully_qualified_name": "SquareupApi.DeleteWebhookSubscription@2.0.0",
+  "description": "Deletes a specified webhook subscription.\n\nUse this tool to delete an existing webhook subscription by providing the subscription ID. It should be called when there is a need to remove a webhook subscription.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "webhook_subscription_id",
         "required": true,
-        "description": "The unique identifier for the webhook subscription to be deleted. This ID is required to identify the specific subscription.",
+        "description": "The ID of the webhook subscription to delete. This ID is required to specify which subscription needs to be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/webhooks/subscriptions/{subscription_id}",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

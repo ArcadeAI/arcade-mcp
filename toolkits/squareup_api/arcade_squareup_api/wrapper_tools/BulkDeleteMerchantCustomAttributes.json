@@ -1,0 +1,127 @@
+{
+  "name": "BulkDeleteMerchantCustomAttributes",
+  "fully_qualified_name": "SquareupApi.BulkDeleteMerchantCustomAttributes@2.0.0",
+  "description": "Bulk delete custom attributes for a merchant.\n\nUse this tool to delete custom attributes for a merchant in bulk. It can only delete attributes with 'VISIBILITY_READ_WRITE_VALUES' if owned by another application.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "bulk_deletion_data",
+        "required": true,
+        "description": "JSON object containing fields for the bulk deletion request. Ensure the keys are unique to map to the corresponding response.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "values": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The data used to update the `CustomAttribute` objects.\nThe keys must be unique and are used to map to the corresponding response."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BulkDeleteMerchantCustomAttributes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "MERCHANT_PROFILE_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/merchants/custom-attributes/bulk-delete",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "bulk_deletion_data",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "values": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The data used to update the `CustomAttribute` objects.\nThe keys must be unique and are used to map to the corresponding response."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents a [BulkDeleteMerchantCustomAttributes](api-endpoint:MerchantCustomAttributes-BulkDeleteMerchantCustomAttributes) request.\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"values\"\n        ],\n        \"properties\": {\n          \"values\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"description\": \"Represents an individual delete request in a [BulkDeleteMerchantCustomAttributes](api-endpoint:MerchantCustomAttributes-BulkDeleteMerchantCustomAttributes)\\nrequest. An individual request contains an optional ID of the associated custom attribute definition\\nand optional key of the associated custom attribute definition.\",\n              \"x-release-status\": \"BETA\",\n              \"properties\": {\n                \"key\": {\n                  \"type\": \"string\",\n                  \"description\": \"The key of the associated custom attribute definition.\\nRepresented as a qualified key if the requesting app is not the definition owner.\",\n                  \"pattern\": \"^([a-zA-Z0-9_-]+:)?[a-zA-Z0-9_-]{1,60}$\",\n                  \"readOnly\": true\n                }\n              }\n            },\n            \"description\": \"The data used to update the `CustomAttribute` objects.\\nThe keys must be unique and are used to map to the corresponding response.\"\n          }\n        },\n        \"example\": {\n          \"values\": {\n            \"id1\": {\n              \"key\": \"alternative_seller_name\",\n              \"merchant_id\": \"DM7VKY8Q63GNP\"\n            },\n            \"id2\": {\n              \"key\": \"has_seen_tutorial\",\n              \"merchant_id\": \"DM7VKY8Q63GNP\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

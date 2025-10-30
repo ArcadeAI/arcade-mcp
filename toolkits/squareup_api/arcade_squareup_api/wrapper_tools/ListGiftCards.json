@@ -1,18 +1,18 @@
 {
   "name": "ListGiftCards",
-  "fully_qualified_name": "SquareupApi.ListGiftCards@0.1.0",
-  "description": "Retrieve a list of all gift cards, with optional filters.\n\nCall this tool to obtain a sorted list of gift cards. You can apply filters to narrow down the results. Useful for managing and reviewing available gift cards.",
+  "fully_qualified_name": "SquareupApi.ListGiftCards@2.0.0",
+  "description": "Retrieve and filter a list of gift cards.\n\nThis tool calls the API to list all available gift cards, with the option to apply filters for a more specific subset. Results are returned sorted by their creation date in ascending order.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "gift_card_type",
         "required": false,
-        "description": "Specifies the type of gift cards to retrieve. If not provided, all types are returned.",
+        "description": "Filter gift cards by a specified type, or return all types if not provided.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "gift_card_state",
         "required": false,
-        "description": "Specifies the state of gift cards to return. Leave empty to get all states.",
+        "description": "Specify the state of the gift cards to filter the results by their current status. If not provided, all states are included.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "results_per_page_limit",
         "required": false,
-        "description": "The number of gift card results per page. Maximum is 200, default is 30.",
+        "description": "Specify the number of gift cards to return per page. Maximum is 200; default is 30.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A string used to retrieve the next set of results for pagination from a previous call.",
+        "description": "A pagination cursor from a previous call to retrieve the next set of results. If not provided, returns the first page.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "customer_id",
+        "name": "filter_by_customer_id",
         "required": false,
-        "description": "A unique identifier for a customer to retrieve gift cards linked to them.",
+        "description": "Provide a customer ID to return only the gift cards linked to that specific customer.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -119,13 +119,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/gift-cards",
@@ -147,6 +147,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -164,6 +165,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -181,6 +183,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -198,11 +201,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "customer_id",
-        "tool_parameter_name": "customer_id",
+        "tool_parameter_name": "filter_by_customer_id",
         "description": "If a customer ID is provided, the endpoint returns only the gift cards linked to the specified customer.",
         "value_schema": {
           "val_type": "string",
@@ -215,6 +219,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -228,6 +233,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "DeleteStatusPagePost",
-  "fully_qualified_name": "PagerdutyApi.DeleteStatusPagePost@0.1.0",
-  "description": "Delete a post from a status page by ID.\n\nThis tool deletes a specific post from a status page using the Status Page ID and Post ID. It requires appropriate OAuth authentication with `status_pages.write` scope.",
+  "fully_qualified_name": "PagerdutyApi.DeleteStatusPagePost@2.0.0",
+  "description": "Delete a post from a status page using its ID.\n\nUse this tool to delete a specific post from a status page by providing the status page ID and post ID. Requires appropriate OAuth permissions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "status_page_id",
         "required": true,
-        "description": "The ID of the status page from which the post will be deleted.",
+        "description": "The unique identifier for the status page from which the post will be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "status_page_post_id",
         "required": true,
-        "description": "The unique ID of the Status Page Post to be deleted.",
+        "description": "The unique identifier for the Status Page Post to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "post_id"
       },
       {
-        "name": "accept_header_version",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specifies the versioning for the API using the 'Accept' header.",
+        "description": "The versioning header to specify the API version using `Accept`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/posts/{post_id}",
@@ -136,7 +136,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -163,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "RetrieveCardDetails",
-  "fully_qualified_name": "SquareupApi.RetrieveCardDetails@0.1.0",
-  "description": "Retrieve details for a specific card using its ID.\n\nThis tool retrieves information about a specific card identified by its ID, allowing users to access details such as metadata and status.",
+  "fully_qualified_name": "SquareupApi.RetrieveCardDetails@2.0.0",
+  "description": "Retrieve details for a specific card.\n\nUse this tool to get information about a specific card by providing the card ID.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "card_identifier",
+        "name": "card_id",
         "required": true,
-        "description": "Unique ID for the card to retrieve its details.",
+        "description": "Unique ID for the desired card to retrieve its details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/cards/{card_id}",
@@ -70,7 +70,7 @@
     "parameters": [
       {
         "name": "card_id",
-        "tool_parameter_name": "card_identifier",
+        "tool_parameter_name": "card_id",
         "description": "Unique ID for the desired Card.",
         "value_schema": {
           "val_type": "string",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

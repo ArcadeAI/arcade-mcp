@@ -1,0 +1,276 @@
+{
+  "name": "CreateNewContact",
+  "fully_qualified_name": "PylonApi.CreateNewContact@0.1.0",
+  "description": "Create a new contact in the system.\n\nThis tool creates a new contact by sending the necessary details to the endpoint. Use it when you need to add a new person's contact information to the database.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "contact_details",
+        "required": false,
+        "description": "A JSON object containing the details of the contact to be created, such as name, email, account details, avatar URL, custom fields, and portal role.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_external_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The external ID of the account that this contact belongs to. Cannot be used together with account_id."
+            },
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account that this contact belongs to."
+            },
+            "avatar_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The avatar URL of the contact. Must be a square .png, .jpg or .jpeg."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be applied to this contact."
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email of the contact."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the contact."
+            },
+            "portal_role": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "no_access",
+                "member",
+                "admin"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The portal role to assign to the contact. If not provided uses the default portal role from the portal settings.\n\n* no_access PortalRoleNoAccess\n\n* member PortalRoleMember\n\n* admin PortalRoleAdmin"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateContact'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/contacts",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "contact_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_external_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The external ID of the account that this contact belongs to. Cannot be used together with account_id."
+            },
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account that this contact belongs to."
+            },
+            "avatar_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The avatar URL of the contact. Must be a square .png, .jpg or .jpeg."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The slug of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint."
+                },
+                "values": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint."
+                }
+              },
+              "description": "An array of custom fields to be applied to this contact."
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email of the contact."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the contact."
+            },
+            "portal_role": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "no_access",
+                "member",
+                "admin"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The portal role to assign to the contact. If not provided uses the default portal role from the portal settings.\n\n* no_access PortalRoleNoAccess\n\n* member PortalRoleMember\n\n* admin PortalRoleAdmin"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"account_external_id\": {\n            \"description\": \"The external ID of the account that this contact belongs to. Cannot be used together with account_id.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AccountExternalID\"\n          },\n          \"account_id\": {\n            \"description\": \"The account that this contact belongs to.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AccountID\"\n          },\n          \"avatar_url\": {\n            \"description\": \"The avatar URL of the contact. Must be a square .png, .jpg or .jpeg.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"AvatarUrl\"\n          },\n          \"custom_fields\": {\n            \"description\": \"An array of custom fields to be applied to this contact.\",\n            \"items\": {\n              \"properties\": {\n                \"slug\": {\n                  \"description\": \"The slug of the custom field.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Slug\"\n                },\n                \"value\": {\n                  \"description\": \"The value of the custom field. Only to be used for single-valued custom fields. If unset, the custom field will be unset. If the custom field is a select field, the value must be the select option slug, which you can find from the GET /custom-fields endpoint.\",\n                  \"type\": \"string\",\n                  \"x-go-name\": \"Value\"\n                },\n                \"values\": {\n                  \"description\": \"The values of the custom field. Only to be used for multi-valued custom fields (ex. multiselect). If unset, the custom field will be unset. If the custom field is a multiselect field, the values must be the select option slugs which you can find from the GET /custom-fields endpoint.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": \"array\",\n                  \"x-go-name\": \"Values\"\n                }\n              },\n              \"type\": \"object\",\n              \"x-go-package\": \"pylon/api/apiserver/apitypes\"\n            },\n            \"type\": \"array\",\n            \"x-go-name\": \"CustomFields\"\n          },\n          \"email\": {\n            \"description\": \"The email of the contact.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Email\"\n          },\n          \"name\": {\n            \"description\": \"The name of the contact.\",\n            \"type\": \"string\",\n            \"x-go-name\": \"Name\"\n          },\n          \"portal_role\": {\n            \"description\": \"The portal role to assign to the contact. If not provided uses the default portal role from the portal settings.\\n\\n* no_access PortalRoleNoAccess\\n\\n* member PortalRoleMember\\n\\n* admin PortalRoleAdmin\",\n            \"enum\": [\n              \"no_access\",\n              \"member\",\n              \"admin\"\n            ],\n            \"type\": \"string\",\n            \"x-go-enum-desc\": \"no_access PortalRoleNoAccess\\nmember PortalRoleMember\\nadmin PortalRoleAdmin\",\n            \"x-go-name\": \"PortalRole\"\n          }\n        },\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\",\n        \"x-go-package\": \"pylon/api/apiserver/endpoints\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

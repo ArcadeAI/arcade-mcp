@@ -1,0 +1,138 @@
+{
+  "name": "RevokeOrganizationInvitation",
+  "fully_qualified_name": "CalendlyApi.RevokeOrganizationInvitation@2.0.0",
+  "description": "Revoke an organization invitation in Calendly.\n\nUse this tool to revoke an organization invitation in Calendly, rendering the invitation link invalid.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_unique_identifier",
+        "required": true,
+        "description": "The organization's unique identifier required to revoke the invitation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization\u2019s unique identifier"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_uuid"
+      },
+      {
+        "name": "invitation_unique_identifier",
+        "required": true,
+        "description": "The unique identifier for the organization invitation to be revoked.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization invitation's unique identifier"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "uuid"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'revoke-organization-invitation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/organizations/{org_uuid}/invitations/{uuid}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org_uuid",
+        "tool_parameter_name": "organization_unique_identifier",
+        "description": "The organization\u2019s unique identifier",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization\u2019s unique identifier"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "uuid",
+        "tool_parameter_name": "invitation_unique_identifier",
+        "description": "The organization invitation's unique identifier",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization invitation's unique identifier"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

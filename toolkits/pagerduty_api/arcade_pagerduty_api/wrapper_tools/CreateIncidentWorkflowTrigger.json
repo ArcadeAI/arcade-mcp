@@ -1,0 +1,193 @@
+{
+  "name": "CreateIncidentWorkflowTrigger",
+  "fully_qualified_name": "PagerdutyApi.CreateIncidentWorkflowTrigger@2.0.0",
+  "description": "Initiate a new PagerDuty incident workflow trigger.\n\nUse this tool to start a new incident workflow trigger in PagerDuty. It requires appropriate OAuth permissions (`incident_workflows.write`).",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "The version of the API to accept, specified in the `Accept` header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_json_only",
+        "required": true,
+        "description": "Set to 'application/json' to specify the content type for the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "incident_workflow_request_body",
+        "required": false,
+        "description": "JSON object containing details for the new incident workflow trigger.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "trigger": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createIncidentWorkflowTrigger'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incident_workflows/triggers",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_json_only",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_workflow_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "trigger": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"trigger\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"workflow_trigger\"\n                    ]\n                  },\n                  \"trigger_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"conditional\",\n                      \"manual\",\n                      \"incident_type\"\n                    ]\n                  },\n                  \"condition\": {\n                    \"type\": \"string\",\n                    \"description\": \"A PCL condition string.\\n\\nIf specified, the trigger will execute when the condition is met on an incident.\\n\\nIf unspecified, the trigger will execute on incident creation.\\n\\nRequired if trigger_type is \\u201cconditional\\u201d, not allowed for other trigger types.\\n\"\n                  },\n                  \"trigger_url\": {\n                    \"type\": \"string\",\n                    \"format\": \"url\"\n                  },\n                  \"incident_types\": {\n                    \"type\": \"array\",\n                    \"description\": \"An optional array of Incident Types associated with the trigger when it is of type `incident_type`.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"workflow\": {\n                    \"type\": \"object\",\n                    \"description\": \"Workflow to start when this trigger is invoked\",\n                    \"properties\": {\n                      \"id\": {\n                        \"type\": \"string\"\n                      }\n                    }\n                  },\n                  \"services\": {\n                    \"type\": \"array\",\n                    \"description\": \"An optional array of Services associated with this workflow. Incidents in any of the listed Services are eligible to fire this Trigger\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"id\": {\n                          \"type\": \"string\"\n                        }\n                      }\n                    }\n                  },\n                  \"is_subscribed_to_all_services\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"Indicates that the Trigger should be associated with All Services\"\n                  },\n                  \"permissions\": {\n                    \"description\": \"An object detailing who can start this Trigger. Applicable only to manual Triggers.\",\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"restricted\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"If true, indicates that the Trigger can only be started by authorized Users. If false, any user can start this Trigger. Applicable only to manual Triggers.\"\n                      },\n                      \"team_id\": {\n                        \"type\": \"string\",\n                        \"description\": \"The ID of the team whose members can manually start this Trigger. Required and allowed if and only if permissions.restricted is true.\"\n                      }\n                    }\n                  },\n                  \"is_disabled\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"Indicates whether the Trigger is disabled or not. A previous API version allowed callers to set this\\nproperty independently. This behavior is deprecated. This property's value will be set based on the \\n\\\"is_enabled\\\" property of the workflow to which this trigger belongs.\\n\",\n                    \"deprecated\": true\n                  }\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"trigger\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"trigger\": {\n              \"trigger_type\": \"conditional\",\n              \"workflow\": {\n                \"id\": \"PSFEVL7\"\n              },\n              \"services\": [\n                {\n                  \"id\": \"PIJ90N7\"\n                }\n              ],\n              \"is_subscribed_to_all_services\": false,\n              \"condition\": \"incident.priority matches 'P1'\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

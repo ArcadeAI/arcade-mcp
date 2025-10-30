@@ -1,0 +1,138 @@
+{
+  "name": "CancelScheduledEvent",
+  "fully_qualified_name": "CalendlyApi.CancelScheduledEvent@2.0.0",
+  "description": "Cancels a specified scheduled event on Calendly.\n\nUse this tool to cancel a scheduled event by providing its unique identifier. It should be called when you need to remove an event from your calendar.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_unique_identifier",
+        "required": true,
+        "description": "The unique identifier for the event to be canceled.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The event's unique indentifier"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "uuid"
+      },
+      {
+        "name": "cancellation_reason",
+        "required": false,
+        "description": "The reason for canceling the event. Provide a clear and concise explanation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Reason for cancellation"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reason"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-scheduled-event-cancellation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/scheduled_events/{uuid}/cancellation",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "uuid",
+        "tool_parameter_name": "event_unique_identifier",
+        "description": "The event's unique indentifier",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The event's unique indentifier"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reason",
+        "tool_parameter_name": "cancellation_reason",
+        "description": "Reason for cancellation",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Reason for cancellation"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": false,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"reason\": {\n            \"type\": \"string\",\n            \"description\": \"Reason for cancellation\",\n            \"maxLength\": 10000\n          }\n        }\n      }\n    },\n    \"application/xml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {}\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {}\n      }\n    }\n  },\n  \"description\": \"Optional cancellation reason.\"\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

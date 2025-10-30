@@ -8,11 +8,17 @@ BE OVERWRITTEN BY THE TRANSPILER.
 """
 
 import asyncio
+import json
+from enum import Enum
 from typing import Annotated, Any
 
 import httpx
+import jsonschema
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
+from arcade_tdk.errors import RetryableToolError
+
+from .request_body_schemas import REQUEST_BODY_SCHEMAS
 
 # Retry configuration
 INITIAL_RETRY_DELAY = 0.5  # seconds
@@ -26,6 +32,13 @@ HTTP_CLIENT = httpx.AsyncClient(
 )
 
 
+class ToolMode(str, Enum):
+    """Mode for tools with complex request bodies."""
+
+    GET_REQUEST_SCHEMA = "get_request_schema"
+    EXECUTE = "execute"
+
+
 def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in data.items() if v is not None}
 
@@ -35,7 +48,9 @@ async def make_request(
     method: str,
     params: dict[str, Any] | None = None,
     headers: dict[str, Any] | None = None,
+    content: str | None = None,
     data: dict[str, Any] | None = None,
+    auth: tuple[str, str] | None = None,
     max_retries: int = 3,
 ) -> httpx.Response:
     """Make an HTTP request with retry logic for 5xx server errors."""
@@ -43,10 +58,11 @@ async def make_request(
         try:
             response = await HTTP_CLIENT.request(
                 url=url,
+                auth=auth,
                 method=method,
                 params=params,
                 headers=headers,
-                data=data,
+                content=content,
             )
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
@@ -67,30 +83,241 @@ async def make_request(
     raise httpx.RequestError("Max retries exceeded")  # noqa: TRY003
 
 
+async def make_request_with_schema_validation(
+    url: str,
+    method: str,
+    request_data: dict[str, Any],
+    schema: dict[str, Any] | str,
+    auth: tuple[str, str] | None = None,
+    params: dict[str, Any] | None = None,
+    headers: dict[str, Any] | None = None,
+    max_retries: int = 3,
+) -> httpx.Response:
+    """Make an HTTP request with schema validation on format errors."""
+    # Parse schema if it's a string, skip validation if parsing fails
+    parsed_schema = None
+    if isinstance(schema, str):
+        try:
+            parsed_schema = json.loads(schema)
+        except Exception:
+            # If schema parsing fails, just skip validation
+            parsed_schema = None
+    else:
+        parsed_schema = schema
+
+    try:
+        response = await make_request(
+            url=url,
+            auth=auth,
+            method=method,
+            params=params,
+            headers=headers,
+            content=json.dumps(request_data),
+            max_retries=max_retries,
+        )
+    except httpx.HTTPStatusError as e:
+        # Only provide schema validation for format-related errors
+        if e.response.status_code in (400, 422):
+            api_error_details = f"API returned {e.response.status_code}: {e.response.text}"
+
+            # Only run validation if we have a valid parsed schema
+            if parsed_schema is not None:
+                # Run validation to provide additional context
+                is_valid, validation_error = validate_json_against_schema(
+                    request_data, parsed_schema
+                )
+
+                if not is_valid:
+                    # Schema validation found issues - additional context
+                    additional_context = (
+                        f"{api_error_details}\n\n"
+                        f"Schema validation found the following issues:\n"
+                        f"{validation_error}"
+                    )
+                else:
+                    # Schema validation passed - just show API error
+                    additional_context = api_error_details
+            else:
+                # No valid schema - just show API error
+                additional_context = api_error_details
+
+            raise RetryableToolError(
+                message=(f"API request failed with validation error: {e.response.status_code}"),
+                developer_message=api_error_details,
+                additional_prompt_content=additional_context,
+            ) from e
+        else:
+            # For non-validation errors, re-raise as-is
+            raise
+    else:
+        return response
+
+
+def validate_json_against_schema(
+    json_data: dict[str, Any], schema: dict[str, Any]
+) -> tuple[bool, str | None]:
+    """Validate JSON data against an OpenAPI/JSON Schema.
+
+    This provides full JSON Schema Draft 7 validation including:
+    - Required fields, types, enums
+    - Pattern validation (regex)
+    - Format validation (email, uuid, date-time, etc.)
+    - Min/max length and values
+    - oneOf, anyOf, allOf
+    - And all other JSON Schema features
+
+    Args:
+        json_data: The JSON data to validate
+        schema: The JSON Schema to validate against
+
+    Returns:
+        Tuple of (is_valid, error_messages). If valid, error_messages is None.
+        If invalid, error_messages contains all validation errors.
+    """
+    try:
+        validator = jsonschema.Draft7Validator(
+            schema, format_checker=jsonschema.Draft7Validator.FORMAT_CHECKER
+        )
+        # Collect ALL validation errors
+        errors = list(validator.iter_errors(json_data))
+        if errors:
+            # Format all errors with their paths
+            error_messages = []
+            for error in errors:
+                error_path = ".".join(str(p) for p in error.path) if error.path else "root"
+                error_messages.append(f"{error.message} at {error_path}")
+            # Join all errors with newlines
+            return False, "\n".join(error_messages)
+        else:
+            return True, None
+    except jsonschema.SchemaError as e:
+        return False, f"Invalid schema: {e.message}"
+    except Exception as e:
+        return False, f"Validation error: {e!s}"
+
+
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
 async def list_scim_groups(
     context: ToolContext,
-    maximum_results: Annotated[
-        float | None,
-        "Specifies the maximum number of SCIM group objects to return. Must be a positive integer.",
+    filter_criteria: Annotated[
+        str | None,
+        "Defines a string-based filter to query specific SCIM groups in Airtable. Use SCIM filtering syntax to specify criteria.",  # noqa: E501
     ] = None,
-    group_filter: Annotated[
-        str | None, "A SCIM filter expression to narrow down group results based on attributes."
+    group_count: Annotated[
+        float | None,
+        "Specify the maximum number of SCIM groups to list. It is an integer that determines how many groups the API should return.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-scim-groups'."]:
     """Retrieve a list of SCIM groups from Airtable.
 
-    This tool calls the Airtable API to list groups in the form of SCIM Group objects, following the SCIM specification for list responses. Use it when you need to access or manage groups in the SCIM format."""  # noqa: E501
+    This tool calls Airtable's API to retrieve a list of groups formatted as SCIM Group objects. It should be used when you need to obtain detailed group information in compliance with the SCIM specification."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/scim/v2/Groups",
         method="GET",
-        params=remove_none_values({"count": maximum_results, "filter": group_filter}),
+        params=remove_none_values({"count": group_count, "filter": filter_criteria}),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
+async def create_scim_group(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-scim-group'."]:
+    """Create a new SCIM group with no members.
+
+    This tool creates a new SCIM group without any members. It should be called when there's a need to set up a new group structure. To add members, use patch or put group endpoints.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATESCIMGROUP"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATESCIMGROUP"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATESCIMGROUP"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/scim/v2/Groups",
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["CREATESCIMGROUP"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -101,16 +328,17 @@ async def list_scim_groups(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
 async def delete_scim_group(
     context: ToolContext,
-    scim_group_id: Annotated[
-        str,
-        "The unique identifier for the SCIM group to be deleted. This ID specifies which group you intend to delete and must match an existing group.",  # noqa: E501
+    group_id: Annotated[
+        str, "The unique identifier of the SCIM Group to be deleted from Airtable."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-scim-group'."]:
-    """Delete a specific SCIM group by ID.
+    """Delete a SCIM Group from Airtable.
 
-    Use this tool to delete a SCIM group specified by its group ID. Ideal for removing outdated or unnecessary groups."""  # noqa: E501
+    This tool deletes a specified SCIM Group in Airtable, useful for managing group memberships and access control."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="https://api.airtable.com/scim/v2/Groups/{groupId}".format(groupId=scim_group_id),  # noqa: UP032
+        url="https://api.airtable.com/scim/v2/Groups/{groupId}".format(groupId=group_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
@@ -118,7 +346,7 @@ async def delete_scim_group(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -127,13 +355,15 @@ async def delete_scim_group(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
-async def get_scim_group_info(
+async def fetch_scim_group(
     context: ToolContext,
-    scim_group_id: Annotated[str, "The unique ID of the SCIM Group to retrieve details for."],
+    scim_group_id: Annotated[str, "The unique identifier of the SCIM Group to retrieve."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-scim-group'."]:
-    """Retrieve details of a SCIM Group object by ID.
+    """Retrieve details of a specific SCIM Group by ID.
 
-    Use this tool to get detailed information about a SCIM Group object using its unique ID. It is useful when you need group metadata and attributes compliant with SCIM standards."""  # noqa: E501
+    This tool retrieves details of a specific group as a SCIM Group object using the group's ID. It should be called when there's a need to access or display information about a specific group managed within the SCIM system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/scim/v2/Groups/{groupId}".format(groupId=scim_group_id),  # noqa: UP032
         method="GET",
@@ -143,7 +373,239 @@ async def get_scim_group_info(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
+async def update_group_details(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    group_id: Annotated[
+        str | None,
+        "A string representing the unique identifier of the group to be updated using SCIM patch operations.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'patch-scim-group'."]:
+    """Update group details using SCIM patch operations.
+
+    This tool allows you to apply a series of SCIM patch operations to update a group's details on Airtable. It applies the operations sequentially, following the SCIM specification.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEGROUPDETAILS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not group_id:
+        missing_params.append(("group_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEGROUPDETAILS"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEGROUPDETAILS"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/scim/v2/Groups/{groupId}".format(groupId=group_id),  # noqa: UP032
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATEGROUPDETAILS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
+async def update_group_attributes(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    group_id: Annotated[
+        str | None,
+        "The unique identifier for the group whose attributes need to be replaced.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-scim-group'."]:
+    """Replace a group's attributes with new values.
+
+    Use this tool to update all attributes of a specified group with new values in Airtable. Call this when a complete group update is necessary.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEGROUPATTRIBUTES"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not group_id:
+        missing_params.append(("group_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEGROUPATTRIBUTES"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEGROUPATTRIBUTES"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/scim/v2/Groups/{groupId}".format(groupId=group_id),  # noqa: UP032
+        method="PUT",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATEGROUPATTRIBUTES"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -155,34 +617,132 @@ async def get_scim_group_info(
 async def list_scim_users(
     context: ToolContext,
     start_index: Annotated[
-        float | None, "The starting index for listing SCIM users. Must be a positive integer."
-    ] = None,
-    max_number_of_users: Annotated[
         float | None,
-        "Specifies the maximum number of SCIM users to retrieve. This number determines how many user objects will be returned in the response.",  # noqa: E501
+        "The starting index for the list of SCIM users to retrieve. Use a positive integer to specify where to start listing from.",  # noqa: E501
     ] = None,
-    user_filter_query: Annotated[
+    user_count_limit: Annotated[
+        float | None,
+        "The maximum number of SCIM user objects to return in the response. This should be a positive integer.",  # noqa: E501
+    ] = None,
+    user_filter: Annotated[
         str | None,
-        "A string query to filter SCIM users based on specific attributes, following SCIM filtering syntax.",  # noqa: E501
+        "Apply a filter string to narrow down the list of SCIM users. Uses SCIM standard filtering syntax.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-scim-users'."]:
-    """Retrieve a list of SCIM user objects.
+    """Retrieve a list of SCIM users from Airtable.
 
-    This tool retrieves a list of users in the SCIM User format, following the SCIM specification. It's useful for managing user directories and data synchronization."""  # noqa: E501
+    Use this tool to get a list of users represented as SCIM User objects, following the SCIM specification for list responses."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/scim/v2/Users",
         method="GET",
         params=remove_none_values({
             "startIndex": start_index,
-            "count": max_number_of_users,
-            "filter": user_filter_query,
+            "count": user_count_limit,
+            "filter": user_filter,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
+async def create_scim_user(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-scim-user'."]:
+    """Create a new user using SCIM protocol.
+
+    This tool creates a new SCIM user, marking them as active and assigning an email matching the username. It's intended for SSO environments only. Beware of potential conflicts with existing non-enterprise users.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATESCIMUSER"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATESCIMUSER"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATESCIMUSER"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/scim/v2/Users",
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["CREATESCIMUSER"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -193,16 +753,18 @@ async def list_scim_users(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
 async def delete_scim_user(
     context: ToolContext,
-    user_id: Annotated[
+    scim_user_id: Annotated[
         str,
-        "The unique identifier of the SCIM user to be deleted. Ensure it is not the admin using the auth token or the sole owner of a multi-collaborator workspace.",  # noqa: E501
+        "Unique identifier for the SCIM user to delete. Cannot be the admin using the authentication token or the sole owner of a multi-collaborator workspace.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-scim-user'."]:
-    """Delete a single SCIM user from Airtable.
+    """Delete a SCIM user from the system.
 
-    Use this tool to delete a SCIM user from Airtable, except for the admin owning the authentication token or the sole owner of a workspace with multiple collaborators."""  # noqa: E501
+    The tool deletes a single SCIM user, except the admin owning the token or the sole owner of a multi-collaborator workspace. Refer to the SCIM specification for more details."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="https://api.airtable.com/scim/v2/Users/{userId}".format(userId=user_id),  # noqa: UP032
+        url="https://api.airtable.com/scim/v2/Users/{userId}".format(userId=scim_user_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
@@ -210,7 +772,7 @@ async def delete_scim_user(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -219,16 +781,15 @@ async def delete_scim_user(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
-async def fetch_scim_user(
+async def get_scim_user(
     context: ToolContext,
-    user_id: Annotated[
-        str,
-        "The unique identifier of the SCIM user to be retrieved. Provide the user ID to fetch the user's SCIM object.",  # noqa: E501
-    ],
+    user_id: Annotated[str, "The unique identifier of the SCIM User to retrieve details for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-scim-user'."]:
-    """Fetches a SCIM User object by user ID.
+    """Get details of a single SCIM User by userId.
 
-    Call this tool to get detailed information about a specific user in the SCIM format by providing the user's ID."""  # noqa: E501
+    Use this tool to retrieve information about a specific user as a SCIM User object, using their unique userId."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/scim/v2/Users/{userId}".format(userId=user_id),  # noqa: UP032
         method="GET",
@@ -238,7 +799,239 @@ async def fetch_scim_user(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
+async def update_scim_user_record(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    user_id: Annotated[
+        str | None,
+        "The unique identifier for the user to be updated. It should match the user's existing SCIM record.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'patch-scim-user'."]:
+    """Apply SCIM patch operations to update user details.
+
+    Use this tool to perform a sequence of SCIM patch operations on an existing user. Suitable for updating user attributes according to SCIM specification.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATESCIMUSERRECORD"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not user_id:
+        missing_params.append(("user_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATESCIMUSERRECORD"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATESCIMUSERRECORD"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/scim/v2/Users/{userId}".format(userId=user_id),  # noqa: UP032
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATESCIMUSERRECORD"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.scim.usersAndGroups:manage"]))
+async def update_user_attributes(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    user_id: Annotated[
+        str | None,
+        "The unique identifier of the user whose attributes are to be replaced.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-scim-user'."]:
+    """Replace a user's attributes with new values.
+
+    Use this tool to update all attributes for a specific user in the SCIM system. It allows setting the 'active' status to true or false, and requires full replacement of existing attributes.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEUSERATTRIBUTES"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not user_id:
+        missing_params.append(("user_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEUSERATTRIBUTES"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEUSERATTRIBUTES"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/scim/v2/Users/{userId}".format(userId=user_id),  # noqa: UP032
+        method="PUT",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATEUSERATTRIBUTES"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -249,16 +1042,17 @@ async def fetch_scim_user(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["webhook:manage"]))
 async def list_webhooks_for_base(
     context: ToolContext,
-    base_id: Annotated[
-        str,
-        "The unique identifier for the Airtable base to list webhooks for. Requires read permissions.",  # noqa: E501
+    base_identifier: Annotated[
+        str, "The unique identifier for the base whose webhooks you want to list."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-webhooks'."]:
-    """List all webhooks for a specified base.
+    """Retrieve registered webhooks and their statuses for a base.
 
-    Fetches and lists all registered webhooks for a given base in Airtable, including their statuses. Requires read permissions."""  # noqa: E501
+    Use this tool to list all webhooks registered for a specific base, including their statuses. Requires read-level permissions."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="https://api.airtable.com/v0/bases/{baseId}/webhooks".format(baseId=base_id),  # noqa: UP032
+        url="https://api.airtable.com/v0/bases/{baseId}/webhooks".format(baseId=base_identifier),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
@@ -266,7 +1060,123 @@ async def list_webhooks_for_base(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["webhook:manage"]))
+async def create_airtable_webhook(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_id: Annotated[
+        str | None,
+        "The ID of the Airtable base where the webhook will be created. It should be a string.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-a-webhook'."]:
+    """Create a new webhook in a specified Airtable base.
+
+    Use this tool to create a webhook in a specified Airtable base with the option to receive payload notifications. Note that webhooks are limited to 10 per base, and OAuth integrations can create up to 2. Webhooks expire in 7 days but can be refreshed if still active. Creator level permissions are required.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEAIRTABLEWEBHOOK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_id:
+        missing_params.append(("base_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLEWEBHOOK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLEWEBHOOK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/bases/{baseId}/webhooks".format(baseId=base_id),  # noqa: UP032
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["CREATEAIRTABLEWEBHOOK"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -279,15 +1189,18 @@ async def delete_airtable_webhook(
     context: ToolContext,
     airtable_base_id: Annotated[
         str,
-        "The unique identifier for the Airtable base. Required to specify which base contains the webhook to delete.",  # noqa: E501
+        "The unique ID of the Airtable base where the webhook is to be deleted. This is required to specify the target base.",  # noqa: E501
     ],
     webhook_id: Annotated[
-        str, "The unique identifier for the webhook you wish to delete. This is required."
+        str,
+        "The unique identifier for the webhook to be deleted. This string is required to specify which webhook will be removed.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-a-webhook'."]:
-    """Deletes an Airtable webhook.
+    """Deletes a webhook in Airtable with required permissions.
 
-    Use this tool to delete an existing webhook in Airtable. Creator level permissions are required."""  # noqa: E501
+    Use this tool to delete an existing webhook in Airtable. Requires creator level permissions to perform the action."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/bases/{baseId}/webhooks/{webhookId}".format(  # noqa: UP032
             baseId=airtable_base_id, webhookId=webhook_id
@@ -299,49 +1212,7 @@ async def delete_airtable_webhook(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_auth=OAuth2(id="arcade-airtable"))
-async def retrieve_webhook_payloads(
-    context: ToolContext,
-    airtable_base_id: Annotated[
-        str,
-        "The unique identifier for the Airtable base from which to retrieve webhook update messages.",  # noqa: E501
-    ],
-    webhook_identifier: Annotated[
-        str,
-        "The unique identifier for the Airtable webhook whose payloads are to be retrieved. This is necessary to specify which webhook's updates need to be listed.",  # noqa: E501
-    ],
-    pagination_cursor: Annotated[
-        float | None,
-        "Numeric cursor for paginating through webhook payloads. Useful for retrieving additional pages of data.",  # noqa: E501
-    ] = None,
-    max_payload_entries: Annotated[
-        float | None,
-        "The maximum number of payload entries to retrieve. This helps manage the volume of data returned by the endpoint.",  # noqa: E501
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-webhook-payloads'."]:
-    """Retrieve update messages for Airtable webhooks.
-
-    This tool retrieves the update messages from an Airtable webhook to ensure clients receive them after a ping event. It also extends the webhook's expiration time to 7 days from the call, ensuring continued activation if the webhook remains active."""  # noqa: E501
-    response = await make_request(
-        url="https://api.airtable.com/v0/bases/{baseId}/webhooks/{webhookId}/payloads".format(  # noqa: UP032
-            baseId=airtable_base_id, webhookId=webhook_identifier
-        ),
-        method="GET",
-        params=remove_none_values({"cursor": pagination_cursor, "limit": max_payload_entries}),
-        headers=remove_none_values({
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
-            )
-        }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -350,36 +1221,213 @@ async def retrieve_webhook_payloads(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["webhook:manage"]))
-async def extend_webhook_expiration(
+async def toggle_webhook_notifications(
     context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
     airtable_base_id: Annotated[
-        str,
-        "The unique identifier for the Airtable base. Required to specify which base contains the webhook.",  # noqa: E501
-    ],
-    webhook_identifier: Annotated[
-        str,
-        "The unique identifier for the webhook to be refreshed. This is required to specify which webhook's expiration time you wish to extend.",  # noqa: E501
-    ],
-    webhook_refresh_request: Annotated[
-        dict[str, str] | None,
-        "A JSON object containing specifics for the webhook refresh request. This includes relevant details needed for processing the expiration extension.",  # noqa: E501
+        str | None,
+        "The unique identifier for the Airtable base. This specifies which database to target for enabling or disabling webhook notifications.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
     ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'refresh-a-webhook'."]:
-    """Extend the expiration time of an Airtable webhook.
+    webhook_id: Annotated[
+        str | None,
+        "The unique identifier for the webhook to be modified. Required for specifying which webhook's notifications you want to enable or disable.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[
+    dict[str, Any], "Response from the API endpoint 'enable-disable-webhook-notifications'."
+]:
+    """Enable or disable webhook notification pings.
 
-    Use this tool to extend the life of an active Airtable webhook by 7 days from the refresh time. Requires creator level permissions."""  # noqa: E501
-    response = await make_request(
-        url="https://api.airtable.com/v0/bases/{baseId}/webhooks/{webhookId}/refresh".format(  # noqa: UP032
-            baseId=airtable_base_id, webhookId=webhook_identifier
+    Use this tool to enable or disable notification pings for a specific webhook in Airtable. Requires creator-level permissions.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["TOGGLEWEBHOOKNOTIFICATIONS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not airtable_base_id:
+        missing_params.append(("airtable_base_id", "path"))
+    if not webhook_id:
+        missing_params.append(("webhook_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["TOGGLEWEBHOOKNOTIFICATIONS"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["TOGGLEWEBHOOKNOTIFICATIONS"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/bases/{baseId}/webhooks/{webhookId}/enableNotifications".format(  # noqa: UP032
+            baseId=airtable_base_id, webhookId=webhook_id
         ),
         method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["TOGGLEWEBHOOKNOTIFICATIONS"],
         params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable"))
+async def list_webhook_payloads(
+    context: ToolContext,
+    base_id: Annotated[
+        str, "Identifier for the Airtable base from which to list webhook payloads."
+    ],
+    webhook_id: Annotated[
+        str,
+        "The unique identifier for the webhook to retrieve update messages. This should be a string and should match the webhook set up in Airtable.",  # noqa: E501
+    ],
+    maximum_number_of_messages: Annotated[
+        float | None, "The maximum number of update messages to retrieve for the webhook."
+    ] = None,
+    pagination_cursor: Annotated[
+        float | None,
+        "A numerical position indicating where to begin retrieving messages from the webhook payload list. Use this for pagination to continue from a previous list retrieval.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-webhook-payloads'."]:
+    """Retrieve update messages for a specified Airtable webhook.
+
+    This tool retrieves the update messages that a client can consume for a specific webhook. It should be called after a webhook ping is received. Using this tool will also extend the webhook's expiration by setting it to 7 days from the call."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        url="https://api.airtable.com/v0/bases/{baseId}/webhooks/{webhookId}/payloads".format(  # noqa: UP032
+            baseId=base_id, webhookId=webhook_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "limit": maximum_number_of_messages,
+        }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({"requestBody": webhook_refresh_request}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["webhook:manage"]))
+async def refresh_webhook_lifespan(
+    context: ToolContext,
+    base_identifier: Annotated[
+        str, "The unique identifier for the Airtable base containing the webhook."
+    ],
+    webhook_id: Annotated[
+        str,
+        "The unique identifier of the webhook to extend. Ensure it is an active webhook with an expiration.",  # noqa: E501
+    ],
+    webhook_request_body: Annotated[
+        dict[str, Any] | None,
+        "JSON payload required for refreshing the webhook. Include necessary fields per API documentation.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'refresh-a-webhook'."]:
+    """Extend the expiration time of an active webhook.
+
+    Use this tool to extend the life of an active webhook in Airtable. The new expiration time will be set to 7 days after the refresh time. This operation requires creator-level permissions and is applicable only to webhooks with an expiration time."""  # noqa: E501
+    request_data = remove_none_values(webhook_request_body or {})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        url="https://api.airtable.com/v0/bases/{baseId}/webhooks/{webhookId}/refresh".format(  # noqa: UP032
+            baseId=base_identifier, webhookId=webhook_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -388,16 +1436,18 @@ async def extend_webhook_expiration(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["schema.bases:read"]))
-async def get_accessible_airtable_bases(
+async def list_airtable_bases(
     context: ToolContext,
     pagination_offset: Annotated[
         str | None,
-        "The offset token for paginating through results. Use it to retrieve the next set of Airtable bases.",  # noqa: E501
+        "A string token to fetch the next set of Airtable bases if more results are available. Use the token from the last response to continue pagination.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-bases'."]:
-    """Retrieve the list of accessible Airtable bases.
+    """Retrieve a list of accessible Airtable bases.
 
-    Use this tool to get a list of the bases that the provided token can access. This is useful for managing or displaying base information in Airtable."""  # noqa: E501
+    Use this tool to obtain a list of Airtable bases that the token has access to. The tool returns up to 1000 bases at a time, along with pagination information if more results are available."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases",
         method="GET",
@@ -407,7 +1457,101 @@ async def get_accessible_airtable_bases(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["schema.bases:write"]))
+async def create_airtable_base(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-base'."]:
+    """Create a new Airtable base with specified tables and schema.
+
+    This tool creates a new base in Airtable with the provided tables and returns the schema for the newly created base. At least one table and field must be specified, with fields having unique names within the table. A default grid view is created for each table.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEAIRTABLEBASE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLEBASE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLEBASE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request(
+        url="https://api.airtable.com/v0/meta/bases",
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+        content=json.dumps(request_data),
     )
     try:
         return {"response_json": response.json()}
@@ -418,15 +1562,18 @@ async def get_accessible_airtable_bases(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:manage"]))
 async def delete_airtable_base(
     context: ToolContext,
-    airtable_base_id: Annotated[
-        str, "The unique identifier of the Airtable base to delete. It should be a string."
+    base_id: Annotated[
+        str,
+        "The unique identifier of the base you want to delete. This ID is required to perform the deletion.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-base'."]:
     """Delete a specified Airtable base.
 
-    Use this tool to delete an Airtable base when it is no longer needed. Deleted bases can be restored by workspace owners from the Trash UI, subject to the workspace's billing plan retention period."""  # noqa: E501
+    Use this tool to delete an Airtable base by specifying the base ID. Deleted bases can be restored by workspace owners within the retention period set by the billing plan."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="https://api.airtable.com/v0/meta/bases/{baseId}".format(baseId=airtable_base_id),  # noqa: UP032
+        url="https://api.airtable.com/v0/meta/bases/{baseId}".format(baseId=base_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
@@ -434,7 +1581,7 @@ async def delete_airtable_base(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -447,16 +1594,18 @@ async def get_base_collaborators(
     context: ToolContext,
     base_id: Annotated[
         str,
-        "The unique identifier for the Airtable base from which you want to retrieve collaborator information.",  # noqa: E501
+        "The unique identifier of the Airtable base to fetch collaborators from. This is a required string value.",  # noqa: E501
     ],
     fields_to_include: Annotated[
         list[str] | None,
-        "A list of fields to return for each collaborator. Example: ['name', 'email'].",
+        "A list of fields to include in the response. Specify as an array of strings such as ['email', 'name'].",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-base-collaborators'."]:
-    """Retrieve basic information about base collaborators.
+    """Retrieve information on base collaborators.
 
-    Use this tool to get details on collaborators associated with a specific base, excluding any deleted collaborators and including outstanding invites."""  # noqa: E501
+    Fetches details about active collaborators and outstanding invites for a specified Airtable base, excluding deleted users."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}".format(baseId=base_id),  # noqa: UP032
         method="GET",
@@ -466,7 +1615,7 @@ async def get_base_collaborators(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -477,16 +1626,19 @@ async def get_base_collaborators(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:read"]))
 async def list_base_block_installations(
     context: ToolContext,
-    base_identifier: Annotated[
-        str, "Unique identifier for the Airtable base to list block installations from."
+    base_id: Annotated[
+        str,
+        "The unique identifier for a specific Airtable base to retrieve block installations from.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-block-installations'."]:
-    """Lists basic information of base block installations.
+    """Retrieve basic info of block installations for a specific base.
 
-    Use this tool to retrieve details about block installations in a specific Airtable base. It provides an overview of the blocks attached to the base, useful for managing or reviewing installed blocks."""  # noqa: E501
+    Use this tool to get a list of block installations within a specified base in Airtable. It provides basic information about each block installation, useful for managing and understanding block deployments in a base."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/blockInstallations".format(  # noqa: UP032
-            baseId=base_identifier
+            baseId=base_id
         ),
         method="GET",
         params=remove_none_values({}),
@@ -495,7 +1647,7 @@ async def list_base_block_installations(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -508,16 +1660,18 @@ async def delete_airtable_block_installation(
     context: ToolContext,
     airtable_base_id: Annotated[
         str,
-        "The unique identifier for the Airtable base from which the block installation will be deleted. This ID specifies the particular base in question.",  # noqa: E501
+        "The unique identifier for the Airtable base from which the block installation will be deleted.",  # noqa: E501
     ],
     block_installation_id: Annotated[
         str,
-        "The unique identifier of the block installation to delete. This ID is required to specify which block installation to remove.",  # noqa: E501
+        "The unique identifier of the block installation to be deleted. This is required to specify which block installation to remove.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-block-installation'."]:
-    """Delete a block installation from an Airtable base.
+    """Delete a block installation in Airtable, recoverable later.
 
-    Use this tool to delete a block installation from an Airtable base. The deleted block installation can be recovered if needed."""  # noqa: E501
+    Use this tool when you need to delete a block installation from an Airtable base. The deletion is not permanent and can be recovered if needed."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/blockInstallations/{blockInstallationId}".format(  # noqa: UP032
             baseId=airtable_base_id, blockInstallationId=block_installation_id
@@ -529,7 +1683,251 @@ async def delete_airtable_block_installation(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
+async def manage_airtable_block_installation(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    airtable_base_id: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base where the block is installed. It is required to specify the base for the block installation.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    block_installation_id: Annotated[
+        str | None,
+        "The unique identifier for the block installation to be managed.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'manage-block-installation'."]:
+    """Manages the installation state of an Airtable block.
+
+    This tool modifies the installation state of a specified block in a given Airtable base. It should be called when there is a need to update the status or settings of a block installation.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["MANAGEAIRTABLEBLOCKINSTALLATION"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not airtable_base_id:
+        missing_params.append(("airtable_base_id", "path"))
+    if not block_installation_id:
+        missing_params.append(("block_installation_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["MANAGEAIRTABLEBLOCKINSTALLATION"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["MANAGEAIRTABLEBLOCKINSTALLATION"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/blockInstallations/{blockInstallationId}".format(  # noqa: UP032
+            baseId=airtable_base_id, blockInstallationId=block_installation_id
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["MANAGEAIRTABLEBLOCKINSTALLATION"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
+async def add_base_collaborator(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_id: Annotated[
+        str | None,
+        "The ID of the Airtable base to which the collaborator will be added.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'add-base-collaborator'."]:
+    """Add a collaborator to an Airtable base.
+
+    Use this tool to add a new collaborator to a specified Airtable base. It facilitates inviting one collaborator at a time.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["ADDBASECOLLABORATOR"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_id:
+        missing_params.append(("base_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["ADDBASECOLLABORATOR"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["ADDBASECOLLABORATOR"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/collaborators".format(baseId=base_id),  # noqa: UP032
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["ADDBASECOLLABORATOR"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -540,20 +1938,22 @@ async def delete_airtable_block_installation(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
 async def remove_base_collaborator(
     context: ToolContext,
-    base_identifier: Annotated[
+    base_id: Annotated[
         str,
-        "The unique identifier of the Airtable base from which the collaborator will be removed. It is expected to be a string.",  # noqa: E501
+        "The unique identifier for the base from which the collaborator will be removed. This is a required field.",  # noqa: E501
     ],
     collaborator_id: Annotated[
-        str, "The ID of the user or group to be removed from the Airtable base."
+        str, "The unique identifier for the user or group to be removed from the base."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-base-collaborator'."]:
-    """Remove a collaborator from a specific Airtable base.
+    """Remove a collaborator from a base.
 
-    Use this tool to remove a user or group from collaboration on an Airtable base. It should be called when you need to manage access and permissions of collaborators."""  # noqa: E501
+    Use this tool to delete a collaborator from a specific base in Airtable. It should be called when you want to remove access for a user or group to a base."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/collaborators/{userOrGroupId}".format(  # noqa: UP032
-            baseId=base_identifier, userOrGroupId=collaborator_id
+            baseId=base_id, userOrGroupId=collaborator_id
         ),
         method="DELETE",
         params=remove_none_values({}),
@@ -562,44 +1962,7 @@ async def remove_base_collaborator(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:read"]))
-async def get_airtable_interface_info(
-    context: ToolContext,
-    airtable_base_id: Annotated[
-        str, "The unique identifier for the Airtable base to retrieve interface information from."
-    ],
-    interface_id: Annotated[
-        str,
-        "The ID of the Airtable interface to retrieve information for, found in the interfaces object.",  # noqa: E501
-    ],
-    include_fields: Annotated[
-        list[str] | None,
-        "A list of fields to include in the response. Provide field names as strings.",
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-interface'."]:
-    """Retrieve general information about an Airtable interface.
-
-    This tool retrieves general information about a specified Airtable interface, excluding deleted collaborators and including outstanding invites."""  # noqa: E501
-    response = await make_request(
-        url="https://api.airtable.com/v0/meta/bases/{baseId}/interfaces/{pageBundleId}".format(  # noqa: UP032
-            baseId=airtable_base_id, pageBundleId=interface_id
-        ),
-        method="GET",
-        params=remove_none_values({"include": include_fields}),
-        headers=remove_none_values({
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
-            )
-        }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -608,26 +1971,327 @@ async def get_airtable_interface_info(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
-async def delete_interface_collaborator(
+async def update_collaborator_permission(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_identifier: Annotated[
+        str | None,
+        "The unique identifier for the base to update permission. Required as a string.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    collaborator_id: Annotated[
+        str | None,
+        "The unique identifier for the user or group whose permission level is being updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[
+    dict[str, Any], "Response from the API endpoint 'update-collaborator-base-permission'."
+]:
+    """Update a collaborator's permission level on a base.
+
+    Use this tool to modify the permission level of a specific collaborator on a designated base. Ideal for managing user access and ensuring appropriate permissions.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATECOLLABORATORPERMISSION"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_identifier:
+        missing_params.append(("base_identifier", "path"))
+    if not collaborator_id:
+        missing_params.append(("collaborator_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["UPDATECOLLABORATORPERMISSION"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["UPDATECOLLABORATORPERMISSION"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/collaborators/{userOrGroupId}".format(  # noqa: UP032
+            baseId=base_identifier, userOrGroupId=collaborator_id
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATECOLLABORATORPERMISSION"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:read"]))
+async def get_interface_info(
+    context: ToolContext,
+    airtable_base_id: Annotated[
+        str,
+        "The unique identifier of the Airtable base. This ID specifies which base the interface information belongs to.",  # noqa: E501
+    ],
+    interface_id: Annotated[
+        str,
+        "The ID of the Airtable interface to retrieve information for. This is found in the `interfaces` object from the `get base collaborators` endpoint.",  # noqa: E501
+    ],
+    include_elements: Annotated[
+        list[str] | None,
+        "Specify elements to include in the response. Provide as an array of strings representing the element names or IDs.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-interface'."]:
+    """Retrieve information about a specified interface.
+
+    This tool fetches general details about a specified Airtable interface, excluding any deleted collaborators and including only outstanding invites. Use it when you need to access interface information via the interface ID (`pageBundleId`)."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/interfaces/{pageBundleId}".format(  # noqa: UP032
+            baseId=airtable_base_id, pageBundleId=interface_id
+        ),
+        method="GET",
+        params=remove_none_values({"include": include_elements}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
+async def add_collaborator_to_airtable_interface(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    airtable_base_id: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base where the interface is located. This helps specify which base the collaborator will be added to.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    page_bundle_id: Annotated[
+        str | None,
+        "The unique identifier for the specific interface page bundle where the collaborator will be added.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'add-interface-collaborator'."]:
+    """Add a collaborator to an Airtable interface.
+
+    This tool is used to add a new collaborator to a specific interface in Airtable. Call this when you need to give a user access to an interface within a particular base.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["ADDCOLLABORATORTOAIRTABLEINTERFACE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not airtable_base_id:
+        missing_params.append(("airtable_base_id", "path"))
+    if not page_bundle_id:
+        missing_params.append(("page_bundle_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["ADDCOLLABORATORTOAIRTABLEINTERFACE"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["ADDCOLLABORATORTOAIRTABLEINTERFACE"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/interfaces/{pageBundleId}/collaborators".format(  # noqa: UP032
+            baseId=airtable_base_id, pageBundleId=page_bundle_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["ADDCOLLABORATORTOAIRTABLEINTERFACE"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
+async def remove_interface_collaborator(
     context: ToolContext,
     base_id: Annotated[
         str,
-        "The unique identifier of the Airtable base from which the collaborator will be removed. This ID is essential to specify the correct base for the operation.",  # noqa: E501
+        "The unique identifier for the Airtable base. This is required to specify which base the collaborator will be removed from.",  # noqa: E501
     ],
-    page_bundle_identifier: Annotated[
-        str, "The unique identifier for the page bundle from which to delete the collaborator."
-    ],
-    user_or_group_id: Annotated[
+    collaborator_id: Annotated[
         str,
-        "The unique identifier of the user or group to be removed from the interface. This ID specifies which collaborator is to be deleted.",  # noqa: E501
+        "The ID of the user or group to be removed as an interface collaborator. Must be a valid identifier.",  # noqa: E501
+    ],
+    interface_page_bundle_id: Annotated[
+        str,
+        "The ID of the page bundle within the interface from which the collaborator is being removed.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-interface-collaborator'."]:
-    """Delete a collaborator from an Airtable interface.
+    """Remove a collaborator from an interface.
 
-    This tool removes an interface collaborator in Airtable. It requires base collaborator access to remove others but can be used to remove oneself, even with interface-only access."""  # noqa: E501
+    Use this tool to delete an interface collaborator. Base collaborator access is needed to remove others, but it can also be used for self-removal with interface-only access."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/interfaces/{pageBundleId}/collaborators/{userOrGroupId}".format(  # noqa: UP032
-            baseId=base_id, pageBundleId=page_bundle_identifier, userOrGroupId=user_or_group_id
+            baseId=base_id, pageBundleId=interface_page_bundle_id, userOrGroupId=collaborator_id
         ),
         method="DELETE",
         params=remove_none_values({}),
@@ -636,7 +2300,143 @@ async def delete_interface_collaborator(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
+async def update_collaborator_permissions(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_identifier: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base where the collaborator's permissions are being updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    interface_page_bundle_id: Annotated[
+        str | None,
+        "The unique identifier for the page bundle associated with the interface in Airtable. Required to specify which interface the permissions are being updated for.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    collaborator_id: Annotated[
+        str | None,
+        "The unique ID of the user or group whose permissions are to be updated. This is required for specifying which collaborator's access level should be modified.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-interface-collaborator'."]:
+    """Update permissions for an interface-only collaborator.
+
+    This tool updates the permissions for a specific collaborator associated with an interface in Airtable. Use it to modify access levels for collaborators on a specific base and interface.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATECOLLABORATORPERMISSIONS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_identifier:
+        missing_params.append(("base_identifier", "path"))
+    if not interface_page_bundle_id:
+        missing_params.append(("interface_page_bundle_id", "path"))
+    if not collaborator_id:
+        missing_params.append(("collaborator_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["UPDATECOLLABORATORPERMISSIONS"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["UPDATECOLLABORATORPERMISSIONS"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/interfaces/{pageBundleId}/collaborators/{userOrGroupId}".format(  # noqa: UP032
+            baseId=base_identifier,
+            pageBundleId=interface_page_bundle_id,
+            userOrGroupId=collaborator_id,
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATECOLLABORATORPERMISSIONS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -648,19 +2448,22 @@ async def delete_interface_collaborator(
 async def delete_interface_invite(
     context: ToolContext,
     base_identifier: Annotated[
-        str,
-        "The unique identifier of the Airtable base from which the interface invite will be deleted. Required to specify which base contains the invite.",  # noqa: E501
-    ],
-    page_bundle_id: Annotated[
-        str, "The ID of the page bundle containing the interface invite to be deleted."
+        str, "The unique identifier for the Airtable base from which the invite will be deleted."
     ],
     invite_id: Annotated[
-        str, "The unique identifier for the invite to be deleted. Must be an outstanding invite."
+        str,
+        "The identifier of the outstanding interface invite to be deleted. Must be a valid string representing the invite ID.",  # noqa: E501
+    ],
+    page_bundle_id: Annotated[
+        str,
+        "The unique ID of the interface page bundle to identify which interface's invite to delete.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-interface-invite'."]:
     """Delete an outstanding interface invite in Airtable.
 
-    Use this tool to delete an outstanding invitation for an interface in Airtable. The invite must be outstanding to be deleted."""  # noqa: E501
+    Delete an interface invite that is still outstanding in Airtable using the specified base ID, interface ID, and invite ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/interfaces/{pageBundleId}/invites/{inviteId}".format(  # noqa: UP032
             baseId=base_identifier, pageBundleId=page_bundle_id, inviteId=invite_id
@@ -672,7 +2475,7 @@ async def delete_interface_invite(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -684,18 +2487,21 @@ async def delete_interface_invite(
 async def delete_base_invite(
     context: ToolContext,
     base_id: Annotated[
-        str, "The unique identifier of the Airtable base from which the invite will be deleted."
+        str, "The unique identifier of the base from which the invite should be deleted."
     ],
-    invite_identifier: Annotated[
-        str, "The unique identifier of the outstanding base invite to be deleted."
+    invite_id: Annotated[
+        str,
+        "The unique identifier for the invite to be deleted. Ensure this is an outstanding invite.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-base-invite'."]:
-    """Delete an outstanding base invite in Airtable.
+    """Delete an outstanding base invite.
 
-    Use this tool to delete an outstanding base invite in Airtable when you no longer need it or want to revoke access. The invite must be outstanding to be deleted."""  # noqa: E501
+    Use this tool to delete an outstanding base invite by specifying the base and invite IDs. It is useful for managing and revoking access invitations."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/invites/{inviteId}".format(  # noqa: UP032
-            baseId=base_id, inviteId=invite_identifier
+            baseId=base_id, inviteId=invite_id
         ),
         method="DELETE",
         params=remove_none_values({}),
@@ -704,7 +2510,7 @@ async def delete_base_invite(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -715,13 +2521,18 @@ async def delete_base_invite(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases.shares:manage"]))
 async def list_base_shares(
     context: ToolContext,
-    base_id: Annotated[str, "The unique identifier for the Airtable base to retrieve shares for."],
+    base_identifier: Annotated[
+        str,
+        "The unique ID of the Airtable base to list shares for. Required to retrieve base share information.",  # noqa: E501
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-shares'."]:
-    """Retrieve basic information about Airtable base shares.
+    """Lists basic information of base shares.
 
-    Call this tool to get information on shared Airtable bases, including details like base names and sharing status."""  # noqa: E501
+    Call this tool to retrieve a list of shared base information for a given base in Airtable."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="https://api.airtable.com/v0/meta/bases/{baseId}/shares".format(baseId=base_id),  # noqa: UP032
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/shares".format(baseId=base_identifier),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
@@ -729,7 +2540,7 @@ async def list_base_shares(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -741,19 +2552,19 @@ async def list_base_shares(
 async def delete_airtable_share(
     context: ToolContext,
     airtable_base_id: Annotated[
-        str, "The unique identifier for the Airtable base from which the share will be deleted."
-    ],
-    share_id_to_delete: Annotated[
         str,
-        "The unique identifier of the Airtable share to be deleted. Ensure the ID is correct as this action is irreversible.",  # noqa: E501
+        "The unique identifier of the Airtable base from which the share will be deleted. This value is required.",  # noqa: E501
     ],
+    share_id: Annotated[str, "The unique identifier of the share to delete from an Airtable base."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-share'."]:
-    """Delete a share from Airtable irreversibly.
+    """Permanently delete a share from an Airtable base.
 
-    Use this tool to permanently delete a share from Airtable. This action cannot be undone, so ensure that deletion is intended."""  # noqa: E501
+    This tool permanently deletes a share from an Airtable base. It should be used when you need to remove a share entirely, with no recovery option available."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/shares/{shareId}".format(  # noqa: UP032
-            baseId=airtable_base_id, shareId=share_id_to_delete
+            baseId=airtable_base_id, shareId=share_id
         ),
         method="DELETE",
         params=remove_none_values({}),
@@ -762,7 +2573,131 @@ async def delete_airtable_share(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases.shares:manage"]))
+async def manage_airtable_sharing(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    airtable_base_id: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base to manage its share state.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    share_identifier: Annotated[
+        str | None,
+        "The unique identifier for the share configuration to modify in Airtable. It specifies which share state needs to be managed.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'manage-share'."]:
+    """Update and manage the share state of an Airtable base.
+
+    Use this tool to modify the sharing configuration for a specific Airtable base. It's useful for changing user access or permissions associated with the base.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["MANAGEAIRTABLESHARING"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not airtable_base_id:
+        missing_params.append(("airtable_base_id", "path"))
+    if not share_identifier:
+        missing_params.append(("share_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["MANAGEAIRTABLESHARING"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["MANAGEAIRTABLESHARING"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/shares/{shareId}".format(  # noqa: UP032
+            baseId=airtable_base_id, shareId=share_identifier
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["MANAGEAIRTABLESHARING"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -775,16 +2710,18 @@ async def get_airtable_base_schema(
     context: ToolContext,
     airtable_base_id: Annotated[
         str,
-        "The unique identifier for the Airtable base for which you want to retrieve the schema.",
+        "The unique identifier for the Airtable base whose schema is being requested. This ID can be found in the URL of the base when accessed in Airtable.",  # noqa: E501
     ],
     fields_to_include: Annotated[
         list[str] | None,
-        "Specifies which fields of the tables to include in the schema response. Provide an array of field names as strings.",  # noqa: E501
+        "A list of specific fields to include in the schema response. Each field should be a string representing the field name.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-base-schema'."]:
-    """Retrieve the schema of tables in a specified Airtable base.
+    """Retrieve the schema of tables in an Airtable base.
 
-    Use this tool to get detailed information about the structure of tables within a specific Airtable base by providing the base ID."""  # noqa: E501
+    Use this tool to get the schema details of all tables within a specific Airtable base. It is useful for understanding the structure and fields of the tables in the specified base."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/tables".format(  # noqa: UP032
             baseId=airtable_base_id
@@ -796,7 +2733,419 @@ async def get_airtable_base_schema(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["schema.bases:write"]))
+async def create_airtable_table(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    airtable_base_id: Annotated[
+        str | None,
+        "The identifier for the Airtable base where the table will be created. Must be a string.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-table'."]:
+    """Create a new table in Airtable and return its schema.
+
+    This tool creates a new table in Airtable and provides the schema for the newly created table. At least one field must be specified, and fields must have unique, case-insensitive names within the table. The first field serves as the primary field. A default view with all fields visible is created.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEAIRTABLETABLE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not airtable_base_id:
+        missing_params.append(("airtable_base_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLETABLE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLETABLE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/tables".format(  # noqa: UP032
+            baseId=airtable_base_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+        content=json.dumps(request_data),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["schema.bases:write"]))
+async def update_airtable_table(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    airtable_base_id: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base containing the table to update.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    table_id_or_name: Annotated[
+        str | None,
+        "The identifier or name of the table to update in Airtable.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-table'."]:
+    """Update the properties of an Airtable table.
+
+    Use this tool to update the name, description, or date dependency settings of a specific Airtable table identified by its base ID and table ID or name.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEAIRTABLETABLE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not airtable_base_id:
+        missing_params.append(("airtable_base_id", "path"))
+    if not table_id_or_name:
+        missing_params.append(("table_id_or_name", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEAIRTABLETABLE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEAIRTABLETABLE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/tables/{tableIdOrName}".format(  # noqa: UP032
+            baseId=airtable_base_id, tableIdOrName=table_id_or_name
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATEAIRTABLETABLE"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["schema.bases:write"]))
+async def create_airtable_field(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    airtable_base_id: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base containing the table.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    table_id: Annotated[
+        str | None,
+        "The unique identifier of the table where the new column will be created.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-field'."]:
+    """Creates a new column in an Airtable table and returns its schema.
+
+
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEAIRTABLEFIELD"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not airtable_base_id:
+        missing_params.append(("airtable_base_id", "path"))
+    if not table_id:
+        missing_params.append(("table_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLEFIELD"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLEFIELD"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/tables/{tableId}/fields".format(  # noqa: UP032
+            baseId=airtable_base_id, tableId=table_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+        content=json.dumps(request_data),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["schema.bases:write"]))
+async def update_airtable_field_details(
+    context: ToolContext,
+    airtable_base_id: Annotated[
+        str, "The unique ID of the Airtable base containing the field to update."
+    ],
+    airtable_table_id: Annotated[
+        str, "The ID of the table in which the field's metadata is to be updated."
+    ],
+    field_column_id: Annotated[
+        str, "The unique identifier for the field (column) to be updated in the Airtable base."
+    ],
+    new_field_description: Annotated[
+        str | None, "The new description for the field. Optional, max 20,000 characters."
+    ] = None,
+    new_field_name: Annotated[
+        str | None,
+        "The new name for the field in Airtable. This is optional but must be provided if no new description is given.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-field'."]:
+    """Updates the name or description of an Airtable field.
+
+    This tool updates the name and/or description of a specified field in an Airtable base. It requires at least one of the name or description to be provided. Use this when you need to change field metadata in Airtable."""  # noqa: E501
+    request_data = remove_none_values({
+        "description": new_field_description,
+        "name": new_field_name,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        url="https://api.airtable.com/v0/meta/bases/{baseId}/tables/{tableId}/fields/{columnId}".format(  # noqa: UP032
+            baseId=airtable_base_id, tableId=airtable_table_id, columnId=field_column_id
+        ),
+        method="PATCH",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -805,20 +3154,21 @@ async def get_airtable_base_schema(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:read"]))
-async def list_airtable_views(
+async def list_airtable_base_views(
     context: ToolContext,
     airtable_base_id: Annotated[
-        str,
-        "The unique identifier of the Airtable base for which views information is to be listed.",
+        str, "The ID of the Airtable base for which you want to list views."
     ],
     fields_to_include: Annotated[
         list[str] | None,
-        "Specify which fields to include in the response (e.g., view names, types).",
+        "A list of specific fields to include in the response. It filters the fields returned for each view.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-views'."]:
-    """Lists basic information of Airtable base views.
+    """Retrieve information on Airtable base views.
 
-    Use this tool to obtain a list of basic information about views within a specific Airtable base. This can be useful for understanding the structure and available views in a base."""  # noqa: E501
+    This tool is used to obtain basic information about the views within a specified Airtable base. It should be called when you need details about the different views available in a particular base in Airtable."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/views".format(baseId=airtable_base_id),  # noqa: UP032
         method="GET",
@@ -828,7 +3178,7 @@ async def list_airtable_views(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -841,19 +3191,21 @@ async def delete_airtable_view(
     context: ToolContext,
     airtable_base_id: Annotated[
         str,
-        "The unique identifier for the Airtable base from which the view is to be deleted. This is required to locate the specific base within Airtable.",  # noqa: E501
+        "The ID of the Airtable base from which the view will be deleted. Must be a valid string identifier.",  # noqa: E501
     ],
-    view_id_for_deletion: Annotated[
+    view_identifier: Annotated[
         str,
-        "The ID of the view to be deleted from Airtable. Required for specifying which view to remove.",  # noqa: E501
+        "The unique identifier of the Airtable view to delete. Required to specify which view to remove.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-view'."]:
-    """Deletes a specified view in Airtable.
+    """Deletes a specific view in Airtable by ID.
 
-    Use this tool to delete a specific view from an Airtable base. Ideal when views are no longer needed and need to be removed from the database."""  # noqa: E501
+    Use this tool to delete a specific view from an Airtable base. Provide the base ID and view ID to perform the deletion."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/views/{viewId}".format(  # noqa: UP032
-            baseId=airtable_base_id, viewId=view_id_for_deletion
+            baseId=airtable_base_id, viewId=view_identifier
         ),
         method="DELETE",
         params=remove_none_values({}),
@@ -862,7 +3214,7 @@ async def delete_airtable_view(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -871,33 +3223,37 @@ async def delete_airtable_view(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:read"]))
-async def get_base_view_info(
+async def get_airtable_view_metadata(
     context: ToolContext,
     base_identifier: Annotated[
-        str,
-        "The unique identifier of the Airtable base. This ID is required to specify which base's view metadata should be retrieved.",  # noqa: E501
+        str, "The unique ID of the Airtable base. This is required to retrieve view metadata."
     ],
-    view_id: Annotated[str, "The unique identifier of the view within a specific Airtable base."],
-    fields_to_include: Annotated[
+    view_identifier: Annotated[
+        str,
+        "A unique identifier for the Airtable view. Used to specify which view's metadata to retrieve.",  # noqa: E501
+    ],
+    include_fields: Annotated[
         list[str] | None,
-        "Specify an array of field names or properties to include in the metadata response. This allows for filtering the metadata output to only include specified fields.",  # noqa: E501
+        "Array of field names to include in the view metadata response. Specify specific fields if required.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-view-metadata'."]:
-    """Retrieve basic information of a base view in Airtable.
+    """Get basic information about an Airtable base view.
 
-    This tool is used to obtain metadata of a specific view within a base on Airtable. It should be called when information about a particular view's configuration or properties is needed."""  # noqa: E501
+    Use this tool to obtain metadata for a specific view within an Airtable base, including details like name and structure. Ideal for retrieving details necessary to understand the view's configuration."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/bases/{baseId}/views/{viewId}".format(  # noqa: UP032
-            baseId=base_identifier, viewId=view_id
+            baseId=base_identifier, viewId=view_identifier
         ),
         method="GET",
-        params=remove_none_values({"include": fields_to_include}),
+        params=remove_none_values({"include": include_fields}),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -909,14 +3265,19 @@ async def get_base_view_info(
 async def get_enterprise_info(
     context: ToolContext,
     enterprise_account_id: Annotated[
-        str, "The unique identifier for the enterprise account to retrieve information for."
+        str,
+        "The unique identifier for the target enterprise account. This is required to fetch the relevant account information.",  # noqa: E501
     ],
     fields_to_include: Annotated[
         list[str] | None,
-        "Specify which fields to include in the enterprise account information. Provide a list of field names as strings.",  # noqa: E501
+        "Specify an array of field names as strings to include in the response. Leaving this empty includes all default fields.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-enterprise'."]:
-    """Retrieve basic enterprise account information from Airtable."""
+    """Retrieve basic information about an enterprise account.
+
+    This tool returns fundamental details regarding a specified enterprise account, which can be useful for understanding account characteristics and status."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}".format(  # noqa: UP032
             enterpriseAccountId=enterprise_account_id
@@ -928,7 +3289,7 @@ async def get_enterprise_info(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -937,50 +3298,55 @@ async def get_enterprise_info(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.auditLogs:read"]))
-async def retrieve_audit_log_events(
+async def get_audit_log_events(
     context: ToolContext,
     enterprise_account_id: Annotated[
-        str,
-        "The unique ID of the enterprise account for which audit log events are being retrieved. This should be a string.",  # noqa: E501
+        str, "The unique identifier for the enterprise account to retrieve audit log events for."
     ],
-    start_time: Annotated[
-        str | None,
-        "Specify the start time for retrieving audit log events. Use ISO 8601 format (e.g., '2023-01-01T00:00:00Z').",  # noqa: E501
-    ] = None,
     end_time: Annotated[
         str | None,
-        "The ISO 8601 formatted date and time to end retrieving audit log events. Leave empty to continue into the future.",  # noqa: E501
-    ] = None,
-    originating_user_id: Annotated[
-        str | None,
-        "The ID of the user who initiated the event. Used to filter events by their originating user.",  # noqa: E501
-    ] = None,
-    event_type: Annotated[
-        str | None, "Specify the type of event to filter audit logs (e.g., 'login', 'data_change')."
-    ] = None,
-    model_id: Annotated[
-        str | None,
-        "The ID of the model to filter audit log events. Use this to specify a particular model if needed.",  # noqa: E501
-    ] = None,
-    page_size: Annotated[float | None, "Number of audit log events to retrieve per page."] = None,
-    sort_order: Annotated[
-        str | None, "Specify the order of the audit log results: 'ascending' or 'descending'."
-    ] = None,
-    previous_page_cursor: Annotated[
-        str | None, "A cursor string to navigate to the previous page of results in paginated data."
-    ] = None,
-    next_page_token: Annotated[
-        str | None,
-        "A token to retrieve the next page of results in pagination. Use the token from the previous response if available.",  # noqa: E501
+        "The end time for retrieving audit log events. The format is ISO 8601 (e.g., '2023-10-15T10:00:00Z').",  # noqa: E501
     ] = None,
     event_category: Annotated[
         str | None,
-        "Specifies the category of events to filter the audit log. Use to narrow down results to specific types of audit events.",  # noqa: E501
+        "Filter audit log events by specific categories. Accepts string values like 'security', 'compliance', etc.",  # noqa: E501
+    ] = None,
+    event_type: Annotated[
+        str | None,
+        "Specify the type of event to filter the audit logs. Use a string representing the event category.",  # noqa: E501
+    ] = None,
+    filter_by_originating_user_id: Annotated[
+        str | None, "Filter audit log events by the ID of the originating user."
+    ] = None,
+    model_identifier: Annotated[
+        str | None, "A string that specifies the model ID related to the audit log event."
+    ] = None,
+    next_page_token: Annotated[
+        str | None,
+        "Token to retrieve the next page of results when paginating through a large set of audit log events.",  # noqa: E501
+    ] = None,
+    page_size: Annotated[
+        float | None,
+        "Number of log events to retrieve per page. It determines the size of the data fetched in a single API call.",  # noqa: E501
+    ] = None,
+    previous_event_marker: Annotated[
+        str | None,
+        "A string marker to paginate backwards through audit log events, indicating the last event seen.",  # noqa: E501
+    ] = None,
+    sort_order: Annotated[
+        str | None,
+        "Defines the order in which results are sorted. Use 'ascending' or 'descending'.",
+    ] = None,
+    start_time: Annotated[
+        str | None,
+        "Specify the starting point for retrieving audit logs. Use ISO 8601 format (e.g., '2023-01-01T00:00:00Z').",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'audit-log-events'."]:
     """Retrieve audit log events for an enterprise.
 
-    Use this tool to access audit log events for a specific enterprise. It retrieves all current stored data and continues to update with future events."""  # noqa: E501
+    Use this tool to get audit log events related to an enterprise account. It provides access to historical and ongoing log data to track activities and changes."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/auditLogEvents".format(  # noqa: UP032
             enterpriseAccountId=enterprise_account_id
@@ -989,12 +3355,12 @@ async def retrieve_audit_log_events(
         params=remove_none_values({
             "startTime": start_time,
             "endTime": end_time,
-            "originatingUserId": originating_user_id,
+            "originatingUserId": filter_by_originating_user_id,
             "eventType": event_type,
-            "modelId": model_id,
+            "modelId": model_identifier,
             "pageSize": page_size,
             "sortOrder": sort_order,
-            "previous": previous_page_cursor,
+            "previous": previous_event_marker,
             "next": next_page_token,
             "category": event_category,
         }),
@@ -1003,7 +3369,7 @@ async def retrieve_audit_log_events(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1012,36 +3378,37 @@ async def retrieve_audit_log_events(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.auditLogs:read"]))
-async def get_audit_log_requests(
+async def retrieve_audit_log_requests(
     context: ToolContext,
     enterprise_account_id: Annotated[
-        str,
-        "The unique ID of the enterprise account for which audit log requests need to be retrieved.",  # noqa: E501
+        str, "The unique identifier for the enterprise account to retrieve audit log requests for."
     ],
-    page_size: Annotated[
+    audit_log_page_size: Annotated[
         float | None,
-        "Specify the number of audit log requests to return in one call. It helps in paginating large data sets. Typically a number.",  # noqa: E501
+        "Specify the number of audit log requests to return per page. Use this to control pagination.",  # noqa: E501
     ] = None,
     pagination_offset: Annotated[
         float | None,
-        "The starting point for retrieving the audit log requests, used for pagination.",
+        "A number indicating the starting point for retrieving audit log requests. Used for pagination.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-audit-log-requests'."]:
     """Retrieve all audit log requests for an enterprise account.
 
-    This tool retrieves all audit log requests for a specified enterprise account. It should be used to access historical logs for auditing purposes."""  # noqa: E501
+    This tool retrieves all the audit log requests for a given enterprise account. It's meant for accessing historical log records. Note that using this API is discouraged for new use cases; consider using the audit log events API instead."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/auditLogs".format(  # noqa: UP032
             enterpriseAccountId=enterprise_account_id
         ),
         method="GET",
-        params=remove_none_values({"pageSize": page_size, "offset": pagination_offset}),
+        params=remove_none_values({"pageSize": audit_log_page_size, "offset": pagination_offset}),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1050,23 +3417,143 @@ async def get_audit_log_requests(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.auditLogs:read"]))
-async def retrieve_audit_log_request(
+async def create_audit_log_request(
     context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The ID of the enterprise account for which the audit log is being requested. Necessary to initiate the log request process.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-audit-log-request'."]:
+    """Initiate the creation of an audit log request.
+
+    Starts the processing necessary to retrieve audit logs and returns an ID to track and download the logs later. For new cases, prefer using the audit log events API.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEAUDITLOGREQUEST"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAUDITLOGREQUEST"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAUDITLOGREQUEST"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/auditLogs".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["CREATEAUDITLOGREQUEST"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.auditLogs:read"]))
+async def retrieve_audit_log(
+    context: ToolContext,
+    audit_log_task_id: Annotated[
+        str,
+        "The unique identifier for the specific audit log task to retrieve. This is required to fetch the log details.",  # noqa: E501
+    ],
     enterprise_account_id: Annotated[
         str,
-        "The unique identifier for the enterprise account in Airtable. Used to specify which account's audit log is being retrieved.",  # noqa: E501
-    ],
-    enterprise_audit_log_task_id: Annotated[
-        str, "The ID of the specific audit log task to retrieve from Airtable."
+        "The unique identifier for the enterprise account. This ID is required to retrieve the specific audit log request.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-audit-log-request'."]:
-    """Retrieve a specific audit log request by task ID.
+    """Retrieve a specific audit log request.
 
-    Use this tool to get details about a specific audit log request from Airtable using the provided enterprise account ID and audit log task ID."""  # noqa: E501
+    Fetches details of a specified audit log request using the enterprise account and audit log task IDs. This tool is not recommended for new use cases; consider using the audit log events API instead."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/auditLogs/{enterpriseAuditLogTaskId}".format(  # noqa: UP032
-            enterpriseAccountId=enterprise_account_id,
-            enterpriseAuditLogTaskId=enterprise_audit_log_task_id,
+            enterpriseAccountId=enterprise_account_id, enterpriseAuditLogTaskId=audit_log_task_id
         ),
         method="GET",
         params=remove_none_values({}),
@@ -1075,7 +3562,7 @@ async def retrieve_audit_log_request(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1084,30 +3571,34 @@ async def retrieve_audit_log_request(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.changeEvents:read"]))
-async def retrieve_airtable_change_events(
+async def get_airtable_change_events(
     context: ToolContext,
     enterprise_account_id: Annotated[
-        str, "Specify the ID of the enterprise account for which to retrieve change events."
+        str,
+        "The unique identifier for the enterprise account. This ID is required to retrieve the change events specific to the account.",  # noqa: E501
     ],
-    start_time: Annotated[
-        str | None, "The beginning ISO 8601 timestamp for retrieving change events."
-    ] = None,
     end_time: Annotated[
         str | None,
-        "The end timestamp to filter change events, formatted as ISO 8601 date-time string.",
+        "The end time for retrieving change events in ISO 8601 format (e.g., '2023-01-01T23:59:59Z').",  # noqa: E501
     ] = None,
-    page_size: Annotated[
+    page_size_limit: Annotated[
         float | None,
-        "Specifies the number of change events to return per page. This controls pagination and helps in managing the amount of data received in a single request.",  # noqa: E501
+        "Specifies the maximum number of change events returned in a single request. Use a number to limit the size.",  # noqa: E501
     ] = None,
     pagination_offset: Annotated[
         str | None,
-        "Specifies the starting point for retrieving change events, used for pagination.",
+        "String used to specify the starting point for the next page of results. Useful for pagination.",  # noqa: E501
+    ] = None,
+    start_time: Annotated[
+        str | None,
+        "The starting timestamp for retrieving change events. Format is ISO 8601 (e.g., '2023-10-05T12:00:00Z').",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'change-events'."]:
-    """Fetch Airtable change events for enterprise bases.
+    """Retrieve change events for Airtable enterprise bases.
 
-    Retrieve change events for enterprise bases from Airtable. This tool should be called when you need to access change events within a 14-day window. Ensure change events are enabled in your admin panel before using."""  # noqa: E501
+    Use this tool to get change events for enterprise bases in Airtable. These events are accessible for 14 days and require change event features to be enabled in your account settings."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/changeEvents".format(  # noqa: UP032
             enterpriseAccountId=enterprise_account_id
@@ -1116,7 +3607,7 @@ async def retrieve_airtable_change_events(
         params=remove_none_values({
             "startTime": start_time,
             "endTime": end_time,
-            "pageSize": page_size,
+            "pageSize": page_size_limit,
             "offset": pagination_offset,
         }),
         headers=remove_none_values({
@@ -1124,7 +3615,293 @@ async def retrieve_airtable_change_events(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.account:write"]))
+async def create_descendant_enterprise_account(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The ID of the root enterprise account for which to create a descendant. This account must have Enterprise Hub enabled.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-descendant-enterprise'."]:
+    """Create a descendant enterprise account in Airtable.
+
+    This tool creates a descendant enterprise (organizational unit) account under a root enterprise account in Airtable. It should be called when you need to organize accounts hierarchically within the Enterprise Hub. Ensure the root account supports descendant creation.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEDESCENDANTENTERPRISEACCOUNT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["CREATEDESCENDANTENTERPRISEACCOUNT"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["CREATEDESCENDANTENTERPRISEACCOUNT"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/descendants".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["CREATEDESCENDANTENTERPRISEACCOUNT"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.exports:manage"]))
+async def get_ediscovery_exports_status(
+    context: ToolContext,
+    enterprise_account_id: Annotated[
+        str,
+        "The ID of the enterprise account for which to retrieve eDiscovery export status and results.",  # noqa: E501
+    ],
+    ediscovery_export_state: Annotated[
+        str | None, "Filter exports by state: 'pending', 'processing', 'error', or 'done'."
+    ] = None,
+    pagination_offset: Annotated[
+        float | None,
+        "The number of records to skip for pagination. Useful for accessing data beyond initial pages.",  # noqa: E501
+    ] = None,
+    result_page_size: Annotated[
+        float | None, "Specify the number of eDiscovery export results to return per page."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-ediscovery-export'."]:
+    """Retrieve status and results of all eDiscovery exports.
+
+    Use this tool to get the current status and results for all eDiscovery exports within an enterprise account."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/exports".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "state": ediscovery_export_state,
+            "pageSize": result_page_size,
+            "offset": pagination_offset,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.exports:manage"]))
+async def create_ediscovery_export(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The unique identifier for the enterprise account. Required for creating an eDiscovery export.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-ediscovery-export'."]:
+    """Initiate an eDiscovery export request.
+
+    Use this tool to create an eDiscovery export request in Airtable. It returns an ID to check the status and download the export.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEEDISCOVERYEXPORT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEEDISCOVERYEXPORT"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEEDISCOVERYEXPORT"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/exports".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["CREATEEDISCOVERYEXPORT"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1136,62 +3913,19 @@ async def retrieve_airtable_change_events(
 async def get_ediscovery_export_status(
     context: ToolContext,
     enterprise_account_id: Annotated[
-        str, "The unique identifier for the enterprise account to retrieve eDiscovery exports for."
-    ],
-    ediscovery_export_state: Annotated[
-        str | None,
-        "The state of the eDiscovery export. Possible values are 'pending', 'processing', 'error', and 'done'.",  # noqa: E501
-    ] = None,
-    page_size: Annotated[
-        float | None,
-        "Specifies the number of export results to display per page. Useful for pagination.",
-    ] = None,
-    result_offset: Annotated[
-        float | None,
-        "Specifies the starting point within the list of eDiscovery exports for retrieval.",
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-ediscovery-export'."]:
-    """Retrieve status and results of all eDiscovery exports.
-
-    Use this tool to get the current status and results of eDiscovery exports for a specific enterprise account."""  # noqa: E501
-    response = await make_request(
-        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/exports".format(  # noqa: UP032
-            enterpriseAccountId=enterprise_account_id
-        ),
-        method="GET",
-        params=remove_none_values({
-            "state": ediscovery_export_state,
-            "pageSize": page_size,
-            "offset": result_offset,
-        }),
-        headers=remove_none_values({
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
-            )
-        }),
-        data=remove_none_values({}),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.exports:manage"]))
-async def fetch_ediscovery_export(
-    context: ToolContext,
-    enterprise_account_id: Annotated[
         str,
-        "The ID of the enterprise account for the eDiscovery export. Must be a valid string identifier.",  # noqa: E501
+        "The ID of the enterprise account for which to retrieve the eDiscovery export status and results.",  # noqa: E501
     ],
     enterprise_task_id: Annotated[
         str,
-        "The unique identifier for the specific eDiscovery export task. Use this to specify which task's status and result you want to retrieve.",  # noqa: E501
+        "The unique identifier for the eDiscovery export task. Required to check the status and get results.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-ediscovery-export'."]:
-    """Retrieve the status and result of an eDiscovery export from Airtable.
+    """Retrieve the status and result of an eDiscovery export.
 
-    Call this tool to obtain the current status and outcome of a specific eDiscovery export identified by enterpriseAccountId and enterpriseTaskId."""  # noqa: E501
+    Use this tool to check the status and obtain results of an eDiscovery export for a specific enterprise account."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/exports/{enterpriseTaskId}".format(  # noqa: UP032
             enterpriseAccountId=enterprise_account_id, enterpriseTaskId=enterprise_task_id
@@ -1203,7 +3937,251 @@ async def fetch_ediscovery_export(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.groups:manage"]))
+async def batch_move_user_groups_between_accounts(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    target_enterprise_account_id: Annotated[
+        str | None,
+        "The ID of the target enterprise account to which user groups are being moved. Must belong to the same organization and have the Enterprise Hub feature enabled.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'move-user-groups'."]:
+    """Batch move user groups between enterprise accounts.
+
+    Use this tool to transfer user groups between two enterprise accounts within the same organization, provided the accounts have the Enterprise Hub feature enabled. The tool ensures compliance with organizational invite settings, potentially removing non-org unit members during the move.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["BATCHMOVEUSERGROUPSBETWEENACCOUNTS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not target_enterprise_account_id:
+        missing_params.append(("target_enterprise_account_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["BATCHMOVEUSERGROUPSBETWEENACCOUNTS"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["BATCHMOVEUSERGROUPSBETWEENACCOUNTS"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/moveGroups".format(  # noqa: UP032
+            enterpriseAccountId=target_enterprise_account_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["BATCHMOVEUSERGROUPSBETWEENACCOUNTS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:manage"]))
+async def move_workspaces_between_enterprise_accounts(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The unique identifier of the enterprise account to which workspaces are being moved. Ensure it belongs to the same organization.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'move-workspaces'."]:
+    """Move workspaces between enterprise accounts within the same organization.
+
+    Use this tool to batch move workspaces from one enterprise account to another within the same organization, provided the Enterprise Hub feature is enabled. Note that non-org unit collaborators might be removed if the target account's invite settings are restricted.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["MOVEWORKSPACESBETWEENENTERPRISEACCOUNTS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["MOVEWORKSPACESBETWEENENTERPRISEACCOUNTS"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["MOVEWORKSPACESBETWEENENTERPRISEACCOUNTS"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/moveWorkspaces".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["MOVEWORKSPACESBETWEENENTERPRISEACCOUNTS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1216,28 +4194,30 @@ async def delete_users_by_email(
     context: ToolContext,
     enterprise_account_id: Annotated[
         str,
-        "The unique identifier for the Airtable enterprise account from which users will be deleted.",  # noqa: E501
+        "The unique ID of the enterprise account from which users will be deleted. Required for specifying the target enterprise.",  # noqa: E501
     ],
-    user_emails: Annotated[
+    email_addresses: Annotated[
         list[str] | None,
-        "An array of user email addresses to delete from the Airtable enterprise account.",
+        "An array of email addresses of users to be deleted. Each email must be a valid string.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-users-by-email'."]:
-    """Delete multiple users from an Airtable enterprise account by email.
+    """Delete multiple users identified by their email addresses.
 
-    Use this tool to remove multiple users from a specified Airtable enterprise account by their email addresses. This action is useful for managing user access efficiently."""  # noqa: E501
+    This tool deletes multiple users by their email addresses within a specified enterprise account. Use it when you need to remove several users efficiently."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users".format(  # noqa: UP032
             enterpriseAccountId=enterprise_account_id
         ),
         method="DELETE",
-        params=remove_none_values({"email": user_emails}),
+        params=remove_none_values({"email": email_addresses}),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1246,44 +4226,521 @@ async def delete_users_by_email(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.user:read"]))
-async def get_user_info_by_id_or_email(
+async def get_airtable_user_info(
     context: ToolContext,
     enterprise_account_id: Annotated[
         str,
-        "Specifies the enterprise account ID associated with the user. Use to filter users within a specific enterprise account.",  # noqa: E501
+        "The ID of the enterprise account associated with the user. Used to target specific enterprise-level user data.",  # noqa: E501
     ],
-    user_email_addresses: Annotated[
+    include_fields: Annotated[
         list[str] | None,
-        "An array of user email addresses to retrieve information for. Each email should be a string.",  # noqa: E501
+        "Specify fields to include in the response. Provide an array of field names (strings).",
+    ] = None,
+    user_emails: Annotated[
+        list[str] | None,
+        "An array of user email addresses to fetch information for. Provide one or more email strings.",  # noqa: E501
     ] = None,
     user_ids: Annotated[
-        list[str] | None,
-        "A list of user IDs for which to retrieve information. Include each ID as a string.",
-    ] = None,
-    include_additional_fields: Annotated[
-        list[str] | None,
-        "List of extra user attributes to include in the response. Provide attribute names as strings within an array.",  # noqa: E501
+        list[str] | None, "A list of user IDs to fetch details for. Each ID should be a string."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-users-by-id-or-email'."]:
-    """Retrieve user details by ID or email.
+    """Fetch user details from Airtable by ID or email.
 
-    Use this tool to obtain basic information about both internal and external users by providing their ID or email."""  # noqa: E501
+    Use this tool to retrieve basic information for internal or external Airtable users based on their ID or email address."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users".format(  # noqa: UP032
             enterpriseAccountId=enterprise_account_id
         ),
         method="GET",
         params=remove_none_values({
-            "email": user_email_addresses,
+            "email": user_emails,
             "id": user_ids,
-            "include": include_additional_fields,
+            "include": include_fields,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.user:write"]))
+async def batch_manage_enterprise_users(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The unique identifier for the enterprise account to manage users within. This must be provided as a string.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'manage-user-batched'."]:
+    """Batch manage users in enterprise accounts.
+
+    Use this tool to manage enterprise account users by ID or email. Ideal for updates or changing user emails. Best suited for handling up to 10 users per batch to optimize performance and avoid timeouts.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["BATCHMANAGEENTERPRISEUSERS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["BATCHMANAGEENTERPRISEUSERS"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["BATCHMANAGEENTERPRISEUSERS"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["BATCHMANAGEENTERPRISEUSERS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.user:write"]))
+async def batch_manage_user_membership(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The unique identifier of the enterprise account in which user membership will be managed.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'manage-user-membership'."]:
+    """Batch manage user membership in enterprise accounts.
+
+    This tool allows changing a user's membership status between unmanaged and organization member in an enterprise account. It handles membership updates in batches and returns outcomes for each user processed, including any errors encountered. Use when managing user roles within organizations.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["BATCHMANAGEUSERMEMBERSHIP"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["BATCHMANAGEUSERMEMBERSHIP"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["BATCHMANAGEUSERMEMBERSHIP"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/claim".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["BATCHMANAGEUSERMEMBERSHIP"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.user:write"]))
+async def grant_admin_access(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The ID of the enterprise account to which admin access will be granted. Required for processing the request.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'grant-admin-access'."]:
+    """Grant admin access to specified users.
+
+    This tool grants admin access to users via their ID or email. It should be called when an admin needs to grant elevated privileges to users on an enterprise account. If both ID and email are provided, email is ignored. The result includes successful grants and any errors encountered.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["GRANTADMINACCESS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["GRANTADMINACCESS"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["GRANTADMINACCESS"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/grantAdminAccess".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["GRANTADMINACCESS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.user:write"]))
+async def revoke_admin_access(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The unique identifier for the enterprise account. Required to target the specific account for admin access revocation.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'revoke-admin-access'."]:
+    """Revoke admin access from specified users.
+
+    Use this tool to revoke admin access from users by providing either their user ID or email. Only directly assigned admin access can be revoked. If both ID and email are provided, only the ID is used. Errors for unprocessed users are included in the response.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["REVOKEADMINACCESS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["REVOKEADMINACCESS"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["REVOKEADMINACCESS"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/revokeAdminAccess".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["REVOKEADMINACCESS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1296,16 +4753,17 @@ async def delete_enterprise_user(
     context: ToolContext,
     enterprise_account_id: Annotated[
         str,
-        "The ID of the enterprise account from which the user will be deleted. This is required to identify the specific account.",  # noqa: E501
+        "The unique identifier for the enterprise account containing the user to be deleted. This is required for specifying the account context of the user.",  # noqa: E501
     ],
     user_id: Annotated[
-        str,
-        "The unique identifier for the user to be deleted from the enterprise account. This should be a string value that corresponds to the user's ID in Airtable.",  # noqa: E501
+        str, "The unique identifier of the user to be deleted from the enterprise account."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-user-by-id'."]:
-    """Deletes an enterprise account user by ID.
+    """Deletes an enterprise user by ID.
 
-    Use this tool to delete ELA enterprise account users or managed users by specifying their enterprise account ID and user ID. It should be called when you need to remove a user from an enterprise account in Airtable."""  # noqa: E501
+    Use this tool to delete users from an enterprise account, including both internal and managed users. Provide the specific enterprise account ID and user ID for successful deletion."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}".format(  # noqa: UP032
             enterpriseAccountId=enterprise_account_id, userId=user_id
@@ -1317,7 +4775,7 @@ async def delete_enterprise_user(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1326,23 +4784,26 @@ async def delete_enterprise_user(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.user:read"]))
-async def fetch_user_info(
+async def get_user_information(
     context: ToolContext,
     enterprise_account_id: Annotated[
-        str, "The ID of the enterprise account associated with the user to retrieve."
+        str,
+        "The ID of the Airtable Enterprise account associated with the user. This is required to fetch user data.",  # noqa: E501
     ],
     user_id: Annotated[
         str,
-        "The unique identifier for the user whose information is to be fetched. This ID corresponds to an internal or external user within an enterprise account on Airtable.",  # noqa: E501
+        "The unique identifier for the user whose information is to be retrieved. Provide the user ID as a string.",  # noqa: E501
     ],
     include_fields: Annotated[
         list[str] | None,
-        "Specify additional fields to include in the response. Provide an array of field names as strings.",  # noqa: E501
+        "Specify the list of fields to include in the user information response. Provide as an array of field names.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-user-by-id'."]:
-    """Fetch user information by ID.
+    """Fetch user information by ID from Airtable Enterprise.
 
-    Use this tool to retrieve basic information about a user, identified by their user ID, within an enterprise account on Airtable. It is suitable for accessing both internal and external user data."""  # noqa: E501
+    Use this tool to retrieve basic information for an internal or external user in an Airtable Enterprise account by providing the user's ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}".format(  # noqa: UP032
             enterpriseAccountId=enterprise_account_id, userId=user_id
@@ -1354,7 +4815,62 @@ async def fetch_user_info(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.user:write"]))
+async def manage_enterprise_account_user(
+    context: ToolContext,
+    enterprise_account_id: Annotated[
+        str,
+        "The unique identifier for the enterprise account. Required to manage users within the account.",  # noqa: E501
+    ],
+    user_id: Annotated[
+        str, "The unique identifier for the user to be managed within the enterprise account."
+    ],
+    update_user_email: Annotated[
+        str | None,
+        "New email for the user. Ensure enterprise account owns both original and destination domains. Follow SSO steps if applicable.",  # noqa: E501
+    ] = None,
+    user_first_name: Annotated[
+        str | None, "The new first name of the user in the enterprise account."
+    ] = None,
+    user_last_name: Annotated[
+        str | None, "The last name of the user to be updated in the enterprise account."
+    ] = None,
+    user_state: Annotated[
+        str | None,
+        "Specify the user's state as 'provisioned' or 'deactivated'. Only applicable for managed users.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'manage-user'."]:
+    """Manage users in enterprise accounts.
+
+    Use this tool to update details of users within an enterprise account. It is suitable for modifying user information associated with managed users."""  # noqa: E501
+    request_data = remove_none_values({
+        "email": update_user_email,
+        "firstName": user_first_name,
+        "lastName": user_last_name,
+        "state": user_state,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id, userId=user_id
+        ),
+        method="PATCH",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1366,31 +4882,157 @@ async def fetch_user_info(
 async def logout_enterprise_user(
     context: ToolContext,
     enterprise_account_id: Annotated[
-        str, "The unique identifier for the enterprise account. Required for logging out the user."
-    ],
-    user_id: Annotated[
         str,
-        "The unique identifier for the user to be logged out. This value is required to terminate their session.",  # noqa: E501
+        "The ID of the enterprise account to log the user out from. Required for enterprise-level logout.",  # noqa: E501
     ],
+    enterprise_user_id: Annotated[str, "The unique identifier of the enterprise user to log out."],
     logout_request_body: Annotated[
-        dict[str, str] | None, "JSON object containing the logout details for the user session."
+        dict[str, Any] | None,
+        "A JSON object containing necessary details to process the logout request.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'logout-user'."]:
-    """Log out an enterprise account user.
+    """Logs out an enterprise account user from the system.
 
-    This tool logs out a user from an enterprise account, specifically for ELA and FLA enterprise accounts or managed claiming users. It should be used when there's a need to terminate an active session for such users."""  # noqa: E501
+    This tool logs out a user from an enterprise account, available only for ELA and FLA internal enterprise account users and managed enterprise users."""  # noqa: E501
+    request_data = remove_none_values(logout_request_body or {})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}/logout".format(  # noqa: UP032
-            enterpriseAccountId=enterprise_account_id, userId=user_id
+            enterpriseAccountId=enterprise_account_id, userId=enterprise_user_id
         ),
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({"requestBody": logout_request_body}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.user:write"]))
+async def remove_user_from_enterprise(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The ID of the enterprise account from which the user will be removed. Required to specify the enterprise context for user unsharing.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    user_id: Annotated[
+        str | None,
+        "The unique identifier of the user to be removed from the enterprise. It is a required string value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'remove-user-from-enterprise'."]:
+    """Unshare a user from all enterprise assets and revoke admin access.
+
+    This tool removes a user's access from all enterprise workspaces, bases, interfaces, and user groups. It also revokes admin access if applicable. It returns lists detailing the unsharing and sharing actions that were executed.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["REMOVEUSERFROMENTERPRISE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+    if not user_id:
+        missing_params.append(("user_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["REMOVEUSERFROMENTERPRISE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["REMOVEUSERFROMENTERPRISE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}/remove".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id, userId=user_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["REMOVEUSERFROMENTERPRISE"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1401,28 +5043,29 @@ async def logout_enterprise_user(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["enterprise.groups:read"]))
 async def get_user_group_info(
     context: ToolContext,
-    group_id: Annotated[
-        str,
-        "The unique identifier for the user group you want to retrieve information about. This should be provided as a string.",  # noqa: E501
+    user_group_id: Annotated[
+        str, "Provide the identifier for the user group to retrieve its basic information."
     ],
-    include_additional_fields: Annotated[
+    include_additional_info: Annotated[
         list[str] | None,
-        "An array specifying which additional fields to include in the response. Each entry should be a string representing a field name.",  # noqa: E501
+        "An array of strings specifying additional data to be included in the response, such as 'members' or 'permissions'.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-user-group'."]:
     """Retrieve basic information about a specific user group.
 
-    This tool is used to obtain fundamental details regarding a specific user group by providing the group ID. It is useful when you need to access metadata related to user groups in Airtable."""  # noqa: E501
+    Use this tool to obtain key details for a specific user group by providing the group ID. It is useful when you need to display or process user group information."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="https://api.airtable.com/v0/meta/groups/{groupId}".format(groupId=group_id),  # noqa: UP032
+        url="https://api.airtable.com/v0/meta/groups/{groupId}".format(groupId=user_group_id),  # noqa: UP032
         method="GET",
-        params=remove_none_values({"include": include_additional_fields}),
+        params=remove_none_values({"include": include_additional_info}),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1431,12 +5074,14 @@ async def get_user_group_info(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable"))
-async def retrieve_user_details(
+async def retrieve_user_id_and_scopes(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-user-id-scopes'."]:
-    """Retrieve user's ID, scopes, and optionally email details.
+    """Retrieve user's ID, associated scopes, and email if available.
 
-    Use this tool to get the user's ID and the scopes associated with their OAuth tokens. If the token has the `user.email:read` scope, the user's email will also be provided."""  # noqa: E501
+    This tool retrieves the user's ID and the associated scopes with the OAuth token used. If the token has the `user.email:read` scope, the tool also returns the user's email."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/whoami",
         method="GET",
@@ -1446,7 +5091,7 @@ async def retrieve_user_details(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1455,16 +5100,113 @@ async def retrieve_user_details(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:manage"]))
-async def delete_airtable_workspace(
+async def create_airtable_workspace(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-workspace'."]:
+    """Create a new workspace in Airtable.
+
+    This tool creates a new workspace in Airtable within a specified enterprise account. It returns the ID of the newly created workspace. The user must be an active admin of the enterprise account to successfully create the workspace.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEAIRTABLEWORKSPACE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLEWORKSPACE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLEWORKSPACE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/workspaces",
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["CREATEAIRTABLEWORKSPACE"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:manage"]))
+async def delete_workspace(
     context: ToolContext,
     workspace_id: Annotated[
         str,
-        "The unique identifier for the Airtable workspace you wish to delete. Ensure this ID is correct to avoid unintended deletions.",  # noqa: E501
+        "The unique identifier of the workspace to delete. Ensure no important data is lost before proceeding.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-workspace'."]:
-    """Deletes a specified workspace in Airtable.
+    """Deletes a specified Airtable workspace.
 
-    Use this tool to delete a workspace in Airtable. Ensure you have checked for any actively used bases before deleting, as access will be lost unless transferred. Deleted workspaces can be restored within the billing plan retention period."""  # noqa: E501
+    Use this tool to delete a specific Airtable workspace. Ensure there are no important bases in the workspace before deletion or transfer them to another workspace. Deleted workspaces can be restored within the retention period from the Trash UI if the user is the workspace owner."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/workspaces/{workspaceId}".format(  # noqa: UP032
             workspaceId=workspace_id
@@ -1476,7 +5218,7 @@ async def delete_airtable_workspace(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1487,29 +5229,150 @@ async def delete_airtable_workspace(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:read"]))
 async def get_workspace_collaborators(
     context: ToolContext,
-    workspace_id: Annotated[
-        str, "Unique identifier for the Airtable workspace to fetch collaborators from."
+    workspace_identifier: Annotated[
+        str,
+        "The unique identifier of the workspace to retrieve collaborators and outstanding invites for. Provide the ID as a string.",  # noqa: E501
     ],
-    fields_to_include: Annotated[
+    include_additional_information: Annotated[
         list[str] | None,
-        "List of specific fields to include in the response, such as 'email' or 'role'.",
+        "List of additional fields to include in the response. Specify field names as strings, like 'email' or 'role'.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-workspace-collaborators'."]:
-    """Fetches basic information on workspace collaborators and invites.
+    """Retrieve information about workspace collaborators and invites.
 
-    This tool retrieves basic information about collaborators in an Airtable workspace, excluding deleted ones and including only outstanding invites."""  # noqa: E501
+    This tool retrieves basic information about collaborators in a specific workspace, excluding deleted collaborators and including only outstanding invites. Useful for managing or reviewing current workspace memberships and pending invitations."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/workspaces/{workspaceId}".format(  # noqa: UP032
-            workspaceId=workspace_id
+            workspaceId=workspace_identifier
         ),
         method="GET",
-        params=remove_none_values({"include": fields_to_include}),
+        params=remove_none_values({"include": include_additional_information}),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
+async def add_workspace_collaborator(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    workspace_id: Annotated[
+        str | None,
+        "The unique identifier of the Airtable workspace where the collaborator will be added.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'add-workspace-collaborator'."]:
+    """Add a collaborator to an Airtable workspace.
+
+    Use this tool to add a single collaborator to a specified Airtable workspace. This function is called when you need to invite someone to join your workspace as a collaborator.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["ADDWORKSPACECOLLABORATOR"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not workspace_id:
+        missing_params.append(("workspace_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["ADDWORKSPACECOLLABORATOR"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["ADDWORKSPACECOLLABORATOR"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/workspaces/{workspaceId}/collaborators".format(  # noqa: UP032
+            workspaceId=workspace_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["ADDWORKSPACECOLLABORATOR"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1520,20 +5383,21 @@ async def get_workspace_collaborators(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
 async def remove_workspace_collaborator(
     context: ToolContext,
-    workspace_id: Annotated[
-        str, "The unique identifier of the workspace from which the collaborator will be removed."
+    collaborator_identifier: Annotated[
+        str, "The ID of the user or group to be removed from the workspace."
     ],
-    user_or_group_id: Annotated[
-        str,
-        "The ID of the user or group to remove from the workspace. It must be a valid string identifier.",  # noqa: E501
+    workspace_id: Annotated[
+        str, "The unique identifier of the Airtable workspace from which to remove a collaborator."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-workspace-collaborator'."]:
-    """Remove a collaborator from a workspace.
+    """Remove a collaborator from an Airtable workspace.
 
-    Call this tool to delete a collaborator from an Airtable workspace, identified by workspace and user or group IDs."""  # noqa: E501
+    Use this tool to remove a collaborator, identified by user or group ID, from a specified Airtable workspace."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/workspaces/{workspaceId}/collaborators/{userOrGroupId}".format(  # noqa: UP032
-            workspaceId=workspace_id, userOrGroupId=user_or_group_id
+            workspaceId=workspace_id, userOrGroupId=collaborator_identifier
         ),
         method="DELETE",
         params=remove_none_values({}),
@@ -1542,7 +5406,135 @@ async def remove_workspace_collaborator(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
+async def update_workspace_collaborator_permission(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    workspace_id: Annotated[
+        str | None,
+        "The unique identifier of the workspace where the collaborator's permissions will be updated. This is required to specify which workspace is being modified.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    collaborator_id: Annotated[
+        str | None,
+        "The identifier for the user or group whose permissions are being updated in the workspace.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-workspace-collaborator'."]:
+    """Modify a collaborator's permission level in a workspace.
+
+    Use this tool to update the permission level of a collaborator within a specified workspace, adjusting their access rights as needed.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEWORKSPACECOLLABORATORPERMISSION"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not workspace_id:
+        missing_params.append(("workspace_id", "path"))
+    if not collaborator_id:
+        missing_params.append(("collaborator_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["UPDATEWORKSPACECOLLABORATORPERMISSION"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["UPDATEWORKSPACECOLLABORATORPERMISSION"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/workspaces/{workspaceId}/collaborators/{userOrGroupId}".format(  # noqa: UP032
+            workspaceId=workspace_id, userOrGroupId=collaborator_id
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATEWORKSPACECOLLABORATORPERMISSION"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1553,15 +5545,17 @@ async def remove_workspace_collaborator(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
 async def delete_workspace_invite(
     context: ToolContext,
+    invite_id: Annotated[str, "The unique identifier of the workspace invite to delete."],
     workspace_id: Annotated[
         str,
-        "The ID of the workspace from which the invite will be deleted. It must be a valid string.",
+        "The ID of the workspace from which the invite will be deleted. This is required to specify which workspace's invite is being revoked.",  # noqa: E501
     ],
-    invite_id: Annotated[str, "The ID of the invite to be deleted from the workspace."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-workspace-invite'."]:
-    """Deletes a specified workspace invite in Airtable.
+    """Delete a workspace invite.
 
-    Use this tool to delete an existing workspace invite in Airtable when you have the workspace and invite IDs."""  # noqa: E501
+    Use this tool to delete an invitation to a workspace by specifying the workspace and invite IDs. This is useful for revoking access that has been granted but not yet accepted."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/meta/workspaces/{workspaceId}/invites/{inviteId}".format(  # noqa: UP032
             workspaceId=workspace_id, inviteId=invite_id
@@ -1573,7 +5567,304 @@ async def delete_workspace_invite(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:manage"]))
+async def move_airtable_base(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    target_workspace_id: Annotated[
+        str | None,
+        "The ID of the target workspace where the base will be moved. It should be a valid string ID of an existing workspace within the same Airtable enterprise.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'move-base'."]:
+    """Move a base between Airtable workspaces.
+
+    Use this tool to move a base from one workspace to another within the same Airtable enterprise account.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["MOVEAIRTABLEBASE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not target_workspace_id:
+        missing_params.append(("target_workspace_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["MOVEAIRTABLEBASE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["MOVEAIRTABLEBASE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/meta/workspaces/{workspaceId}/moveBase".format(  # noqa: UP032
+            workspaceId=target_workspace_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["MOVEAIRTABLEBASE"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["workspacesAndBases:write"]))
+async def update_workspace_restrictions(
+    context: ToolContext,
+    workspace_id: Annotated[
+        str, "The unique identifier for the Airtable workspace to update restrictions."
+    ],
+    invite_creation_restriction: Annotated[
+        str | None,
+        "Defines who can create invites in the workspace. Choose between 'unrestricted' or 'onlyOwners'.",  # noqa: E501
+    ] = None,
+    share_creation_restriction: Annotated[
+        str | None,
+        "Specify the sharing creation restriction. Choose between 'unrestricted' or 'onlyOwners'.",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-workspace-restrictions'."]:
+    """Updates sharing restrictions for an Airtable workspace.
+
+    Use this tool to modify the sharing restrictions settings of a specific Airtable workspace by providing the workspace ID."""  # noqa: E501
+    request_data = remove_none_values({
+        "inviteCreationRestriction": invite_creation_restriction,
+        "shareCreationRestriction": share_creation_restriction,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        url="https://api.airtable.com/v0/meta/workspaces/{workspaceId}/updateRestrictions".format(  # noqa: UP032
+            workspaceId=workspace_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable"))
+async def upload_attachment_to_airtable(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    airtable_base_id: Annotated[
+        str | None,
+        "The unique identifier of the Airtable base where the attachment will be uploaded.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    airtable_record_id: Annotated[
+        str | None,
+        "The unique string identifier for the Airtable record to which the attachment will be uploaded.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    attachment_field_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the field where the attachment will be uploaded. This specifies the target field in the Airtable record.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'upload-attachment'."]:
+    """Upload attachments to an Airtable record's cell.
+
+    Use this tool to upload an attachment directly into a specified record and cell in Airtable, with a file size limit of 5 MB. For larger files, consider using a public URL method.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPLOADATTACHMENTTOAIRTABLE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not airtable_base_id:
+        missing_params.append(("airtable_base_id", "path"))
+    if not airtable_record_id:
+        missing_params.append(("airtable_record_id", "path"))
+    if not attachment_field_id_or_name:
+        missing_params.append(("attachment_field_id_or_name", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["UPLOADATTACHMENTTOAIRTABLE"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["UPLOADATTACHMENTTOAIRTABLE"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{baseId}/{recordId}/{attachmentFieldIdOrName}/uploadAttachment".format(  # noqa: UP032
+            baseId=airtable_base_id,
+            recordId=airtable_record_id,
+            attachmentFieldIdOrName=attachment_field_id_or_name,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPLOADATTACHMENTTOAIRTABLE"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1582,25 +5873,28 @@ async def delete_workspace_invite(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.records:write"]))
-async def delete_multiple_records_airtable(
+async def delete_multiple_records(
     context: ToolContext,
-    base_identifier: Annotated[
-        str,
-        "The unique identifier of the Airtable base where records will be deleted. This must be provided to specify the target database.",  # noqa: E501
+    base_id: Annotated[
+        str, "The unique identifier of the Airtable base containing the records to be deleted."
     ],
-    table_id_or_name: Annotated[
-        str, "The unique ID or name of the Airtable table from which records should be deleted."
+    table_identifier: Annotated[
+        str,
+        "The unique identifier or name of the Airtable table from which records are to be deleted.",
     ],
     record_ids_to_delete: Annotated[
-        list[str] | None, "An array of record IDs to be deleted from the specified Airtable table."
+        list[str] | None,
+        "An array of record IDs to delete from the table. Each ID should be a string.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-multiple-records'."]:
-    """Deletes multiple records from an Airtable table.
+    """Delete multiple records from an Airtable table.
 
-    Use this tool to delete multiple records from an Airtable table by providing an array of record IDs. Useful for batch deletion of data entries in specified Airtable bases and tables."""  # noqa: E501
+    Use this tool to delete multiple records in an Airtable table by providing an array of record IDs. It's useful for batch operations where several entries need to be removed simultaneously."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}".format(  # noqa: UP032
-            baseId=base_identifier, tableIdOrName=table_id_or_name
+            baseId=base_id, tableIdOrName=table_identifier
         ),
         method="DELETE",
         params=remove_none_values({"records": record_ids_to_delete}),
@@ -1609,7 +5903,472 @@ async def delete_multiple_records_airtable(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.records:read"]))
+async def list_airtable_records(
+    context: ToolContext,
+    base_id: Annotated[
+        str, "The unique identifier for the Airtable base where the table is located."
+    ],
+    table_id_or_name: Annotated[
+        str,
+        "The ID or name of the Airtable table to retrieve records from. Using table IDs is recommended for consistency.",  # noqa: E501
+    ],
+    cell_format_method: Annotated[
+        str | None,
+        "Defines how cell values are returned. Specify 'json' for unformatted or 'string' for formatted values.",  # noqa: E501
+    ] = None,
+    filter_by_formula: Annotated[
+        str | None,
+        "A formula string to filter records. Use Airtable's formula syntax where functions and operators will be applied to fields.",  # noqa: E501
+    ] = None,
+    maximum_records: Annotated[
+        float | None, "Specify the maximum number of records to retrieve from the Airtable table."
+    ] = None,
+    output_time_zone: Annotated[
+        str | None,
+        "Specifies the time zone for datetimes returned in records. Use IANA time zone format (e.g., 'America/Los_Angeles').",  # noqa: E501
+    ] = None,
+    page_size: Annotated[
+        float | None, "Number of records per page to fetch. Default is 100."
+    ] = None,
+    pagination_offset: Annotated[
+        str | None,
+        "A string used for pagination to fetch the next set of records. Use the offset provided in the previous response to continue retrieving records.",  # noqa: E501
+    ] = None,
+    record_metadata_fields: Annotated[
+        list[str] | None,
+        "An array of strings specifying which metadata fields to include for each record.",
+    ] = None,
+    return_fields_by_field_id: Annotated[
+        bool | None, "Return fields by their field ID instead of field name when set to true."
+    ] = None,
+    sort_order: Annotated[
+        str | None,
+        "Specifies the order of records. Use a JSON string with fields and directions (asc or desc).",  # noqa: E501
+    ] = None,
+    specific_fields: Annotated[
+        str | None,
+        "Comma-separated list of field names to be included in the response. If omitted, all fields are returned.",  # noqa: E501
+    ] = None,
+    specified_view: Annotated[
+        str | None,
+        "Specifies the view in the table to be used for record retrieval. Provide the name or ID of the view.",  # noqa: E501
+    ] = None,
+    user_locale: Annotated[
+        str | None,
+        "Specify the user locale to determine the language and regional settings for the records.",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-records'."]:
+    """Retrieve records from a specified Airtable table.
+
+    This tool retrieves records from a specified table in Airtable, supporting pagination and filtering options. Use table IDs to avoid modifying requests when table names change. Supports offset for pagination and maxRecords to limit the results."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}".format(  # noqa: UP032
+            baseId=base_id, tableIdOrName=table_id_or_name
+        ),
+        method="GET",
+        params=remove_none_values({
+            "timeZone": output_time_zone,
+            "userLocale": user_locale,
+            "pageSize": page_size,
+            "maxRecords": maximum_records,
+            "offset": pagination_offset,
+            "view": specified_view,
+            "sort": sort_order,
+            "filterByFormula": filter_by_formula,
+            "cellFormat": cell_format_method,
+            "fields": specific_fields,
+            "returnFieldsByFieldId": return_fields_by_field_id,
+            "recordMetadata": record_metadata_fields,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.records:write"]))
+async def update_airtable_records(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    airtable_base_id: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base where the records will be updated or upserted.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    airtable_table_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the Airtable table where records will be updated or upserted. Using the table ID is recommended for less disruption if the table name changes.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-multiple-records'."]:
+    """Update or upsert multiple records in an Airtable table.
+
+    Use this tool to update up to 10 records in an Airtable table, or to upsert them by setting the `performUpsert` option. The tool is ideal when you want to make changes to specific fields without affecting others. By default, only included fields are updated. Use `PUT` instead of `PATCH` for destructive updates, which clear unincluded fields. Upserts enable the creation of new records if no match is found or update them if a match is found. Typecasting can be enabled to convert strings to appropriate cell values.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEAIRTABLERECORDS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not airtable_base_id:
+        missing_params.append(("airtable_base_id", "path"))
+    if not airtable_table_id_or_name:
+        missing_params.append(("airtable_table_id_or_name", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEAIRTABLERECORDS"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEAIRTABLERECORDS"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}".format(  # noqa: UP032
+            baseId=airtable_base_id, tableIdOrName=airtable_table_id_or_name
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATEAIRTABLERECORDS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.records:write"]))
+async def create_airtable_records(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_id: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base where records will be created.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    table_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the Airtable table where records will be created. Using the table ID is recommended for consistency.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-records'."]:
+    """Create multiple records in an Airtable base.
+
+    Use this tool to create up to 10 records in a specified Airtable base and table. Utilize table IDs for stability, and include record objects with cell values. Returns a unique array of newly created record IDs if successful.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEAIRTABLERECORDS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_id:
+        missing_params.append(("base_id", "path"))
+    if not table_id_or_name:
+        missing_params.append(("table_id_or_name", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLERECORDS"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAIRTABLERECORDS"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}".format(  # noqa: UP032
+            baseId=base_id, tableIdOrName=table_id_or_name
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["CREATEAIRTABLERECORDS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.records:write"]))
+async def bulk_update_airtable(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_id: Annotated[
+        str | None,
+        "The unique ID of the Airtable base containing the records to update. This is required to specify the target base.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    table_identifier: Annotated[
+        str | None,
+        "The table ID or name in Airtable where the records will be updated. Use the table ID to avoid changes if the name changes.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-multiple-records-put'."]:
+    """Update or upsert multiple records in an Airtable table.
+
+    Use this tool to perform a destructive update on multiple records in an Airtable table. Provide up to 10 record objects, each with an ID and fields to update. Optionally, perform upserts by including fields to merge on, allowing records to be created if no matching records are found. The response will specify which records were updated or created.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["BULKUPDATEAIRTABLE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_id:
+        missing_params.append(("base_id", "path"))
+    if not table_identifier:
+        missing_params.append(("table_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["BULKUPDATEAIRTABLE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["BULKUPDATEAIRTABLE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}".format(  # noqa: UP032
+            baseId=base_id, tableIdOrName=table_identifier
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["BULKUPDATEAIRTABLE"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1621,21 +6380,26 @@ async def delete_multiple_records_airtable(
 async def delete_airtable_record(
     context: ToolContext,
     airtable_base_id: Annotated[
-        str, "The unique identifier for the Airtable base from which the record will be deleted."
+        str,
+        "The unique identifier for the Airtable base from which the record will be deleted. This ID is required to specify the correct base.",  # noqa: E501
     ],
-    table_id_or_name: Annotated[
-        str, "The ID or name of the table from which to delete the record."
+    record_id: Annotated[
+        str,
+        "The unique identifier of the record to be deleted from the specified table in Airtable.",
     ],
-    record_id_to_delete: Annotated[
-        str, "The ID of the record to be deleted from the specified table in Airtable."
+    table_identifier: Annotated[
+        str,
+        "The ID or name of the Airtable table from which the record should be deleted. This specifies which table within the base to target.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-record'."]:
-    """Delete a specific record from an Airtable base and table.
+    """Deletes a single record from an Airtable base and table.
 
-    This tool deletes a single record from a specified Airtable base and table. Use it when you need to remove entry data permanently."""  # noqa: E501
+    Use this tool to delete a specific record from a specified table within an Airtable base by providing the base ID, table ID or name, and record ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}".format(  # noqa: UP032
-            baseId=airtable_base_id, tableIdOrName=table_id_or_name, recordId=record_id_to_delete
+            baseId=airtable_base_id, tableIdOrName=table_identifier, recordId=record_id
         ),
         method="DELETE",
         params=remove_none_values({}),
@@ -1644,7 +6408,7 @@ async def delete_airtable_record(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1653,33 +6417,35 @@ async def delete_airtable_record(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.records:read"]))
-async def retrieve_airtable_record(
+async def airtable_get_record(
     context: ToolContext,
     airtable_base_id: Annotated[
-        str, "The unique identifier of the Airtable base from which to retrieve the record."
-    ],
-    table_identifier_or_name: Annotated[
         str,
-        "The ID or name of the table from which to retrieve the record. This identifies the specific table within the base.",  # noqa: E501
+        "The unique identifier for the Airtable base containing the table from which to retrieve the record. This ID is required to locate the correct base and perform the record search.",  # noqa: E501
     ],
     record_id: Annotated[
         str,
-        "The unique identifier for the record to be retrieved from Airtable. This should be the record ID within the specified base and table.",  # noqa: E501
+        "The unique identifier for the record you wish to retrieve from the Airtable table. This ID should be valid and correspond to a record within the specified base.",  # noqa: E501
+    ],
+    table_identifier: Annotated[
+        str, "Specify the table's ID or name from which to retrieve the record."
     ],
     cell_format: Annotated[
         str | None,
-        "Specify the cell format for the returned data. Options include 'json' or 'string'.",
+        "Specify how cell values should be formatted. Options may include 'json' or 'string'.",
     ] = None,
     return_fields_by_field_id: Annotated[
-        bool | None, "Set to true to return fields using field IDs instead of names."
+        bool | None, "If true, fields are returned by Field ID instead of names."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-record'."]:
-    """Retrieve a single record from Airtable by record ID.
+    """Retrieve a single record from an Airtable table.
 
-    This tool retrieves a single record from a specified Airtable base and table using the record ID. Empty fields in the record are not returned. If the record isn't found in the specified table, a base-wide search is conducted."""  # noqa: E501
+    This tool is used to fetch a specific record from an Airtable table using its Record ID. It will return the record if it can be located within the table or elsewhere in the same base."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}".format(  # noqa: UP032
-            baseId=airtable_base_id, tableIdOrName=table_identifier_or_name, recordId=record_id
+            baseId=airtable_base_id, tableIdOrName=table_identifier, recordId=record_id
         ),
         method="GET",
         params=remove_none_values({
@@ -1691,7 +6457,267 @@ async def retrieve_airtable_record(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.records:write"]))
+async def update_airtable_record(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_id: Annotated[
+        str | None,
+        "The unique identifier of the Airtable base where the record exists. This ID is required to specify which base to update.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    table_id_or_name: Annotated[
+        str | None,
+        "The identifier or name of the Airtable table where the record resides. Using table IDs is recommended for stability.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    airtable_record_id: Annotated[
+        str | None,
+        "The unique identifier for the Airtable record you want to update. It is required to specify which record to modify.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-record'."]:
+    """Update a single Airtable record with specified fields.
+
+    This tool updates a single record in Airtable using either table names or IDs. Use it when you need to modify specific fields of a record without altering the rest. Supports automatic data conversion with the typecast parameter.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEAIRTABLERECORD"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_id:
+        missing_params.append(("base_id", "path"))
+    if not table_id_or_name:
+        missing_params.append(("table_id_or_name", "path"))
+    if not airtable_record_id:
+        missing_params.append(("airtable_record_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEAIRTABLERECORD"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEAIRTABLERECORD"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}".format(  # noqa: UP032
+            baseId=base_id, tableIdOrName=table_id_or_name, recordId=airtable_record_id
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATEAIRTABLERECORD"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.records:write"]))
+async def modify_airtable_entry(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_id: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base. This specifies which base the record belongs to.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    table_identifier: Annotated[
+        str | None,
+        "The unique identifier or name of the Airtable table where the record resides. Prefer using table IDs to avoid changes when table names are updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    record_identifier: Annotated[
+        str | None,
+        "Unique identifier for the Airtable record to update.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-record-put'."]:
+    """Update a specific record in an Airtable table.
+
+    This tool updates a single record in an Airtable table. Only specified fields are updated, leaving others unchanged. Use table IDs to avoid modifying requests when table names change. Automatic data conversion can be enabled with the typecast parameter for better integration with third-party data sources.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["MODIFYAIRTABLEENTRY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_id:
+        missing_params.append(("base_id", "path"))
+    if not table_identifier:
+        missing_params.append(("table_identifier", "path"))
+    if not record_identifier:
+        missing_params.append(("record_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["MODIFYAIRTABLEENTRY"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["MODIFYAIRTABLEENTRY"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}".format(  # noqa: UP032
+            baseId=base_id, tableIdOrName=table_identifier, recordId=record_identifier
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["MODIFYAIRTABLEENTRY"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1700,42 +6726,171 @@ async def retrieve_airtable_record(
 
 
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.recordComments:read"]))
-async def list_record_comments(
+async def get_record_comments(
     context: ToolContext,
-    base_id: Annotated[
-        str,
-        "The unique identifier for the Airtable base containing the table and record of interest.",
-    ],
-    table_id_or_name: Annotated[
-        str, "The ID or name of the table containing the record whose comments you want to list."
-    ],
+    base_id: Annotated[str, "The unique identifier for the Airtable base containing the record."],
     record_id: Annotated[
-        str, "The unique identifier of the record for which comments need to be fetched."
+        str, "Unique identifier for the record in Airtable whose comments are to be retrieved."
     ],
-    comments_per_page: Annotated[
-        float | None,
-        "The maximum number of comments to retrieve per page. Determines page size for pagination.",
-    ] = None,
-    comments_page_offset: Annotated[
+    table_identifier: Annotated[
+        str,
+        "The unique ID or name of the table containing the record. Specify either the ID or name to locate the table.",  # noqa: E501
+    ],
+    pagination_offset: Annotated[
         str | None,
-        "Used to specify the starting point in a list of comments for pagination purposes.",
+        "A string used for pagination to fetch the next set of comments. Generally returned from a previous API call.",  # noqa: E501
+    ] = None,
+    results_page_size: Annotated[
+        float | None, "Number of comments to return per page. Useful for pagination."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-comments'."]:
-    """Retrieve comments for a specific record in a table.
+    """Retrieve comments for a specific record in Airtable.
 
-    Use this tool to obtain a list of comments related to a specific record, sorted from newest to oldest. Note that comments replying to another comment may not have the parent comment in the same set of results."""  # noqa: E501
+    Use this tool to get a list of comments for a record in Airtable, ordered from newest to oldest. This can be useful for tracking discussions or updates related to a specific record."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}/comments".format(  # noqa: UP032
-            baseId=base_id, tableIdOrName=table_id_or_name, recordId=record_id
+            baseId=base_id, tableIdOrName=table_identifier, recordId=record_id
         ),
         method="GET",
-        params=remove_none_values({"pageSize": comments_per_page, "offset": comments_page_offset}),
+        params=remove_none_values({"pageSize": results_page_size, "offset": pagination_offset}),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.recordComments:write"]))
+async def add_record_comment(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_identifier: Annotated[
+        str | None,
+        "The unique identifier of the Airtable base where the record is located. This is required to specify which base contains the record you want to comment on.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    table_identifier: Annotated[
+        str | None,
+        "The ID or name of the table where the record is located.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    record_identifier: Annotated[
+        str | None,
+        "The unique identifier of the record where the comment will be added. This value specifies which record in Airtable will receive the comment.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-comment'."]:
+    """Creates a comment on a specified record.
+
+    Use this tool to add a comment on a specific record in Airtable. Supports mentioning users within the comment.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["ADDRECORDCOMMENT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_identifier:
+        missing_params.append(("base_identifier", "path"))
+    if not table_identifier:
+        missing_params.append(("table_identifier", "path"))
+    if not record_identifier:
+        missing_params.append(("record_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["ADDRECORDCOMMENT"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["ADDRECORDCOMMENT"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}/comments".format(  # noqa: UP032
+            baseId=base_identifier, tableIdOrName=table_identifier, recordId=record_identifier
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["ADDRECORDCOMMENT"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}
@@ -1746,26 +6901,29 @@ async def list_record_comments(
 @tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.recordComments:write"]))
 async def delete_comment_from_record(
     context: ToolContext,
-    base_identifier: Annotated[
-        str, "The unique identifier for the Airtable base from which the comment will be deleted."
-    ],
-    table_id_or_name: Annotated[
+    airtable_base_id: Annotated[
         str,
-        "The unique ID or name of the table where the record containing the comment exists. Ensure it matches the table's exact name or ID in Airtable.",  # noqa: E501
+        "The ID of the Airtable base. This is required to identify which base the comment belongs to.",  # noqa: E501
+    ],
+    comment_id_to_delete: Annotated[
+        str, "The unique identifier of the comment to be deleted. Required for deletion."
     ],
     record_id: Annotated[
         str, "The unique identifier for the record from which the comment will be deleted."
     ],
-    comment_id_to_delete: Annotated[
-        str, "The unique identifier of the comment to be deleted from the record in Airtable."
+    table_id_or_name: Annotated[
+        str,
+        "The ID or name of the table containing the record from which the comment will be deleted.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-comment'."]:
     """Delete a comment from a record in Airtable.
 
-    Use this tool to delete a specific comment from a record in Airtable. Non-admin users can only delete comments they have created, while Enterprise Admins can delete any comment."""  # noqa: E501
+    Use this tool to delete a specific comment from a record in Airtable. Non-admin users can only delete their own comments, while Enterprise Admins can delete any comment. Call this when you need to manage comments on records."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}/comments/{rowCommentId}".format(  # noqa: UP032
-            baseId=base_identifier,
+            baseId=airtable_base_id,
             tableIdOrName=table_id_or_name,
             recordId=record_id,
             rowCommentId=comment_id_to_delete,
@@ -1777,7 +6935,460 @@ async def delete_comment_from_record(
                 authorization=context.get_auth_token_or_empty()
             )
         }),
-        data=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["data.recordComments:write"]))
+async def update_record_comment(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    base_identifier: Annotated[
+        str | None,
+        "The unique identifier for the Airtable base containing the record.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    table_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the Airtable table where the record with the comment is located.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    record_id: Annotated[
+        str | None,
+        "The unique identifier of the record whose comment you want to update.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    comment_id: Annotated[
+        str | None,
+        "The unique identifier of the comment to update. Ensure it belongs to the authorized user.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-comment'."]:
+    """Update a comment on a specific record.
+
+    Use this tool to update a comment you've created on a specific record in Airtable. Ensure the comment belongs to you before attempting to update.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATERECORDCOMMENT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not base_identifier:
+        missing_params.append(("base_identifier", "path"))
+    if not table_id_or_name:
+        missing_params.append(("table_id_or_name", "path"))
+    if not record_id:
+        missing_params.append(("record_id", "path"))
+    if not comment_id:
+        missing_params.append(("comment_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATERECORDCOMMENT"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATERECORDCOMMENT"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}/comments/{rowCommentId}".format(  # noqa: UP032
+            baseId=base_identifier,
+            tableIdOrName=table_id_or_name,
+            recordId=record_id,
+            rowCommentId=comment_id,
+        ),
+        method="PATCH",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPDATERECORDCOMMENT"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["hyperDB.records:write"]))
+async def delete_records_by_primary_keys(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The unique identifier for the enterprise account. Required to access the correct HyperDB table.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    data_table_id: Annotated[
+        str | None,
+        "The unique identifier for the target HyperDB table from which records will be deleted.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[
+    dict[str, Any], "Response from the API endpoint 'hyperdb-delete-records-by-primary-keys'."
+]:
+    """Delete records from a HyperDB table using primary keys.
+
+    Use this tool to delete records from a HyperDB table by providing the primary keys. It should be called when you need to remove entries from the table based on specific key matches.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["DELETERECORDSBYPRIMARYKEYS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+    if not data_table_id:
+        missing_params.append(("data_table_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["DELETERECORDSBYPRIMARYKEYS"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n"
+                + REQUEST_BODY_SCHEMAS["DELETERECORDSBYPRIMARYKEYS"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{enterpriseAccountId}/{dataTableId}/deleteRecords".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id, dataTableId=data_table_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["DELETERECORDSBYPRIMARYKEYS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["hyperDB.records:read"]))
+async def read_hyperdb_table_records(
+    context: ToolContext,
+    data_table_id: Annotated[
+        str,
+        "The identifier of the HyperDB table from which records are to be retrieved. It is required to specify the correct table ID to access the corresponding data.",  # noqa: E501
+    ],
+    enterprise_account_id: Annotated[
+        str,
+        "The unique identifier for the enterprise account. Required to access records from the specified HyperDB table.",  # noqa: E501
+    ],
+    fields_to_retrieve: Annotated[
+        list[str] | None,
+        "List of field names to retrieve from the HyperDB table records. Specify as an array of strings.",  # noqa: E501
+    ] = None,
+    maximum_records_to_retrieve: Annotated[
+        float | None,
+        "The maximum number of records to retrieve from the HyperDB table. Specify an integer value to limit the number of records returned.",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None,
+        "A string representing the position within the dataset to start retrieving records from. Use for paginated data retrieval.",  # noqa: E501
+    ] = None,
+    primary_keys_to_retrieve: Annotated[
+        list[str] | None,
+        "An array of primary key strings to specify which records to retrieve from the HyperDB table.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'hyperdb-table-read-records'."]:
+    """Retrieve records from a specified HyperDB table.
+
+    Use this tool to fetch records from a HyperDB table by specifying the enterprise account ID and data table ID. Ideal for accessing or reviewing data stored in HyperDB tables."""  # noqa: E501
+    request_data = remove_none_values({
+        "cursor": pagination_cursor,
+        "fields": fields_to_retrieve,
+        "maxRecords": maximum_records_to_retrieve,
+        "primaryKeys": primary_keys_to_retrieve,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        url="https://api.airtable.com/v0/{enterpriseAccountId}/{dataTableId}/getRecords".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id, dataTableId=data_table_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-airtable", scopes=["hyperDB.records:write"]))
+async def upsert_airtable_records(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    enterprise_account_id: Annotated[
+        str | None,
+        "The identifier for the Airtable enterprise account. Required for accessing the HyperDB table.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    data_table_id: Annotated[
+        str | None,
+        "The identifier for the HyperDB data table in Airtable. Required for targeting the specific table for upsert operations.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[
+    dict[str, Any], "Response from the API endpoint 'hyperdb-upsert-records-by-primary-keys'."
+]:
+    """Update or insert records in an Airtable HyperDB table.
+
+    Use this tool to update or insert records in an Airtable HyperDB table by matching primary keys. Ideal for syncing data or ensuring records are up-to-date without manual oversight.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPSERTAIRTABLERECORDS"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not enterprise_account_id:
+        missing_params.append(("enterprise_account_id", "path"))
+    if not data_table_id:
+        missing_params.append(("data_table_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPSERTAIRTABLERECORDS"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPSERTAIRTABLERECORDS"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        url="https://api.airtable.com/v0/{enterpriseAccountId}/{dataTableId}/upsertRecords".format(  # noqa: UP032
+            enterpriseAccountId=enterprise_account_id, dataTableId=data_table_id
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=REQUEST_BODY_SCHEMAS["UPSERTAIRTABLERECORDS"],
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            ),
+        }),
     )
     try:
         return {"response_json": response.json()}

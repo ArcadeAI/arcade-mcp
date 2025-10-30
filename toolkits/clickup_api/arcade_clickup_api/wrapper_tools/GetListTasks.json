@@ -1,0 +1,864 @@
+{
+  "name": "GetListTasks",
+  "fully_qualified_name": "ClickupApi.GetListTasks@0.1.0",
+  "description": "Retrieve tasks from a specific list in ClickUp.\n\nThis tool retrieves tasks from a specified list in ClickUp, limited to 100 tasks per page. It includes tasks where the specified list is their home, while also allowing inclusion of tasks from multiple lists by using the `include_timl` parameter. It provides details accessible to the user, including time spent on tasks with time entries.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_identifier",
+        "required": true,
+        "description": "The unique identifier for the list. Find it by copying the link and extracting the number following /li in the URL.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To find the list_id: \\ 1. In the Sidebar, hover over the List and click the **ellipsis ...** menu. \\ 2. Select **Copy link.** \\ 3. Use the copied URL to find the list_id. The list_id is the number that follows /li in the URL."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_id"
+      },
+      {
+        "name": "page_number_to_fetch",
+        "required": false,
+        "description": "Specify the page number to fetch tasks from, starting at 0.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page to fetch (starts at 0)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "order_by_field",
+        "required": false,
+        "description": "Specify the field to order tasks by. Options: 'id', 'created', 'updated', 'due_date'. Defaults to 'created'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order by a particular field. By default, tasks are ordered by `created`.\\\n \\\nOptions include: `id`, `created`, `updated`, and `due_date`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_by"
+      },
+      {
+        "name": "filter_by_statuses",
+        "required": false,
+        "description": "Filter tasks by their statuses. Use an array of status strings, such as ['to do', 'in progress'].",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by statuses. To include closed tasks, use the `include_closed` parameter. \\\n \\\nFor example: \\\n \\\n`?statuses[]=to%20do&statuses[]=in%20progress`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "statuses"
+      },
+      {
+        "name": "filter_by_assignees",
+        "required": false,
+        "description": "Filter tasks by assignee IDs. Provide an array of assignee IDs to filter tasks assigned to specific users.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by Assignees. For example: \\\n \\\n`?assignees[]=1234&assignees[]=5678`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignees"
+      },
+      {
+        "name": "filter_by_watchers",
+        "required": false,
+        "description": "An array of watcher IDs to filter tasks by watchers. Each ID should be a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by watchers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "watchers"
+      },
+      {
+        "name": "filter_by_tags",
+        "required": false,
+        "description": "Filter tasks by a list of tags. Provide an array of strings representing the tags to filter by.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by tags. For example: \\\n \\\n`?tags[]=tag1&tags[]=this%20tag`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tags"
+      },
+      {
+        "name": "filter_due_date_greater_than",
+        "required": false,
+        "description": "Filter tasks by a due date greater than the provided Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by due date greater than Unix time in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date_gt"
+      },
+      {
+        "name": "filter_due_date_before",
+        "required": false,
+        "description": "Filter tasks with due dates earlier than the specified Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by due date less than Unix time in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date_lt"
+      },
+      {
+        "name": "filter_date_created_after",
+        "required": false,
+        "description": "Filter tasks created after this Unix timestamp in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date created greater than Unix time in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_created_gt"
+      },
+      {
+        "name": "date_created_less_than",
+        "required": false,
+        "description": "Filter tasks created before the specified Unix timestamp in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date created less than Unix time in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_created_lt"
+      },
+      {
+        "name": "filter_date_updated_after",
+        "required": false,
+        "description": "Filter tasks updated after the specified Unix timestamp in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date updated greater than Unix time in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_updated_gt"
+      },
+      {
+        "name": "filter_date_updated_less_than",
+        "required": false,
+        "description": "Filter tasks updated before a specific date, using Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date updated less than Unix time in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_updated_lt"
+      },
+      {
+        "name": "filter_date_done_after",
+        "required": false,
+        "description": "Filter tasks completed after a specified date in Unix time (milliseconds).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date done greater than Unix time in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_done_gt"
+      },
+      {
+        "name": "filter_by_date_done_before",
+        "required": false,
+        "description": "Filter tasks completed before a specified Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date done less than Unix time in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_done_lt"
+      },
+      {
+        "name": "filter_by_custom_fields",
+        "required": false,
+        "description": "Include tasks with specific values in one or more Custom Fields. Use a JSON array of objects, where each object includes 'field_id', 'operator', and 'value'.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include tasks with specific values in one or more Custom Fields. Custom Relationships are included.\\\n \\\nFor example: `?custom_fields=[{\"field_id\":\"abcdefghi12345678\",\"operator\":\"=\",\"value\":\"1234\"},{\"field_id\":\"jklmnop123456\",\"operator\":\"<\",\"value\":\"5\"}]`\\\n \\\nOnly set Custom Field values display in the `value` property of the `custom_fields` parameter. If you want to include tasks with specific values in only one Custom Field, use `custom_field` instead.\\\n \\\nLearn more about [filtering using Custom Fields.](doc:taskfilters)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_fields"
+      },
+      {
+        "name": "filter_by_custom_field",
+        "required": false,
+        "description": "Include tasks with specific values in one Custom Field. This can be a Custom Relationship. Provide an array of strings representing the field values.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include tasks with specific values in only one Custom Field. This Custom Field can be a Custom Relationship."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_field"
+      },
+      {
+        "name": "custom_task_type_filters",
+        "required": false,
+        "description": "An array of numbers to filter tasks by custom types. Use 0 for tasks, 1 for Milestones, and other numbers for custom types defined in your Workspace.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "number",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by custom task types. For example: \\\n \\\n`?custom_items[]=0&custom_items[]=1300` \\\n \\\nIncluding `0` returns tasks. Including `1` returns Milestones. Including any other number returns the custom task type as defined in your Workspace."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_items"
+      },
+      {
+        "name": "include_archived_tasks",
+        "required": false,
+        "description": "Set to true to include archived tasks in the results. By default, archived tasks are excluded.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      },
+      {
+        "name": "include_markdown_task_descriptions",
+        "required": false,
+        "description": "Set to true to return task descriptions in Markdown format.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To return task descriptions in Markdown format, use `?include_markdown_description=true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_markdown_description"
+      },
+      {
+        "name": "display_tasks_in_reverse_order",
+        "required": false,
+        "description": "Set to true to display tasks in reverse order.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Tasks are displayed in reverse order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reverse"
+      },
+      {
+        "name": "include_subtasks",
+        "required": false,
+        "description": "Set to true to include subtasks; false to exclude them. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include or exclude subtasks. By default, subtasks are excluded."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subtasks"
+      },
+      {
+        "name": "include_closed_tasks",
+        "required": false,
+        "description": "Set to true to include closed tasks in the response. Defaults to false to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include or excluse closed tasks. By default, they are excluded.\\\n \\\nTo include closed tasks, use `include_closed: true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_closed"
+      },
+      {
+        "name": "include_tasks_in_multiple_lists",
+        "required": false,
+        "description": "Set to true to include tasks that exist in multiple lists. By default, these tasks are excluded.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include Tasks in Multiple Lists. By default, tasks that exist in multiple lists are excluded from the response.\\\n \\\nTo include tasks that exist in multiple lists, use `include_timl: true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_timl"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetTasks'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/list/{list_id}/task",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "archived",
+        "tool_parameter_name": "include_archived_tasks",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_markdown_description",
+        "tool_parameter_name": "include_markdown_task_descriptions",
+        "description": "To return task descriptions in Markdown format, use `?include_markdown_description=true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To return task descriptions in Markdown format, use `?include_markdown_description=true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number_to_fetch",
+        "description": "Page to fetch (starts at 0).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page to fetch (starts at 0)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order_by",
+        "tool_parameter_name": "order_by_field",
+        "description": "Order by a particular field. By default, tasks are ordered by `created`.\\\n \\\nOptions include: `id`, `created`, `updated`, and `due_date`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order by a particular field. By default, tasks are ordered by `created`.\\\n \\\nOptions include: `id`, `created`, `updated`, and `due_date`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reverse",
+        "tool_parameter_name": "display_tasks_in_reverse_order",
+        "description": "Tasks are displayed in reverse order.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Tasks are displayed in reverse order."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subtasks",
+        "tool_parameter_name": "include_subtasks",
+        "description": "Include or exclude subtasks. By default, subtasks are excluded.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include or exclude subtasks. By default, subtasks are excluded."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "statuses",
+        "tool_parameter_name": "filter_by_statuses",
+        "description": "Filter by statuses. To include closed tasks, use the `include_closed` parameter. \\\n \\\nFor example: \\\n \\\n`?statuses[]=to%20do&statuses[]=in%20progress`",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by statuses. To include closed tasks, use the `include_closed` parameter. \\\n \\\nFor example: \\\n \\\n`?statuses[]=to%20do&statuses[]=in%20progress`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_closed",
+        "tool_parameter_name": "include_closed_tasks",
+        "description": "Include or excluse closed tasks. By default, they are excluded.\\\n \\\nTo include closed tasks, use `include_closed: true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include or excluse closed tasks. By default, they are excluded.\\\n \\\nTo include closed tasks, use `include_closed: true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_timl",
+        "tool_parameter_name": "include_tasks_in_multiple_lists",
+        "description": "Include Tasks in Multiple Lists. By default, tasks that exist in multiple lists are excluded from the response.\\\n \\\nTo include tasks that exist in multiple lists, use `include_timl: true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include Tasks in Multiple Lists. By default, tasks that exist in multiple lists are excluded from the response.\\\n \\\nTo include tasks that exist in multiple lists, use `include_timl: true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assignees",
+        "tool_parameter_name": "filter_by_assignees",
+        "description": "Filter by Assignees. For example: \\\n \\\n`?assignees[]=1234&assignees[]=5678`",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by Assignees. For example: \\\n \\\n`?assignees[]=1234&assignees[]=5678`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "watchers",
+        "tool_parameter_name": "filter_by_watchers",
+        "description": "Filter by watchers.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by watchers."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tags",
+        "tool_parameter_name": "filter_by_tags",
+        "description": "Filter by tags. For example: \\\n \\\n`?tags[]=tag1&tags[]=this%20tag`",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by tags. For example: \\\n \\\n`?tags[]=tag1&tags[]=this%20tag`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date_gt",
+        "tool_parameter_name": "filter_due_date_greater_than",
+        "description": "Filter by due date greater than Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by due date greater than Unix time in milliseconds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date_lt",
+        "tool_parameter_name": "filter_due_date_before",
+        "description": "Filter by due date less than Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by due date less than Unix time in milliseconds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_created_gt",
+        "tool_parameter_name": "filter_date_created_after",
+        "description": "Filter by date created greater than Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date created greater than Unix time in milliseconds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_created_lt",
+        "tool_parameter_name": "date_created_less_than",
+        "description": "Filter by date created less than Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date created less than Unix time in milliseconds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_updated_gt",
+        "tool_parameter_name": "filter_date_updated_after",
+        "description": "Filter by date updated greater than Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date updated greater than Unix time in milliseconds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_updated_lt",
+        "tool_parameter_name": "filter_date_updated_less_than",
+        "description": "Filter by date updated less than Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date updated less than Unix time in milliseconds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_done_gt",
+        "tool_parameter_name": "filter_date_done_after",
+        "description": "Filter by date done greater than Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date done greater than Unix time in milliseconds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_done_lt",
+        "tool_parameter_name": "filter_by_date_done_before",
+        "description": "Filter by date done less than Unix time in milliseconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by date done less than Unix time in milliseconds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_fields",
+        "tool_parameter_name": "filter_by_custom_fields",
+        "description": "Include tasks with specific values in one or more Custom Fields. Custom Relationships are included.\\\n \\\nFor example: `?custom_fields=[{\"field_id\":\"abcdefghi12345678\",\"operator\":\"=\",\"value\":\"1234\"},{\"field_id\":\"jklmnop123456\",\"operator\":\"<\",\"value\":\"5\"}]`\\\n \\\nOnly set Custom Field values display in the `value` property of the `custom_fields` parameter. If you want to include tasks with specific values in only one Custom Field, use `custom_field` instead.\\\n \\\nLearn more about [filtering using Custom Fields.](doc:taskfilters)",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include tasks with specific values in one or more Custom Fields. Custom Relationships are included.\\\n \\\nFor example: `?custom_fields=[{\"field_id\":\"abcdefghi12345678\",\"operator\":\"=\",\"value\":\"1234\"},{\"field_id\":\"jklmnop123456\",\"operator\":\"<\",\"value\":\"5\"}]`\\\n \\\nOnly set Custom Field values display in the `value` property of the `custom_fields` parameter. If you want to include tasks with specific values in only one Custom Field, use `custom_field` instead.\\\n \\\nLearn more about [filtering using Custom Fields.](doc:taskfilters)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_field",
+        "tool_parameter_name": "filter_by_custom_field",
+        "description": "Include tasks with specific values in only one Custom Field. This Custom Field can be a Custom Relationship.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include tasks with specific values in only one Custom Field. This Custom Field can be a Custom Relationship."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_items",
+        "tool_parameter_name": "custom_task_type_filters",
+        "description": "Filter by custom task types. For example: \\\n \\\n`?custom_items[]=0&custom_items[]=1300` \\\n \\\nIncluding `0` returns tasks. Including `1` returns Milestones. Including any other number returns the custom task type as defined in your Workspace.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "number",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by custom task types. For example: \\\n \\\n`?custom_items[]=0&custom_items[]=1300` \\\n \\\nIncluding `0` returns tasks. Including `1` returns Milestones. Including any other number returns the custom task type as defined in your Workspace."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "list_id",
+        "tool_parameter_name": "list_identifier",
+        "description": "To find the list_id: \\ 1. In the Sidebar, hover over the List and click the **ellipsis ...** menu. \\ 2. Select **Copy link.** \\ 3. Use the copied URL to find the list_id. The list_id is the number that follows /li in the URL.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To find the list_id: \\ 1. In the Sidebar, hover over the List and click the **ellipsis ...** menu. \\ 2. Select **Copy link.** \\ 3. Use the copied URL to find the list_id. The list_id is the number that follows /li in the URL."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,502 @@
+{
+  "name": "RollbackEnvironmentsMigration",
+  "fully_qualified_name": "PosthogApi.RollbackEnvironmentsMigration@0.1.0",
+  "description": "Trigger rollback migration for multi-environment projects.\n\nUse this tool to initiate an environments rollback migration for users who were previously on multi-environment projects in Datadog. This involves mapping source environment IDs to target environment IDs to perform the rollback.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_uuid",
+        "required": true,
+        "description": "A UUID string identifying the organization for the rollback operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "environments_mapping",
+        "required": true,
+        "description": "A JSON object mapping source environment IDs to target environment IDs for rollback. Example: { \"2\": 2, \"116911\": 2 }.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "logo_media_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "membership_level": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "plugins_access_level": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "teams": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            },
+            "projects": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            },
+            "available_product_features": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_member_join_email_enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "metadata": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "enforce_2fa": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "members_can_invite": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "members_can_use_personal_api_keys": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "allow_publicly_shared_resources": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "member_count": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_ai_data_processing_approved": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "default_experiment_stats_method": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Default statistical method for new experiments in this organization.\n\n* `bayesian` - Bayesian\n* `frequentist` - Frequentist"
+            },
+            "default_role_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the role to automatically assign to new members joining the organization"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'environments_rollback_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/organizations/{id}/environments_rollback/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "organization_uuid",
+        "description": "A UUID string identifying this organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A UUID string identifying this organization."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "environments_mapping",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "slug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "logo_media_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "membership_level": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "plugins_access_level": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "teams": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            },
+            "projects": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            },
+            "available_product_features": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_member_join_email_enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "metadata": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "enforce_2fa": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "members_can_invite": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "members_can_use_personal_api_keys": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "allow_publicly_shared_resources": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "member_count": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_ai_data_processing_approved": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "default_experiment_stats_method": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Default statistical method for new experiments in this organization.\n\n* `bayesian` - Bayesian\n* `frequentist` - Frequentist"
+            },
+            "default_role_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the role to automatically assign to new members joining the organization"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 64\n          },\n          \"slug\": {\n            \"type\": \"string\",\n            \"readOnly\": true,\n            \"pattern\": \"^[-a-zA-Z0-9_]+$\"\n          },\n          \"logo_media_id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"membership_level\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  1,\n                  8,\n                  15\n                ],\n                \"type\": \"integer\"\n              }\n            ],\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"plugins_access_level\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  0,\n                  3,\n                  6,\n                  9\n                ],\n                \"type\": \"integer\",\n                \"description\": \"* `0` - none\\n* `3` - config\\n* `6` - install\\n* `9` - root\"\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"teams\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"readOnly\": true\n          },\n          \"projects\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"readOnly\": true\n          },\n          \"available_product_features\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"is_member_join_email_enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"metadata\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"customer_id\": {\n            \"type\": \"string\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"enforce_2fa\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"members_can_invite\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"members_can_use_personal_api_keys\": {\n            \"type\": \"boolean\"\n          },\n          \"allow_publicly_shared_resources\": {\n            \"type\": \"boolean\"\n          },\n          \"member_count\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"is_ai_data_processing_approved\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"default_experiment_stats_method\": {\n            \"nullable\": true,\n            \"description\": \"Default statistical method for new experiments in this organization.\\n\\n* `bayesian` - Bayesian\\n* `frequentist` - Frequentist\",\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"bayesian\",\n                  \"frequentist\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `bayesian` - Bayesian\\n* `frequentist` - Frequentist\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"default_role_id\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"ID of the role to automatically assign to new members joining the organization\"\n          }\n        },\n        \"required\": [\n          \"available_product_features\",\n          \"created_at\",\n          \"customer_id\",\n          \"id\",\n          \"member_count\",\n          \"membership_level\",\n          \"metadata\",\n          \"name\",\n          \"plugins_access_level\",\n          \"projects\",\n          \"slug\",\n          \"teams\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 64\n          },\n          \"slug\": {\n            \"type\": \"string\",\n            \"readOnly\": true,\n            \"pattern\": \"^[-a-zA-Z0-9_]+$\"\n          },\n          \"logo_media_id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"membership_level\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  1,\n                  8,\n                  15\n                ],\n                \"type\": \"integer\"\n              }\n            ],\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"plugins_access_level\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  0,\n                  3,\n                  6,\n                  9\n                ],\n                \"type\": \"integer\",\n                \"description\": \"* `0` - none\\n* `3` - config\\n* `6` - install\\n* `9` - root\"\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"teams\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"readOnly\": true\n          },\n          \"projects\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"readOnly\": true\n          },\n          \"available_product_features\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"is_member_join_email_enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"metadata\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"customer_id\": {\n            \"type\": \"string\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"enforce_2fa\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"members_can_invite\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"members_can_use_personal_api_keys\": {\n            \"type\": \"boolean\"\n          },\n          \"allow_publicly_shared_resources\": {\n            \"type\": \"boolean\"\n          },\n          \"member_count\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"is_ai_data_processing_approved\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"default_experiment_stats_method\": {\n            \"nullable\": true,\n            \"description\": \"Default statistical method for new experiments in this organization.\\n\\n* `bayesian` - Bayesian\\n* `frequentist` - Frequentist\",\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"bayesian\",\n                  \"frequentist\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `bayesian` - Bayesian\\n* `frequentist` - Frequentist\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"default_role_id\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"ID of the role to automatically assign to new members joining the organization\"\n          }\n        },\n        \"required\": [\n          \"available_product_features\",\n          \"created_at\",\n          \"customer_id\",\n          \"id\",\n          \"member_count\",\n          \"membership_level\",\n          \"metadata\",\n          \"name\",\n          \"plugins_access_level\",\n          \"projects\",\n          \"slug\",\n          \"teams\",\n          \"updated_at\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 64\n          },\n          \"slug\": {\n            \"type\": \"string\",\n            \"readOnly\": true,\n            \"pattern\": \"^[-a-zA-Z0-9_]+$\"\n          },\n          \"logo_media_id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"nullable\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"membership_level\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  1,\n                  8,\n                  15\n                ],\n                \"type\": \"integer\"\n              }\n            ],\n            \"nullable\": true,\n            \"readOnly\": true\n          },\n          \"plugins_access_level\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  0,\n                  3,\n                  6,\n                  9\n                ],\n                \"type\": \"integer\",\n                \"description\": \"* `0` - none\\n* `3` - config\\n* `6` - install\\n* `9` - root\"\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"teams\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"readOnly\": true\n          },\n          \"projects\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {}\n            },\n            \"readOnly\": true\n          },\n          \"available_product_features\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"is_member_join_email_enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"metadata\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"customer_id\": {\n            \"type\": \"string\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"enforce_2fa\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"members_can_invite\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"members_can_use_personal_api_keys\": {\n            \"type\": \"boolean\"\n          },\n          \"allow_publicly_shared_resources\": {\n            \"type\": \"boolean\"\n          },\n          \"member_count\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"is_ai_data_processing_approved\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"default_experiment_stats_method\": {\n            \"nullable\": true,\n            \"description\": \"Default statistical method for new experiments in this organization.\\n\\n* `bayesian` - Bayesian\\n* `frequentist` - Frequentist\",\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"bayesian\",\n                  \"frequentist\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `bayesian` - Bayesian\\n* `frequentist` - Frequentist\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"default_role_id\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"description\": \"ID of the role to automatically assign to new members joining the organization\"\n          }\n        },\n        \"required\": [\n          \"available_product_features\",\n          \"created_at\",\n          \"customer_id\",\n          \"id\",\n          \"member_count\",\n          \"membership_level\",\n          \"metadata\",\n          \"name\",\n          \"plugins_access_level\",\n          \"projects\",\n          \"slug\",\n          \"teams\",\n          \"updated_at\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

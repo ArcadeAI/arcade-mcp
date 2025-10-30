@@ -1,0 +1,151 @@
+{
+  "name": "BulkPublishScheduledShifts",
+  "fully_qualified_name": "SquareupApi.BulkPublishScheduledShifts@2.0.0",
+  "description": "Publish multiple scheduled shifts in bulk.\n\nUse this tool to publish between 1 to 100 scheduled shifts at once. It processes a map of individual publish requests and provides corresponding responses. Ensure all shifts have start and end times within a two-week window.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "shift_publication_details",
+        "required": true,
+        "description": "A JSON object with fields to POST, including 'scheduled_shifts' and 'scheduled_shift_notification_audience'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "scheduled_shifts": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A map of 1 to 100 key-value pairs that represent individual publish requests.\n\n- Each key is the ID of a scheduled shift you want to publish.\n- Each value is a `BulkPublishScheduledShiftsData` object that contains the\n`version` field or is an empty object."
+            },
+            "scheduled_shift_notification_audience": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "ALL",
+                "AFFECTED",
+                "NONE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether Square sends an email notification to team members\nwhen a scheduled shift is published and which team members receive the notification."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BulkPublishScheduledShifts'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "TIMECARDS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/labor/scheduled-shifts/bulk-publish",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "shift_publication_details",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "scheduled_shifts": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A map of 1 to 100 key-value pairs that represent individual publish requests.\n\n- Each key is the ID of a scheduled shift you want to publish.\n- Each value is a `BulkPublishScheduledShiftsData` object that contains the\n`version` field or is an empty object."
+            },
+            "scheduled_shift_notification_audience": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "ALL",
+                "AFFECTED",
+                "NONE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether Square sends an email notification to team members\nwhen a scheduled shift is published and which team members receive the notification."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents a [BulkPublishScheduledShifts](api-endpoint:Labor-BulkPublishScheduledShifts) request.\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"scheduled_shifts\"\n        ],\n        \"properties\": {\n          \"scheduled_shifts\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"description\": \"Represents options for an individual publish request in a\\n[BulkPublishScheduledShifts](api-endpoint:Labor-BulkPublishScheduledShifts)\\noperation, provided as the value in a key-value pair.\",\n              \"x-release-status\": \"BETA\",\n              \"properties\": {\n                \"version\": {\n                  \"type\": \"integer\",\n                  \"description\": \"The current version of the scheduled shift, used to enable [optimistic concurrency](https://developer.squareup.com/docs/build-basics/common-api-patterns/optimistic-concurrency)\\ncontrol. If the provided version doesn't match the server version, the request fails.\\nIf omitted, Square executes a blind write, potentially overwriting data from another publish request.\"\n                }\n              }\n            },\n            \"description\": \"A map of 1 to 100 key-value pairs that represent individual publish requests.\\n\\n- Each key is the ID of a scheduled shift you want to publish.\\n- Each value is a `BulkPublishScheduledShiftsData` object that contains the\\n`version` field or is an empty object.\"\n          },\n          \"scheduled_shift_notification_audience\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"ALL\",\n              \"AFFECTED\",\n              \"NONE\"\n            ],\n            \"x-enum-elements\": [\n              {\n                \"name\": \"ALL\",\n                \"description\": \"Notify all active team members. Note that republishing an unchanged\\nshift with this setting resends the notification.\"\n              },\n              {\n                \"name\": \"AFFECTED\",\n                \"description\": \"Notify the team member assigned to the shift. If the shift assignment\\nchanges, notify both the newly assigned and previously assigned team members.\"\n              },\n              {\n                \"name\": \"NONE\",\n                \"description\": \"Do not send a notification.\"\n              }\n            ],\n            \"description\": \"Indicates whether Square sends an email notification to team members\\nwhen a scheduled shift is published and which team members receive the notification.\",\n            \"x-release-status\": \"BETA\"\n          }\n        },\n        \"example\": {\n          \"scheduled-shifts\": {\n            \"K0YH4CV5462JB\": {\n              \"version\": 3\n            },\n            \"scheduled-shift-2\": {\n              \"version\": 2\n            }\n          },\n          \"scheduled_shift_notification_audience\": \"AFFECTED\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

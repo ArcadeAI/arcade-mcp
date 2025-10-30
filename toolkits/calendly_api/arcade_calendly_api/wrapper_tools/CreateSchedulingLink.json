@@ -1,0 +1,179 @@
+{
+  "name": "CreateSchedulingLink",
+  "fully_qualified_name": "CalendlyApi.CreateSchedulingLink@2.0.0",
+  "description": "Creates a single-use scheduling link for appointments.\n\n",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "maximum_event_count",
+        "required": true,
+        "description": "The maximum number of events that can be scheduled using this link. Currently, only '1' is supported.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": [
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The max number of events that can be scheduled using this scheduling link."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "max_event_count"
+      },
+      {
+        "name": "resource_owner_link",
+        "required": true,
+        "description": "A link to the resource owning this scheduling link, typically an Event Type URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A link to the resource that owns this Scheduling Link (currently, this is always an Event Type)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "resource_type",
+        "required": true,
+        "description": "Resource type for the scheduling link. This is always 'EventType'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "EventType"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Resource type (currently, this is always EventType)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-scheduling-link'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/scheduling_links",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "max_event_count",
+        "tool_parameter_name": "maximum_event_count",
+        "description": "The max number of events that can be scheduled using this scheduling link.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": [
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The max number of events that can be scheduled using this scheduling link."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "owner",
+        "tool_parameter_name": "resource_owner_link",
+        "description": "A link to the resource that owns this Scheduling Link (currently, this is always an Event Type)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A link to the resource that owns this Scheduling Link (currently, this is always an Event Type)"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "owner_type",
+        "tool_parameter_name": "resource_type",
+        "description": "Resource type (currently, this is always EventType)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "EventType"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Resource type (currently, this is always EventType)"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"max_event_count\": {\n            \"type\": \"number\",\n            \"description\": \"The max number of events that can be scheduled using this scheduling link.\",\n            \"enum\": [\n              1\n            ],\n            \"example\": 1\n          },\n          \"owner\": {\n            \"type\": \"string\",\n            \"description\": \"A link to the resource that owns this Scheduling Link (currently, this is always an Event Type)\",\n            \"format\": \"uri\",\n            \"example\": \"https://api.calendly.com/event_types/012345678901234567890\"\n          },\n          \"owner_type\": {\n            \"type\": \"string\",\n            \"example\": \"EventType\",\n            \"enum\": [\n              \"EventType\"\n            ],\n            \"description\": \"Resource type (currently, this is always EventType)\"\n          }\n        },\n        \"required\": [\n          \"max_event_count\",\n          \"owner\",\n          \"owner_type\"\n        ]\n      },\n      \"examples\": {\n        \"Create Single Use Link\": {\n          \"value\": {\n            \"max_event_count\": 1,\n            \"owner\": \"https://api.calendly.com/event_types/012345678901234567890\",\n            \"owner_type\": \"EventType\"\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"\"\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

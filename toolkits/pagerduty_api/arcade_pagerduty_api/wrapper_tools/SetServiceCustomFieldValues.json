@@ -1,0 +1,226 @@
+{
+  "name": "SetServiceCustomFieldValues",
+  "fully_qualified_name": "PagerdutyApi.SetServiceCustomFieldValues@2.0.0",
+  "description": "Update custom field values for a specific service.\n\nUse this tool to set custom field values for a specific service in PagerDuty. It requires the scoped OAuth `services.write` permission.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "service_id",
+        "required": true,
+        "description": "The unique identifier of the service whose custom field values need to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_header_versioning",
+        "required": true,
+        "description": "The version of the API to accept, used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the request. Typically 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "custom_field_values",
+        "required": false,
+        "description": "JSON object containing an array of custom field values to update for the service.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateServiceCustomFieldValues'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/services/{id}/custom_fields/values",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "service_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_versioning",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_field_values",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"title\": \"Custom Field Value\",\n              \"description\": \"During updates:\\n- Omitted fields remain unchanged\\n- Null values reset fields\\n- Provided values update fields\\n\\nNote: All updates succeed or none are applied.\\n\",\n              \"oneOf\": [\n                {\n                  \"type\": \"object\",\n                  \"title\": \"Value by Field ID\",\n                  \"properties\": {\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"The ID of the resource.\"\n                    },\n                    \"value\": {\n                      \"oneOf\": [\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Boolean\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"boolean\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Datetime\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"format\": \"date-time\"\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Float\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"number\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Integer\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"integer\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"String\",\n                          \"properties\": {\n                            \"value\": {\n                              \"oneOf\": [\n                                {\n                                  \"type\": \"string\",\n                                  \"maxLength\": 200,\n                                  \"nullable\": true\n                                },\n                                {\n                                  \"type\": \"array\",\n                                  \"items\": {\n                                    \"type\": \"string\",\n                                    \"maxLength\": 200\n                                  },\n                                  \"maxItems\": 10,\n                                  \"uniqueItems\": true,\n                                  \"nullable\": true\n                                }\n                              ]\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Url\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"format\": \"uri\",\n                              \"maxLength\": 200,\n                              \"nullable\": true\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  },\n                  \"required\": [\n                    \"id\",\n                    \"value\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"title\": \"Value by Field Name\",\n                  \"properties\": {\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"title\": \"Field Name\",\n                      \"description\": \"The name of the field. May include ASCII characters, specifically lowercase letters, digits, and underescores. The `name` for a Field must be unique and cannot be changed once created.\",\n                      \"maxLength\": 50\n                    },\n                    \"value\": {\n                      \"oneOf\": [\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Boolean\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"boolean\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Datetime\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"format\": \"date-time\"\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Float\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"number\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Integer\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"integer\",\n                              \"nullable\": true\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"String\",\n                          \"properties\": {\n                            \"value\": {\n                              \"oneOf\": [\n                                {\n                                  \"type\": \"string\",\n                                  \"maxLength\": 200,\n                                  \"nullable\": true\n                                },\n                                {\n                                  \"type\": \"array\",\n                                  \"items\": {\n                                    \"type\": \"string\",\n                                    \"maxLength\": 200\n                                  },\n                                  \"maxItems\": 10,\n                                  \"uniqueItems\": true,\n                                  \"nullable\": true\n                                }\n                              ]\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"title\": \"Url\",\n                          \"properties\": {\n                            \"value\": {\n                              \"type\": \"string\",\n                              \"format\": \"uri\",\n                              \"maxLength\": 200,\n                              \"nullable\": true\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  },\n                  \"required\": [\n                    \"name\",\n                    \"value\"\n                  ]\n                }\n              ]\n            }\n          }\n        },\n        \"required\": [\n          \"custom_fields\"\n        ]\n      },\n      \"examples\": {\n        \"example_with_custom_field_id\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"custom_fields\": [\n              {\n                \"id\": \"PT4KHEE\",\n                \"value\": \"production\"\n              }\n            ]\n          }\n        },\n        \"example_with_custom_field_name\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"custom_fields\": [\n              {\n                \"name\": \"environment\",\n                \"value\": \"production\"\n              }\n            ]\n          }\n        },\n        \"example_with_multiple_value_field\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"custom_fields\": [\n              {\n                \"id\": \"PT4KHEE\",\n                \"value\": [\n                  \"production\",\n                  \"staging\"\n                ]\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

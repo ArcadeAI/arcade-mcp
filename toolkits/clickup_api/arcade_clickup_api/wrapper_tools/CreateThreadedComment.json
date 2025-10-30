@@ -1,0 +1,138 @@
+{
+  "name": "CreateThreadedComment",
+  "fully_qualified_name": "ClickupApi.CreateThreadedComment@0.1.0",
+  "description": "Create a threaded comment in a ClickUp task.\n\nThis tool is used to create a threaded comment as a reply to an existing comment in a ClickUp task. It is useful when you want to continue a discussion or provide additional information to a specific comment thread.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "parent_comment_id",
+        "required": true,
+        "description": "The ID of the parent comment to which the threaded reply will be attached. It should be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "comment_id"
+      },
+      {
+        "name": "threaded_comment_content",
+        "required": true,
+        "description": "This is the content of the threaded comment to be added. Provide the text that forms the body of the reply.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateThreadedComment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/comment/{comment_id}/reply",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "comment_id",
+        "tool_parameter_name": "parent_comment_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "threaded_comment_content",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Schema reference broken: #/paths/~1v2~1task~1%7Btask_id%7D~1comment/post/requestBody/content/application~1json/schema\",\n        \"additionalProperties\": true,\n        \"x-moar-broken-reference\": \"#/paths/~1v2~1task~1%7Btask_id%7D~1comment/post/requestBody/content/application~1json/schema\"\n      },\n      \"example\": {\n        \"comment_text\": \"Task comment content\",\n        \"assignee\": 183,\n        \"group_assignee\": \"d01f92f-48ca-446d-88a1-0beb0e8f5f14\",\n        \"notify_all\": true\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

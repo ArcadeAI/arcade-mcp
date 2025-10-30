@@ -1,0 +1,258 @@
+{
+  "name": "ModifyAirtableEntry",
+  "fully_qualified_name": "AirtableApi.ModifyAirtableEntry@2.0.0",
+  "description": "Update a specific record in an Airtable table.\n\nThis tool updates a single record in an Airtable table. Only specified fields are updated, leaving others unchanged. Use table IDs to avoid modifying requests when table names change. Automatic data conversion can be enabled with the typecast parameter for better integration with third-party data sources.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "base_id",
+        "required": true,
+        "description": "The unique identifier for the Airtable base. This specifies which base the record belongs to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "baseId"
+      },
+      {
+        "name": "table_identifier",
+        "required": true,
+        "description": "The unique identifier or name of the Airtable table where the record resides. Prefer using table IDs to avoid changes when table names are updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tableIdOrName"
+      },
+      {
+        "name": "record_identifier",
+        "required": true,
+        "description": "Unique identifier for the Airtable record to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "recordId"
+      },
+      {
+        "name": "update_fields_data",
+        "required": false,
+        "description": "JSON object containing fields to update, keyed by field name or ID. Includes 'typecast' for automatic data conversion and 'returnFieldsByFieldId' to key by field ID.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "returnFieldsByFieldId": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An optional boolean value that lets you return field objects keyed by the field id.\n\nThis defaults to `false`, which returns field objects where the key is the field name."
+            },
+            "typecast": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Airtable API will perform best-effort automatic data conversion from string values\nif the typecast parameter is passed in. Automatic conversion is disabled by default to\nensure data integrity, but it may be helpful for integrating with 3rd party data sources."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-record-put'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "data.records:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "baseId",
+        "tool_parameter_name": "base_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tableIdOrName",
+        "tool_parameter_name": "table_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "recordId",
+        "tool_parameter_name": "record_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "update_fields_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "returnFieldsByFieldId": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An optional boolean value that lets you return field objects keyed by the field id.\n\nThis defaults to `false`, which returns field objects where the key is the field name."
+            },
+            "typecast": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Airtable API will perform best-effort automatic data conversion from string values\nif the typecast parameter is passed in. Automatic conversion is disabled by default to\nensure data integrity, but it may be helpful for integrating with 3rd party data sources."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success response patch\": {\n          \"description\": \"Success Response Patch\",\n          \"summary\": \"Success response patch\",\n          \"value\": {\n            \"fields\": {\n              \"Visited\": true\n            }\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"fields\": {\n            \"additionalProperties\": {},\n            \"type\": \"object\"\n          },\n          \"returnFieldsByFieldId\": {\n            \"description\": \"An optional boolean value that lets you return field objects keyed by the field id.\\n\\nThis defaults to `false`, which returns field objects where the key is the field name.\",\n            \"type\": [\n              \"boolean\",\n              \"null\"\n            ],\n            \"x-airtable-hide-null\": true\n          },\n          \"typecast\": {\n            \"description\": \"The Airtable API will perform best-effort automatic data conversion from string values\\nif the typecast parameter is passed in. Automatic conversion is disabled by default to\\nensure data integrity, but it may be helpful for integrating with 3rd party data sources.\",\n            \"type\": [\n              \"boolean\",\n              \"null\"\n            ],\n            \"x-airtable-hide-null\": true\n          }\n        },\n        \"required\": [\n          \"fields\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

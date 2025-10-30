@@ -1,18 +1,18 @@
 {
   "name": "GetVendorDetails",
-  "fully_qualified_name": "PagerdutyApi.GetVendorDetails@0.1.0",
-  "description": "Get details about a specific vendor integration.\n\nUse this tool to retrieve detailed information about a specific PagerDuty vendor integration. A vendor in PagerDuty represents a specific type of integration, such as AWS Cloudwatch, Splunk, or Datadog. This tool is particularly useful for understanding integration capabilities and requirements. Requires 'vendors.read' OAuth scope.",
+  "fully_qualified_name": "PagerdutyApi.GetVendorDetails@2.0.0",
+  "description": "Fetch detailed information about a specific vendor on PagerDuty.\n\nUse this tool to retrieve details about a specific vendor integrated with PagerDuty, like AWS Cloudwatch, Splunk, or Datadog. Useful for understanding integration types.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "vendor_id",
         "required": true,
-        "description": "The unique identifier for the vendor integration to be retrieved.",
+        "description": "The unique identifier for the vendor whose details are being requested.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "versioning_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "Specifies the versioning header for the API using the 'Accept' header.",
+        "description": "Specifies the API version in the 'Accept' header for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "response_content_type",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the content type of the response. Must be 'application/json'.",
+        "description": "Specifies the response format. Use 'application/json' for JSON responses.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/vendors/{id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "response_content_type",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

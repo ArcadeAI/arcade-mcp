@@ -1,0 +1,171 @@
+{
+  "name": "AddChatViewComment",
+  "fully_qualified_name": "ClickupApi.AddChatViewComment@0.1.0",
+  "description": "Add a new comment to a Chat view.\n\nUse this tool to add a comment to a Chat view in ClickUp. This can be used to facilitate discussion and share information in a specific View context.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "view_id",
+        "required": true,
+        "description": "The ID of the Chat view where the comment will be added. Expected as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "105 (string)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "view_id"
+      },
+      {
+        "name": "comment_text",
+        "required": true,
+        "description": "The text content of the comment to be added to the Chat view.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "comment_text"
+      },
+      {
+        "name": "send_notifications_to_all",
+        "required": true,
+        "description": "Set to true to send notifications to everyone, including the comment creator.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `notify_all` is true, notifications will be sent to everyone including the creator of the comment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notify_all"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateChatViewComment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/view/{view_id}/comment",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "view_id",
+        "tool_parameter_name": "view_id",
+        "description": "105 (string)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "105 (string)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "comment_text",
+        "tool_parameter_name": "comment_text",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "notify_all",
+        "tool_parameter_name": "send_notifications_to_all",
+        "description": "If `notify_all` is true, notifications will be sent to everyone including the creator of the comment.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `notify_all` is true, notifications will be sent to everyone including the creator of the comment."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateChatViewCommentrequest\",\n        \"required\": [\n          \"comment_text\",\n          \"notify_all\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"comment_text\": {\n            \"type\": \"string\"\n          },\n          \"notify_all\": {\n            \"description\": \"If `notify_all` is true, notifications will be sent to everyone including the creator of the comment.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"examples\": [\n          {\n            \"comment_text\": \"View comment content\",\n            \"notify_all\": true\n          }\n        ]\n      },\n      \"example\": {\n        \"comment_text\": \"View comment content\",\n        \"notify_all\": true\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

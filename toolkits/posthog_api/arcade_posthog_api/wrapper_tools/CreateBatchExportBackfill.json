@@ -1,0 +1,343 @@
+{
+  "name": "CreateBatchExportBackfill",
+  "fully_qualified_name": "PosthogApi.CreateBatchExportBackfill@0.1.0",
+  "description": "Create a new backfill for a batch export.\n\nThis tool is used to initiate a new backfill process for a specific BatchExport within a project, allowing for data replenishment or correction in Datadog.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "batch_export_identifier",
+        "required": true,
+        "description": "The unique identifier for the batch export to be backfilled. This ID determines which specific export the backfill will apply to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "batch_export_id"
+      },
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The unique ID of the project to access. Retrieve this via a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "backfill_request_body",
+        "required": true,
+        "description": "JSON object containing details like data interval start/end, status, and timestamps for the backfill creation.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "progress": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The start of the data interval."
+            },
+            "end_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The end of the data interval."
+            },
+            "status": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The status of this backfill.\n\n* `Cancelled` - Cancelled\n* `Completed` - Completed\n* `ContinuedAsNew` - Continued As New\n* `Failed` - Failed\n* `FailedRetryable` - Failed Retryable\n* `Terminated` - Terminated\n* `TimedOut` - Timedout\n* `Running` - Running\n* `Starting` - Starting"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExportBackfill was created."
+            },
+            "finished_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExportBackfill finished, successfully or not."
+            },
+            "last_updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExportBackfill was last updated."
+            },
+            "team": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The team this belongs to."
+            },
+            "batch_export": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The BatchExport this backfill belongs to."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'batch_exports_backfills_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/batch_exports/{batch_export_id}/backfills/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "batch_export_id",
+        "tool_parameter_name": "batch_export_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "backfill_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "progress": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The start of the data interval."
+            },
+            "end_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The end of the data interval."
+            },
+            "status": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The status of this backfill.\n\n* `Cancelled` - Cancelled\n* `Completed` - Completed\n* `ContinuedAsNew` - Continued As New\n* `Failed` - Failed\n* `FailedRetryable` - Failed Retryable\n* `Terminated` - Terminated\n* `TimedOut` - Timedout\n* `Running` - Running\n* `Starting` - Starting"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExportBackfill was created."
+            },
+            "finished_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExportBackfill finished, successfully or not."
+            },
+            "last_updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timestamp at which this BatchExportBackfill was last updated."
+            },
+            "team": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The team this belongs to."
+            },
+            "batch_export": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The BatchExport this backfill belongs to."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"progress\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"start_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The start of the data interval.\"\n          },\n          \"end_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The end of the data interval.\"\n          },\n          \"status\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"Cancelled\",\n                  \"Completed\",\n                  \"ContinuedAsNew\",\n                  \"Failed\",\n                  \"FailedRetryable\",\n                  \"Terminated\",\n                  \"TimedOut\",\n                  \"Running\",\n                  \"Starting\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n              }\n            ],\n            \"description\": \"The status of this backfill.\\n\\n* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExportBackfill was created.\"\n          },\n          \"finished_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The timestamp at which this BatchExportBackfill finished, successfully or not.\"\n          },\n          \"last_updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExportBackfill was last updated.\"\n          },\n          \"team\": {\n            \"type\": \"integer\",\n            \"description\": \"The team this belongs to.\"\n          },\n          \"batch_export\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"description\": \"The BatchExport this backfill belongs to.\"\n          }\n        },\n        \"required\": [\n          \"batch_export\",\n          \"created_at\",\n          \"id\",\n          \"last_updated_at\",\n          \"progress\",\n          \"status\",\n          \"team\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"progress\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"start_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The start of the data interval.\"\n          },\n          \"end_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The end of the data interval.\"\n          },\n          \"status\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"Cancelled\",\n                  \"Completed\",\n                  \"ContinuedAsNew\",\n                  \"Failed\",\n                  \"FailedRetryable\",\n                  \"Terminated\",\n                  \"TimedOut\",\n                  \"Running\",\n                  \"Starting\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n              }\n            ],\n            \"description\": \"The status of this backfill.\\n\\n* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExportBackfill was created.\"\n          },\n          \"finished_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The timestamp at which this BatchExportBackfill finished, successfully or not.\"\n          },\n          \"last_updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExportBackfill was last updated.\"\n          },\n          \"team\": {\n            \"type\": \"integer\",\n            \"description\": \"The team this belongs to.\"\n          },\n          \"batch_export\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"description\": \"The BatchExport this backfill belongs to.\"\n          }\n        },\n        \"required\": [\n          \"batch_export\",\n          \"created_at\",\n          \"id\",\n          \"last_updated_at\",\n          \"progress\",\n          \"status\",\n          \"team\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"readOnly\": true\n          },\n          \"progress\": {\n            \"type\": \"string\",\n            \"readOnly\": true\n          },\n          \"start_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The start of the data interval.\"\n          },\n          \"end_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The end of the data interval.\"\n          },\n          \"status\": {\n            \"allOf\": [\n              {\n                \"enum\": [\n                  \"Cancelled\",\n                  \"Completed\",\n                  \"ContinuedAsNew\",\n                  \"Failed\",\n                  \"FailedRetryable\",\n                  \"Terminated\",\n                  \"TimedOut\",\n                  \"Running\",\n                  \"Starting\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n              }\n            ],\n            \"description\": \"The status of this backfill.\\n\\n* `Cancelled` - Cancelled\\n* `Completed` - Completed\\n* `ContinuedAsNew` - Continued As New\\n* `Failed` - Failed\\n* `FailedRetryable` - Failed Retryable\\n* `Terminated` - Terminated\\n* `TimedOut` - Timedout\\n* `Running` - Running\\n* `Starting` - Starting\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExportBackfill was created.\"\n          },\n          \"finished_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"description\": \"The timestamp at which this BatchExportBackfill finished, successfully or not.\"\n          },\n          \"last_updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"description\": \"The timestamp at which this BatchExportBackfill was last updated.\"\n          },\n          \"team\": {\n            \"type\": \"integer\",\n            \"description\": \"The team this belongs to.\"\n          },\n          \"batch_export\": {\n            \"type\": \"string\",\n            \"format\": \"uuid\",\n            \"description\": \"The BatchExport this backfill belongs to.\"\n          }\n        },\n        \"required\": [\n          \"batch_export\",\n          \"created_at\",\n          \"id\",\n          \"last_updated_at\",\n          \"progress\",\n          \"status\",\n          \"team\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

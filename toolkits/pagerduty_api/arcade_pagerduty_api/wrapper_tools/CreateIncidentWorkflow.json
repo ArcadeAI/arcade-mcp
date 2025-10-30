@@ -1,0 +1,193 @@
+{
+  "name": "CreateIncidentWorkflow",
+  "fully_qualified_name": "PagerdutyApi.CreateIncidentWorkflow@2.0.0",
+  "description": "Create a new incident workflow to automate actions.\n\nThis tool creates a new incident workflow, consisting of steps and triggers to execute automated actions for an incident.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "The `Accept` header to specify the API version for the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Set the media type of the request. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "incident_workflow_details",
+        "required": false,
+        "description": "JSON object containing the configuration of the incident workflow, including steps and triggers.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "incident_workflow": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postIncidentWorkflow'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incident_workflows",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_workflow_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "incident_workflow": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"incident_workflow\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"incident_workflow\"\n                    ]\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"description\": \"A descriptive name for the Incident Workflow\"\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"description\": \"A description of what the Incident Workflow does\"\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"description\": \"The timestamp this Incident Workflow was created\",\n                    \"readOnly\": true\n                  },\n                  \"team\": {\n                    \"type\": \"object\",\n                    \"readOnly\": false,\n                    \"description\": \"If specified then workflow edit permissions will be scoped to members of this team\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"description\": \"Type of the referenced object\",\n                        \"readOnly\": true,\n                        \"enum\": [\n                          \"team_reference\"\n                        ]\n                      },\n                      \"id\": {\n                        \"type\": \"string\",\n                        \"description\": \"Unique identifier for the resource\",\n                        \"readOnly\": true\n                      }\n                    }\n                  },\n                  \"is_enabled\": {\n                    \"type\": \"boolean\",\n                    \"default\": true,\n                    \"description\": \"Indicates whether the Incident Workflow is enabled or not. Disabled workflows will not be triggered, and\\nwill not count toward the account's enabled workflow limit.\\n\"\n                  },\n                  \"steps\": {\n                    \"type\": \"array\",\n                    \"description\": \"The ordered list of steps that execute sequentially as part of the workflow\",\n                    \"items\": {\n                      \"allOf\": [\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"id\": {\n                              \"type\": \"string\",\n                              \"readOnly\": true\n                            },\n                            \"summary\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"readOnly\": true,\n                              \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                            },\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"readOnly\": true,\n                              \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                            },\n                            \"self\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"readOnly\": true,\n                              \"format\": \"url\",\n                              \"description\": \"the API show URL at which the object is accessible\"\n                            },\n                            \"html_url\": {\n                              \"type\": \"string\",\n                              \"nullable\": true,\n                              \"readOnly\": true,\n                              \"format\": \"url\",\n                              \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                            }\n                          }\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"step\"\n                              ]\n                            },\n                            \"name\": {\n                              \"type\": \"string\",\n                              \"description\": \"A descriptive name for the Step\"\n                            },\n                            \"description\": {\n                              \"type\": \"string\",\n                              \"readOnly\": true,\n                              \"description\": \"A description of the action performed by the Step\"\n                            },\n                            \"action_configuration\": {\n                              \"description\": \"Configuration of automated action executed by this Step\",\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"action_id\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"The identifier of the Action to execute\"\n                                },\n                                \"description\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"Description of the Action\",\n                                  \"readOnly\": true\n                                },\n                                \"inputs\": {\n                                  \"type\": \"array\",\n                                  \"description\": \"An unordered list of standard inputs used to configure the Action to execute\",\n                                  \"items\": {\n                                    \"type\": \"object\",\n                                    \"properties\": {\n                                      \"name\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"The name for this Input. Input names are unique per action and should be used to find a specific Input.\"\n                                      },\n                                      \"parameter_type\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"The data type of this Input\",\n                                        \"readOnly\": true\n                                      },\n                                      \"value\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"The configured value of the Input\"\n                                      }\n                                    },\n                                    \"required\": [\n                                      \"name\",\n                                      \"value\"\n                                    ]\n                                  }\n                                },\n                                \"inline_steps_inputs\": {\n                                  \"type\": \"array\",\n                                  \"description\": \"An unordered list of specialized inputs used to configure a workflow-within-a-workflow\",\n                                  \"items\": {\n                                    \"type\": \"object\",\n                                    \"properties\": {\n                                      \"name\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"The name for this Input. Input names are unique per action and should be used to find a specific Input.\"\n                                      },\n                                      \"value\": {\n                                        \"type\": \"object\",\n                                        \"description\": \"The configured value of the Inline Steps Input\",\n                                        \"properties\": {\n                                          \"steps\": {\n                                            \"type\": \"array\",\n                                            \"items\": {\n                                              \"allOf\": [\n                                                {\n                                                  \"type\": \"object\",\n                                                  \"properties\": {\n                                                    \"id\": {\n                                                      \"type\": \"string\",\n                                                      \"readOnly\": true\n                                                    },\n                                                    \"summary\": {\n                                                      \"type\": \"string\",\n                                                      \"nullable\": true,\n                                                      \"readOnly\": true,\n                                                      \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                                    },\n                                                    \"type\": {\n                                                      \"type\": \"string\",\n                                                      \"readOnly\": true,\n                                                      \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                                    },\n                                                    \"self\": {\n                                                      \"type\": \"string\",\n                                                      \"nullable\": true,\n                                                      \"readOnly\": true,\n                                                      \"format\": \"url\",\n                                                      \"description\": \"the API show URL at which the object is accessible\"\n                                                    },\n                                                    \"html_url\": {\n                                                      \"type\": \"string\",\n                                                      \"nullable\": true,\n                                                      \"readOnly\": true,\n                                                      \"format\": \"url\",\n                                                      \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                                    }\n                                                  }\n                                                },\n                                                {\n                                                  \"type\": \"object\",\n                                                  \"properties\": {\n                                                    \"type\": {\n                                                      \"type\": \"string\",\n                                                      \"enum\": [\n                                                        \"step\"\n                                                      ]\n                                                    },\n                                                    \"name\": {\n                                                      \"type\": \"string\",\n                                                      \"description\": \"A descriptive name for the Step\"\n                                                    },\n                                                    \"action_configuration\": {\n                                                      \"description\": \"Configuration of automated action executed by this Step\",\n                                                      \"type\": \"object\",\n                                                      \"properties\": {\n                                                        \"action_id\": {\n                                                          \"type\": \"string\",\n                                                          \"description\": \"The identifier of the Action to execute\"\n                                                        },\n                                                        \"description\": {\n                                                          \"type\": \"string\",\n                                                          \"description\": \"Description of the Action\",\n                                                          \"readOnly\": true\n                                                        },\n                                                        \"inputs\": {\n                                                          \"type\": \"array\",\n                                                          \"description\": \"An unordered list of standard inputs used to configure the Action to execute\",\n                                                          \"items\": {\n                                                            \"type\": \"object\",\n                                                            \"properties\": {\n                                                              \"name\": {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"The name for this Input. Input names are unique per action and should be used to find a specific Input.\"\n                                                              },\n                                                              \"parameter_type\": {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"The data type of this Input\",\n                                                                \"readOnly\": true\n                                                              },\n                                                              \"value\": {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"The configured value of the Input\"\n                                                              }\n                                                            },\n                                                            \"required\": [\n                                                              \"name\",\n                                                              \"value\"\n                                                            ]\n                                                          }\n                                                        },\n                                                        \"outputs\": {\n                                                          \"type\": \"array\",\n                                                          \"description\": \"An unordered list of outputs this action produces\",\n                                                          \"readOnly\": true,\n                                                          \"items\": {\n                                                            \"type\": \"object\",\n                                                            \"properties\": {\n                                                              \"name\": {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"The name for this Output. Output names are unique per action and should be used to find a specific Output.\",\n                                                                \"readOnly\": true\n                                                              },\n                                                              \"reference_name\": {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"The reference name of the Output\",\n                                                                \"readOnly\": true\n                                                              },\n                                                              \"parameter_type\": {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"The data type produced by this Output\",\n                                                                \"readOnly\": true\n                                                              }\n                                                            },\n                                                            \"required\": [\n                                                              \"name\",\n                                                              \"value\"\n                                                            ]\n                                                          }\n                                                        }\n                                                      },\n                                                      \"required\": [\n                                                        \"action_id\",\n                                                        \"inputs\"\n                                                      ]\n                                                    }\n                                                  },\n                                                  \"required\": [\n                                                    \"name\",\n                                                    \"action_configuration\"\n                                                  ]\n                                                }\n                                              ]\n                                            }\n                                          }\n                                        }\n                                      }\n                                    },\n                                    \"required\": [\n                                      \"name\",\n                                      \"value\"\n                                    ]\n                                  }\n                                },\n                                \"outputs\": {\n                                  \"type\": \"array\",\n                                  \"description\": \"An unordered list of outputs this action produces\",\n                                  \"readOnly\": true,\n                                  \"items\": {\n                                    \"type\": \"object\",\n                                    \"properties\": {\n                                      \"name\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"The name for this Output. Output names are unique per action and should be used to find a specific Output.\",\n                                        \"readOnly\": true\n                                      },\n                                      \"reference_name\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"The reference name of the Output\",\n                                        \"readOnly\": true\n                                      },\n                                      \"parameter_type\": {\n                                        \"type\": \"string\",\n                                        \"description\": \"The data type produced by this Output\",\n                                        \"readOnly\": true\n                                      }\n                                    },\n                                    \"required\": [\n                                      \"name\",\n                                      \"value\"\n                                    ]\n                                  }\n                                }\n                              },\n                              \"required\": [\n                                \"action_id\",\n                                \"inputs\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"name\",\n                            \"action_configuration\"\n                          ]\n                        }\n                      ]\n                    }\n                  }\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"incident_workflow\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"incident_workflow\": {\n              \"name\": \"Example Incident Workflow\",\n              \"description\": \"This Incident Workflow is an example\",\n              \"steps\": [\n                {\n                  \"name\": \"Send Status Update\",\n                  \"action_configuration\": {\n                    \"action_id\": \"pagerduty.com:incident-workflows:send-status-update:1\",\n                    \"inputs\": [\n                      {\n                        \"name\": \"Message\",\n                        \"value\": \"Example status message sent on {{current_date}}\"\n                      }\n                    ]\n                  }\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

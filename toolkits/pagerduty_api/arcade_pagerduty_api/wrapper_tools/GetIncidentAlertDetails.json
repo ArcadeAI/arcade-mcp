@@ -1,18 +1,18 @@
 {
   "name": "GetIncidentAlertDetails",
-  "fully_qualified_name": "PagerdutyApi.GetIncidentAlertDetails@0.1.0",
-  "description": "Retrieve detailed information about a specific alert.\n\nUse this tool to get detailed information about a specific alert using the alert ID. Useful for understanding and resolving problems associated with incidents.",
+  "fully_qualified_name": "PagerdutyApi.GetIncidentAlertDetails@2.0.0",
+  "description": "Retrieve detailed information about a specific alert.\n\nThis tool provides detailed information about an alert using its alert ID. It is used when there is a need to know more about a particular problem or issue represented by an alert in PagerDuty.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier of the alert resource to retrieve details for.",
+        "description": "The unique identifier for the resource. This ID is used to fetch specific alert details in PagerDuty.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "alert_id",
+        "name": "alert_identifier",
         "required": true,
-        "description": "The ID of the alert you want to retrieve details for.",
+        "description": "The unique identifier of the alert to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "alert_id"
       },
       {
-        "name": "response_version_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specifies the API version to use in the request via the 'Accept' header.",
+        "description": "Specify the version of the API to use, formatted as a string in the 'Accept' header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specify the content type for the request. For this API, use 'application/json'.",
+        "description": "The format in which to receive the response. Only 'application/json' is supported.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incidents/{id}/alerts/{alert_id}",
@@ -135,7 +135,7 @@
       },
       {
         "name": "alert_id",
-        "tool_parameter_name": "alert_id",
+        "tool_parameter_name": "alert_identifier",
         "description": "The id of the alert to retrieve.",
         "value_schema": {
           "val_type": "string",
@@ -153,7 +153,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "response_version_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

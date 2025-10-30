@@ -1,18 +1,18 @@
 {
   "name": "RemoveBaseCollaborator",
-  "fully_qualified_name": "AirtableApi.RemoveBaseCollaborator@0.1.0",
-  "description": "Remove a collaborator from a specific Airtable base.\n\nUse this tool to remove a user or group from collaboration on an Airtable base. It should be called when you need to manage access and permissions of collaborators.",
+  "fully_qualified_name": "AirtableApi.RemoveBaseCollaborator@2.0.0",
+  "description": "Remove a collaborator from a base.\n\nUse this tool to delete a collaborator from a specific base in Airtable. It should be called when you want to remove access for a user or group to a base.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "base_identifier",
+        "name": "base_id",
         "required": true,
-        "description": "The unique identifier of the Airtable base from which the collaborator will be removed. It is expected to be a string.",
+        "description": "The unique identifier for the base from which the collaborator will be removed. This is a required field.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "collaborator_id",
         "required": true,
-        "description": "The ID of the user or group to be removed from the Airtable base.",
+        "description": "The unique identifier for the user or group to be removed from the base.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/bases/{baseId}/collaborators/{userOrGroupId}",
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "baseId",
-        "tool_parameter_name": "base_identifier",
+        "tool_parameter_name": "base_id",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

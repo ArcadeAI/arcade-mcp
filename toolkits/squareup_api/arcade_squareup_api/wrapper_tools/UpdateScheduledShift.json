@@ -1,0 +1,518 @@
+{
+  "name": "UpdateScheduledShift",
+  "fully_qualified_name": "SquareupApi.UpdateScheduledShift@2.0.0",
+  "description": "Updates draft shift details for a scheduled shift.\n\nUse this tool to make updates to draft shift details such as location, job, start and end times, team member, and notes. To finalize and make updates public, the shift must be published. You can also mark a shift as deleted.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "scheduled_shift_id",
+        "required": true,
+        "description": "The unique identifier of the scheduled shift to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the scheduled shift to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "shift_update_details",
+        "required": true,
+        "description": "Object containing the fields to update for a draft shift, including location, job, time, team member, notes, and deletion status.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "scheduled_shift": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "**Read only** The Square-issued ID of the scheduled shift."
+                },
+                "draft_shift_details": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "team_member_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [team member](entity:TeamMember) scheduled for the shift."
+                    },
+                    "location_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [location](entity:Location) the shift is scheduled for."
+                    },
+                    "job_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [job](entity:Job) the shift is scheduled for."
+                    },
+                    "start_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The start time of the shift, in RFC 3339 format in the time zone &plus;\noffset of the shift location specified in `location_id`. Precision up to the minute\nis respected; seconds are truncated."
+                    },
+                    "end_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The end time for the shift, in RFC 3339 format in the time zone &plus;\noffset of the shift location specified in `location_id`. Precision up to the minute\nis respected; seconds are truncated."
+                    },
+                    "notes": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Optional notes for the shift."
+                    },
+                    "is_deleted": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the draft shift version is deleted. If set to `true` when the shift\nis published, the entire scheduled shift (including the published shift) is deleted and\ncannot be accessed using any endpoint."
+                    },
+                    "timezone": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The time zone of the shift location, calculated based on the `location_id`. This field\nis provided for convenience."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents shift details for draft and published versions of a [scheduled shift](entity:ScheduledShift),\nsuch as job ID, team member assignment, and start and end times."
+                },
+                "published_shift_details": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "team_member_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [team member](entity:TeamMember) scheduled for the shift."
+                    },
+                    "location_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [location](entity:Location) the shift is scheduled for."
+                    },
+                    "job_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [job](entity:Job) the shift is scheduled for."
+                    },
+                    "start_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The start time of the shift, in RFC 3339 format in the time zone &plus;\noffset of the shift location specified in `location_id`. Precision up to the minute\nis respected; seconds are truncated."
+                    },
+                    "end_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The end time for the shift, in RFC 3339 format in the time zone &plus;\noffset of the shift location specified in `location_id`. Precision up to the minute\nis respected; seconds are truncated."
+                    },
+                    "notes": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Optional notes for the shift."
+                    },
+                    "is_deleted": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the draft shift version is deleted. If set to `true` when the shift\nis published, the entire scheduled shift (including the published shift) is deleted and\ncannot be accessed using any endpoint."
+                    },
+                    "timezone": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The time zone of the shift location, calculated based on the `location_id`. This field\nis provided for convenience."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents shift details for draft and published versions of a [scheduled shift](entity:ScheduledShift),\nsuch as job ID, team member assignment, and start and end times."
+                },
+                "version": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "**Read only** The current version of the scheduled shift, which is incremented with each update.\nThis field is used for [optimistic concurrency](https://developer.squareup.com/docs/build-basics/common-api-patterns/optimistic-concurrency)\ncontrol to ensure that requests don't overwrite data from another request."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp of when the scheduled shift was created, in RFC 3339 format presented as UTC."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp of when the scheduled shift was last updated, in RFC 3339 format presented as UTC."
+                }
+              },
+              "inner_properties": null,
+              "description": "Represents a specific time slot in a work schedule. This object is used to manage the\nlifecycle of a scheduled shift from the draft to published state. A scheduled shift contains\nthe latest draft shift details and current published shift details."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateScheduledShift'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "TIMECARDS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/labor/scheduled-shifts/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "scheduled_shift_id",
+        "description": "The ID of the scheduled shift to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the scheduled shift to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "shift_update_details",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "scheduled_shift": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "**Read only** The Square-issued ID of the scheduled shift."
+                },
+                "draft_shift_details": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "team_member_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [team member](entity:TeamMember) scheduled for the shift."
+                    },
+                    "location_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [location](entity:Location) the shift is scheduled for."
+                    },
+                    "job_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [job](entity:Job) the shift is scheduled for."
+                    },
+                    "start_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The start time of the shift, in RFC 3339 format in the time zone &plus;\noffset of the shift location specified in `location_id`. Precision up to the minute\nis respected; seconds are truncated."
+                    },
+                    "end_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The end time for the shift, in RFC 3339 format in the time zone &plus;\noffset of the shift location specified in `location_id`. Precision up to the minute\nis respected; seconds are truncated."
+                    },
+                    "notes": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Optional notes for the shift."
+                    },
+                    "is_deleted": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the draft shift version is deleted. If set to `true` when the shift\nis published, the entire scheduled shift (including the published shift) is deleted and\ncannot be accessed using any endpoint."
+                    },
+                    "timezone": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The time zone of the shift location, calculated based on the `location_id`. This field\nis provided for convenience."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents shift details for draft and published versions of a [scheduled shift](entity:ScheduledShift),\nsuch as job ID, team member assignment, and start and end times."
+                },
+                "published_shift_details": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "team_member_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [team member](entity:TeamMember) scheduled for the shift."
+                    },
+                    "location_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [location](entity:Location) the shift is scheduled for."
+                    },
+                    "job_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the [job](entity:Job) the shift is scheduled for."
+                    },
+                    "start_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The start time of the shift, in RFC 3339 format in the time zone &plus;\noffset of the shift location specified in `location_id`. Precision up to the minute\nis respected; seconds are truncated."
+                    },
+                    "end_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The end time for the shift, in RFC 3339 format in the time zone &plus;\noffset of the shift location specified in `location_id`. Precision up to the minute\nis respected; seconds are truncated."
+                    },
+                    "notes": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Optional notes for the shift."
+                    },
+                    "is_deleted": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the draft shift version is deleted. If set to `true` when the shift\nis published, the entire scheduled shift (including the published shift) is deleted and\ncannot be accessed using any endpoint."
+                    },
+                    "timezone": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The time zone of the shift location, calculated based on the `location_id`. This field\nis provided for convenience."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents shift details for draft and published versions of a [scheduled shift](entity:ScheduledShift),\nsuch as job ID, team member assignment, and start and end times."
+                },
+                "version": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "**Read only** The current version of the scheduled shift, which is incremented with each update.\nThis field is used for [optimistic concurrency](https://developer.squareup.com/docs/build-basics/common-api-patterns/optimistic-concurrency)\ncontrol to ensure that requests don't overwrite data from another request."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp of when the scheduled shift was created, in RFC 3339 format presented as UTC."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp of when the scheduled shift was last updated, in RFC 3339 format presented as UTC."
+                }
+              },
+              "inner_properties": null,
+              "description": "Represents a specific time slot in a work schedule. This object is used to manage the\nlifecycle of a scheduled shift from the draft to published state. A scheduled shift contains\nthe latest draft shift details and current published shift details."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"scheduled_shift\"\n        ],\n        \"properties\": {\n          \"scheduled_shift\": {\n            \"type\": \"object\",\n            \"description\": \"Represents a specific time slot in a work schedule. This object is used to manage the\\nlifecycle of a scheduled shift from the draft to published state. A scheduled shift contains\\nthe latest draft shift details and current published shift details.\",\n            \"x-release-status\": \"BETA\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"**Read only** The Square-issued ID of the scheduled shift.\",\n                \"maxLength\": 255\n              },\n              \"draft_shift_details\": {\n                \"type\": \"object\",\n                \"description\": \"Represents shift details for draft and published versions of a [scheduled shift](entity:ScheduledShift),\\nsuch as job ID, team member assignment, and start and end times.\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"team_member_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The ID of the [team member](entity:TeamMember) scheduled for the shift.\",\n                    \"maxLength\": 255,\n                    \"nullable\": true\n                  },\n                  \"location_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The ID of the [location](entity:Location) the shift is scheduled for.\",\n                    \"maxLength\": 255,\n                    \"nullable\": true\n                  },\n                  \"job_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The ID of the [job](entity:Job) the shift is scheduled for.\",\n                    \"nullable\": true\n                  },\n                  \"start_at\": {\n                    \"type\": \"string\",\n                    \"description\": \"The start time of the shift, in RFC 3339 format in the time zone &plus;\\noffset of the shift location specified in `location_id`. Precision up to the minute\\nis respected; seconds are truncated.\",\n                    \"nullable\": true\n                  },\n                  \"end_at\": {\n                    \"type\": \"string\",\n                    \"description\": \"The end time for the shift, in RFC 3339 format in the time zone &plus;\\noffset of the shift location specified in `location_id`. Precision up to the minute\\nis respected; seconds are truncated.\",\n                    \"nullable\": true\n                  },\n                  \"notes\": {\n                    \"type\": \"string\",\n                    \"description\": \"Optional notes for the shift.\",\n                    \"maxLength\": 1000,\n                    \"nullable\": true\n                  },\n                  \"is_deleted\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"Indicates whether the draft shift version is deleted. If set to `true` when the shift\\nis published, the entire scheduled shift (including the published shift) is deleted and\\ncannot be accessed using any endpoint.\",\n                    \"nullable\": true\n                  },\n                  \"timezone\": {\n                    \"type\": \"string\",\n                    \"description\": \"The time zone of the shift location, calculated based on the `location_id`. This field\\nis provided for convenience.\",\n                    \"readOnly\": true\n                  }\n                }\n              },\n              \"published_shift_details\": {\n                \"type\": \"object\",\n                \"description\": \"Represents shift details for draft and published versions of a [scheduled shift](entity:ScheduledShift),\\nsuch as job ID, team member assignment, and start and end times.\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"team_member_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The ID of the [team member](entity:TeamMember) scheduled for the shift.\",\n                    \"maxLength\": 255,\n                    \"nullable\": true\n                  },\n                  \"location_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The ID of the [location](entity:Location) the shift is scheduled for.\",\n                    \"maxLength\": 255,\n                    \"nullable\": true\n                  },\n                  \"job_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The ID of the [job](entity:Job) the shift is scheduled for.\",\n                    \"nullable\": true\n                  },\n                  \"start_at\": {\n                    \"type\": \"string\",\n                    \"description\": \"The start time of the shift, in RFC 3339 format in the time zone &plus;\\noffset of the shift location specified in `location_id`. Precision up to the minute\\nis respected; seconds are truncated.\",\n                    \"nullable\": true\n                  },\n                  \"end_at\": {\n                    \"type\": \"string\",\n                    \"description\": \"The end time for the shift, in RFC 3339 format in the time zone &plus;\\noffset of the shift location specified in `location_id`. Precision up to the minute\\nis respected; seconds are truncated.\",\n                    \"nullable\": true\n                  },\n                  \"notes\": {\n                    \"type\": \"string\",\n                    \"description\": \"Optional notes for the shift.\",\n                    \"maxLength\": 1000,\n                    \"nullable\": true\n                  },\n                  \"is_deleted\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"Indicates whether the draft shift version is deleted. If set to `true` when the shift\\nis published, the entire scheduled shift (including the published shift) is deleted and\\ncannot be accessed using any endpoint.\",\n                    \"nullable\": true\n                  },\n                  \"timezone\": {\n                    \"type\": \"string\",\n                    \"description\": \"The time zone of the shift location, calculated based on the `location_id`. This field\\nis provided for convenience.\",\n                    \"readOnly\": true\n                  }\n                }\n              },\n              \"version\": {\n                \"type\": \"integer\",\n                \"description\": \"**Read only** The current version of the scheduled shift, which is incremented with each update.\\nThis field is used for [optimistic concurrency](https://developer.squareup.com/docs/build-basics/common-api-patterns/optimistic-concurrency)\\ncontrol to ensure that requests don't overwrite data from another request.\"\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp of when the scheduled shift was created, in RFC 3339 format presented as UTC.\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp of when the scheduled shift was last updated, in RFC 3339 format presented as UTC.\",\n                \"readOnly\": true\n              }\n            }\n          }\n        },\n        \"example\": {\n          \"scheduled_shift\": {\n            \"draft_shift_details\": {\n              \"end_at\": \"2019-03-25T13:18:00-05:00\",\n              \"is_deleted\": false,\n              \"job_id\": \"FzbJAtt9qEWncK1BWgVCxQ6M\",\n              \"location_id\": \"PAA1RJZZKXBFG\",\n              \"notes\": \"Dont forget to prep the vegetables\",\n              \"start_at\": \"2019-03-25T03:11:00-05:00\",\n              \"team_member_id\": \"ormj0jJJZ5OZIzxrZYJI\"\n            },\n            \"version\": 1\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

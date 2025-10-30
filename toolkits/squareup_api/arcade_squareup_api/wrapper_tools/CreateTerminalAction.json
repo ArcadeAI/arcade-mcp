@@ -1,0 +1,1243 @@
+{
+  "name": "CreateTerminalAction",
+  "fully_qualified_name": "SquareupApi.CreateTerminalAction@2.0.0",
+  "description": "Create and send a terminal action request to a device.\n\nThis tool creates a terminal action request and sends it to the specified device using the SquareUp API. It should be called when you need to initiate an action on a terminal device.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "terminal_action_request_body",
+        "required": true,
+        "description": "A JSON object detailing the terminal action request, including idempotency key and action specifics.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this `CreateAction` request. Keys can be any valid string\nbut must be unique for every `CreateAction` request.\n\nSee [Idempotency keys](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency) for more\ninformation."
+            },
+            "action": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique ID for this `TerminalAction`."
+                },
+                "device_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique Id of the device intended for this `TerminalAction`.\nThe Id can be retrieved from /v2/devices api."
+                },
+                "deadline_duration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The duration as an RFC 3339 duration, after which the action will be automatically canceled.\nTerminalActions that are `PENDING` will be automatically `CANCELED` and have a cancellation reason\nof `TIMED_OUT`\n\nDefault: 5 minutes from creation\n\nMaximum: 5 minutes"
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The status of the `TerminalAction`.\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, `COMPLETED`"
+                },
+                "cancel_reason": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "BUYER_CANCELED",
+                    "SELLER_CANCELED",
+                    "TIMED_OUT"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time when the `TerminalAction` was created as an RFC 3339 timestamp."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time when the `TerminalAction` was last updated as an RFC 3339 timestamp."
+                },
+                "app_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the application that created the action."
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The location id the action is attached to, if a link can be made."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "QR_CODE",
+                    "PING",
+                    "SAVE_CARD",
+                    "SIGNATURE",
+                    "CONFIRMATION",
+                    "RECEIPT",
+                    "DATA_COLLECTION",
+                    "SELECT"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Describes the type of this unit and indicates which field contains the unit information. This is an \u2018open\u2019 enum."
+                },
+                "qr_code_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the QR code flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The body text to display in the QR code flow on the Terminal."
+                    },
+                    "barcode_contents": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The text representation of the data to show in the QR code\nas UTF8-encoded data."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Fields to describe the action that displays QR-Codes."
+                },
+                "save_card_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "customer_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The square-assigned ID of the customer linked to the saved card."
+                    },
+                    "card_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The id of the created card-on-file."
+                    },
+                    "reference_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An optional user-defined reference ID that can be used to associate\nthis `Card` to another entity in an external system. For example, a customer\nID generated by a third-party system."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Describes save-card action fields."
+                },
+                "signature_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the signature capture flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The body text to display in the signature capture flow on the Terminal."
+                    },
+                    "signature": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "image_type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The mime/type of the image data.\nUse `image/png;base64` for png."
+                        },
+                        "data": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The base64 representation of the image."
+                        }
+                      },
+                      "description": "An image representation of the collected signature."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "confirmation_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the confirmation screen flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The agreement details to display in the confirmation flow on the Terminal."
+                    },
+                    "agree_button_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The button text to display indicating the customer agrees to the displayed terms."
+                    },
+                    "disagree_button_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The button text to display indicating the customer does not agree to the displayed terms."
+                    },
+                    "decision": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "has_agreed": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The buyer's decision to the displayed terms."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "receipt_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "payment_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The reference to the Square payment ID for the receipt."
+                    },
+                    "print_only": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Instructs the device to print the receipt without displaying the receipt selection screen.\nRequires `printer_enabled` set to true.\nDefaults to false."
+                    },
+                    "is_duplicate": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Identify the receipt as a reprint rather than an original receipt.\nDefaults to false."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Describes receipt action fields."
+                },
+                "data_collection_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the data collection flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The body text to display under the title in the data collection screen flow on the\nTerminal."
+                    },
+                    "input_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "EMAIL",
+                        "PHONE_NUMBER"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Describes the input type of the data."
+                    },
+                    "collected_data": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "input_text": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The buyer's input text."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "select_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the select flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The body text to display in the select flow on the Terminal."
+                    },
+                    "options": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "reference_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The reference id for the option."
+                        },
+                        "title": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The title text that displays in the select option button."
+                        }
+                      },
+                      "description": "Represents the buttons/options that should be displayed in the select flow on the Terminal."
+                    },
+                    "selected_option": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "reference_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The reference id for the option."
+                        },
+                        "title": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The title text that displays in the select option button."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "device_metadata": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "battery_percentage": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Terminal\u2019s remaining battery percentage, between 1-100."
+                    },
+                    "charging_state": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The current charging state of the Terminal.\nOptions: `CHARGING`, `NOT_CHARGING`"
+                    },
+                    "location_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the Square seller business location associated with the Terminal."
+                    },
+                    "merchant_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the Square merchant account that is currently signed-in to the Terminal."
+                    },
+                    "network_connection_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Terminal\u2019s current network connection type.\nOptions: `WIFI`, `ETHERNET`"
+                    },
+                    "payment_region": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The country in which the Terminal is authorized to take payments."
+                    },
+                    "serial_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The unique identifier assigned to the Terminal, which can be found on the lower back\nof the device."
+                    },
+                    "os_version": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The current version of the Terminal\u2019s operating system."
+                    },
+                    "app_version": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The current version of the application running on the Terminal."
+                    },
+                    "wifi_network_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the Wi-Fi network to which the Terminal is connected."
+                    },
+                    "wifi_network_strength": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The signal strength of the Wi-FI network connection.\nOptions: `POOR`, `FAIR`, `GOOD`, `EXCELLENT`"
+                    },
+                    "ip_address": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The IP address of the Terminal."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "await_next_action": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates the action will be linked to another action and requires a waiting dialog to be\ndisplayed instead of returning to the idle screen on completion of the action.\n\nOnly supported on SIGNATURE, CONFIRMATION, DATA_COLLECTION, and SELECT types."
+                },
+                "await_next_action_duration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timeout duration of the waiting dialog as an RFC 3339 duration, after which the\nwaiting dialog will no longer be displayed and the Terminal will return to the idle screen.\n\nDefault: 5 minutes from when the waiting dialog is displayed\n\nMaximum: 5 minutes"
+                }
+              },
+              "inner_properties": null,
+              "description": "Represents an action processed by the Square Terminal."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateTerminalAction'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "PAYMENTS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/terminals/actions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "terminal_action_request_body",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this `CreateAction` request. Keys can be any valid string\nbut must be unique for every `CreateAction` request.\n\nSee [Idempotency keys](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency) for more\ninformation."
+            },
+            "action": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique ID for this `TerminalAction`."
+                },
+                "device_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique Id of the device intended for this `TerminalAction`.\nThe Id can be retrieved from /v2/devices api."
+                },
+                "deadline_duration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The duration as an RFC 3339 duration, after which the action will be automatically canceled.\nTerminalActions that are `PENDING` will be automatically `CANCELED` and have a cancellation reason\nof `TIMED_OUT`\n\nDefault: 5 minutes from creation\n\nMaximum: 5 minutes"
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The status of the `TerminalAction`.\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, `COMPLETED`"
+                },
+                "cancel_reason": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "BUYER_CANCELED",
+                    "SELLER_CANCELED",
+                    "TIMED_OUT"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time when the `TerminalAction` was created as an RFC 3339 timestamp."
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time when the `TerminalAction` was last updated as an RFC 3339 timestamp."
+                },
+                "app_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the application that created the action."
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The location id the action is attached to, if a link can be made."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "QR_CODE",
+                    "PING",
+                    "SAVE_CARD",
+                    "SIGNATURE",
+                    "CONFIRMATION",
+                    "RECEIPT",
+                    "DATA_COLLECTION",
+                    "SELECT"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Describes the type of this unit and indicates which field contains the unit information. This is an \u2018open\u2019 enum."
+                },
+                "qr_code_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the QR code flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The body text to display in the QR code flow on the Terminal."
+                    },
+                    "barcode_contents": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The text representation of the data to show in the QR code\nas UTF8-encoded data."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Fields to describe the action that displays QR-Codes."
+                },
+                "save_card_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "customer_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The square-assigned ID of the customer linked to the saved card."
+                    },
+                    "card_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The id of the created card-on-file."
+                    },
+                    "reference_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An optional user-defined reference ID that can be used to associate\nthis `Card` to another entity in an external system. For example, a customer\nID generated by a third-party system."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Describes save-card action fields."
+                },
+                "signature_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the signature capture flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The body text to display in the signature capture flow on the Terminal."
+                    },
+                    "signature": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "image_type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The mime/type of the image data.\nUse `image/png;base64` for png."
+                        },
+                        "data": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The base64 representation of the image."
+                        }
+                      },
+                      "description": "An image representation of the collected signature."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "confirmation_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the confirmation screen flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The agreement details to display in the confirmation flow on the Terminal."
+                    },
+                    "agree_button_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The button text to display indicating the customer agrees to the displayed terms."
+                    },
+                    "disagree_button_text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The button text to display indicating the customer does not agree to the displayed terms."
+                    },
+                    "decision": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "has_agreed": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The buyer's decision to the displayed terms."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "receipt_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "payment_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The reference to the Square payment ID for the receipt."
+                    },
+                    "print_only": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Instructs the device to print the receipt without displaying the receipt selection screen.\nRequires `printer_enabled` set to true.\nDefaults to false."
+                    },
+                    "is_duplicate": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Identify the receipt as a reprint rather than an original receipt.\nDefaults to false."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Describes receipt action fields."
+                },
+                "data_collection_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the data collection flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The body text to display under the title in the data collection screen flow on the\nTerminal."
+                    },
+                    "input_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "EMAIL",
+                        "PHONE_NUMBER"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Describes the input type of the data."
+                    },
+                    "collected_data": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "input_text": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The buyer's input text."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "select_options": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title text to display in the select flow on the Terminal."
+                    },
+                    "body": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The body text to display in the select flow on the Terminal."
+                    },
+                    "options": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "reference_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The reference id for the option."
+                        },
+                        "title": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The title text that displays in the select option button."
+                        }
+                      },
+                      "description": "Represents the buttons/options that should be displayed in the select flow on the Terminal."
+                    },
+                    "selected_option": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "reference_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The reference id for the option."
+                        },
+                        "title": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The title text that displays in the select option button."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "device_metadata": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "battery_percentage": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Terminal\u2019s remaining battery percentage, between 1-100."
+                    },
+                    "charging_state": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The current charging state of the Terminal.\nOptions: `CHARGING`, `NOT_CHARGING`"
+                    },
+                    "location_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the Square seller business location associated with the Terminal."
+                    },
+                    "merchant_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the Square merchant account that is currently signed-in to the Terminal."
+                    },
+                    "network_connection_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Terminal\u2019s current network connection type.\nOptions: `WIFI`, `ETHERNET`"
+                    },
+                    "payment_region": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The country in which the Terminal is authorized to take payments."
+                    },
+                    "serial_number": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The unique identifier assigned to the Terminal, which can be found on the lower back\nof the device."
+                    },
+                    "os_version": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The current version of the Terminal\u2019s operating system."
+                    },
+                    "app_version": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The current version of the application running on the Terminal."
+                    },
+                    "wifi_network_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the Wi-Fi network to which the Terminal is connected."
+                    },
+                    "wifi_network_strength": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The signal strength of the Wi-FI network connection.\nOptions: `POOR`, `FAIR`, `GOOD`, `EXCELLENT`"
+                    },
+                    "ip_address": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The IP address of the Terminal."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "await_next_action": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates the action will be linked to another action and requires a waiting dialog to be\ndisplayed instead of returning to the idle screen on completion of the action.\n\nOnly supported on SIGNATURE, CONFIRMATION, DATA_COLLECTION, and SELECT types."
+                },
+                "await_next_action_duration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timeout duration of the waiting dialog as an RFC 3339 duration, after which the\nwaiting dialog will no longer be displayed and the Terminal will return to the idle screen.\n\nDefault: 5 minutes from when the waiting dialog is displayed\n\nMaximum: 5 minutes"
+                }
+              },
+              "inner_properties": null,
+              "description": "Represents an action processed by the Square Terminal."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"idempotency_key\",\n          \"action\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this `CreateAction` request. Keys can be any valid string\\nbut must be unique for every `CreateAction` request.\\n\\nSee [Idempotency keys](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency) for more\\ninformation.\",\n            \"minLength\": 1,\n            \"maxLength\": 64\n          },\n          \"action\": {\n            \"type\": \"object\",\n            \"description\": \"Represents an action processed by the Square Terminal.\",\n            \"x-release-status\": \"BETA\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"A unique ID for this `TerminalAction`.\",\n                \"minLength\": 10,\n                \"maxLength\": 255,\n                \"readOnly\": true\n              },\n              \"device_id\": {\n                \"type\": \"string\",\n                \"description\": \"The unique Id of the device intended for this `TerminalAction`.\\nThe Id can be retrieved from /v2/devices api.\",\n                \"nullable\": true\n              },\n              \"deadline_duration\": {\n                \"type\": \"string\",\n                \"description\": \"The duration as an RFC 3339 duration, after which the action will be automatically canceled.\\nTerminalActions that are `PENDING` will be automatically `CANCELED` and have a cancellation reason\\nof `TIMED_OUT`\\n\\nDefault: 5 minutes from creation\\n\\nMaximum: 5 minutes\",\n                \"nullable\": true\n              },\n              \"status\": {\n                \"type\": \"string\",\n                \"description\": \"The status of the `TerminalAction`.\\nOptions: `PENDING`, `IN_PROGRESS`, `CANCEL_REQUESTED`, `CANCELED`, `COMPLETED`\",\n                \"readOnly\": true\n              },\n              \"cancel_reason\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"BUYER_CANCELED\",\n                  \"SELLER_CANCELED\",\n                  \"TIMED_OUT\"\n                ],\n                \"x-enum-elements\": [\n                  {\n                    \"name\": \"BUYER_CANCELED\",\n                    \"description\": \"A person canceled the `TerminalCheckout` from a Square device.\"\n                  },\n                  {\n                    \"name\": \"SELLER_CANCELED\",\n                    \"description\": \"A client canceled the `TerminalCheckout` using the API.\"\n                  },\n                  {\n                    \"name\": \"TIMED_OUT\",\n                    \"description\": \"The `TerminalCheckout` timed out (see `deadline_duration` on the `TerminalCheckout`).\"\n                  }\n                ],\n                \"x-release-status\": \"PUBLIC\"\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"The time when the `TerminalAction` was created as an RFC 3339 timestamp.\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"The time when the `TerminalAction` was last updated as an RFC 3339 timestamp.\",\n                \"readOnly\": true\n              },\n              \"app_id\": {\n                \"type\": \"string\",\n                \"description\": \"The ID of the application that created the action.\",\n                \"readOnly\": true\n              },\n              \"location_id\": {\n                \"type\": \"string\",\n                \"description\": \"The location id the action is attached to, if a link can be made.\",\n                \"maxLength\": 64,\n                \"readOnly\": true,\n                \"x-release-status\": \"PUBLIC\"\n              },\n              \"type\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"QR_CODE\",\n                  \"PING\",\n                  \"SAVE_CARD\",\n                  \"SIGNATURE\",\n                  \"CONFIRMATION\",\n                  \"RECEIPT\",\n                  \"DATA_COLLECTION\",\n                  \"SELECT\"\n                ],\n                \"x-enum-elements\": [\n                  {\n                    \"name\": \"QR_CODE\",\n                    \"description\": \"The action represents a request to display a QR code. Details are contained in\\nthe `qr_code_options` object.\"\n                  },\n                  {\n                    \"name\": \"PING\",\n                    \"description\": \"The action represents a request to check if the specific device is\\nonline or currently active with the merchant in question. Does not require an action options value.\"\n                  },\n                  {\n                    \"name\": \"SAVE_CARD\",\n                    \"description\": \"Represents a request to save a card for future card-on-file use. Details are contained\\nin the `save_card_options` object.\"\n                  },\n                  {\n                    \"name\": \"SIGNATURE\",\n                    \"description\": \"The action represents a request to capture a buyer's signature. Details are contained\\nin the `signature_options` object.\"\n                  },\n                  {\n                    \"name\": \"CONFIRMATION\",\n                    \"description\": \"The action represents a request to collect a buyer's confirmation decision to the\\ndisplayed terms. Details are contained in the `confirmation_options` object.\"\n                  },\n                  {\n                    \"name\": \"RECEIPT\",\n                    \"description\": \"The action represents a request to display the receipt screen options. Details are\\ncontained in the `receipt_options` object.\"\n                  },\n                  {\n                    \"name\": \"DATA_COLLECTION\",\n                    \"description\": \"The action represents a request to collect a buyer's text data. Details\\nare contained in the `data_collection_options` object.\"\n                  },\n                  {\n                    \"name\": \"SELECT\",\n                    \"description\": \"The action represents a request to allow the buyer to select from provided options.\\nDetails are contained in the `select_options` object.\"\n                  }\n                ],\n                \"description\": \"Describes the type of this unit and indicates which field contains the unit information. This is an \\u2018open\\u2019 enum.\",\n                \"x-release-status\": \"BETA\"\n              },\n              \"qr_code_options\": {\n                \"type\": \"object\",\n                \"description\": \"Fields to describe the action that displays QR-Codes.\",\n                \"x-release-status\": \"BETA\",\n                \"required\": [\n                  \"title\",\n                  \"body\",\n                  \"barcode_contents\"\n                ],\n                \"properties\": {\n                  \"title\": {\n                    \"type\": \"string\",\n                    \"description\": \"The title text to display in the QR code flow on the Terminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 250\n                  },\n                  \"body\": {\n                    \"type\": \"string\",\n                    \"description\": \"The body text to display in the QR code flow on the Terminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 10000\n                  },\n                  \"barcode_contents\": {\n                    \"type\": \"string\",\n                    \"description\": \"The text representation of the data to show in the QR code\\nas UTF8-encoded data.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 1024\n                  }\n                }\n              },\n              \"save_card_options\": {\n                \"type\": \"object\",\n                \"description\": \"Describes save-card action fields.\",\n                \"x-release-status\": \"BETA\",\n                \"required\": [\n                  \"customer_id\"\n                ],\n                \"properties\": {\n                  \"customer_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The square-assigned ID of the customer linked to the saved card.\"\n                  },\n                  \"card_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The id of the created card-on-file.\",\n                    \"maxLength\": 64,\n                    \"readOnly\": true\n                  },\n                  \"reference_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"An optional user-defined reference ID that can be used to associate\\nthis `Card` to another entity in an external system. For example, a customer\\nID generated by a third-party system.\",\n                    \"maxLength\": 128,\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"signature_options\": {\n                \"type\": \"object\",\n                \"x-release-status\": \"BETA\",\n                \"required\": [\n                  \"title\",\n                  \"body\"\n                ],\n                \"properties\": {\n                  \"title\": {\n                    \"type\": \"string\",\n                    \"description\": \"The title text to display in the signature capture flow on the Terminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 250\n                  },\n                  \"body\": {\n                    \"type\": \"string\",\n                    \"description\": \"The body text to display in the signature capture flow on the Terminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 10000\n                  },\n                  \"signature\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"x-release-status\": \"BETA\",\n                      \"properties\": {\n                        \"image_type\": {\n                          \"type\": \"string\",\n                          \"description\": \"The mime/type of the image data.\\nUse `image/png;base64` for png.\",\n                          \"readOnly\": true\n                        },\n                        \"data\": {\n                          \"type\": \"string\",\n                          \"description\": \"The base64 representation of the image.\",\n                          \"readOnly\": true\n                        }\n                      }\n                    },\n                    \"description\": \"An image representation of the collected signature.\",\n                    \"readOnly\": true\n                  }\n                }\n              },\n              \"confirmation_options\": {\n                \"type\": \"object\",\n                \"x-release-status\": \"BETA\",\n                \"required\": [\n                  \"title\",\n                  \"body\",\n                  \"agree_button_text\"\n                ],\n                \"properties\": {\n                  \"title\": {\n                    \"type\": \"string\",\n                    \"description\": \"The title text to display in the confirmation screen flow on the Terminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 250\n                  },\n                  \"body\": {\n                    \"type\": \"string\",\n                    \"description\": \"The agreement details to display in the confirmation flow on the Terminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 10000\n                  },\n                  \"agree_button_text\": {\n                    \"type\": \"string\",\n                    \"description\": \"The button text to display indicating the customer agrees to the displayed terms.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 250\n                  },\n                  \"disagree_button_text\": {\n                    \"type\": \"string\",\n                    \"description\": \"The button text to display indicating the customer does not agree to the displayed terms.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 250,\n                    \"nullable\": true\n                  },\n                  \"decision\": {\n                    \"type\": \"object\",\n                    \"x-release-status\": \"BETA\",\n                    \"properties\": {\n                      \"has_agreed\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"The buyer's decision to the displayed terms.\",\n                        \"readOnly\": true\n                      }\n                    }\n                  }\n                }\n              },\n              \"receipt_options\": {\n                \"type\": \"object\",\n                \"description\": \"Describes receipt action fields.\",\n                \"x-release-status\": \"BETA\",\n                \"required\": [\n                  \"payment_id\"\n                ],\n                \"properties\": {\n                  \"payment_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The reference to the Square payment ID for the receipt.\"\n                  },\n                  \"print_only\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"Instructs the device to print the receipt without displaying the receipt selection screen.\\nRequires `printer_enabled` set to true.\\nDefaults to false.\",\n                    \"nullable\": true\n                  },\n                  \"is_duplicate\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"Identify the receipt as a reprint rather than an original receipt.\\nDefaults to false.\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"data_collection_options\": {\n                \"type\": \"object\",\n                \"x-release-status\": \"BETA\",\n                \"required\": [\n                  \"title\",\n                  \"body\",\n                  \"input_type\"\n                ],\n                \"properties\": {\n                  \"title\": {\n                    \"type\": \"string\",\n                    \"description\": \"The title text to display in the data collection flow on the Terminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 250\n                  },\n                  \"body\": {\n                    \"type\": \"string\",\n                    \"description\": \"The body text to display under the title in the data collection screen flow on the\\nTerminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 10000\n                  },\n                  \"input_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"EMAIL\",\n                      \"PHONE_NUMBER\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"EMAIL\",\n                        \"description\": \"This value is used to represent an input text that contains a email validation on the\\nclient.\"\n                      },\n                      {\n                        \"name\": \"PHONE_NUMBER\",\n                        \"description\": \"This value is used to represent an input text that contains a phone number validation on\\nthe client.\"\n                      }\n                    ],\n                    \"description\": \"Describes the input type of the data.\",\n                    \"x-release-status\": \"BETA\"\n                  },\n                  \"collected_data\": {\n                    \"type\": \"object\",\n                    \"x-release-status\": \"BETA\",\n                    \"properties\": {\n                      \"input_text\": {\n                        \"type\": \"string\",\n                        \"description\": \"The buyer's input text.\",\n                        \"readOnly\": true\n                      }\n                    }\n                  }\n                }\n              },\n              \"select_options\": {\n                \"type\": \"object\",\n                \"x-release-status\": \"BETA\",\n                \"required\": [\n                  \"title\",\n                  \"body\",\n                  \"options\"\n                ],\n                \"properties\": {\n                  \"title\": {\n                    \"type\": \"string\",\n                    \"description\": \"The title text to display in the select flow on the Terminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 250\n                  },\n                  \"body\": {\n                    \"type\": \"string\",\n                    \"description\": \"The body text to display in the select flow on the Terminal.\",\n                    \"minLength\": 1,\n                    \"maxLength\": 10000\n                  },\n                  \"options\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"x-release-status\": \"BETA\",\n                      \"required\": [\n                        \"reference_id\",\n                        \"title\"\n                      ],\n                      \"properties\": {\n                        \"reference_id\": {\n                          \"type\": \"string\",\n                          \"description\": \"The reference id for the option.\",\n                          \"minLength\": 1,\n                          \"maxLength\": 40\n                        },\n                        \"title\": {\n                          \"type\": \"string\",\n                          \"description\": \"The title text that displays in the select option button.\",\n                          \"minLength\": 1,\n                          \"maxLength\": 250\n                        }\n                      }\n                    },\n                    \"description\": \"Represents the buttons/options that should be displayed in the select flow on the Terminal.\"\n                  },\n                  \"selected_option\": {\n                    \"type\": \"object\",\n                    \"x-release-status\": \"BETA\",\n                    \"required\": [\n                      \"reference_id\",\n                      \"title\"\n                    ],\n                    \"properties\": {\n                      \"reference_id\": {\n                        \"type\": \"string\",\n                        \"description\": \"The reference id for the option.\",\n                        \"minLength\": 1,\n                        \"maxLength\": 40\n                      },\n                      \"title\": {\n                        \"type\": \"string\",\n                        \"description\": \"The title text that displays in the select option button.\",\n                        \"minLength\": 1,\n                        \"maxLength\": 250\n                      }\n                    }\n                  }\n                }\n              },\n              \"device_metadata\": {\n                \"type\": \"object\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"battery_percentage\": {\n                    \"type\": \"string\",\n                    \"description\": \"The Terminal\\u2019s remaining battery percentage, between 1-100.\",\n                    \"nullable\": true\n                  },\n                  \"charging_state\": {\n                    \"type\": \"string\",\n                    \"description\": \"The current charging state of the Terminal.\\nOptions: `CHARGING`, `NOT_CHARGING`\",\n                    \"nullable\": true\n                  },\n                  \"location_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The ID of the Square seller business location associated with the Terminal.\",\n                    \"nullable\": true\n                  },\n                  \"merchant_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"The ID of the Square merchant account that is currently signed-in to the Terminal.\",\n                    \"nullable\": true\n                  },\n                  \"network_connection_type\": {\n                    \"type\": \"string\",\n                    \"description\": \"The Terminal\\u2019s current network connection type.\\nOptions: `WIFI`, `ETHERNET`\",\n                    \"nullable\": true\n                  },\n                  \"payment_region\": {\n                    \"type\": \"string\",\n                    \"description\": \"The country in which the Terminal is authorized to take payments.\",\n                    \"nullable\": true\n                  },\n                  \"serial_number\": {\n                    \"type\": \"string\",\n                    \"description\": \"The unique identifier assigned to the Terminal, which can be found on the lower back\\nof the device.\",\n                    \"nullable\": true\n                  },\n                  \"os_version\": {\n                    \"type\": \"string\",\n                    \"description\": \"The current version of the Terminal\\u2019s operating system.\",\n                    \"nullable\": true\n                  },\n                  \"app_version\": {\n                    \"type\": \"string\",\n                    \"description\": \"The current version of the application running on the Terminal.\",\n                    \"nullable\": true\n                  },\n                  \"wifi_network_name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the Wi-Fi network to which the Terminal is connected.\",\n                    \"nullable\": true\n                  },\n                  \"wifi_network_strength\": {\n                    \"type\": \"string\",\n                    \"description\": \"The signal strength of the Wi-FI network connection.\\nOptions: `POOR`, `FAIR`, `GOOD`, `EXCELLENT`\",\n                    \"nullable\": true\n                  },\n                  \"ip_address\": {\n                    \"type\": \"string\",\n                    \"description\": \"The IP address of the Terminal.\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"await_next_action\": {\n                \"type\": \"boolean\",\n                \"description\": \"Indicates the action will be linked to another action and requires a waiting dialog to be\\ndisplayed instead of returning to the idle screen on completion of the action.\\n\\nOnly supported on SIGNATURE, CONFIRMATION, DATA_COLLECTION, and SELECT types.\",\n                \"nullable\": true\n              },\n              \"await_next_action_duration\": {\n                \"type\": \"string\",\n                \"description\": \"The timeout duration of the waiting dialog as an RFC 3339 duration, after which the\\nwaiting dialog will no longer be displayed and the Terminal will return to the idle screen.\\n\\nDefault: 5 minutes from when the waiting dialog is displayed\\n\\nMaximum: 5 minutes\",\n                \"nullable\": true\n              }\n            }\n          }\n        },\n        \"example\": {\n          \"action\": {\n            \"deadline_duration\": \"PT5M\",\n            \"device_id\": \"{{DEVICE_ID}}\",\n            \"save_card_options\": {\n              \"customer_id\": \"{{CUSTOMER_ID}}\",\n              \"reference_id\": \"user-id-1\"\n            },\n            \"type\": \"SAVE_CARD\"\n          },\n          \"idempotency_key\": \"thahn-70e75c10-47f7-4ab6-88cc-aaa4076d065e\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

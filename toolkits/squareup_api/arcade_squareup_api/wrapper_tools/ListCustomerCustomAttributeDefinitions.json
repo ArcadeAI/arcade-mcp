@@ -1,18 +1,18 @@
 {
   "name": "ListCustomerCustomAttributeDefinitions",
-  "fully_qualified_name": "SquareupApi.ListCustomerCustomAttributeDefinitions@0.1.0",
-  "description": "Retrieve customer custom attribute definitions for a Square seller.\n\nUse this tool to list all customer-related custom attribute definitions for a Square seller account. It returns all visible custom attribute definitions to the requesting application, including those set by other applications.",
+  "fully_qualified_name": "SquareupApi.ListCustomerCustomAttributeDefinitions@2.0.0",
+  "description": "Retrieve customer custom attribute definitions for a Square seller.\n\nLists customer-related custom attribute definitions of a Square seller account, including those visible to the requesting app. This includes custom attributes that are read-only or read-write.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "maximum_results_per_page",
+        "name": "max_results_per_page",
         "required": false,
-        "description": "The maximum number of results to return in a paged response. Accepts values from 1 to 100, with a default of 20.",
+        "description": "Maximum number of results to return per page. It ranges from 1 to 100, defaulting to 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Cursor for retrieving the next page of results. Obtain this from a previous response.",
+        "description": "Cursor from the previous response for pagination. Use it to get the next page of results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/customers/custom-attribute-definitions",
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "maximum_results_per_page",
+        "tool_parameter_name": "max_results_per_page",
         "description": "The maximum number of results to return in a single paged response. This limit is advisory.\nThe response might contain more or fewer results. The minimum value is 1 and the maximum value is 100.\nThe default value is 20. For more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
         "value_schema": {
           "val_type": "integer",
@@ -102,6 +102,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -119,6 +120,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

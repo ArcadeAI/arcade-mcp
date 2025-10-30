@@ -1,0 +1,369 @@
+{
+  "name": "AddTargetToGoal",
+  "fully_qualified_name": "ClickupApi.AddTargetToGoal@0.1.0",
+  "description": "Add a target to a specific goal in ClickUp.\n\nUse this tool to add a key result target to an existing goal in ClickUp, enhancing goal tracking and achievement.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "goal_identifier",
+        "required": true,
+        "description": "The unique identifier (UUID) of the goal to which the target will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "900e-462d-a849-4a216b06d930 (uuid)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "goal_id"
+      },
+      {
+        "name": "target_name",
+        "required": true,
+        "description": "Specify the name for the target being added to the goal. It should be a descriptive label for easy identification.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "target_owners_ids",
+        "required": true,
+        "description": "An array of user IDs representing the owners of the key result target.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owners"
+      },
+      {
+        "name": "target_type",
+        "required": true,
+        "description": "Specify the type of target (key result) as one of the following: `number`, `currency`, `boolean`, `percentage`, or `automatic`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Target (key result) types include: `number`, `currency`, `boolean`, `percentage`, or `automatic`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "initial_value_steps",
+        "required": true,
+        "description": "Specify the starting value for the target's progress steps, as an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "steps_start"
+      },
+      {
+        "name": "target_steps_end",
+        "required": true,
+        "description": "Specify the final value for the target steps. It indicates the goal completion threshold.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "steps_end"
+      },
+      {
+        "name": "target_unit",
+        "required": true,
+        "description": "Specify the unit for the target if using types like number, currency, or percentage.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unit"
+      },
+      {
+        "name": "linked_task_ids",
+        "required": true,
+        "description": "An array of task IDs to associate the target with tasks.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter an array of task IDs to link this target with one or more tasks."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_ids"
+      },
+      {
+        "name": "list_ids",
+        "required": true,
+        "description": "Array of List IDs to associate the target with multiple Lists.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter an array of List IDs to link this target with one or more Lists."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateKeyResult'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/goal/{goal_id}/key_result",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "goal_id",
+        "tool_parameter_name": "goal_identifier",
+        "description": "900e-462d-a849-4a216b06d930 (uuid)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "900e-462d-a849-4a216b06d930 (uuid)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "target_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "owners",
+        "tool_parameter_name": "target_owners_ids",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "target_type",
+        "description": "Target (key result) types include: `number`, `currency`, `boolean`, `percentage`, or `automatic`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Target (key result) types include: `number`, `currency`, `boolean`, `percentage`, or `automatic`."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "steps_start",
+        "tool_parameter_name": "initial_value_steps",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "steps_end",
+        "tool_parameter_name": "target_steps_end",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "unit",
+        "tool_parameter_name": "target_unit",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_ids",
+        "tool_parameter_name": "linked_task_ids",
+        "description": "Enter an array of task IDs to link this target with one or more tasks.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter an array of task IDs to link this target with one or more tasks."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "list_ids",
+        "tool_parameter_name": "list_ids",
+        "description": "Enter an array of List IDs to link this target with one or more Lists.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enter an array of List IDs to link this target with one or more Lists."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"CreateKeyResultrequest\",\n        \"required\": [\n          \"name\",\n          \"owners\",\n          \"type\",\n          \"steps_start\",\n          \"steps_end\",\n          \"unit\",\n          \"task_ids\",\n          \"list_ids\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"owners\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\",\n              \"contentEncoding\": \"int32\"\n            },\n            \"description\": \"\"\n          },\n          \"type\": {\n            \"description\": \"Target (key result) types include: `number`, `currency`, `boolean`, `percentage`, or `automatic`.\",\n            \"type\": \"string\"\n          },\n          \"steps_start\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          },\n          \"steps_end\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          },\n          \"unit\": {\n            \"type\": \"string\"\n          },\n          \"task_ids\": {\n            \"description\": \"Enter an array of task IDs to link this target with one or more tasks.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"list_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Enter an array of List IDs to link this target with one or more Lists.\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"New Target Name\",\n            \"owners\": [\n              183\n            ],\n            \"type\": \"number\",\n            \"steps_start\": 0,\n            \"steps_end\": 10,\n            \"unit\": \"km\",\n            \"task_ids\": [],\n            \"list_ids\": []\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"New Key Result Name\",\n        \"owners\": [\n          183\n        ],\n        \"type\": \"number\",\n        \"steps_start\": 0,\n        \"steps_end\": 10,\n        \"unit\": \"km\",\n        \"task_ids\": [],\n        \"list_ids\": []\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

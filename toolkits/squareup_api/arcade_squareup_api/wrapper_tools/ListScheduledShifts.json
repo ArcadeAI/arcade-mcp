@@ -1,0 +1,523 @@
+{
+  "name": "ListScheduledShifts",
+  "fully_qualified_name": "SquareupApi.ListScheduledShifts@2.0.0",
+  "description": "Retrieve a list of scheduled shifts with filtering options.\n\nFetch a paginated list of scheduled work shifts. You can apply filters and sort the results, which are by default ordered by start time in ascending order.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "scheduled_shifts_query",
+        "required": true,
+        "description": "An object that includes filter and sort settings for fetching scheduled shifts. Supports location IDs, time range, workday, team member IDs, and assignment status, with options for sorting and pagination.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "location_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Return shifts for the specified locations. When omitted, shifts for all\nlocations are returned. If needed, call [ListLocations](api-endpoint:Locations-ListLocations)\nto get location IDs."
+                    },
+                    "start": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "end": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "workday": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "date_range": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_date": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\nextended format for calendar dates.\nThe beginning of a date range (inclusive)."
+                            },
+                            "end_date": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\nextended format for calendar dates.\nThe end of a date range (inclusive)."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A range defined by two dates. Used for filtering a query for Connect v2\nobjects that have date properties."
+                        },
+                        "match_scheduled_shifts_by": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "START_AT",
+                            "END_AT",
+                            "INTERSECTION"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines the logic used to apply a workday filter."
+                        },
+                        "default_timezone": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Location-specific timezones convert workdays to datetime filters.\nEvery location included in the query must have a timezone or this field\nmust be provided as a fallback. Format: the IANA timezone database\nidentifier for the relevant timezone."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A `ScheduledShift` search query filter parameter that sets a range of days that\na `Shift` must start or end in before passing the filter condition."
+                    },
+                    "team_member_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Return shifts assigned to specified team members. If needed, call\n[SearchTeamMembers](api-endpoint:Team-SearchTeamMembers) to get team member IDs.\n\nTo return only the shifts assigned to the specified team members, include the\n`assignment_status` filter in the query. Otherwise, all unassigned shifts are\nreturned along with shifts assigned to the specified team members."
+                    },
+                    "assignment_status": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "ASSIGNED",
+                        "UNASSIGNED"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines valid values for the `assignment_status` filter in a\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request.\nAssignment status is based on the `draft_shift_details.team_member_id` and\n`published_shift_details.team_member_id` fields of the scheduled shift."
+                    },
+                    "scheduled_shift_statuses": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Return shifts based on the draft or published status of the shift.\nA shift is published if the `published_shift_details` field is present.\n\nNote that shifts with `draft_shift_details.is_deleted` set to `true` are ignored\nwith the `DRAFT` filter.\nSee [ScheduledShiftFilterScheduledShiftStatus](#type-scheduledshiftfilterscheduledshiftstatus) for possible values"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines filter criteria for a [SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts)\nrequest. Multiple filters in a query are combined as an `AND` operation."
+                },
+                "sort": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "START_AT",
+                        "END_AT",
+                        "CREATED_AT",
+                        "UPDATED_AT"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines valid values for the `field` sort setting in a\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request."
+                    },
+                    "order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "DESC",
+                        "ASC"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines sort criteria for a [SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts)\nrequest."
+                }
+              },
+              "inner_properties": null,
+              "description": "Represents filter and sort criteria for the `query` field in a\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The maximum number of results to return in a single response page. The default value is 50."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The pagination cursor returned by the previous call to this endpoint. Provide\nthis cursor to retrieve the next page of results for your original request. For more\ninformation, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchScheduledShifts'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "TIMECARDS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/labor/scheduled-shifts/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "scheduled_shifts_query",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "location_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Return shifts for the specified locations. When omitted, shifts for all\nlocations are returned. If needed, call [ListLocations](api-endpoint:Locations-ListLocations)\nto get location IDs."
+                    },
+                    "start": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "end": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "start_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                        },
+                        "end_at": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                    },
+                    "workday": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "date_range": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_date": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\nextended format for calendar dates.\nThe beginning of a date range (inclusive)."
+                            },
+                            "end_date": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\nextended format for calendar dates.\nThe end of a date range (inclusive)."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A range defined by two dates. Used for filtering a query for Connect v2\nobjects that have date properties."
+                        },
+                        "match_scheduled_shifts_by": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "START_AT",
+                            "END_AT",
+                            "INTERSECTION"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines the logic used to apply a workday filter."
+                        },
+                        "default_timezone": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Location-specific timezones convert workdays to datetime filters.\nEvery location included in the query must have a timezone or this field\nmust be provided as a fallback. Format: the IANA timezone database\nidentifier for the relevant timezone."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A `ScheduledShift` search query filter parameter that sets a range of days that\na `Shift` must start or end in before passing the filter condition."
+                    },
+                    "team_member_ids": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Return shifts assigned to specified team members. If needed, call\n[SearchTeamMembers](api-endpoint:Team-SearchTeamMembers) to get team member IDs.\n\nTo return only the shifts assigned to the specified team members, include the\n`assignment_status` filter in the query. Otherwise, all unassigned shifts are\nreturned along with shifts assigned to the specified team members."
+                    },
+                    "assignment_status": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "ASSIGNED",
+                        "UNASSIGNED"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines valid values for the `assignment_status` filter in a\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request.\nAssignment status is based on the `draft_shift_details.team_member_id` and\n`published_shift_details.team_member_id` fields of the scheduled shift."
+                    },
+                    "scheduled_shift_statuses": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Return shifts based on the draft or published status of the shift.\nA shift is published if the `published_shift_details` field is present.\n\nNote that shifts with `draft_shift_details.is_deleted` set to `true` are ignored\nwith the `DRAFT` filter.\nSee [ScheduledShiftFilterScheduledShiftStatus](#type-scheduledshiftfilterscheduledshiftstatus) for possible values"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines filter criteria for a [SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts)\nrequest. Multiple filters in a query are combined as an `AND` operation."
+                },
+                "sort": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "START_AT",
+                        "END_AT",
+                        "CREATED_AT",
+                        "UPDATED_AT"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines valid values for the `field` sort setting in a\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request."
+                    },
+                    "order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "DESC",
+                        "ASC"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines sort criteria for a [SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts)\nrequest."
+                }
+              },
+              "inner_properties": null,
+              "description": "Represents filter and sort criteria for the `query` field in a\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The maximum number of results to return in a single response page. The default value is 50."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The pagination cursor returned by the previous call to this endpoint. Provide\nthis cursor to retrieve the next page of results for your original request. For more\ninformation, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents a [SearchScheduledShift](api-endpoint:Labor-SearchScheduledShift) request.\",\n        \"x-release-status\": \"BETA\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"Represents filter and sort criteria for the `query` field in a\\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request.\",\n            \"x-release-status\": \"BETA\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"Defines filter criteria for a [SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts)\\nrequest. Multiple filters in a query are combined as an `AND` operation.\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"location_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Return shifts for the specified locations. When omitted, shifts for all\\nlocations are returned. If needed, call [ListLocations](api-endpoint:Locations-ListLocations)\\nto get location IDs.\",\n                    \"nullable\": true\n                  },\n                  \"start\": {\n                    \"type\": \"object\",\n                    \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"start_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                        \"nullable\": true\n                      },\n                      \"end_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"end\": {\n                    \"type\": \"object\",\n                    \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"start_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                        \"nullable\": true\n                      },\n                      \"end_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"workday\": {\n                    \"type\": \"object\",\n                    \"description\": \"A `ScheduledShift` search query filter parameter that sets a range of days that\\na `Shift` must start or end in before passing the filter condition.\",\n                    \"x-release-status\": \"BETA\",\n                    \"properties\": {\n                      \"date_range\": {\n                        \"type\": \"object\",\n                        \"description\": \"A range defined by two dates. Used for filtering a query for Connect v2\\nobjects that have date properties.\",\n                        \"x-release-status\": \"PUBLIC\",\n                        \"properties\": {\n                          \"start_date\": {\n                            \"type\": \"string\",\n                            \"description\": \"A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\\nextended format for calendar dates.\\nThe beginning of a date range (inclusive).\",\n                            \"nullable\": true\n                          },\n                          \"end_date\": {\n                            \"type\": \"string\",\n                            \"description\": \"A string in `YYYY-MM-DD` format, such as `2017-10-31`, per the ISO 8601\\nextended format for calendar dates.\\nThe end of a date range (inclusive).\",\n                            \"nullable\": true\n                          }\n                        }\n                      },\n                      \"match_scheduled_shifts_by\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"START_AT\",\n                          \"END_AT\",\n                          \"INTERSECTION\"\n                        ],\n                        \"x-enum-elements\": [\n                          {\n                            \"name\": \"START_AT\",\n                            \"description\": \"All shifts that start on or after the specified workday\"\n                          },\n                          {\n                            \"name\": \"END_AT\",\n                            \"description\": \"All shifts that end on or before the specified workday\"\n                          },\n                          {\n                            \"name\": \"INTERSECTION\",\n                            \"description\": \"All shifts that start between the start and end workdays (inclusive)\"\n                          }\n                        ],\n                        \"description\": \"Defines the logic used to apply a workday filter.\",\n                        \"x-release-status\": \"BETA\"\n                      },\n                      \"default_timezone\": {\n                        \"type\": \"string\",\n                        \"description\": \"Location-specific timezones convert workdays to datetime filters.\\nEvery location included in the query must have a timezone or this field\\nmust be provided as a fallback. Format: the IANA timezone database\\nidentifier for the relevant timezone.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"team_member_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Return shifts assigned to specified team members. If needed, call\\n[SearchTeamMembers](api-endpoint:Team-SearchTeamMembers) to get team member IDs.\\n\\nTo return only the shifts assigned to the specified team members, include the\\n`assignment_status` filter in the query. Otherwise, all unassigned shifts are\\nreturned along with shifts assigned to the specified team members.\",\n                    \"nullable\": true\n                  },\n                  \"assignment_status\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"ASSIGNED\",\n                      \"UNASSIGNED\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"ASSIGNED\",\n                        \"description\": \"The shift is assigned to a team member.\"\n                      },\n                      {\n                        \"name\": \"UNASSIGNED\",\n                        \"description\": \"The shift isn't assigned to a team member.\"\n                      }\n                    ],\n                    \"description\": \"Defines valid values for the `assignment_status` filter in a\\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request.\\nAssignment status is based on the `draft_shift_details.team_member_id` and\\n`published_shift_details.team_member_id` fields of the scheduled shift.\",\n                    \"x-release-status\": \"BETA\"\n                  },\n                  \"scheduled_shift_statuses\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\",\n                      \"enum\": [\n                        \"DRAFT\",\n                        \"PUBLISHED\"\n                      ],\n                      \"x-enum-elements\": [\n                        {\n                          \"name\": \"DRAFT\",\n                          \"description\": \"The scheduled shift has never been published or its draft details were\\nupdated after it was published. This means that the shift has no `published_shift_details`\\nfield or that `draft_shift_details` has different settings than `published_shift_details`.\"\n                        },\n                        {\n                          \"name\": \"PUBLISHED\",\n                          \"description\": \"The scheduled shift was published. This means that the shift has a\\n`published_shift_details` field.\"\n                        }\n                      ],\n                      \"description\": \"Defines valid values for the `scheduled_shift_statuses` filter in a\\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request.\",\n                      \"x-release-status\": \"BETA\"\n                    },\n                    \"description\": \"Return shifts based on the draft or published status of the shift.\\nA shift is published if the `published_shift_details` field is present.\\n\\nNote that shifts with `draft_shift_details.is_deleted` set to `true` are ignored\\nwith the `DRAFT` filter.\\nSee [ScheduledShiftFilterScheduledShiftStatus](#type-scheduledshiftfilterscheduledshiftstatus) for possible values\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"sort\": {\n                \"type\": \"object\",\n                \"description\": \"Defines sort criteria for a [SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts)\\nrequest.\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"field\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"START_AT\",\n                      \"END_AT\",\n                      \"CREATED_AT\",\n                      \"UPDATED_AT\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"START_AT\",\n                        \"description\": \"Sort by the start time of the shift.\"\n                      },\n                      {\n                        \"name\": \"END_AT\",\n                        \"description\": \"Sort by the end time of the shift.\"\n                      },\n                      {\n                        \"name\": \"CREATED_AT\",\n                        \"description\": \"Sort by the creation date of the shift.\"\n                      },\n                      {\n                        \"name\": \"UPDATED_AT\",\n                        \"description\": \"Sort by the last updated date of the shift.\"\n                      }\n                    ],\n                    \"description\": \"Defines valid values for the `field` sort setting in a\\n[SearchScheduledShifts](api-endpoint:Labor-SearchScheduledShifts) request.\",\n                    \"x-release-status\": \"BETA\"\n                  },\n                  \"order\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"DESC\",\n                      \"ASC\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"DESC\",\n                        \"description\": \"The results are returned in descending (e.g., newest-first or Z-A) order.\"\n                      },\n                      {\n                        \"name\": \"ASC\",\n                        \"description\": \"The results are returned in ascending (e.g., oldest-first or A-Z) order.\"\n                      }\n                    ],\n                    \"description\": \"The order (e.g., chronological or alphabetical) in which results from a request are returned.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  }\n                }\n              }\n            }\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The maximum number of results to return in a single response page. The default value is 50.\",\n            \"minimum\": 1,\n            \"maximum\": 50\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"The pagination cursor returned by the previous call to this endpoint. Provide\\nthis cursor to retrieve the next page of results for your original request. For more\\ninformation, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\"\n          }\n        },\n        \"example\": {\n          \"cursor\": \"xoxp-1234-5678-90123\",\n          \"limit\": 2,\n          \"query\": {\n            \"filter\": {\n              \"assignment_status\": \"ASSIGNED\",\n              \"scheduled_shift_status\": [\n                \"PUBLISHED\",\n                \"DRAFT\"\n              ]\n            },\n            \"sort\": {\n              \"field\": \"CREATED_AT\",\n              \"order\": \"ASC\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

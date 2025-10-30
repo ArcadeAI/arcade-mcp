@@ -1,18 +1,18 @@
 {
   "name": "SearchTrelloMembers",
-  "fully_qualified_name": "TrelloApi.SearchTrelloMembers@0.1.0",
-  "description": "Search for Trello members by criteria.\n\nUse this tool to search for Trello members based on specific criteria. Useful for finding users in an organization or project.",
+  "fully_qualified_name": "TrelloApi.SearchTrelloMembers@2.0.0",
+  "description": "Search and retrieve Trello member information.\n\nUse this tool to search for and retrieve information about Trello members based on specified criteria. It helps in finding users within Trello efficiently.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "search_query",
         "required": true,
-        "description": "The search query string, must be between 1 to 16384 characters in length.",
+        "description": "The search term for finding Trello members, between 1 and 16384 characters long.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "query"
       },
       {
-        "name": "maximum_results",
+        "name": "result_limit",
         "required": false,
-        "description": "The maximum number of results to return, up to 20.",
+        "description": "Specify the maximum number of Trello member search results to return, with a maximum of 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "board_id",
         "required": false,
-        "description": "The ID of the board to search for members associated with it.",
+        "description": "The ID of the Trello board to filter members by. Leave empty to include all boards.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "organization_id",
         "required": false,
-        "description": "The unique ID of the Trello organization to filter search results by.",
+        "description": "Unique identifier for the organization to filter the search results. Use this to limit the search to members within a specific organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "idOrganization"
       },
       {
-        "name": "search_only_organization_members",
+        "name": "restrict_to_organization_members",
         "required": false,
-        "description": "Set to true to search only within organization members.",
+        "description": "If true, limit the search results to include only members of the organization.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -117,13 +117,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/search/members/",
@@ -145,11 +145,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "maximum_results",
+        "tool_parameter_name": "result_limit",
         "description": "The maximum number of results to return. Maximum of 20.",
         "value_schema": {
           "val_type": "integer",
@@ -162,6 +163,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": 8,
         "documentation_urls": []
       },
       {
@@ -179,6 +181,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -196,11 +199,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "onlyOrgMembers",
-        "tool_parameter_name": "search_only_organization_members",
+        "tool_parameter_name": "restrict_to_organization_members",
         "description": "",
         "value_schema": {
           "val_type": "boolean",
@@ -213,6 +217,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       }
     ],
@@ -234,6 +239,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

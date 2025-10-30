@@ -1,0 +1,653 @@
+{
+  "name": "UpdateBoardShape",
+  "fully_qualified_name": "MiroApi.UpdateBoardShape@2.0.0",
+  "description": "Update a shape item on a Miro board.\n\nUse this tool to update the properties and style of a shape item on a specified Miro board. Necessary when changes to a shape's data or appearance are required.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_identifier",
+        "required": true,
+        "description": "Unique identifier of the Miro board where you want to update the shape item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to update the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "shape_item_id",
+        "required": true,
+        "description": "Unique identifier (ID) of the shape item to update on the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the item that you want to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "shape_item_data",
+        "required": true,
+        "description": "JSON object containing data and style properties for the shape item, including content, geometric shape, style attributes, position, and geometry.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The text you want to display on the shape.\n**Note: When updating a shape type to one of the types below, existing `content` will be lost.**\n<br>**Not supported for shapes:**\n<ul>\n  <li>flow_chart_or</li>\n  <li>flow_chart_summing_junction</li>\n</ul>"
+                },
+                "shape": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the geometric shape of the item when it is rendered on the board. <details>\n  <summary>Basic shapes</summary>\n  <ul>\n    <li>rectangle</li>\n    <li>round_rectangle</li>\n    <li>circle</li>\n    <li>triangle</li>\n    <li>rhombus</li>\n    <li>parallelogram</li>\n    <li>trapezoid</li>\n    <li>pentagon</li>\n    <li>hexagon</li>\n    <li>octagon</li>\n    <li>wedge_round_rectangle_callout</li>\n    <li>star</li>\n    <li>flow_chart_predefined_process</li>\n    <li>cloud</li>\n    <li>cross</li>\n    <li>can</li>\n    <li>right_arrow</li>\n    <li>left_arrow</li>\n    <li>left_right_arrow</li>\n    <li>left_brace</li>\n    <li>right_brace</li>\n  </ul>\n</details>\n<details>\n  <summary>Flowchart shapes</summary>\n  <ul>\n    <li>flow_chart_connector</li>\n    <li>flow_chart_magnetic_disk</li>\n    <li>flow_chart_input_output</li>\n    <li>flow_chart_decision</li>\n    <li>flow_chart_delay</li>\n    <li>flow_chart_display</li>\n    <li>flow_chart_document</li>\n    <li>flow_chart_magnetic_drum</li>\n    <li>flow_chart_internal_storage</li>\n    <li>flow_chart_manual_input</li>\n    <li>flow_chart_manual_operation</li>\n    <li>flow_chart_merge</li>\n    <li>flow_chart_multidocuments</li>\n    <li>flow_chart_note_curly_left</li>\n    <li>flow_chart_note_curly_right</li>\n    <li>flow_chart_note_square</li>\n    <li>flow_chart_offpage_connector</li>\n    <li>flow_chart_or</li>\n    <li>flow_chart_predefined_process_2</li>\n    <li>flow_chart_preparation</li>\n    <li>flow_chart_process</li>\n    <li>flow_chart_online_storage</li>\n    <li>flow_chart_summing_junction</li>\n    <li>flow_chart_terminator</li>\n  </ul>\n</details>"
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains shape item data, such as the content or the type of the shape."
+            },
+            "style": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "borderColor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the color of the border of the shape."
+                },
+                "borderOpacity": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the opacity level of the shape border.\nPossible values: any number between `0.0` and `1.0`, where:\n`0.0`: the background color is completely transparent or invisible\n`1.0`: the background color is completely opaque or solid"
+                },
+                "borderStyle": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "normal",
+                    "dotted",
+                    "dashed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the style used to represent the border of the shape."
+                },
+                "borderWidth": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the thickness of the shape border, in dp."
+                },
+                "color": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hex value representing the color for the text within the shape item."
+                },
+                "fillColor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fill color for the shape.\nHex values: `#f5f6f8` `#d5f692` `#d0e17a` `#93d275` `#67c6c0` `#23bfe7` `#a6ccf5` `#7b92ff` `#fff9b1` `#f5d128` `#ff9d48` `#f16c7f` `#ea94bb` `#ffcee0` `#b384bb` `#000000`"
+                },
+                "fillOpacity": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Opacity level of the fill color.\nPossible values: any number between `0` and `1`, where:\n`0.0`: the background color is completely transparent or invisible\n`1.0`: the background color is completely opaque or solid\n"
+                },
+                "fontFamily": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "arial",
+                    "abril_fatface",
+                    "bangers",
+                    "eb_garamond",
+                    "georgia",
+                    "graduate",
+                    "gravitas_one",
+                    "fredoka_one",
+                    "nixie_one",
+                    "open_sans",
+                    "permanent_marker",
+                    "pt_sans",
+                    "pt_sans_narrow",
+                    "pt_serif",
+                    "rammetto_one",
+                    "roboto",
+                    "roboto_condensed",
+                    "roboto_slab",
+                    "caveat",
+                    "times_new_roman",
+                    "titan_one",
+                    "lemon_tuesday",
+                    "roboto_mono",
+                    "noto_sans",
+                    "plex_sans",
+                    "plex_serif",
+                    "plex_mono",
+                    "spoof",
+                    "tiempos_text",
+                    "formular"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the font type for the text in the shape item."
+                },
+                "fontSize": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the font size, in dp, for the text on the shape."
+                },
+                "textAlign": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "left",
+                    "right",
+                    "center"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines how the sticky note text is horizontally aligned."
+                },
+                "textAlignVertical": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "top",
+                    "middle",
+                    "bottom"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines how the sticky note text is vertically aligned."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the shape style, such as the border color or opacity. <br> All properties in style object are supported for shape types aren't listed below. <br> <table>\n  <tr>\n    <th align=\"left\">Shape type</th>\n    <th align=\"left\">Unsupported properties</th>\n  </tr>\n  <tr>\n    <td>flow_chart_or</td>\n    <td>fontSize, fontFamily, color, textAlign, textAlignVertical</td>\n  </tr>\n  <tr>\n    <td>flow_chart_summing_junction</td>\n    <td>fontSize, fontFamily, color, textAlign, textAlignVertical</td>\n  </tr>\n  <tr>\n    <td>flow_chart_note_curly_left</td>\n    <td>fillColor, fillOpacity</td>\n  </tr>\n  <tr>\n    <td>flow_chart_note_curly_right</td>\n    <td>fillColor, fillOpacity</td>\n  </tr>\n  <tr>\n    <td>flow_chart_note_square</td>\n    <td>fillColor, fillOpacity</td>\n  </tr>\n</table>"
+            },
+            "position": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "x": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                },
+                "y": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates."
+            },
+            "geometry": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "height": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Height of the item, in pixels."
+                },
+                "rotation": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively."
+                },
+                "width": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Width of the item, in pixels."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains geometrical information about the item, such as its width or height."
+            },
+            "parent": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier (ID) of the parent frame for the item."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the parent frame for the item."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-shape-item'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/shapes/{item_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_identifier",
+        "description": "Unique identifier (ID) of the board where you want to update the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board where you want to update the item."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "shape_item_id",
+        "description": "Unique identifier (ID) of the item that you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the item that you want to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "shape_item_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The text you want to display on the shape.\n**Note: When updating a shape type to one of the types below, existing `content` will be lost.**\n<br>**Not supported for shapes:**\n<ul>\n  <li>flow_chart_or</li>\n  <li>flow_chart_summing_junction</li>\n</ul>"
+                },
+                "shape": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the geometric shape of the item when it is rendered on the board. <details>\n  <summary>Basic shapes</summary>\n  <ul>\n    <li>rectangle</li>\n    <li>round_rectangle</li>\n    <li>circle</li>\n    <li>triangle</li>\n    <li>rhombus</li>\n    <li>parallelogram</li>\n    <li>trapezoid</li>\n    <li>pentagon</li>\n    <li>hexagon</li>\n    <li>octagon</li>\n    <li>wedge_round_rectangle_callout</li>\n    <li>star</li>\n    <li>flow_chart_predefined_process</li>\n    <li>cloud</li>\n    <li>cross</li>\n    <li>can</li>\n    <li>right_arrow</li>\n    <li>left_arrow</li>\n    <li>left_right_arrow</li>\n    <li>left_brace</li>\n    <li>right_brace</li>\n  </ul>\n</details>\n<details>\n  <summary>Flowchart shapes</summary>\n  <ul>\n    <li>flow_chart_connector</li>\n    <li>flow_chart_magnetic_disk</li>\n    <li>flow_chart_input_output</li>\n    <li>flow_chart_decision</li>\n    <li>flow_chart_delay</li>\n    <li>flow_chart_display</li>\n    <li>flow_chart_document</li>\n    <li>flow_chart_magnetic_drum</li>\n    <li>flow_chart_internal_storage</li>\n    <li>flow_chart_manual_input</li>\n    <li>flow_chart_manual_operation</li>\n    <li>flow_chart_merge</li>\n    <li>flow_chart_multidocuments</li>\n    <li>flow_chart_note_curly_left</li>\n    <li>flow_chart_note_curly_right</li>\n    <li>flow_chart_note_square</li>\n    <li>flow_chart_offpage_connector</li>\n    <li>flow_chart_or</li>\n    <li>flow_chart_predefined_process_2</li>\n    <li>flow_chart_preparation</li>\n    <li>flow_chart_process</li>\n    <li>flow_chart_online_storage</li>\n    <li>flow_chart_summing_junction</li>\n    <li>flow_chart_terminator</li>\n  </ul>\n</details>"
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains shape item data, such as the content or the type of the shape."
+            },
+            "style": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "borderColor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the color of the border of the shape."
+                },
+                "borderOpacity": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the opacity level of the shape border.\nPossible values: any number between `0.0` and `1.0`, where:\n`0.0`: the background color is completely transparent or invisible\n`1.0`: the background color is completely opaque or solid"
+                },
+                "borderStyle": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "normal",
+                    "dotted",
+                    "dashed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the style used to represent the border of the shape."
+                },
+                "borderWidth": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the thickness of the shape border, in dp."
+                },
+                "color": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hex value representing the color for the text within the shape item."
+                },
+                "fillColor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fill color for the shape.\nHex values: `#f5f6f8` `#d5f692` `#d0e17a` `#93d275` `#67c6c0` `#23bfe7` `#a6ccf5` `#7b92ff` `#fff9b1` `#f5d128` `#ff9d48` `#f16c7f` `#ea94bb` `#ffcee0` `#b384bb` `#000000`"
+                },
+                "fillOpacity": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Opacity level of the fill color.\nPossible values: any number between `0` and `1`, where:\n`0.0`: the background color is completely transparent or invisible\n`1.0`: the background color is completely opaque or solid\n"
+                },
+                "fontFamily": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "arial",
+                    "abril_fatface",
+                    "bangers",
+                    "eb_garamond",
+                    "georgia",
+                    "graduate",
+                    "gravitas_one",
+                    "fredoka_one",
+                    "nixie_one",
+                    "open_sans",
+                    "permanent_marker",
+                    "pt_sans",
+                    "pt_sans_narrow",
+                    "pt_serif",
+                    "rammetto_one",
+                    "roboto",
+                    "roboto_condensed",
+                    "roboto_slab",
+                    "caveat",
+                    "times_new_roman",
+                    "titan_one",
+                    "lemon_tuesday",
+                    "roboto_mono",
+                    "noto_sans",
+                    "plex_sans",
+                    "plex_serif",
+                    "plex_mono",
+                    "spoof",
+                    "tiempos_text",
+                    "formular"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the font type for the text in the shape item."
+                },
+                "fontSize": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines the font size, in dp, for the text on the shape."
+                },
+                "textAlign": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "left",
+                    "right",
+                    "center"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines how the sticky note text is horizontally aligned."
+                },
+                "textAlignVertical": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "top",
+                    "middle",
+                    "bottom"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Defines how the sticky note text is vertically aligned."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the shape style, such as the border color or opacity. <br> All properties in style object are supported for shape types aren't listed below. <br> <table>\n  <tr>\n    <th align=\"left\">Shape type</th>\n    <th align=\"left\">Unsupported properties</th>\n  </tr>\n  <tr>\n    <td>flow_chart_or</td>\n    <td>fontSize, fontFamily, color, textAlign, textAlignVertical</td>\n  </tr>\n  <tr>\n    <td>flow_chart_summing_junction</td>\n    <td>fontSize, fontFamily, color, textAlign, textAlignVertical</td>\n  </tr>\n  <tr>\n    <td>flow_chart_note_curly_left</td>\n    <td>fillColor, fillOpacity</td>\n  </tr>\n  <tr>\n    <td>flow_chart_note_curly_right</td>\n    <td>fillColor, fillOpacity</td>\n  </tr>\n  <tr>\n    <td>flow_chart_note_square</td>\n    <td>fillColor, fillOpacity</td>\n  </tr>\n</table>"
+            },
+            "position": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "x": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "X-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                },
+                "y": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Y-axis coordinate of the location of the item on the board.\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\nThe center point of the board has `x: 0` and `y: 0` coordinates."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates."
+            },
+            "geometry": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "height": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Height of the item, in pixels."
+                },
+                "rotation": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively."
+                },
+                "width": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Width of the item, in pixels."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains geometrical information about the item, such as its width or height."
+            },
+            "parent": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier (ID) of the parent frame for the item."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains information about the parent frame for the item."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"description\": \"Contains shape item data, such as the content or the type of the shape.\",\n            \"properties\": {\n              \"content\": {\n                \"type\": \"string\",\n                \"description\": \"The text you want to display on the shape.\\n**Note: When updating a shape type to one of the types below, existing `content` will be lost.**\\n<br>**Not supported for shapes:**\\n<ul>\\n  <li>flow_chart_or</li>\\n  <li>flow_chart_summing_junction</li>\\n</ul>\",\n                \"example\": \"Hello\"\n              },\n              \"shape\": {\n                \"type\": \"string\",\n                \"default\": \"rectangle\",\n                \"description\": \"Defines the geometric shape of the item when it is rendered on the board. <details>\\n  <summary>Basic shapes</summary>\\n  <ul>\\n    <li>rectangle</li>\\n    <li>round_rectangle</li>\\n    <li>circle</li>\\n    <li>triangle</li>\\n    <li>rhombus</li>\\n    <li>parallelogram</li>\\n    <li>trapezoid</li>\\n    <li>pentagon</li>\\n    <li>hexagon</li>\\n    <li>octagon</li>\\n    <li>wedge_round_rectangle_callout</li>\\n    <li>star</li>\\n    <li>flow_chart_predefined_process</li>\\n    <li>cloud</li>\\n    <li>cross</li>\\n    <li>can</li>\\n    <li>right_arrow</li>\\n    <li>left_arrow</li>\\n    <li>left_right_arrow</li>\\n    <li>left_brace</li>\\n    <li>right_brace</li>\\n  </ul>\\n</details>\\n<details>\\n  <summary>Flowchart shapes</summary>\\n  <ul>\\n    <li>flow_chart_connector</li>\\n    <li>flow_chart_magnetic_disk</li>\\n    <li>flow_chart_input_output</li>\\n    <li>flow_chart_decision</li>\\n    <li>flow_chart_delay</li>\\n    <li>flow_chart_display</li>\\n    <li>flow_chart_document</li>\\n    <li>flow_chart_magnetic_drum</li>\\n    <li>flow_chart_internal_storage</li>\\n    <li>flow_chart_manual_input</li>\\n    <li>flow_chart_manual_operation</li>\\n    <li>flow_chart_merge</li>\\n    <li>flow_chart_multidocuments</li>\\n    <li>flow_chart_note_curly_left</li>\\n    <li>flow_chart_note_curly_right</li>\\n    <li>flow_chart_note_square</li>\\n    <li>flow_chart_offpage_connector</li>\\n    <li>flow_chart_or</li>\\n    <li>flow_chart_predefined_process_2</li>\\n    <li>flow_chart_preparation</li>\\n    <li>flow_chart_process</li>\\n    <li>flow_chart_online_storage</li>\\n    <li>flow_chart_summing_junction</li>\\n    <li>flow_chart_terminator</li>\\n  </ul>\\n</details>\"\n              }\n            }\n          },\n          \"style\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the shape style, such as the border color or opacity. <br> All properties in style object are supported for shape types aren't listed below. <br> <table>\\n  <tr>\\n    <th align=\\\"left\\\">Shape type</th>\\n    <th align=\\\"left\\\">Unsupported properties</th>\\n  </tr>\\n  <tr>\\n    <td>flow_chart_or</td>\\n    <td>fontSize, fontFamily, color, textAlign, textAlignVertical</td>\\n  </tr>\\n  <tr>\\n    <td>flow_chart_summing_junction</td>\\n    <td>fontSize, fontFamily, color, textAlign, textAlignVertical</td>\\n  </tr>\\n  <tr>\\n    <td>flow_chart_note_curly_left</td>\\n    <td>fillColor, fillOpacity</td>\\n  </tr>\\n  <tr>\\n    <td>flow_chart_note_curly_right</td>\\n    <td>fillColor, fillOpacity</td>\\n  </tr>\\n  <tr>\\n    <td>flow_chart_note_square</td>\\n    <td>fillColor, fillOpacity</td>\\n  </tr>\\n</table>\",\n            \"properties\": {\n              \"borderColor\": {\n                \"type\": \"string\",\n                \"description\": \"Defines the color of the border of the shape.\"\n              },\n              \"borderOpacity\": {\n                \"type\": \"string\",\n                \"description\": \"Defines the opacity level of the shape border.\\nPossible values: any number between `0.0` and `1.0`, where:\\n`0.0`: the background color is completely transparent or invisible\\n`1.0`: the background color is completely opaque or solid\",\n                \"maximum\": 1,\n                \"minimum\": 0\n              },\n              \"borderStyle\": {\n                \"type\": \"string\",\n                \"description\": \"Defines the style used to represent the border of the shape.\",\n                \"enum\": [\n                  \"normal\",\n                  \"dotted\",\n                  \"dashed\"\n                ]\n              },\n              \"borderWidth\": {\n                \"type\": \"string\",\n                \"description\": \"Defines the thickness of the shape border, in dp.\",\n                \"maximum\": 24,\n                \"minimum\": 1\n              },\n              \"color\": {\n                \"type\": \"string\",\n                \"description\": \"Hex value representing the color for the text within the shape item.\",\n                \"example\": \"#1a1a1a\"\n              },\n              \"fillColor\": {\n                \"type\": \"string\",\n                \"description\": \"Fill color for the shape.\\nHex values: `#f5f6f8` `#d5f692` `#d0e17a` `#93d275` `#67c6c0` `#23bfe7` `#a6ccf5` `#7b92ff` `#fff9b1` `#f5d128` `#ff9d48` `#f16c7f` `#ea94bb` `#ffcee0` `#b384bb` `#000000`\",\n                \"example\": \"#8fd14f\"\n              },\n              \"fillOpacity\": {\n                \"type\": \"string\",\n                \"description\": \"Opacity level of the fill color.\\nPossible values: any number between `0` and `1`, where:\\n`0.0`: the background color is completely transparent or invisible\\n`1.0`: the background color is completely opaque or solid\\n\",\n                \"maximum\": 1,\n                \"minimum\": 0\n              },\n              \"fontFamily\": {\n                \"type\": \"string\",\n                \"description\": \"Defines the font type for the text in the shape item.\",\n                \"enum\": [\n                  \"arial\",\n                  \"abril_fatface\",\n                  \"bangers\",\n                  \"eb_garamond\",\n                  \"georgia\",\n                  \"graduate\",\n                  \"gravitas_one\",\n                  \"fredoka_one\",\n                  \"nixie_one\",\n                  \"open_sans\",\n                  \"permanent_marker\",\n                  \"pt_sans\",\n                  \"pt_sans_narrow\",\n                  \"pt_serif\",\n                  \"rammetto_one\",\n                  \"roboto\",\n                  \"roboto_condensed\",\n                  \"roboto_slab\",\n                  \"caveat\",\n                  \"times_new_roman\",\n                  \"titan_one\",\n                  \"lemon_tuesday\",\n                  \"roboto_mono\",\n                  \"noto_sans\",\n                  \"plex_sans\",\n                  \"plex_serif\",\n                  \"plex_mono\",\n                  \"spoof\",\n                  \"tiempos_text\",\n                  \"formular\"\n                ]\n              },\n              \"fontSize\": {\n                \"type\": \"string\",\n                \"description\": \"Defines the font size, in dp, for the text on the shape.\",\n                \"maximum\": 288,\n                \"minimum\": 10\n              },\n              \"textAlign\": {\n                \"type\": \"string\",\n                \"description\": \"Defines how the sticky note text is horizontally aligned.\",\n                \"enum\": [\n                  \"left\",\n                  \"right\",\n                  \"center\"\n                ]\n              },\n              \"textAlignVertical\": {\n                \"type\": \"string\",\n                \"description\": \"Defines how the sticky note text is vertically aligned.\",\n                \"enum\": [\n                  \"top\",\n                  \"middle\",\n                  \"bottom\"\n                ]\n              }\n            }\n          },\n          \"position\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the item's position on the board, such as its `x` coordinate, `y` coordinate, and the origin of the `x` and `y` coordinates.\",\n            \"properties\": {\n              \"x\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"X-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              },\n              \"y\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Y-axis coordinate of the location of the item on the board.\\nBy default, all items have absolute positioning to the board, not the current viewport. Default: `0`.\\nThe center point of the board has `x: 0` and `y: 0` coordinates.\",\n                \"default\": 0,\n                \"example\": 100\n              }\n            }\n          },\n          \"geometry\": {\n            \"type\": \"object\",\n            \"description\": \"Contains geometrical information about the item, such as its width or height.\",\n            \"properties\": {\n              \"height\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Height of the item, in pixels.\",\n                \"example\": 60\n              },\n              \"rotation\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Rotation angle of an item, in degrees, relative to the board. You can rotate items clockwise (right) and counterclockwise (left) by specifying positive and negative values, respectively.\"\n              },\n              \"width\": {\n                \"type\": \"number\",\n                \"format\": \"double\",\n                \"description\": \"Width of the item, in pixels.\",\n                \"example\": 320\n              }\n            }\n          },\n          \"parent\": {\n            \"type\": \"object\",\n            \"description\": \"Contains information about the parent frame for the item.\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"format\": \"int64\",\n                \"description\": \"Unique identifier (ID) of the parent frame for the item.\",\n                \"example\": \"3074457362577955300\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

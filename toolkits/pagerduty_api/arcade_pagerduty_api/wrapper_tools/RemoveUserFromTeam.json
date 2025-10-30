@@ -1,16 +1,16 @@
 {
   "name": "RemoveUserFromTeam",
-  "fully_qualified_name": "PagerdutyApi.RemoveUserFromTeam@0.1.0",
-  "description": "Remove a user from a specific team.\n\nCall this tool to remove a user from a team. Useful for managing team membership by deleting users who are no longer required in a specific team. Requires appropriate OAuth scope.",
+  "fully_qualified_name": "PagerdutyApi.RemoveUserFromTeam@2.0.0",
+  "description": "Remove a user from a specific team in PagerDuty.\n\nThis tool removes a specified user from a team in PagerDuty. It should be called when you need to manage team memberships by deleting a user. Requires appropriate OAuth scope 'teams.write'.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "team_id",
         "required": true,
         "description": "The ID of the team from which the user will be removed.",
         "value_schema": {
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "user_id_on_team",
+        "name": "team_user_id",
         "required": true,
-        "description": "The ID of the user to be removed from the team. This identifies the specific team member.",
+        "description": "The ID of the user to be removed from the team in PagerDuty.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "user_id"
       },
       {
-        "name": "versioning_header",
+        "name": "version_header",
         "required": true,
-        "description": "Specifies the API version to use via the Accept header.",
+        "description": "The versioning header for the API request. Specify the desired API version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specifies the format of the request body. Must be set to 'application/json'.",
+        "description": "Specify the media type of the request. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/teams/{id}/users/{user_id}",
@@ -117,7 +117,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "team_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -135,7 +135,7 @@
       },
       {
         "name": "user_id",
-        "tool_parameter_name": "user_id_on_team",
+        "tool_parameter_name": "team_user_id",
         "description": "The user ID on the team.",
         "value_schema": {
           "val_type": "string",
@@ -153,7 +153,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -171,7 +171,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

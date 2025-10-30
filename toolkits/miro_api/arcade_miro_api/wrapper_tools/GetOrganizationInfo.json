@@ -1,18 +1,18 @@
 {
   "name": "GetOrganizationInfo",
-  "fully_qualified_name": "MiroApi.GetOrganizationInfo@0.1.0",
-  "description": "Retrieve enterprise organization information.\n\nFetch details about an organization using the Miro API, available only for users with the Enterprise plan and Company Admin role. This tool should be used to obtain specific organization data.",
+  "fully_qualified_name": "MiroApi.GetOrganizationInfo@2.0.0",
+  "description": "Retrieve detailed information about a specific organization.\n\nThis tool fetches organization information for Enterprise plan users with the role of Company Admin. It requires the 'organizations:read' scope. Rate limiting is at Level 3.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id",
         "required": true,
-        "description": "The unique identifier of the organization to retrieve information for. Required for accessing organization details.",
+        "description": "The unique identifier for the organization to retrieve information for. This is required to access the organization's details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

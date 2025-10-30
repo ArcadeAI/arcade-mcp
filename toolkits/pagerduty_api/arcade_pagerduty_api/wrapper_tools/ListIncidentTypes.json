@@ -1,18 +1,18 @@
 {
   "name": "ListIncidentTypes",
-  "fully_qualified_name": "PagerdutyApi.ListIncidentTypes@0.1.0",
-  "description": "Retrieve a list of available incident types.\n\nRetrieves and categorizes incidents like security, major, or fraud incidents. It can filter by enabled or disabled types, requiring 'incident_types.read' OAuth scope.",
+  "fully_qualified_name": "PagerdutyApi.ListIncidentTypes@2.0.0",
+  "description": "Retrieve available incident types from PagerDuty.\n\nUse this tool to list incident types, such as security or major incidents, categorized by their enabled or disabled status. Useful for understanding how incidents are classified within PagerDuty.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_versioning_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specifies the versioning for the API response by setting the `Accept` header.",
+        "description": "Specifies the versioning header using the 'Accept' format to determine the API version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specifies the media type for the request. Use 'application/json'.",
+        "description": "Specifies the content type for the request. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,9 +42,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "filter_incident_types_by_state",
+        "name": "incident_type_filter",
         "required": false,
-        "description": "Filter incident types by their enabled state: 'enabled', 'disabled', or 'all'.",
+        "description": "Filter incident types by their enabled state. Options: 'enabled', 'disabled', 'all'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -91,13 +91,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incidents/types",
@@ -106,7 +106,7 @@
     "parameters": [
       {
         "name": "filter",
-        "tool_parameter_name": "filter_incident_types_by_state",
+        "tool_parameter_name": "incident_type_filter",
         "description": "Filters the list of incident types based on their `enabled` state.",
         "value_schema": {
           "val_type": "string",
@@ -123,12 +123,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": "enabled",
         "documentation_urls": []
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_versioning_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -146,7 +146,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -175,6 +175,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

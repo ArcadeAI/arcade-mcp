@@ -1,18 +1,18 @@
 {
   "name": "GetStatusPageImpact",
-  "fully_qualified_name": "PagerdutyApi.GetStatusPageImpact@0.1.0",
-  "description": "Retrieve impact details for a specific status page using IDs.\n\nThis tool retrieves the impact details for a specific status page identified by the status page ID and impact ID. It should be called when detailed information about an impact on a status page is needed.",
+  "fully_qualified_name": "PagerdutyApi.GetStatusPageImpact@2.0.0",
+  "description": "Retrieve impact details for a specific status page.\n\nThis tool retrieves impact information for a given status page using the status page ID and impact ID. It should be called when detailed impact data is needed for specific status pages. Requires `status_pages.read` OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "status_page_id",
         "required": true,
-        "description": "The unique identifier for the status page resource.",
+        "description": "The ID of the status page resource to retrieve impact details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "status_page_impact_id",
         "required": true,
-        "description": "The unique identifier for the impact on the status page. Required to retrieve specific impact details.",
+        "description": "The unique identifier for the Status Page Impact. Use this to fetch specific impact details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "impact_id"
       },
       {
-        "name": "accept_header_version",
+        "name": "accept_header_versioning",
         "required": true,
-        "description": "Specifies the API versioning for the Accept header. Use the format 'application/vnd.pagerduty+json;version=1'.",
+        "description": "Specifies the versioning header for the 'Accept' parameter. It determines the API version to use when calling the endpoint.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/impacts/{impact_id}",
@@ -136,7 +136,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_header_versioning",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -163,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

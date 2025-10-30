@@ -1,18 +1,18 @@
 {
   "name": "DeleteUsersByEmail",
-  "fully_qualified_name": "AirtableApi.DeleteUsersByEmail@0.1.0",
-  "description": "Delete multiple users from an Airtable enterprise account by email.\n\nUse this tool to remove multiple users from a specified Airtable enterprise account by their email addresses. This action is useful for managing user access efficiently.",
+  "fully_qualified_name": "AirtableApi.DeleteUsersByEmail@2.0.0",
+  "description": "Delete multiple users identified by their email addresses.\n\nThis tool deletes multiple users by their email addresses within a specified enterprise account. Use it when you need to remove several users efficiently.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_account_id",
         "required": true,
-        "description": "The unique identifier for the Airtable enterprise account from which users will be deleted.",
+        "description": "The unique ID of the enterprise account from which users will be deleted. Required for specifying the target enterprise.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "enterpriseAccountId"
       },
       {
-        "name": "user_emails",
+        "name": "email_addresses",
         "required": false,
-        "description": "An array of user email addresses to delete from the Airtable enterprise account.",
+        "description": "An array of email addresses of users to be deleted. Each email must be a valid string.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/users",
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "email",
-        "tool_parameter_name": "user_emails",
+        "tool_parameter_name": "email_addresses",
         "description": "",
         "value_schema": {
           "val_type": "array",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

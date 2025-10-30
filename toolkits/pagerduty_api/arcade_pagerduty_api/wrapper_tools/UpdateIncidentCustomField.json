@@ -1,0 +1,341 @@
+{
+  "name": "UpdateIncidentCustomField",
+  "fully_qualified_name": "PagerdutyApi.UpdateIncidentCustomField@2.0.0",
+  "description": "Update a custom field for a specific incident type.\n\nUse this tool to update custom fields for incident types, providing additional context and support for filtering and analytics. Custom field options can be modified in the same call.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_type_identifier",
+        "required": true,
+        "description": "The ID or name of the specific incident type to update the custom field for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the Incident Type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type_id_or_name"
+      },
+      {
+        "name": "field_identifier",
+        "required": true,
+        "description": "Provide the unique ID of the field to be updated for the incident type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the field."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "field_id"
+      },
+      {
+        "name": "accept_header_version",
+        "required": true,
+        "description": "Specifies the version of the API to be used through the Accept header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Set the content type to specify the media type of the request body. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "custom_field_details",
+        "required": false,
+        "description": "JSON object specifying details of the custom field: display_name, enabled status, default_value, description, and field_options.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "field": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "display_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The display name of the Incident Type."
+                },
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the Incident Type is enabled."
+                },
+                "default_value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The default value of the custom field."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The description of the custom field."
+                },
+                "field_options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "List of options to upsert on the custom field. Can only be applied to fields with a `field_type` of `single_value_fixed` or `multi_value_fixed`. When an `id` property is included, this will update the value of the specified field option. Without an `id` property, that field option will be added to the field. Any existing field options not included in the upsert list will be deleted (unless the current default value refers to a field option to be deleted)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Details of the custom field to be updated."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateIncidentTypeCustomField'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents/types/{type_id_or_name}/custom_fields/{field_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type_id_or_name",
+        "tool_parameter_name": "incident_type_identifier",
+        "description": "The ID or name of the Incident Type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the Incident Type."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "field_id",
+        "tool_parameter_name": "field_identifier",
+        "description": "The ID of the field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the field."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_field_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "field": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "display_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The display name of the Incident Type."
+                },
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the Incident Type is enabled."
+                },
+                "default_value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The default value of the custom field."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The description of the custom field."
+                },
+                "field_options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "List of options to upsert on the custom field. Can only be applied to fields with a `field_type` of `single_value_fixed` or `multi_value_fixed`. When an `id` property is included, this will update the value of the specified field option. Without an `id` property, that field option will be added to the field. Any existing field options not included in the upsert list will be deleted (unless the current default value refers to a field option to be deleted)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Details of the custom field to be updated."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"field\": {\n            \"type\": \"object\",\n            \"description\": \"Details of the custom field to be updated.\",\n            \"properties\": {\n              \"display_name\": {\n                \"type\": \"string\",\n                \"description\": \"The display name of the Incident Type.\",\n                \"maxLength\": 50\n              },\n              \"enabled\": {\n                \"type\": \"boolean\",\n                \"description\": \"Whether the Incident Type is enabled.\"\n              },\n              \"default_value\": {\n                \"type\": \"string\",\n                \"description\": \"The default value of the custom field.\"\n              },\n              \"description\": {\n                \"type\": \"string\",\n                \"description\": \"The description of the custom field.\",\n                \"maxLength\": 1000\n              },\n              \"field_options\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"allOf\": [\n                    {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"data\": {\n                          \"oneOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"data_type\": {\n                                  \"type\": \"string\",\n                                  \"description\": \"The kind of data represented by this option. Must match the Field's `data_type`.\",\n                                  \"enum\": [\n                                    \"string\"\n                                  ]\n                                },\n                                \"value\": {\n                                  \"type\": \"string\",\n                                  \"maxLength\": 200\n                                }\n                              },\n                              \"required\": [\n                                \"data_type\",\n                                \"value\"\n                              ]\n                            }\n                          ],\n                          \"discriminator\": {\n                            \"propertyName\": \"data_type\",\n                            \"mapping\": {\n                              \"string\": \"#/paths/~1incidents~1custom_fields/get/responses/200/content/application~1json/schema/allOf/0/properties/fields/items/allOf/0/properties/field_options/items/allOf/0/properties/data/oneOf/0\"\n                            }\n                          }\n                        },\n                        \"id\": {\n                          \"type\": \"string\",\n                          \"readOnly\": true,\n                          \"description\": \"The ID of the resource.\"\n                        },\n                        \"type\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"field_option\"\n                          ],\n                          \"readOnly\": true\n                        },\n                        \"updated_at\": {\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"description\": \"The date/time the object was last updated.\",\n                          \"readOnly\": true\n                        },\n                        \"created_at\": {\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"description\": \"The date/time the object was created at.\",\n                          \"readOnly\": true\n                        }\n                      },\n                      \"required\": [\n                        \"id\",\n                        \"type\",\n                        \"created_at\",\n                        \"updated_at\"\n                      ],\n                      \"description\": \"\"\n                    },\n                    {\n                      \"type\": \"object\",\n                      \"required\": [\n                        \"id\",\n                        \"data\",\n                        \"created_at\",\n                        \"updated_at\"\n                      ]\n                    }\n                  ]\n                },\n                \"description\": \"List of options to upsert on the custom field. Can only be applied to fields with a `field_type` of `single_value_fixed` or `multi_value_fixed`. When an `id` property is included, this will update the value of the specified field option. Without an `id` property, that field option will be added to the field. Any existing field options not included in the upsert list will be deleted (unless the current default value refers to a field option to be deleted).\"\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"field\"\n        ]\n      },\n      \"examples\": {\n        \"basic_example\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"field\": {\n              \"display_name\": \"Custom Field 1\"\n            }\n          }\n        },\n        \"example_with_field_options_upsert\": {\n          \"summary\": \"Example Updating a Field Option Together With Field Metadata\",\n          \"value\": {\n            \"field\": {\n              \"display_name\": \"Single Select Field Updated\",\n              \"field_options\": [\n                {\n                  \"data\": {\n                    \"data_type\": \"string\",\n                    \"value\": \"Updated value for an existing field option\"\n                  },\n                  \"id\": \"PQ9K7I8\"\n                },\n                {\n                  \"data\": {\n                    \"data_type\": \"string\",\n                    \"value\": \"Upserting a brand new field option, by not providing an id property\"\n                  }\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

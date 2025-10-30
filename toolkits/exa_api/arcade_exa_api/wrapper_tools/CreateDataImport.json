@@ -1,0 +1,104 @@
+{
+  "name": "CreateDataImport",
+  "fully_qualified_name": "ExaApi.CreateDataImport@0.1.0",
+  "description": "Initiates a new data import for uploading data into Websets.\n\nUse this tool to create a new import allowing you to upload and manage your data within Websets. The import facilitates data enrichment, searching with natural language filters, and exclusion of duplicates. Upon creation, you'll receive an upload URL valid for a set duration to complete the data upload.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "data_import_details",
+        "required": true,
+        "description": "The JSON object containing data to import for Websets. This includes details for enrichment, search, or exclusion processes.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'imports-create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/imports",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "data_import_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"discriminator\": {\n          \"propertyName\": \"format\"\n        },\n        \"oneOf\": [\n          {\n            \"type\": [\n              \"object\"\n            ],\n            \"properties\": {\n              \"size\": {\n                \"type\": [\n                  \"number\"\n                ],\n                \"maximum\": 50000000,\n                \"description\": \"The size of the file in bytes. Maximum size is 50 MB.\"\n              },\n              \"count\": {\n                \"type\": [\n                  \"number\"\n                ],\n                \"description\": \"The number of records to import\"\n              },\n              \"title\": {\n                \"type\": [\n                  \"string\"\n                ],\n                \"description\": \"The title of the import\"\n              },\n              \"format\": {\n                \"type\": [\n                  \"string\"\n                ],\n                \"enum\": [\n                  \"csv\"\n                ],\n                \"description\": \"When the import is in CSV format, we expect a column containing the key identifier for the entity - for now URL. If not provided, import will fail to be processed.\"\n              },\n              \"metadata\": {\n                \"description\": \"Set of key-value pairs you want to associate with this object.\",\n                \"type\": [\n                  \"object\"\n                ],\n                \"additionalProperties\": {\n                  \"type\": [\n                    \"string\"\n                  ],\n                  \"maxLength\": 1000\n                }\n              },\n              \"entity\": {\n                \"oneOf\": [\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"company\",\n                        \"default\": \"company\"\n                      }\n                    },\n                    \"required\": [\n                      \"type\"\n                    ],\n                    \"title\": \"Company\"\n                  },\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"person\",\n                        \"default\": \"person\"\n                      }\n                    },\n                    \"required\": [\n                      \"type\"\n                    ],\n                    \"title\": \"Person\"\n                  },\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"article\",\n                        \"default\": \"article\"\n                      }\n                    },\n                    \"required\": [\n                      \"type\"\n                    ],\n                    \"title\": \"Article\"\n                  },\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"research_paper\",\n                        \"default\": \"research_paper\"\n                      }\n                    },\n                    \"required\": [\n                      \"type\"\n                    ],\n                    \"title\": \"Research Paper\"\n                  },\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"custom\",\n                        \"default\": \"custom\"\n                      },\n                      \"description\": {\n                        \"type\": [\n                          \"string\"\n                        ],\n                        \"minLength\": 2,\n                        \"maxLength\": 200\n                      }\n                    },\n                    \"required\": [\n                      \"type\",\n                      \"description\"\n                    ],\n                    \"title\": \"Custom\"\n                  }\n                ],\n                \"description\": \"What type of entity the import contains (e.g. People, Companies, etc.), and thus should be attempted to be resolved as.\"\n              },\n              \"csv\": {\n                \"type\": [\n                  \"object\"\n                ],\n                \"properties\": {\n                  \"identifier\": {\n                    \"type\": [\n                      \"integer\"\n                    ],\n                    \"minimum\": 0,\n                    \"description\": \"Column containing the key identifier for the entity (e.g. URL, Name, etc.). If not provided, we will try to infer it from the file.\"\n                  }\n                },\n                \"description\": \"When format is `csv`, these are the specific import parameters.\"\n              }\n            },\n            \"required\": [\n              \"size\",\n              \"count\",\n              \"format\",\n              \"entity\"\n            ]\n          }\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

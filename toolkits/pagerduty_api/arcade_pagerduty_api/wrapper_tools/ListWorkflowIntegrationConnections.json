@@ -1,18 +1,18 @@
 {
   "name": "ListWorkflowIntegrationConnections",
-  "fully_qualified_name": "PagerdutyApi.ListWorkflowIntegrationConnections@0.1.0",
-  "description": "Retrieve all Workflow Integration Connections from Pagerduty.\n\nUse this tool to access and list all Workflow Integration Connections via Pagerduty. It requires appropriate OAuth scope for access.",
+  "fully_qualified_name": "PagerdutyApi.ListWorkflowIntegrationConnections@2.0.0",
+  "description": "Retrieve all workflow integration connections from PagerDuty.\n\nThis tool is used to list all Workflow Integration Connections available in PagerDuty. It requires proper OAuth scope for access.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "versioning_header",
+        "name": "version_header",
         "required": true,
-        "description": "Specify the version of the API response format using the `Accept` header.",
+        "description": "The API version header. Used for specifying the version of the API to be used.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "result_limit",
+        "name": "response_limit",
         "required": false,
-        "description": "Specify the maximum number of results to return. Defaults to the smaller of the request's limit or the API's maximum.",
+        "description": "The maximum number of results to return for the request.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "next_page_cursor",
+        "name": "next_results_cursor",
         "required": false,
-        "description": "Optional parameter for requesting the next set of results. Use the value from `next_cursor` of the previous response. Leave empty to start from the beginning.",
+        "description": "Optional parameter to retrieve the next set of results from the API. Typically obtained from the previous request's `next_cursor` field. If not provided, the request starts from the beginning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "filter_by_partial_name",
         "required": false,
-        "description": "Filter integrations based on a partial name match.",
+        "description": "Filter integrations by a partial name match to narrow down the results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,13 +100,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/workflows/integrations/connections",
@@ -115,7 +115,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "result_limit",
+        "tool_parameter_name": "response_limit",
         "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API.",
         "value_schema": {
           "val_type": "integer",
@@ -133,7 +133,7 @@
       },
       {
         "name": "cursor",
-        "tool_parameter_name": "next_page_cursor",
+        "tool_parameter_name": "next_results_cursor",
         "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n",
         "value_schema": {
           "val_type": "string",
@@ -169,7 +169,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -196,6 +196,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "ListCustomerGroups",
-  "fully_qualified_name": "SquareupApi.ListCustomerGroups@0.1.0",
-  "description": "Retrieve the list of customer groups for a business.\n\nUse this tool to access all customer groups associated with a business. Useful for managing or displaying customer segmentation and categories.",
+  "fully_qualified_name": "SquareupApi.ListCustomerGroups@2.0.0",
+  "description": "Retrieve a list of customer groups for a business.\n\nCall this tool to get the customer groups associated with a business. Useful for understanding customer segments or managing customer-related operations.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A pagination cursor to retrieve the next set of customer groups. Used to continue from the last retrieved page.",
+        "description": "A pagination cursor to retrieve the next set of results from a previous query. Useful for handling paginated responses.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "maximum_results_per_page",
+        "name": "max_results_per_page",
         "required": false,
-        "description": "The maximum number of results to return per page, between 1 and 50. Defaults to 50.",
+        "description": "The maximum number of customer groups to return per page. Must be between 1 and 50.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/customers/groups",
@@ -102,11 +102,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "maximum_results_per_page",
+        "tool_parameter_name": "max_results_per_page",
         "description": "The maximum number of results to return in a single page. This limit is advisory. The response might contain more or fewer results.\nIf the limit is less than 1 or greater than 50, Square returns a `400 VALUE_TOO_LOW` or `400 VALUE_TOO_HIGH` error. The default value is 50.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
         "value_schema": {
           "val_type": "integer",
@@ -119,6 +120,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

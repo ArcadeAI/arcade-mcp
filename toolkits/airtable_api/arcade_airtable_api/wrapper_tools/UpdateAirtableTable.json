@@ -1,0 +1,363 @@
+{
+  "name": "UpdateAirtableTable",
+  "fully_qualified_name": "AirtableApi.UpdateAirtableTable@2.0.0",
+  "description": "Update the properties of an Airtable table.\n\nUse this tool to update the name, description, or date dependency settings of a specific Airtable table identified by its base ID and table ID or name.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "airtable_base_id",
+        "required": true,
+        "description": "The unique identifier for the Airtable base containing the table to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "baseId"
+      },
+      {
+        "name": "table_id_or_name",
+        "required": true,
+        "description": "The identifier or name of the table to update in Airtable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tableIdOrName"
+      },
+      {
+        "name": "table_update_request_body",
+        "required": false,
+        "description": "JSON object containing the new properties for the table, such as name, description, and date dependency settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dateDependencySettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "durationFieldId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Must be an editable number field with unit in days."
+                },
+                "endDateFieldId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Must be an editable Date field."
+                },
+                "holidays": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set of holidays dates to skip when recalculating. Each date should be ISO-formatted.\nHas no effect if shouldSkipWeekendsAndHolidays is false."
+                },
+                "isEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the date dependency settings are enabled."
+                },
+                "predecessorFieldId": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If present, must be an editable linked record field pointing to the same table."
+                },
+                "reschedulingMode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "flexible",
+                    "fixed",
+                    "none"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Determines how tasks are rescheduled relative to their predecessors.\n[See support article](https://support.airtable.com/docs/date-dependencies-in-airtable#supported-date-dependency-behavior-in-airtable) for more."
+                },
+                "shouldSkipWeekendsAndHolidays": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether to skip weekends and holidays when recalculating."
+                },
+                "startDateFieldId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Must be an editable Date field."
+                }
+              },
+              "inner_properties": null,
+              "description": "Configuration for a table's date dependency settings."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The new description for the table (optional). If present, must be a string no longer than 20,000 characters."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The new name for the table (optional)."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-table'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "schema.bases:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/bases/{baseId}/tables/{tableIdOrName}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "baseId",
+        "tool_parameter_name": "airtable_base_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tableIdOrName",
+        "tool_parameter_name": "table_id_or_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "table_update_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dateDependencySettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "durationFieldId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Must be an editable number field with unit in days."
+                },
+                "endDateFieldId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Must be an editable Date field."
+                },
+                "holidays": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set of holidays dates to skip when recalculating. Each date should be ISO-formatted.\nHas no effect if shouldSkipWeekendsAndHolidays is false."
+                },
+                "isEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the date dependency settings are enabled."
+                },
+                "predecessorFieldId": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If present, must be an editable linked record field pointing to the same table."
+                },
+                "reschedulingMode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "flexible",
+                    "fixed",
+                    "none"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Determines how tasks are rescheduled relative to their predecessors.\n[See support article](https://support.airtable.com/docs/date-dependencies-in-airtable#supported-date-dependency-behavior-in-airtable) for more."
+                },
+                "shouldSkipWeekendsAndHolidays": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether to skip weekends and holidays when recalculating."
+                },
+                "startDateFieldId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Must be an editable Date field."
+                }
+              },
+              "inner_properties": null,
+              "description": "Configuration for a table's date dependency settings."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The new description for the table (optional). If present, must be a string no longer than 20,000 characters."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The new name for the table (optional)."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success response\": {\n          \"description\": \"Success Response\",\n          \"summary\": \"Success response\",\n          \"value\": {\n            \"description\": \"I was changed!\",\n            \"name\": \"Apartments (revised)\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"dateDependencySettings\": {\n            \"description\": \"Configuration for a table's date dependency settings.\",\n            \"properties\": {\n              \"durationFieldId\": {\n                \"description\": \"Must be an editable number field with unit in days.\",\n                \"type\": \"string\"\n              },\n              \"endDateFieldId\": {\n                \"description\": \"Must be an editable Date field.\",\n                \"type\": \"string\"\n              },\n              \"holidays\": {\n                \"description\": \"Set of holidays dates to skip when recalculating. Each date should be ISO-formatted.\\nHas no effect if shouldSkipWeekendsAndHolidays is false.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              },\n              \"isEnabled\": {\n                \"description\": \"Whether the date dependency settings are enabled.\",\n                \"type\": \"boolean\"\n              },\n              \"predecessorFieldId\": {\n                \"anyOf\": [\n                  {\n                    \"type\": \"string\"\n                  },\n                  {\n                    \"type\": \"null\"\n                  }\n                ],\n                \"description\": \"If present, must be an editable linked record field pointing to the same table.\"\n              },\n              \"reschedulingMode\": {\n                \"description\": \"Determines how tasks are rescheduled relative to their predecessors.\\n[See support article](https://support.airtable.com/docs/date-dependencies-in-airtable#supported-date-dependency-behavior-in-airtable) for more.\",\n                \"enum\": [\n                  \"flexible\",\n                  \"fixed\",\n                  \"none\"\n                ],\n                \"type\": \"string\"\n              },\n              \"shouldSkipWeekendsAndHolidays\": {\n                \"description\": \"Whether to skip weekends and holidays when recalculating.\",\n                \"type\": \"boolean\"\n              },\n              \"startDateFieldId\": {\n                \"description\": \"Must be an editable Date field.\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"startDateFieldId\",\n              \"endDateFieldId\",\n              \"durationFieldId\",\n              \"predecessorFieldId\",\n              \"isEnabled\",\n              \"shouldSkipWeekendsAndHolidays\",\n              \"holidays\",\n              \"reschedulingMode\"\n            ],\n            \"type\": \"object\",\n            \"x-airtable-name\": \"Date Dependency Settings\"\n          },\n          \"description\": {\n            \"description\": \"The new description for the table (optional). If present, must be a string no longer than 20,000 characters.\",\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"The new name for the table (optional).\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

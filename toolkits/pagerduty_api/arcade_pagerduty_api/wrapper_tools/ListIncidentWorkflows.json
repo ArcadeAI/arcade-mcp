@@ -1,18 +1,18 @@
 {
   "name": "ListIncidentWorkflows",
-  "fully_qualified_name": "PagerdutyApi.ListIncidentWorkflows@0.1.0",
-  "description": "Retrieve all existing incident workflows.\n\nUse this tool to list all incident workflows in your Pagerduty account. Ideal for obtaining a comprehensive view of all workflows, including sequences of steps and triggers configured for incidents.",
+  "fully_qualified_name": "PagerdutyApi.ListIncidentWorkflows@2.0.0",
+  "description": "Retrieve all incident workflows in your PagerDuty account.\n\nUse this tool to list all existing Incident Workflows in your PagerDuty account, which consist of configurable steps and triggers for automated actions. Ideal for managing workflows related to incidents.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_version_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specify the API version using the `Accept` header. This determines the format and version of the response returned.",
+        "description": "Specifies the versioning for the API request. Used in the 'Accept' header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the media type of the request. Use 'application/json'.",
+        "description": "Specifies the format of the request. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "Specify the maximum number of incident workflow results to return per page.",
+        "description": "Specifies the number of results to return per page in the response.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "The starting point for pagination of search results. Define how many items to skip before beginning to return results.",
+        "description": "Offset to start pagination search results.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "name_filter_query",
+        "name": "filter_by_name",
         "required": false,
-        "description": "Specify a search query to filter results by matching workflow names.",
+        "description": "Filter results to show only records whose name matches the query.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
       {
         "name": "include_additional_details",
         "required": false,
-        "description": "Specify additional details to include, such as steps or team.",
+        "description": "Specify additional details to include, such as 'steps' or 'team'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -105,9 +105,9 @@
         "http_endpoint_parameter_name": "include[]"
       },
       {
-        "name": "include_total_in_response",
+        "name": "include_total_in_pagination",
         "required": false,
-        "description": "Set to true to include the total count field in pagination responses. This may affect response speed.",
+        "description": "Set to true to populate the `total` field in pagination responses, false otherwise to optimize for speed.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -150,13 +150,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incident_workflows",
@@ -201,7 +201,7 @@
       },
       {
         "name": "total",
-        "tool_parameter_name": "include_total_in_response",
+        "tool_parameter_name": "include_total_in_pagination",
         "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -214,12 +214,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "query",
-        "tool_parameter_name": "name_filter_query",
+        "tool_parameter_name": "filter_by_name",
         "description": "Filters the result, showing only the records whose name matches the query.",
         "value_schema": {
           "val_type": "string",
@@ -258,7 +258,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -276,7 +276,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -305,6 +305,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

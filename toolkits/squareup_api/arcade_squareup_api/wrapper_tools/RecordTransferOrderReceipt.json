@@ -1,0 +1,277 @@
+{
+  "name": "RecordTransferOrderReceipt",
+  "fully_qualified_name": "SquareupApi.RecordTransferOrderReceipt@2.0.0",
+  "description": "Record received items for a transfer order.\n\nUse this tool to record the receipt of items for a transfer order, including handling partial receipts and damaged items. It updates the inventory based on item condition and progresses the order status.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "transfer_order_id",
+        "required": true,
+        "description": "The ID of the transfer order for which items are being received. This ID is required to process the receipt of items, including partial and damaged quantities, and update inventory accordingly.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to receive items for"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transfer_order_id"
+      },
+      {
+        "name": "goods_receipt_details",
+        "required": true,
+        "description": "An object detailing the goods receipt for a transfer order, including line items received, damaged, or canceled. Supports partial receipts and updates inventory levels.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique key to make this request idempotent"
+            },
+            "receipt": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "line_items": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "transfer_order_line_uid": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The unique identifier of the Transfer Order line being received"
+                    },
+                    "quantity_received": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The quantity received for this line item as a decimal string (e.g. \"10.5\").\nThese items will be added to the destination [Location](entity:Location)'s inventory with [InventoryState](entity:InventoryState) of IN_STOCK."
+                    },
+                    "quantity_damaged": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The quantity that was damaged during shipping/handling as a decimal string (e.g. \"1.5\").\nThese items will be added to the destination [Location](entity:Location)'s inventory with [InventoryState](entity:InventoryState) of WASTE."
+                    },
+                    "quantity_canceled": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The quantity that was canceled during shipping/handling as a decimal string (e.g. \"1.5\"). These will be immediately added to inventory in the source location."
+                    }
+                  },
+                  "description": "Line items being received. Each line item specifies:\n- The item being received\n- Quantity received in good condition\n- Quantity received damaged\n- Quantity canceled\n\nConstraints:\n- Must include at least one line item\n- Maximum of 1000 line items per receipt\n- Each line item must reference a valid item from the transfer order\n- Total of received, damaged, and canceled quantities cannot exceed ordered quantity"
+                }
+              },
+              "inner_properties": null,
+              "description": "The goods receipt details for a transfer order. This object represents a single receipt\nof goods against a transfer order, tracking:\n\n- Which [CatalogItemVariation](entity:CatalogItemVariation)s were received\n- Quantities received in good condition\n- Quantities damaged during transit/handling\n- Quantities canceled during receipt\n\nMultiple goods receipts can be created for a single transfer order to handle:\n- Partial deliveries\n- Multiple shipments\n- Split receipts across different dates\n- Cancellations of specific quantities\n\nEach receipt automatically:\n- Updates the transfer order status\n- Adjusts received quantities\n- Updates inventory levels at both source and destination [Location](entity:Location)s"
+            },
+            "version": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Version for optimistic concurrency"
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ReceiveTransferOrder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVENTORY_READ",
+          "INVENTORY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/transfer-orders/{transfer_order_id}/receive",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "transfer_order_id",
+        "tool_parameter_name": "transfer_order_id",
+        "description": "The ID of the transfer order to receive items for",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to receive items for"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "goods_receipt_details",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique key to make this request idempotent"
+            },
+            "receipt": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "line_items": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "transfer_order_line_uid": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The unique identifier of the Transfer Order line being received"
+                    },
+                    "quantity_received": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The quantity received for this line item as a decimal string (e.g. \"10.5\").\nThese items will be added to the destination [Location](entity:Location)'s inventory with [InventoryState](entity:InventoryState) of IN_STOCK."
+                    },
+                    "quantity_damaged": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The quantity that was damaged during shipping/handling as a decimal string (e.g. \"1.5\").\nThese items will be added to the destination [Location](entity:Location)'s inventory with [InventoryState](entity:InventoryState) of WASTE."
+                    },
+                    "quantity_canceled": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The quantity that was canceled during shipping/handling as a decimal string (e.g. \"1.5\"). These will be immediately added to inventory in the source location."
+                    }
+                  },
+                  "description": "Line items being received. Each line item specifies:\n- The item being received\n- Quantity received in good condition\n- Quantity received damaged\n- Quantity canceled\n\nConstraints:\n- Must include at least one line item\n- Maximum of 1000 line items per receipt\n- Each line item must reference a valid item from the transfer order\n- Total of received, damaged, and canceled quantities cannot exceed ordered quantity"
+                }
+              },
+              "inner_properties": null,
+              "description": "The goods receipt details for a transfer order. This object represents a single receipt\nof goods against a transfer order, tracking:\n\n- Which [CatalogItemVariation](entity:CatalogItemVariation)s were received\n- Quantities received in good condition\n- Quantities damaged during transit/handling\n- Quantities canceled during receipt\n\nMultiple goods receipts can be created for a single transfer order to handle:\n- Partial deliveries\n- Multiple shipments\n- Split receipts across different dates\n- Cancellations of specific quantities\n\nEach receipt automatically:\n- Updates the transfer order status\n- Adjusts received quantities\n- Updates inventory levels at both source and destination [Location](entity:Location)s"
+            },
+            "version": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Version for optimistic concurrency"
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Request to record receipt of items for a transfer order\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"idempotency_key\",\n          \"receipt\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique key to make this request idempotent\",\n            \"minLength\": 1\n          },\n          \"receipt\": {\n            \"type\": \"object\",\n            \"description\": \"The goods receipt details for a transfer order. This object represents a single receipt\\nof goods against a transfer order, tracking:\\n\\n- Which [CatalogItemVariation](entity:CatalogItemVariation)s were received\\n- Quantities received in good condition\\n- Quantities damaged during transit/handling\\n- Quantities canceled during receipt\\n\\nMultiple goods receipts can be created for a single transfer order to handle:\\n- Partial deliveries\\n- Multiple shipments\\n- Split receipts across different dates\\n- Cancellations of specific quantities\\n\\nEach receipt automatically:\\n- Updates the transfer order status\\n- Adjusts received quantities\\n- Updates inventory levels at both source and destination [Location](entity:Location)s\",\n            \"x-release-status\": \"BETA\",\n            \"properties\": {\n              \"line_items\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"description\": \"A simplified line item for goods receipts in transfer orders\",\n                  \"x-release-status\": \"BETA\",\n                  \"required\": [\n                    \"transfer_order_line_uid\"\n                  ],\n                  \"properties\": {\n                    \"transfer_order_line_uid\": {\n                      \"type\": \"string\",\n                      \"description\": \"The unique identifier of the Transfer Order line being received\",\n                      \"maxLength\": 64\n                    },\n                    \"quantity_received\": {\n                      \"type\": \"string\",\n                      \"description\": \"The quantity received for this line item as a decimal string (e.g. \\\"10.5\\\").\\nThese items will be added to the destination [Location](entity:Location)'s inventory with [InventoryState](entity:InventoryState) of IN_STOCK.\",\n                      \"minLength\": 1,\n                      \"maxLength\": 16,\n                      \"pattern\": \"^(0|[1-9]\\\\d*)(\\\\.\\\\d{1,4})?$\",\n                      \"nullable\": true\n                    },\n                    \"quantity_damaged\": {\n                      \"type\": \"string\",\n                      \"description\": \"The quantity that was damaged during shipping/handling as a decimal string (e.g. \\\"1.5\\\").\\nThese items will be added to the destination [Location](entity:Location)'s inventory with [InventoryState](entity:InventoryState) of WASTE.\",\n                      \"minLength\": 1,\n                      \"maxLength\": 16,\n                      \"pattern\": \"^(0|[1-9]\\\\d*)(\\\\.\\\\d{1,4})?$\",\n                      \"nullable\": true\n                    },\n                    \"quantity_canceled\": {\n                      \"type\": \"string\",\n                      \"description\": \"The quantity that was canceled during shipping/handling as a decimal string (e.g. \\\"1.5\\\"). These will be immediately added to inventory in the source location.\",\n                      \"minLength\": 1,\n                      \"maxLength\": 16,\n                      \"pattern\": \"^(0|[1-9]\\\\d*)(\\\\.\\\\d{1,4})?$\",\n                      \"nullable\": true\n                    }\n                  }\n                },\n                \"description\": \"Line items being received. Each line item specifies:\\n- The item being received\\n- Quantity received in good condition\\n- Quantity received damaged\\n- Quantity canceled\\n\\nConstraints:\\n- Must include at least one line item\\n- Maximum of 1000 line items per receipt\\n- Each line item must reference a valid item from the transfer order\\n- Total of received, damaged, and canceled quantities cannot exceed ordered quantity\",\n                \"nullable\": true\n              }\n            }\n          },\n          \"version\": {\n            \"type\": \"integer\",\n            \"description\": \"Version for optimistic concurrency\",\n            \"format\": \"int64\"\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"EXAMPLE_IDEMPOTENCY_KEY_101\",\n          \"receipt\": {\n            \"line_items\": [\n              {\n                \"quantity_canceled\": \"1\",\n                \"quantity_damaged\": \"1\",\n                \"quantity_received\": \"3\",\n                \"uid\": \"1\"\n              },\n              {\n                \"quantity_canceled\": \"1\",\n                \"quantity_received\": \"2\",\n                \"uid\": \"2\"\n              }\n            ]\n          },\n          \"transfer_order_id\": \"EXAMPLE_TRANSFER_ORDER_ID_123\",\n          \"version\": 1753118664873\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

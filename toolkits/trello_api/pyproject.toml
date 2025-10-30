@@ -4,12 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_trello_api"
-version = "0.1.1"
+version = "2.0.0"
 description = "Tools that enable LLMs to interact directly with the trello API."
 requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>=3.0.0,<4.0.0",
     "httpx[http2]>=0.27.2,<1.0.0",
+    "jsonschema>=4.0.0,<5.0.0",
 ]
 [[project.authors]]
 email = "support@arcade.dev"
@@ -50,6 +51,7 @@ warn_return_any = "True"
 warn_unused_ignores = "True"
 show_error_codes = "True"
 ignore_missing_imports = "True"
+follow_imports = "normal"
 
 [tool.pytest.ini_options]
 testpaths = [ "tests",]

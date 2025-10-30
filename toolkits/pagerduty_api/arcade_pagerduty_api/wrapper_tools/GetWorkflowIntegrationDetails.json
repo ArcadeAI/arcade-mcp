@@ -1,18 +1,18 @@
 {
   "name": "GetWorkflowIntegrationDetails",
-  "fully_qualified_name": "PagerdutyApi.GetWorkflowIntegrationDetails@0.1.0",
-  "description": "Retrieve details about a Workflow Integration.\n\nUse this tool to get information about a specific Workflow Integration in Pagerduty. It requires 'workflow_integrations.read' permissions.",
+  "fully_qualified_name": "PagerdutyApi.GetWorkflowIntegrationDetails@2.0.0",
+  "description": "Retrieve details about a PagerDuty workflow integration.\n\nUse this tool to get detailed information about a specific workflow integration in PagerDuty. Useful for understanding integration configurations and parameters.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier for the Workflow Integration resource in Pagerduty.",
+        "description": "The unique identifier of the workflow integration resource in PagerDuty that you want to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "accept_version_header",
         "required": true,
-        "description": "Specify the API version using the Accept header for versioning.",
+        "description": "Versioning header specifying API version to accept. Must be a valid string indicating the version format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/workflows/integrations/{id}",
@@ -130,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

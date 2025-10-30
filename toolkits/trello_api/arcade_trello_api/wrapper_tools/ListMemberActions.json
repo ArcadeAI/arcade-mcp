@@ -1,18 +1,18 @@
 {
   "name": "ListMemberActions",
-  "fully_qualified_name": "TrelloApi.ListMemberActions@0.1.0",
-  "description": "Retrieve actions performed by a Trello member.\n\nUse this tool to obtain a list of actions associated with a specific Trello member. It is useful when you need to track or analyze the activities of a member on Trello.",
+  "fully_qualified_name": "TrelloApi.ListMemberActions@2.0.0",
+  "description": "Retrieve a list of actions for a specified member.\n\nUse this tool to get all actions associated with a particular Trello member by their ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "member_id_or_username",
+        "name": "member_identifier",
         "required": true,
-        "description": "The ID or username of the Trello member whose actions are being retrieved.",
+        "description": "The ID or username of the Trello member whose actions you want to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "action_types_filter",
         "required": false,
-        "description": "A comma-separated list of action types to filter the actions performed by a member.",
+        "description": "A comma-separated list of action types to filter the actions of a Trello member.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/actions",
@@ -100,11 +100,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "member_id_or_username",
+        "tool_parameter_name": "member_identifier",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

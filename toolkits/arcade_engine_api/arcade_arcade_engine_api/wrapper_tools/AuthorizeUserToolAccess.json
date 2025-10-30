@@ -1,0 +1,203 @@
+{
+  "name": "AuthorizeUserToolAccess",
+  "fully_qualified_name": "EngineApi.AuthorizeUserToolAccess@0.1.0",
+  "description": "Authorize a user to access a specific tool.\n\nThis tool authorizes a user for a specific tool by its name. It should be called when a user needs permission to access a specific tool. The tool returns the authorization status.",
+  "toolkit": {
+    "name": "ArcadeEngineApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "tool_name_for_authorization",
+        "required": true,
+        "description": "Specify the name of the tool to authorize the user for access.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tool_name"
+      },
+      {
+        "name": "redirect_uri_after_authorization",
+        "required": false,
+        "description": "Optional URI to redirect the user after authorization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: if provided, the user will be redirected to this URI after authorization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_uri"
+      },
+      {
+        "name": "tool_version",
+        "required": false,
+        "description": "Specify the tool version to authorize. If not provided, any version will be used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: if not provided, any version is used"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tool_version"
+      },
+      {
+        "name": "user_id",
+        "required": false,
+        "description": "The unique identifier for a user. Required only when using an API key for authorization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Required only when calling with an API key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'tool-authorize'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "ARCADE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the engine API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.arcade.dev/v1/tools/authorize",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "next_uri",
+        "tool_parameter_name": "redirect_uri_after_authorization",
+        "description": "Optional: if provided, the user will be redirected to this URI after authorization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: if provided, the user will be redirected to this URI after authorization"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tool_name",
+        "tool_parameter_name": "tool_name_for_authorization",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tool_version",
+        "tool_parameter_name": "tool_version",
+        "description": "Optional: if not provided, any version is used",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: if not provided, any version is used"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_id",
+        "tool_parameter_name": "user_id",
+        "description": "Required only when calling with an API key",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Required only when calling with an API key"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ARCADE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Tool authorization request\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"tool_name\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"next_uri\": {\n            \"type\": \"string\",\n            \"description\": \"Optional: if provided, the user will be redirected to this URI after authorization\"\n          },\n          \"tool_name\": {\n            \"type\": \"string\"\n          },\n          \"tool_version\": {\n            \"type\": \"string\",\n            \"description\": \"Optional: if not provided, any version is used\"\n          },\n          \"user_id\": {\n            \"type\": \"string\",\n            \"description\": \"Required only when calling with an API key\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

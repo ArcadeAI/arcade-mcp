@@ -1,0 +1,219 @@
+{
+  "name": "CreateOneOffEvent",
+  "fully_qualified_name": "CalendlyApi.CreateOneOffEvent@2.0.0",
+  "description": "Create a one-off event type in Calendly.\n\nThis tool is used to create a one-off event type in Calendly, allowing users to schedule unique events not linked to recurring event types.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_details",
+        "required": true,
+        "description": "JSON containing event parameters like name, host URI, co-host URIs, duration, timezone, date setting, and location.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Event type name"
+            },
+            "host": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Host user uri"
+            },
+            "co_hosts": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Collection of meeting co-host(s) user URIs"
+            },
+            "duration": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Duration of meeting in minutes"
+            },
+            "timezone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone used for meeting. Defaults to host's time zone."
+            },
+            "date_setting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "location": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Parameters for creating One-Off Event Type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-one-off-event-type'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/one_off_event_types",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "event_details",
+        "description": "Parameters for creating One-Off Event Type",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Event type name"
+            },
+            "host": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Host user uri"
+            },
+            "co_hosts": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Collection of meeting co-host(s) user URIs"
+            },
+            "duration": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Duration of meeting in minutes"
+            },
+            "timezone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone used for meeting. Defaults to host's time zone."
+            },
+            "date_setting": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "location": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Parameters for creating One-Off Event Type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"x-stoplight\": {\n              \"id\": \"0tj6bpbhb3zax\"\n            },\n            \"description\": \"Event type name\",\n            \"example\": \"My Meeting\",\n            \"maxLength\": 55\n          },\n          \"host\": {\n            \"type\": \"string\",\n            \"x-stoplight\": {\n              \"id\": \"g80s05pbxm7bq\"\n            },\n            \"description\": \"Host user uri\",\n            \"example\": \"https://api.calendly.com/users/AAAAAAAAAAAAAAAA\",\n            \"format\": \"uri\"\n          },\n          \"co_hosts\": {\n            \"type\": \"array\",\n            \"x-stoplight\": {\n              \"id\": \"smhocxmji8deh\"\n            },\n            \"maxItems\": 9,\n            \"description\": \"Collection of meeting co-host(s) user URIs\",\n            \"items\": {\n              \"x-stoplight\": {\n                \"id\": \"0nqgfaej6nlv1\"\n              },\n              \"type\": \"string\",\n              \"format\": \"uri\"\n            }\n          },\n          \"duration\": {\n            \"type\": \"number\",\n            \"x-stoplight\": {\n              \"id\": \"r2qqy76sh5ikv\"\n            },\n            \"maximum\": 720,\n            \"description\": \"Duration of meeting in minutes\"\n          },\n          \"timezone\": {\n            \"type\": \"string\",\n            \"x-stoplight\": {\n              \"id\": \"hsu3tz8o7ykos\"\n            },\n            \"description\": \"Time zone used for meeting. Defaults to host's time zone.\",\n            \"example\": \"America/New_York\"\n          },\n          \"date_setting\": {\n            \"x-stoplight\": {\n              \"id\": \"hskuoq7f14ynp\"\n            },\n            \"oneOf\": [\n              {\n                \"$ref\": \"./models/date_setting/DateRange.yaml\"\n              },\n              {\n                \"$ref\": \"./models/date_setting/DaysInFuture.yaml\"\n              },\n              {\n                \"$ref\": \"./models/date_setting/Spots.yaml\"\n              }\n            ]\n          },\n          \"location\": {\n            \"oneOf\": [\n              {\n                \"$ref\": \"./models/adhoc-locations/CustomLocation.yaml\"\n              },\n              {\n                \"$ref\": \"./models/adhoc-locations/GoogleConference.yaml\"\n              },\n              {\n                \"$ref\": \"./models/adhoc-locations/GotoMeetingConference.yaml\"\n              },\n              {\n                \"$ref\": \"./models/adhoc-locations/InPersonMeeting.yaml\"\n              },\n              {\n                \"$ref\": \"./models/adhoc-locations/InboundCall.yaml\"\n              },\n              {\n                \"$ref\": \"./models/adhoc-locations/InviteeSpecifiedLocation.yaml\"\n              },\n              {\n                \"$ref\": \"./models/adhoc-locations/MicrosoftTeamsConference.yaml\"\n              },\n              {\n                \"$ref\": \"./models/adhoc-locations/OutboundCall.yaml\"\n              },\n              {\n                \"$ref\": \"./models/adhoc-locations/WebExConference.yaml\"\n              },\n              {\n                \"$ref\": \"./models/adhoc-locations/ZoomConference.yaml\"\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"host\",\n          \"duration\",\n          \"date_setting\"\n        ]\n      },\n      \"examples\": {\n        \"Example: date_range\": {\n          \"value\": {\n            \"name\": \"My Meeting\",\n            \"host\": \"https://api.calendly.com/users/AAAAAAAAAAAAAAAA\",\n            \"co_hosts\": [\n              \"https://api.calendly.com/users/BBBBBBBBBBBBBBBB\",\n              \"https://api.calendly.com/users/CCCCCCCCCCCCCCCC\"\n            ],\n            \"duration\": 30,\n            \"timezone\": \"string\",\n            \"date_setting\": {\n              \"type\": \"date_range\",\n              \"start_date\": \"2020-01-07\",\n              \"end_date\": \"2020-01-09\"\n            },\n            \"location\": {\n              \"kind\": \"physical\",\n              \"location\": \"Main Office\",\n              \"additonal_info\": \"string\"\n            }\n          }\n        },\n        \"Example: days_in_future\": {\n          \"value\": {\n            \"name\": \"My Meeting\",\n            \"host\": \"https://api.calendly.com/users/AAAAAAAAAAAAAAAA\",\n            \"co_hosts\": [\n              \"https://api.calendly.com/users/BBBBBBBBBBBBBBBB\",\n              \"https://api.calendly.com/users/CCCCCCCCCCCCCCCC\"\n            ],\n            \"duration\": 30,\n            \"timezone\": \"string\",\n            \"date_setting\": {\n              \"type\": \"days_in_future\",\n              \"days\": 60,\n              \"only_weekdays\": false\n            },\n            \"location\": {\n              \"kind\": \"physical\",\n              \"location\": \"Main Office\",\n              \"additonal_info\": \"string\"\n            }\n          }\n        },\n        \"Example: spots\": {\n          \"value\": {\n            \"name\": \"My Meeting\",\n            \"host\": \"https://api.calendly.com/users/AAAAAAAAAAAAAAAA\",\n            \"co_hosts\": [\n              \"http://example.com\"\n            ],\n            \"duration\": 720,\n            \"timezone\": \"America/New_York\",\n            \"date_setting\": {\n              \"type\": \"spots\",\n              \"spots\": [\n                {\n                  \"start_time\": \"2020-01-02T11:30:00.000000Z\",\n                  \"end_time\": \"2020-01-02T12:00:00.000000Z\"\n                }\n              ]\n            },\n            \"location\": {\n              \"kind\": \"custom\",\n              \"location\": \"string\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"Parameters for creating One-Off Event Type\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

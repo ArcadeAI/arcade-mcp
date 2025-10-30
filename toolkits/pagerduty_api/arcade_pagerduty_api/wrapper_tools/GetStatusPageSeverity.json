@@ -1,18 +1,18 @@
 {
   "name": "GetStatusPageSeverity",
-  "fully_qualified_name": "PagerdutyApi.GetStatusPageSeverity@0.1.0",
-  "description": "Retrieve severity details for a status page by ID.\n\nUse this tool to get detailed information about a specific severity level for a status page using the status page ID and severity ID. Useful for monitoring and response teams to understand the impact level of issues.",
+  "fully_qualified_name": "PagerdutyApi.GetStatusPageSeverity@2.0.0",
+  "description": "Retrieve severity details for a status page using IDs.\n\nThis tool fetches the severity information for a given status page by using the status page ID and severity ID. It's useful for monitoring and managing incident details.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "status_page_id",
         "required": true,
-        "description": "The ID of the status page to retrieve severity details for.",
+        "description": "The unique identifier for the status page resource.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "severity_id",
+        "name": "status_page_severity_id",
         "required": true,
-        "description": "The ID of the specific severity for the status page. Use this to retrieve severity details.",
+        "description": "The unique identifier for the specific severity on a status page. Used to fetch severity details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "severity_id"
       },
       {
-        "name": "accept_version_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specifies the version of the API response format using the Accept header.",
+        "description": "Specifies the versioning header using the `Accept` header format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/status_pages/{id}/severities/{severity_id}",
@@ -118,7 +118,7 @@
       },
       {
         "name": "severity_id",
-        "tool_parameter_name": "severity_id",
+        "tool_parameter_name": "status_page_severity_id",
         "description": "The ID of the Status Page severity.",
         "value_schema": {
           "val_type": "string",
@@ -136,7 +136,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -163,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

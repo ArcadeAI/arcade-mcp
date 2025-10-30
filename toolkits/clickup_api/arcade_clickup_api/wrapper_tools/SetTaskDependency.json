@@ -1,0 +1,237 @@
+{
+  "name": "SetTaskDependency",
+  "fully_qualified_name": "ClickupApi.SetTaskDependency@0.1.0",
+  "description": "Set a task as waiting on or blocking another task.\n\nUse this tool to establish a dependency between tasks in ClickUp, either setting a task as waiting on another or as blocking one.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_id_of_dependency",
+        "required": true,
+        "description": "The ID of the task that is waiting on or blocking another task.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is the task which is waiting on or blocking another task."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_id"
+      },
+      {
+        "name": "workspace_id",
+        "required": false,
+        "description": "Provide the Workspace ID when `custom_task_ids` is true. Necessary for task identification.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n\\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "depends_on_task_id",
+        "required": false,
+        "description": "Specify the task ID that this task depends on or is blocked by. It should be a valid task ID in ClickUp.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "depends_on"
+      },
+      {
+        "name": "dependent_task_id",
+        "required": false,
+        "description": "The ID of the task that the specified task depends on or is blocking. This establishes the task dependency relationship.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "depedency_of"
+      },
+      {
+        "name": "use_custom_task_ids",
+        "required": false,
+        "description": "Set to true to reference a task by its custom task ID.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by it's custom task id, this value must be `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_task_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'AddDependency'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/task/{task_id}/dependency",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "custom_task_ids",
+        "tool_parameter_name": "use_custom_task_ids",
+        "description": "If you want to reference a task by it's custom task id, this value must be `true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by it's custom task id, this value must be `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n\\\nFor example: `custom_task_ids=true&team_id=123`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n\\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_id",
+        "tool_parameter_name": "task_id_of_dependency",
+        "description": "This is the task which is waiting on or blocking another task.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is the task which is waiting on or blocking another task."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "depends_on",
+        "tool_parameter_name": "depends_on_task_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "depedency_of",
+        "tool_parameter_name": "dependent_task_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Use the `depends_on` parameter in the request body to specify the task that must be completed before the task in the path parameter.\\\\\\n \\\\\\nUse the `dependency_of` parameter in the request body to specify the task that's waiting for the task in the path parameter to be completed.\\\\\\n \\\\\\nYou can only use one per request.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"AddDependencyrequest\",\n        \"type\": \"object\",\n        \"properties\": {\n          \"depends_on\": {\n            \"type\": \"string\"\n          },\n          \"depedency_of\": {\n            \"type\": \"string\"\n          }\n        },\n        \"examples\": [\n          {\n            \"depends_on\": \"9hw\"\n          }\n        ]\n      },\n      \"example\": {\n        \"depends_on\": \"9hw\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

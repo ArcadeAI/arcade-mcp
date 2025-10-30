@@ -1,0 +1,109 @@
+{
+  "name": "RetrieveGiftCard",
+  "fully_qualified_name": "SquareupApi.RetrieveGiftCard@2.0.0",
+  "description": "Retrieve a gift card using its account number.\n\nThis tool retrieves details of a gift card by using the gift card account number (GAN). It should be called when you need to access information about a specific gift card.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "gift_card_account_number",
+        "required": true,
+        "description": "The account number (GAN) of the gift card to retrieve. Max length 255 digits; Square-issued GANs have 16 digits.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The gift card account number (GAN) of the gift card to retrieve.\nThe maximum length of a GAN is 255 digits to account for third-party GANs that have been imported.\nSquare-issued gift cards have 16-digit GANs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "gan"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'RetrieveGiftCardFromGAN'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "GIFTCARDS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/gift-cards/from-gan",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "gan",
+        "tool_parameter_name": "gift_card_account_number",
+        "description": "The gift card account number (GAN) of the gift card to retrieve.\nThe maximum length of a GAN is 255 digits to account for third-party GANs that have been imported.\nSquare-issued gift cards have 16-digit GANs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The gift card account number (GAN) of the gift card to retrieve.\nThe maximum length of a GAN is 255 digits to account for third-party GANs that have been imported.\nSquare-issued gift cards have 16-digit GANs."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to retrieve gift cards by their GANs.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"gan\"\n        ],\n        \"properties\": {\n          \"gan\": {\n            \"type\": \"string\",\n            \"description\": \"The gift card account number (GAN) of the gift card to retrieve.\\nThe maximum length of a GAN is 255 digits to account for third-party GANs that have been imported.\\nSquare-issued gift cards have 16-digit GANs.\",\n            \"minLength\": 1,\n            \"maxLength\": 255\n          }\n        },\n        \"example\": {\n          \"gan\": \"7783320001001635\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

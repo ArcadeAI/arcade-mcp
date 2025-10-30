@@ -1,0 +1,580 @@
+{
+  "name": "UpdateTaskInClickup",
+  "fully_qualified_name": "ClickupApi.UpdateTaskInClickup@0.1.0",
+  "description": "Update task details in ClickUp.\n\nUse this tool to update specific fields of a task in ClickUp by providing the task ID and desired changes.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_identifier",
+        "required": true,
+        "description": "The ID of the task to be updated. Provide either the standard task ID or a custom task ID if 'custom_task_ids' is true.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_id"
+      },
+      {
+        "name": "task_update_details",
+        "required": true,
+        "description": "JSON object containing the fields to update on the task. Includes fields like name, description, priority, due dates, assignees, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "custom_item_id": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The custom task type ID for this task. A value of `null` (default) sets the task type to type \"Task\".\\\n \\\nTo get a list of available custom task type IDs for your Workspace, use the [Get Custom Task Types endpoint](ref:getcustomitems)."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "To clear the task description, include `Description` with `\" \"`."
+            },
+            "markdown_content": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Markdown formatted description for the task. If both `markdown_content` and `description` are provided, `markdown_content` will be used instead of `description`."
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "due_date": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "due_date_time": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "parent": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "You can move a subtask to another parent task by including `\"parent\"` with a valid `task id`.\\\n \\\nYou cannot convert a subtask to a task by setting `\"parent\"` to `null`."
+            },
+            "time_estimate": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date_time": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "points": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Update the task's Sprint Points."
+            },
+            "assignees": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "add": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "rem": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "group_assignees": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "add": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "rem": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "watchers": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "add": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "rem": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "***Note:** To update Custom Fields on a task, you must use the Set Custom Field endpoint.*"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "workspace_id_for_custom_task",
+        "required": false,
+        "description": "Provide the Workspace ID when referencing a task by its custom task ID (requires `custom_task_ids` set to true).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "use_custom_task_ids",
+        "required": false,
+        "description": "Set to true to reference a task by its custom task ID.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by its custom task id, this value must be `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_task_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateTask'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/task/{task_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "custom_task_ids",
+        "tool_parameter_name": "use_custom_task_ids",
+        "description": "If you want to reference a task by its custom task id, this value must be `true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by its custom task id, this value must be `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id_for_custom_task",
+        "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_id",
+        "tool_parameter_name": "task_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "task_update_details",
+        "description": "***Note:** To update Custom Fields on a task, you must use the Set Custom Field endpoint.*",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "custom_item_id": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The custom task type ID for this task. A value of `null` (default) sets the task type to type \"Task\".\\\n \\\nTo get a list of available custom task type IDs for your Workspace, use the [Get Custom Task Types endpoint](ref:getcustomitems)."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "To clear the task description, include `Description` with `\" \"`."
+            },
+            "markdown_content": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Markdown formatted description for the task. If both `markdown_content` and `description` are provided, `markdown_content` will be used instead of `description`."
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "due_date": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "due_date_time": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "parent": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "You can move a subtask to another parent task by including `\"parent\"` with a valid `task id`.\\\n \\\nYou cannot convert a subtask to a task by setting `\"parent\"` to `null`."
+            },
+            "time_estimate": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date_time": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "points": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Update the task's Sprint Points."
+            },
+            "assignees": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "add": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "rem": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "group_assignees": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "add": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "rem": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "watchers": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "add": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                },
+                "rem": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": ""
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "***Note:** To update Custom Fields on a task, you must use the Set Custom Field endpoint.*"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"***Note:** To update Custom Fields on a task, you must use the Set Custom Field endpoint.*\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"title\": \"UpdateTaskrequest\",\n        \"type\": \"object\",\n        \"properties\": {\n          \"custom_item_id\": {\n            \"type\": [\n              \"number\",\n              \"null\"\n            ],\n            \"description\": \"The custom task type ID for this task. A value of `null` (default) sets the task type to type \\\"Task\\\".\\\\\\n \\\\\\nTo get a list of available custom task type IDs for your Workspace, use the [Get Custom Task Types endpoint](ref:getcustomitems).\"\n          },\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"description\": {\n            \"description\": \"To clear the task description, include `Description` with `\\\" \\\"`.\",\n            \"type\": \"string\"\n          },\n          \"markdown_content\": {\n            \"type\": \"string\",\n            \"description\": \"Markdown formatted description for the task. If both `markdown_content` and `description` are provided, `markdown_content` will be used instead of `description`.\"\n          },\n          \"status\": {\n            \"type\": \"string\"\n          },\n          \"priority\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          },\n          \"due_date\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int64\"\n          },\n          \"due_date_time\": {\n            \"type\": \"boolean\"\n          },\n          \"parent\": {\n            \"description\": \"You can move a subtask to another parent task by including `\\\"parent\\\"` with a valid `task id`.\\\\\\n \\\\\\nYou cannot convert a subtask to a task by setting `\\\"parent\\\"` to `null`.\",\n            \"type\": \"string\"\n          },\n          \"time_estimate\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int32\"\n          },\n          \"start_date\": {\n            \"type\": \"integer\",\n            \"contentEncoding\": \"int64\"\n          },\n          \"start_date_time\": {\n            \"type\": \"boolean\"\n          },\n          \"points\": {\n            \"type\": \"number\",\n            \"description\": \"Update the task's Sprint Points.\"\n          },\n          \"assignees\": {\n            \"title\": \"Assignees\",\n            \"required\": [\n              \"add\",\n              \"rem\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"add\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"contentEncoding\": \"int32\"\n                },\n                \"description\": \"\"\n              },\n              \"rem\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"contentEncoding\": \"int32\"\n                },\n                \"description\": \"\"\n              }\n            },\n            \"examples\": [\n              {\n                \"add\": [\n                  182\n                ],\n                \"rem\": [\n                  183\n                ]\n              }\n            ]\n          },\n          \"group_assignees\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"add\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"contentEncoding\": \"int32\"\n                },\n                \"description\": \"\"\n              },\n              \"rem\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"contentEncoding\": \"int32\"\n                },\n                \"description\": \"\"\n              }\n            }\n          },\n          \"watchers\": {\n            \"title\": \"Watchers\",\n            \"required\": [\n              \"add\",\n              \"rem\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"add\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"contentEncoding\": \"int32\"\n                },\n                \"description\": \"\"\n              },\n              \"rem\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"contentEncoding\": \"int32\"\n                },\n                \"description\": \"\"\n              }\n            },\n            \"examples\": [\n              {\n                \"add\": [\n                  182,\n                  121\n                ],\n                \"rem\": [\n                  183,\n                  122\n                ]\n              }\n            ]\n          },\n          \"archived\": {\n            \"type\": \"boolean\"\n          }\n        },\n        \"examples\": [\n          {\n            \"name\": \"Updated Task Name\",\n            \"description\": \"Updated Task Content\",\n            \"status\": \"in progress\",\n            \"priority\": 1,\n            \"due_date\": 1508369194377,\n            \"due_date_time\": false,\n            \"parent\": \"abc1234\",\n            \"time_estimate\": 8640000,\n            \"start_date\": 1567780450202,\n            \"start_date_time\": false,\n            \"points\": 3,\n            \"assignees\": {\n              \"add\": [\n                182\n              ],\n              \"rem\": [\n                183\n              ]\n            },\n            \"group_assignees\": {\n              \"add\": [\n                \"dd01f92f-48ca-446d-88a1-0beb0e8f5f14\"\n              ],\n              \"rem\": [\n                \"dd01f92f-48ca-446d-88a1-0beb0e8f5f13\"\n              ]\n            },\n            \"watchers\": {\n              \"add\": [\n                182\n              ],\n              \"rem\": [\n                183\n              ]\n            },\n            \"archived\": false\n          }\n        ]\n      },\n      \"example\": {\n        \"name\": \"Updated Task Name\",\n        \"description\": \"Updated Task Content\",\n        \"status\": \"in progress\",\n        \"priority\": 3,\n        \"due_date\": 1508369194377,\n        \"due_date_time\": false,\n        \"parent\": \"abc1234\",\n        \"time_estimate\": 8640000,\n        \"start_date\": 1567780450202,\n        \"start_date_time\": false,\n        \"points\": 3,\n        \"assignees\": {\n          \"add\": [\n            182\n          ],\n          \"rem\": [\n            183\n          ]\n        },\n        \"group_assignees\": {\n          \"add\": [\n            \"dd01f92f-48ca-446d-88a1-0beb0e8f5f14\"\n          ],\n          \"rem\": [\n            \"dd01f92f-48ca-446d-88a1-0beb0e8f5f13\"\n          ]\n        },\n        \"archived\": false\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

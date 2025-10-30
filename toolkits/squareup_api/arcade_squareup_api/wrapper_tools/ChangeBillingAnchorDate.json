@@ -1,0 +1,177 @@
+{
+  "name": "ChangeBillingAnchorDate",
+  "fully_qualified_name": "SquareupApi.ChangeBillingAnchorDate@2.0.0",
+  "description": "Change the billing anchor date for a subscription.\n\nUse this tool to modify the billing anchor date for a specific subscription. This can be useful for adjusting billing cycles and ensuring proper timing for subscription charges.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "required": true,
+        "description": "The ID of the subscription for which the billing anchor date will be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the subscription to update the billing anchor date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription_id"
+      },
+      {
+        "name": "billing_anchor_day",
+        "required": false,
+        "description": "The day (1-31) of the month to set as the billing anchor for the cycle.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The anchor day for the billing cycle."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "monthly_billing_anchor_date"
+      },
+      {
+        "name": "scheduled_billing_anchor_change_date",
+        "required": false,
+        "description": "The `YYYY-MM-DD`-formatted date when the `BILLING_ANCHOR_CHANGE` action occurs. If unspecified or within current billing cycle, change is immediate.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `YYYY-MM-DD`-formatted date when the scheduled `BILLING_ANCHOR_CHANGE` action takes\nplace on the subscription.\n\nWhen this date is unspecified or falls within the current billing cycle, the billing anchor date\nis changed immediately."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "effective_date"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ChangeBillingAnchorDate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "SUBSCRIPTIONS_READ",
+          "ITEMS_READ",
+          "SUBSCRIPTIONS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/subscriptions/{subscription_id}/billing-anchor",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "tool_parameter_name": "subscription_id",
+        "description": "The ID of the subscription to update the billing anchor date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the subscription to update the billing anchor date."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "monthly_billing_anchor_date",
+        "tool_parameter_name": "billing_anchor_day",
+        "description": "The anchor day for the billing cycle.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The anchor day for the billing cycle."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "effective_date",
+        "tool_parameter_name": "scheduled_billing_anchor_change_date",
+        "description": "The `YYYY-MM-DD`-formatted date when the scheduled `BILLING_ANCHOR_CHANGE` action takes\nplace on the subscription.\n\nWhen this date is unspecified or falls within the current billing cycle, the billing anchor date\nis changed immediately.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `YYYY-MM-DD`-formatted date when the scheduled `BILLING_ANCHOR_CHANGE` action takes\nplace on the subscription.\n\nWhen this date is unspecified or falls within the current billing cycle, the billing anchor date\nis changed immediately."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines input parameters in a request to the\\n[ChangeBillingAnchorDate](api-endpoint:Subscriptions-ChangeBillingAnchorDate) endpoint.\",\n        \"x-release-status\": \"BETA\",\n        \"properties\": {\n          \"monthly_billing_anchor_date\": {\n            \"type\": \"integer\",\n            \"description\": \"The anchor day for the billing cycle.\",\n            \"minimum\": 1,\n            \"maximum\": 31,\n            \"nullable\": true\n          },\n          \"effective_date\": {\n            \"type\": \"string\",\n            \"description\": \"The `YYYY-MM-DD`-formatted date when the scheduled `BILLING_ANCHOR_CHANGE` action takes\\nplace on the subscription.\\n\\nWhen this date is unspecified or falls within the current billing cycle, the billing anchor date\\nis changed immediately.\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"monthly_billing_anchor_date\": 1\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

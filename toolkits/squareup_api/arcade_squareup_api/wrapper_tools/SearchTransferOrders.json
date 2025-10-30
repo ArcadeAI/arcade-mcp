@@ -1,0 +1,319 @@
+{
+  "name": "SearchTransferOrders",
+  "fully_qualified_name": "SquareupApi.SearchTransferOrders@2.0.0",
+  "description": "Search for transfer orders using specific filters.\n\nThis tool searches for transfer orders using various filters, returning a paginated list of matching orders sorted by creation date. It can find orders by source or destination location or by a specific transfer order status.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "source_location_ids",
+        "required": false,
+        "description": "Array of source location IDs to filter transfer orders by their source location.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by source location IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.source_location_ids"
+      },
+      {
+        "name": "destination_location_ids",
+        "required": false,
+        "description": "Array of destination location IDs to filter transfer orders.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by destination location IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.destination_location_ids"
+      },
+      {
+        "name": "filter_by_order_statuses",
+        "required": false,
+        "description": "Filter transfer orders by their statuses. Accepts an array of status strings. Refer to TransferOrderStatus for valid values.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by order statuses\nSee [TransferOrderStatus](#type-transferorderstatus) for possible values"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.statuses"
+      },
+      {
+        "name": "sort_by_field",
+        "required": false,
+        "description": "Specify the field to sort transfer orders. Options: CREATED_AT, UPDATED_AT.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "CREATED_AT",
+            "UPDATED_AT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fields that can be used for sorting [TransferOrder](entity:TransferOrder)s in search results.\nUsed with [SearchTransferOrders](api-endpoint:TransferOrders-SearchTransferOrders) to control\nthe order of returned results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.sort.field"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specify the order ('DESC' or 'ASC') in which results are returned. 'DESC' for descending and 'ASC' for ascending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.sort.order"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A string token to continue a search from a previous position, enabling pagination through results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Pagination cursor from a previous search response"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "maximum_results",
+        "required": false,
+        "description": "Specify the maximum number of results to return, from 1 to 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results to return (1-100)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchTransferOrders'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVENTORY_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/transfer-orders/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "query.filter.source_location_ids",
+        "tool_parameter_name": "source_location_ids",
+        "description": "Filter by source location IDs",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by source location IDs"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.destination_location_ids",
+        "tool_parameter_name": "destination_location_ids",
+        "description": "Filter by destination location IDs",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by destination location IDs"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.statuses",
+        "tool_parameter_name": "filter_by_order_statuses",
+        "description": "Filter by order statuses\nSee [TransferOrderStatus](#type-transferorderstatus) for possible values",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by order statuses\nSee [TransferOrderStatus](#type-transferorderstatus) for possible values"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.sort.field",
+        "tool_parameter_name": "sort_by_field",
+        "description": "Fields that can be used for sorting [TransferOrder](entity:TransferOrder)s in search results.\nUsed with [SearchTransferOrders](api-endpoint:TransferOrders-SearchTransferOrders) to control\nthe order of returned results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "CREATED_AT",
+            "UPDATED_AT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fields that can be used for sorting [TransferOrder](entity:TransferOrder)s in search results.\nUsed with [SearchTransferOrders](api-endpoint:TransferOrders-SearchTransferOrders) to control\nthe order of returned results."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.sort.order",
+        "tool_parameter_name": "sort_order",
+        "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Pagination cursor from a previous search response",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Pagination cursor from a previous search response"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_results",
+        "description": "Maximum number of results to return (1-100)",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results to return (1-100)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Request to search transfer orders\",\n        \"x-release-status\": \"BETA\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"Query parameters for searching transfer orders\",\n            \"x-release-status\": \"BETA\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"Filter criteria for searching transfer orders\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"source_location_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Filter by source location IDs\",\n                    \"nullable\": true\n                  },\n                  \"destination_location_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Filter by destination location IDs\",\n                    \"nullable\": true\n                  },\n                  \"statuses\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\",\n                      \"enum\": [\n                        \"DRAFT\",\n                        \"STARTED\",\n                        \"PARTIALLY_RECEIVED\",\n                        \"COMPLETED\",\n                        \"CANCELED\"\n                      ],\n                      \"x-enum-elements\": [\n                        {\n                          \"name\": \"DRAFT\",\n                          \"description\": \"Initial status when transfer order is created via [CreateTransferOrder](api-endpoint:TransferOrders-CreateTransferOrder).\\nOrder can be modified or deleted. No inventory impact at this stage.\"\n                        },\n                        {\n                          \"name\": \"STARTED\",\n                          \"description\": \"Transfer order has been started via [StartTransferOrder](api-endpoint:TransferOrders-StartTransferOrder).\\nOrder can no longer be deleted. [CatalogItemVariation](entity:CatalogItemVariation)s are decremented \\nfrom source [Location](entity:Location) and marked as in-transit to destination.\"\n                        },\n                        {\n                          \"name\": \"PARTIALLY_RECEIVED\",\n                          \"description\": \"Some items have been received via [ReceiveTransferOrder](api-endpoint:TransferOrders-ReceiveTransferOrder)\\nbut there are still pending quantities. Additional receipts are allowed.\\n[CatalogItemVariation](entity:CatalogItemVariation)s are incrementally added to destination \\n[Location](entity:Location) inventory as they are received.\"\n                        },\n                        {\n                          \"name\": \"COMPLETED\",\n                          \"description\": \"All items have been received or canceled, no pending quantities remain. \\nOnly metadata modifications are allowed. Final inventory adjustments are complete\\nat both source and destination [Location](entity:Location)s.\"\n                        },\n                        {\n                          \"name\": \"CANCELED\",\n                          \"description\": \"Transfer order was canceled via [CancelTransferOrder](api-endpoint:TransferOrders-CancelTransferOrder).\\nAny pending quantities are no longer receivable and are returned to source [Location](entity:Location). \\nOnly metadata modifications are allowed.\"\n                        }\n                      ],\n                      \"description\": \"Status values for transfer orders. Represents the current state of a \\n[TransferOrder](entity:TransferOrder) in its lifecycle from creation to completion.\\nEach status determines what actions are available and how inventory is affected.\",\n                      \"x-release-status\": \"BETA\"\n                    },\n                    \"description\": \"Filter by order statuses\\nSee [TransferOrderStatus](#type-transferorderstatus) for possible values\",\n                    \"nullable\": true\n                  }\n                }\n              },\n              \"sort\": {\n                \"type\": \"object\",\n                \"description\": \"Sort configuration for search results\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"field\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"CREATED_AT\",\n                      \"UPDATED_AT\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"CREATED_AT\",\n                        \"description\": \"Sort by creation date (created_at field). Useful for:\\n- Finding newest transfers\\n- Chronological order processing\\n- Historical analysis\\n- Auditing transfer patterns\"\n                      },\n                      {\n                        \"name\": \"UPDATED_AT\",\n                        \"description\": \"Sort by last update date (updated_at field). Useful for:\\n- Finding recently modified transfers\\n- Tracking status changes\\n- Monitoring receiving progress\\n- Synchronizing with external systems\"\n                      }\n                    ],\n                    \"description\": \"Fields that can be used for sorting [TransferOrder](entity:TransferOrder)s in search results.\\nUsed with [SearchTransferOrders](api-endpoint:TransferOrders-SearchTransferOrders) to control\\nthe order of returned results.\",\n                    \"x-release-status\": \"BETA\"\n                  },\n                  \"order\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"DESC\",\n                      \"ASC\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"DESC\",\n                        \"description\": \"The results are returned in descending (e.g., newest-first or Z-A) order.\"\n                      },\n                      {\n                        \"name\": \"ASC\",\n                        \"description\": \"The results are returned in ascending (e.g., oldest-first or A-Z) order.\"\n                      }\n                    ],\n                    \"description\": \"The order (e.g., chronological or alphabetical) in which results from a request are returned.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  }\n                }\n              }\n            }\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"Pagination cursor from a previous search response\"\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"Maximum number of results to return (1-100)\",\n            \"minimum\": 1,\n            \"maximum\": 100\n          }\n        },\n        \"example\": {\n          \"cursor\": \"eyJsYXN0X3VwZGF0ZWRfYXQiOjE3NTMxMTg2NjQ4NzN9\",\n          \"limit\": 10,\n          \"query\": {\n            \"filter\": {\n              \"destination_location_ids\": [\n                \"EXAMPLE_DEST_LOCATION_ID_456\"\n              ],\n              \"source_location_ids\": [\n                \"EXAMPLE_SOURCE_LOCATION_ID_123\"\n              ],\n              \"statuses\": [\n                \"STARTED\",\n                \"PARTIALLY_RECEIVED\"\n              ]\n            },\n            \"sort\": {\n              \"field\": \"UPDATED_AT\",\n              \"order\": \"DESC\"\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

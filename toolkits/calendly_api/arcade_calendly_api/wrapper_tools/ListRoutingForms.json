@@ -1,18 +1,18 @@
 {
   "name": "ListRoutingForms",
-  "fully_qualified_name": "CalendlyApi.ListRoutingForms@0.1.0",
-  "description": "Retrieve a list of Routing Forms for your organization.\n\nUse this tool to get a comprehensive list of Routing Forms within a specified organization. Ideal for gathering form data for review or analysis.",
+  "fully_qualified_name": "CalendlyApi.ListRoutingForms@2.0.0",
+  "description": "Retrieve routing forms for a specified organization.\n\nUse this tool to obtain a list of all routing forms associated with a specific organization. It should be called when there is a need to access routing forms data for organizational purposes.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_uri",
         "required": true,
-        "description": "The URI of the organization to view its routing forms. Use the organization's URI to identify it.",
+        "description": "The URI of the organization to view its routing forms. It should be a valid string representing the organization's endpoint.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "organization"
       },
       {
-        "name": "rows_to_return",
+        "name": "number_of_rows",
         "required": false,
-        "description": "Specify the number of Routing Form entries to retrieve.",
+        "description": "The number of routing form entries to return for the request.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "count"
       },
       {
-        "name": "paging_token",
+        "name": "pagination_token",
         "required": false,
-        "description": "Token for retrieving the next or previous set of Routing Forms in pagination.",
+        "description": "Token for fetching the next or previous portion of the routing forms collection.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "sort_order",
         "required": false,
-        "description": "Specify sorting order for results using a comma-separated list of {field}:{direction}. Supported fields: created_at. Directions: asc, desc.",
+        "description": "Specify the order of results using field and direction. Supports 'created_at' with 'asc' or 'desc'. Use comma for multiple fields.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,13 +100,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/routing_forms",
@@ -128,11 +128,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "count",
-        "tool_parameter_name": "rows_to_return",
+        "tool_parameter_name": "number_of_rows",
         "description": "The number of rows to return",
         "value_schema": {
           "val_type": "number",
@@ -145,11 +146,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": 20,
         "documentation_urls": []
       },
       {
         "name": "page_token",
-        "tool_parameter_name": "paging_token",
+        "tool_parameter_name": "pagination_token",
         "description": "The token to pass to get the next or previous portion of the collection",
         "value_schema": {
           "val_type": "string",
@@ -162,6 +164,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -179,6 +182,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -192,6 +196,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "ListOrderCustomAttributes",
-  "fully_qualified_name": "SquareupApi.ListOrderCustomAttributes@0.1.0",
-  "description": "Retrieve custom attributes linked to a specific order.\n\nThis tool retrieves custom attribute details for a specified order, including all attributes visible to the requesting application across different visibility settings. It supports fetching custom attribute definitions as well.",
+  "fully_qualified_name": "SquareupApi.ListOrderCustomAttributes@2.0.0",
+  "description": "Retrieve custom attributes associated with an order.\n\nThis tool fetches the custom attributes linked to a specific order, optionally including their definitions. It provides all visible custom attributes, including those owned by other applications with specific visibility settings.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "target_order_id",
         "required": true,
-        "description": "The ID of the specific order for which to retrieve custom attributes.",
+        "description": "The unique identifier of the target order to retrieve custom attributes for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "order_id"
       },
       {
-        "name": "attribute_visibility_filter",
+        "name": "custom_attributes_visibility",
         "required": false,
-        "description": "Select which custom attributes to return: 'ALL' for all, 'READ' for read-only, 'READ_WRITE' for read-write attributes.",
+        "description": "Specify which custom attributes to return: 'ALL', 'READ', or 'READ_WRITE'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -46,7 +46,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The pagination cursor from the previous response to retrieve the next page of results.",
+        "description": "The cursor used to retrieve the next page of results in a paginated response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -61,7 +61,7 @@
       {
         "name": "max_results_per_page",
         "required": false,
-        "description": "The maximum number of results to return in a single paged response. Accepts an integer between 1 and 100. Default is 20.",
+        "description": "Specifies the maximum number of custom attribute results returned per page. Accepts values from 1 to 100, default is 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -76,7 +76,7 @@
       {
         "name": "include_custom_attribute_definitions",
         "required": false,
-        "description": "Set to true to include custom attribute definitions with the order attributes. Default is false.",
+        "description": "Set to true to include custom attribute definition details such as name, description, and data type. Defaults to false.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -123,13 +123,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/orders/{order_id}/custom-attributes",
@@ -138,7 +138,7 @@
     "parameters": [
       {
         "name": "visibility_filter",
-        "tool_parameter_name": "attribute_visibility_filter",
+        "tool_parameter_name": "custom_attributes_visibility",
         "description": "Requests that all of the custom attributes be returned, or only those that are read-only or read-write.",
         "value_schema": {
           "val_type": "string",
@@ -155,6 +155,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -172,6 +173,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -189,6 +191,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -206,6 +209,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -223,6 +227,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -236,6 +241,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

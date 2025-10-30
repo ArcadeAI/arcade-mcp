@@ -1,18 +1,18 @@
 {
   "name": "ListPaymentRefunds",
-  "fully_qualified_name": "SquareupApi.ListPaymentRefunds@0.1.0",
-  "description": "Retrieve a list of payment refunds for the account.\n\nFetches a list of refunds associated with the account making the request. Suitable for monitoring refund transactions, with a maximum of 100 results per page. Results may take several seconds to update due to eventual consistency.",
+  "fully_qualified_name": "SquareupApi.ListPaymentRefunds@2.0.0",
+  "description": "Retrieve a list of payment refunds for the account.\n\nUse this tool to get a list of refunds associated with the account. This is useful for checking all refund transactions. Note that results are eventually consistent and may take a few seconds to update.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "start_time_for_refund_retrieval",
+        "name": "refunds_start_time",
         "required": false,
-        "description": "Start of the time range for retrieving PaymentRefund in RFC 3339 format, based on the created_at field. Defaults to one year ago.",
+        "description": "The start time in RFC 3339 format to retrieve PaymentRefunds based on the created_at field. Default is the current time minus one year.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "begin_time"
       },
       {
-        "name": "refund_end_time",
+        "name": "end_time_rfc3339",
         "required": false,
-        "description": "Specifies the end date and time for the refund retrieval range in RFC 3339 format, defaulting to the current time if not specified.",
+        "description": "Specifies the end time in RFC 3339 format to retrieve `PaymentRefunds` based on `created_at`. Defaults to the current time.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "results_sort_order",
         "required": false,
-        "description": "Set the order for listing results by `PaymentRefund.created_at`. Use 'ASC' for oldest to newest, 'DESC' for newest to oldest (default).",
+        "description": "The order in which results are listed by their creation date: `ASC` for oldest to newest, `DESC` for newest to oldest (default).",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A pagination cursor from a previous call to retrieve the next set of results.",
+        "description": "A pagination cursor from a previous response to fetch the next set of results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "limit_results_to_location",
+        "name": "limit_results_to_location_id",
         "required": false,
-        "description": "Specify the location ID to filter results for that location. Defaults to all seller-associated locations.",
+        "description": "Limit results to refunds from the specified location. By default, returns all locations.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,7 +87,7 @@
       {
         "name": "refund_status_filter",
         "required": false,
-        "description": "Filter refunds by specific status. Uses status values defined in PaymentRefund entity. If omitted, all statuses are included.",
+        "description": "Specify a refund status to filter the results. If omitted, refunds of all statuses are returned.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,9 +100,9 @@
         "http_endpoint_parameter_name": "status"
       },
       {
-        "name": "payment_source_type",
+        "name": "source_payment_type",
         "required": false,
-        "description": "Specify the source type of payments to filter refunds. Options: CARD, BANK_ACCOUNT, WALLET, CASH, EXTERNAL. If omitted, all source types are included.",
+        "description": "Specify to only return refunds for payments with the indicated source type (e.g., CARD, BANK_ACCOUNT).",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -115,9 +115,9 @@
         "http_endpoint_parameter_name": "source_type"
       },
       {
-        "name": "max_results_per_page",
+        "name": "maximum_results_per_page",
         "required": false,
-        "description": "Specify the maximum number of refund results per page, up to a maximum of 100.",
+        "description": "Specifies the max number of refund results per page. Max value is 100; defaults to 100.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -132,7 +132,7 @@
       {
         "name": "updated_at_start_time",
         "required": false,
-        "description": "The start of the time range for retrieving refunds, based on the `updated_at` field, in RFC 3339 format. Defaults to `begin_time` if omitted.",
+        "description": "Start of time range for retrieving each PaymentRefund, in RFC 3339 format. Defaults to begin_time if omitted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -147,7 +147,7 @@
       {
         "name": "updated_at_end_time",
         "required": false,
-        "description": "Indicates the end of the time range to retrieve each `PaymentRefund` for, in RFC 3339 format. Defaults to the current time.",
+        "description": "The end of the time range for retrieving refunds, in RFC 3339 format. Default is the current time.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -162,7 +162,7 @@
       {
         "name": "sort_results_by_field",
         "required": false,
-        "description": "Specifies the field to sort refund results by. Options are 'CREATED_AT' or 'UPDATED_AT'.",
+        "description": "The field used to sort payment refund results. Options: 'CREATED_AT' (default) or 'UPDATED_AT'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -212,13 +212,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/refunds",
@@ -227,7 +227,7 @@
     "parameters": [
       {
         "name": "begin_time",
-        "tool_parameter_name": "start_time_for_refund_retrieval",
+        "tool_parameter_name": "refunds_start_time",
         "description": "Indicates the start of the time range to retrieve each `PaymentRefund` for, in RFC 3339 \nformat.  The range is determined using the `created_at` field for each `PaymentRefund`. \n\nDefault: The current time minus one year.",
         "value_schema": {
           "val_type": "string",
@@ -240,11 +240,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "end_time",
-        "tool_parameter_name": "refund_end_time",
+        "tool_parameter_name": "end_time_rfc3339",
         "description": "Indicates the end of the time range to retrieve each `PaymentRefund` for, in RFC 3339 \nformat.  The range is determined using the `created_at` field for each `PaymentRefund`.\n\nDefault: The current time.",
         "value_schema": {
           "val_type": "string",
@@ -257,6 +258,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -274,6 +276,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -291,11 +294,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "location_id",
-        "tool_parameter_name": "limit_results_to_location",
+        "tool_parameter_name": "limit_results_to_location_id",
         "description": "Limit results to the location supplied. By default, results are returned\nfor all locations associated with the seller.",
         "value_schema": {
           "val_type": "string",
@@ -308,6 +312,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -325,11 +330,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "source_type",
-        "tool_parameter_name": "payment_source_type",
+        "tool_parameter_name": "source_payment_type",
         "description": "If provided, only returns refunds whose payments have the indicated source type.\nCurrent values include `CARD`, `BANK_ACCOUNT`, `WALLET`, `CASH`, and `EXTERNAL`.\nFor information about these payment source types, see\n[Take Payments](https://developer.squareup.com/docs/payments-api/take-payments).\n\nDefault: If omitted, refunds are returned regardless of the source type.",
         "value_schema": {
           "val_type": "string",
@@ -342,11 +348,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "max_results_per_page",
+        "tool_parameter_name": "maximum_results_per_page",
         "description": "The maximum number of results to be returned in a single page.\n\nIt is possible to receive fewer results than the specified limit on a given page.\n\nIf the supplied value is greater than 100, no more than 100 results are returned.\n\nDefault: 100",
         "value_schema": {
           "val_type": "integer",
@@ -359,6 +366,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -376,6 +384,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -393,6 +402,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -413,6 +423,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -426,6 +437,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

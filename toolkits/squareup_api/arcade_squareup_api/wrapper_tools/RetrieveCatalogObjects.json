@@ -1,0 +1,241 @@
+{
+  "name": "RetrieveCatalogObjects",
+  "fully_qualified_name": "SquareupApi.RetrieveCatalogObjects@2.0.0",
+  "description": "Retrieve detailed catalog objects by provided IDs.\n\nThis tool retrieves a set of catalog objects based on provided IDs, including comprehensive details like item variations, modifier lists, and applicable tax IDs.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "catalog_object_ids",
+        "required": true,
+        "description": "An array of IDs representing the CatalogObjects to retrieve. Each ID must be a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the CatalogObjects to be retrieved."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "object_ids"
+      },
+      {
+        "name": "catalog_version",
+        "required": false,
+        "description": "The specific version of catalog objects to retrieve, allowing access to historical data. If omitted, the current version is used.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The specific version of the catalog objects to be included in the response. \nThis allows you to retrieve historical versions of objects. The specified version value is matched against\nthe [CatalogObject](entity:CatalogObject)s' `version` attribute. If not included, results will\nbe from the current version of the catalog."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "catalog_version"
+      },
+      {
+        "name": "include_related_objects",
+        "required": false,
+        "description": "If true, include additional related objects in the response. These are objects referenced by ID, included one level deep. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, the response will include additional objects that are related to the\nrequested objects. Related objects are defined as any objects referenced by ID by the results in the `objects` field\nof the response. These objects are put in the `related_objects` field. Setting this to `true` is\nhelpful when the objects are needed for immediate display to a user.\nThis process only goes one level deep. Objects referenced by the related objects will not be included. For example,\n\nif the `objects` field of the response contains a CatalogItem, its associated\nCatalogCategory objects, CatalogTax objects, CatalogImage objects and\nCatalogModifierLists will be returned in the `related_objects` field of the\nresponse. If the `objects` field of the response contains a CatalogItemVariation,\nits parent CatalogItem will be returned in the `related_objects` field of\nthe response.\n\nDefault value: `false`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_related_objects"
+      },
+      {
+        "name": "include_deleted_objects",
+        "required": false,
+        "description": "Set to `true` to include deleted objects (`is_deleted` attribute) in the response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether to include (`true`) or not (`false`) in the response deleted objects, namely, those with the `is_deleted` attribute set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_deleted_objects"
+      },
+      {
+        "name": "include_category_path_to_root",
+        "required": false,
+        "description": "Include the `path_to_root` list for each returned category instance if set to true. Shows the path from parent categories to root.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether or not to include the `path_to_root` list for each returned category instance. The `path_to_root` list consists\nof `CategoryPathToRootNode` objects and specifies the path that starts with the immediate parent category of the returned category\nand ends with its root category. If the returned category is a top-level category, the `path_to_root` list is empty and is not returned\nin the response payload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_category_path_to_root"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BatchRetrieveCatalogObjects'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ITEMS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/catalog/batch-retrieve",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "object_ids",
+        "tool_parameter_name": "catalog_object_ids",
+        "description": "The IDs of the CatalogObjects to be retrieved.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the CatalogObjects to be retrieved."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_related_objects",
+        "tool_parameter_name": "include_related_objects",
+        "description": "If `true`, the response will include additional objects that are related to the\nrequested objects. Related objects are defined as any objects referenced by ID by the results in the `objects` field\nof the response. These objects are put in the `related_objects` field. Setting this to `true` is\nhelpful when the objects are needed for immediate display to a user.\nThis process only goes one level deep. Objects referenced by the related objects will not be included. For example,\n\nif the `objects` field of the response contains a CatalogItem, its associated\nCatalogCategory objects, CatalogTax objects, CatalogImage objects and\nCatalogModifierLists will be returned in the `related_objects` field of the\nresponse. If the `objects` field of the response contains a CatalogItemVariation,\nits parent CatalogItem will be returned in the `related_objects` field of\nthe response.\n\nDefault value: `false`",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, the response will include additional objects that are related to the\nrequested objects. Related objects are defined as any objects referenced by ID by the results in the `objects` field\nof the response. These objects are put in the `related_objects` field. Setting this to `true` is\nhelpful when the objects are needed for immediate display to a user.\nThis process only goes one level deep. Objects referenced by the related objects will not be included. For example,\n\nif the `objects` field of the response contains a CatalogItem, its associated\nCatalogCategory objects, CatalogTax objects, CatalogImage objects and\nCatalogModifierLists will be returned in the `related_objects` field of the\nresponse. If the `objects` field of the response contains a CatalogItemVariation,\nits parent CatalogItem will be returned in the `related_objects` field of\nthe response.\n\nDefault value: `false`"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "catalog_version",
+        "tool_parameter_name": "catalog_version",
+        "description": "The specific version of the catalog objects to be included in the response. \nThis allows you to retrieve historical versions of objects. The specified version value is matched against\nthe [CatalogObject](entity:CatalogObject)s' `version` attribute. If not included, results will\nbe from the current version of the catalog.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The specific version of the catalog objects to be included in the response. \nThis allows you to retrieve historical versions of objects. The specified version value is matched against\nthe [CatalogObject](entity:CatalogObject)s' `version` attribute. If not included, results will\nbe from the current version of the catalog."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_deleted_objects",
+        "tool_parameter_name": "include_deleted_objects",
+        "description": "Indicates whether to include (`true`) or not (`false`) in the response deleted objects, namely, those with the `is_deleted` attribute set to `true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether to include (`true`) or not (`false`) in the response deleted objects, namely, those with the `is_deleted` attribute set to `true`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_category_path_to_root",
+        "tool_parameter_name": "include_category_path_to_root",
+        "description": "Specifies whether or not to include the `path_to_root` list for each returned category instance. The `path_to_root` list consists\nof `CategoryPathToRootNode` objects and specifies the path that starts with the immediate parent category of the returned category\nand ends with its root category. If the returned category is a top-level category, the `path_to_root` list is empty and is not returned\nin the response payload.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether or not to include the `path_to_root` list for each returned category instance. The `path_to_root` list consists\nof `CategoryPathToRootNode` objects and specifies the path that starts with the immediate parent category of the returned category\nand ends with its root category. If the returned category is a top-level category, the `path_to_root` list is empty and is not returned\nin the response payload."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"object_ids\"\n        ],\n        \"properties\": {\n          \"object_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The IDs of the CatalogObjects to be retrieved.\"\n          },\n          \"include_related_objects\": {\n            \"type\": \"boolean\",\n            \"description\": \"If `true`, the response will include additional objects that are related to the\\nrequested objects. Related objects are defined as any objects referenced by ID by the results in the `objects` field\\nof the response. These objects are put in the `related_objects` field. Setting this to `true` is\\nhelpful when the objects are needed for immediate display to a user.\\nThis process only goes one level deep. Objects referenced by the related objects will not be included. For example,\\n\\nif the `objects` field of the response contains a CatalogItem, its associated\\nCatalogCategory objects, CatalogTax objects, CatalogImage objects and\\nCatalogModifierLists will be returned in the `related_objects` field of the\\nresponse. If the `objects` field of the response contains a CatalogItemVariation,\\nits parent CatalogItem will be returned in the `related_objects` field of\\nthe response.\\n\\nDefault value: `false`\",\n            \"nullable\": true\n          },\n          \"catalog_version\": {\n            \"type\": \"integer\",\n            \"description\": \"The specific version of the catalog objects to be included in the response. \\nThis allows you to retrieve historical versions of objects. The specified version value is matched against\\nthe [CatalogObject](entity:CatalogObject)s' `version` attribute. If not included, results will\\nbe from the current version of the catalog.\",\n            \"format\": \"int64\",\n            \"x-release-status\": \"BETA\",\n            \"nullable\": true\n          },\n          \"include_deleted_objects\": {\n            \"type\": \"boolean\",\n            \"description\": \"Indicates whether to include (`true`) or not (`false`) in the response deleted objects, namely, those with the `is_deleted` attribute set to `true`.\",\n            \"nullable\": true\n          },\n          \"include_category_path_to_root\": {\n            \"type\": \"boolean\",\n            \"description\": \"Specifies whether or not to include the `path_to_root` list for each returned category instance. The `path_to_root` list consists\\nof `CategoryPathToRootNode` objects and specifies the path that starts with the immediate parent category of the returned category\\nand ends with its root category. If the returned category is a top-level category, the `path_to_root` list is empty and is not returned\\nin the response payload.\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"include_related_objects\": true,\n          \"object_ids\": [\n            \"W62UWFY35CWMYGVWK6TWJDNI\",\n            \"AA27W3M2GGTF3H6AVPNB77CK\"\n          ]\n        },\n        \"x-sq-sdk-sample-code\": {\n          \"csharp\": \"/sdk_samples/Catalog/BatchRetrieveCatalogObjects/BatchRetrieveCatalogObjectsRequest.csharp\",\n          \"java\": \"/sdk_samples/Catalog/BatchRetrieveCatalogObjects/BatchRetrieveCatalogObjectsRequest.java\",\n          \"javascript\": \"/sdk_samples/Catalog/BatchRetrieveCatalogObjects/BatchRetrieveCatalogObjectsRequest.javascript\",\n          \"php\": \"/sdk_samples/Catalog/BatchRetrieveCatalogObjects/BatchRetrieveCatalogObjectsRequest.php\",\n          \"python\": \"/sdk_samples/Catalog/BatchRetrieveCatalogObjects/BatchRetrieveCatalogObjectsRequest.python\",\n          \"ruby\": \"/sdk_samples/Catalog/BatchRetrieveCatalogObjects/BatchRetrieveCatalogObjectsRequest.ruby\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

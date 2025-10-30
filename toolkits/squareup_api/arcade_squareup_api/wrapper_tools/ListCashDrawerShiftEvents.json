@@ -1,18 +1,18 @@
 {
   "name": "ListCashDrawerShiftEvents",
-  "fully_qualified_name": "SquareupApi.ListCashDrawerShiftEvents@0.1.0",
-  "description": "Retrieve events for a specific cash drawer shift.\n\nThis tool retrieves a paginated list of events for a specific cash drawer shift. It is useful for tracking activities and occurrences related to a particular shift.",
+  "fully_qualified_name": "SquareupApi.ListCashDrawerShiftEvents@2.0.0",
+  "description": "Retrieve events for a specific cash drawer shift.\n\nUse this tool to get a list of events related to a specific cash drawer shift. This is useful for tracking activities during the shift.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "location_identifier",
+        "name": "location_id",
         "required": true,
-        "description": "The ID of the location to list cash drawer shifts for. This should be a valid location ID registered within the system.",
+        "description": "The unique identifier for the location to retrieve cash drawer shift events from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "location_id"
       },
       {
-        "name": "cash_drawer_shift_id",
+        "name": "shift_id",
         "required": true,
-        "description": "The unique ID of the cash drawer shift for which events are to be retrieved.",
+        "description": "The ID of the cash drawer shift to retrieve events for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "shift_id"
       },
       {
-        "name": "page_size_limit",
+        "name": "max_results_per_page",
         "required": false,
-        "description": "Number of events to return per page, default is 200, maximum is 1000.",
+        "description": "Number of results to return per page (default is 200, maximum is 1000).",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Opaque string to fetch the next page of results for cash drawer shift events.",
+        "description": "Opaque cursor for fetching the next page of cash drawer shift event results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -104,13 +104,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/cash-drawers/shifts/{shift_id}/events",
@@ -119,7 +119,7 @@
     "parameters": [
       {
         "name": "location_id",
-        "tool_parameter_name": "location_identifier",
+        "tool_parameter_name": "location_id",
         "description": "The ID of the location to list cash drawer shifts for.",
         "value_schema": {
           "val_type": "string",
@@ -132,11 +132,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "page_size_limit",
+        "tool_parameter_name": "max_results_per_page",
         "description": "Number of resources to be returned in a page of results (200 by\ndefault, 1000 max).",
         "value_schema": {
           "val_type": "integer",
@@ -149,6 +150,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -166,11 +168,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "shift_id",
-        "tool_parameter_name": "cash_drawer_shift_id",
+        "tool_parameter_name": "shift_id",
         "description": "The shift ID.",
         "value_schema": {
           "val_type": "string",
@@ -183,6 +186,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -196,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

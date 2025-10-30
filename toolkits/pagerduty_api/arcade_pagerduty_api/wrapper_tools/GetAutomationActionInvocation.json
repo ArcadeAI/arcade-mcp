@@ -1,18 +1,18 @@
 {
   "name": "GetAutomationActionInvocation",
-  "fully_qualified_name": "PagerdutyApi.GetAutomationActionInvocation@0.1.0",
-  "description": "Retrieve detailed information about an automation action invocation.\n\nThis tool is used to obtain detailed information about a specific automation action invocation by ID within Pagerduty. Call this tool when you need to understand the status or outcome of a particular action.",
+  "fully_qualified_name": "PagerdutyApi.GetAutomationActionInvocation@2.0.0",
+  "description": "Retrieve details of an automation action invocation.\n\nThis tool is used to obtain detailed information about a specific automation action invocation by its ID. Call this tool when you need to track or review an action performed through PagerDuty's automation services.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The unique identifier for the automation action invocation.",
+        "description": "The unique identifier of the automation action resource to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_versioning_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "Specify the versioning header for the API request. Use this to indicate the version of the API to be used.",
+        "description": "The version of the API to use, specified in the `Accept` header as a versioning mechanism.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specifies the media type of the resource. Use 'application/json'.",
+        "description": "Specify the content type for the request. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/automation_actions/invocations/{id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_versioning_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

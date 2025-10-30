@@ -1,18 +1,18 @@
 {
   "name": "ListBaseShares",
-  "fully_qualified_name": "AirtableApi.ListBaseShares@0.1.0",
-  "description": "Retrieve basic information about Airtable base shares.\n\nCall this tool to get information on shared Airtable bases, including details like base names and sharing status.",
+  "fully_qualified_name": "AirtableApi.ListBaseShares@2.0.0",
+  "description": "Lists basic information of base shares.\n\nCall this tool to retrieve a list of shared base information for a given base in Airtable.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "base_id",
+        "name": "base_identifier",
         "required": true,
-        "description": "The unique identifier for the Airtable base to retrieve shares for.",
+        "description": "The unique ID of the Airtable base to list shares for. Required to retrieve base share information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/bases/{baseId}/shares",
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "baseId",
-        "tool_parameter_name": "base_id",
+        "tool_parameter_name": "base_identifier",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -101,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

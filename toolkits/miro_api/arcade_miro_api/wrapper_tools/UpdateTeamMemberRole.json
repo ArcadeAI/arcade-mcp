@@ -1,0 +1,212 @@
+{
+  "name": "UpdateTeamMemberRole",
+  "fully_qualified_name": "MiroApi.UpdateTeamMemberRole@2.0.0",
+  "description": "Update a team member's role in an enterprise team.\n\nThis tool updates the role of a specified team member within an enterprise team. It is intended for use by Company Admins on the Miro Enterprise plan. Ensure you have the required scope 'organizations:teams:write' to utilize this endpoint.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique identifier for the team whose member's role is to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "team_member_id",
+        "required": true,
+        "description": "The unique identifier of the team member whose role is to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Team Member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "member_id"
+      },
+      {
+        "name": "team_member_role",
+        "required": false,
+        "description": "Role of the team member. Options: 'member', 'admin', 'team_guest'. Specifies permissions within the team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "member",
+            "admin",
+            "team_guest"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "\nRole of the team member.\n* \"member\":     Team member with full member permissions.\n* \"admin\":      Admin of a team. Team member with permission to manage team.\n* \"team_guest\": Team-guest user, user with access only to a team without access to organization.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "role"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-update-team-member'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/members/{member_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "The id of the Organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Organization."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "The id of the Team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Team."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "member_id",
+        "tool_parameter_name": "team_member_id",
+        "description": "The id of the Team Member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Team Member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "role",
+        "tool_parameter_name": "team_member_role",
+        "description": "\nRole of the team member.\n* \"member\":     Team member with full member permissions.\n* \"admin\":      Admin of a team. Team member with permission to manage team.\n* \"team_guest\": Team-guest user, user with access only to a team without access to organization.\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "member",
+            "admin",
+            "team_guest"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "\nRole of the team member.\n* \"member\":     Team member with full member permissions.\n* \"admin\":      Admin of a team. Team member with permission to manage team.\n* \"team_guest\": Team-guest user, user with access only to a team without access to organization.\n"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"role\": {\n            \"type\": \"string\",\n            \"example\": \"member\",\n            \"description\": \"\\nRole of the team member.\\n* \\\"member\\\":     Team member with full member permissions.\\n* \\\"admin\\\":      Admin of a team. Team member with permission to manage team.\\n* \\\"team_guest\\\": Team-guest user, user with access only to a team without access to organization.\\n\",\n            \"enum\": [\n              \"member\",\n              \"admin\",\n              \"team_guest\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

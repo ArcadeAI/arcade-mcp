@@ -1,0 +1,401 @@
+{
+  "name": "CreateWorker",
+  "fully_qualified_name": "EngineApi.CreateWorker@0.1.0",
+  "description": "Create a new worker in the system.\n\nThis tool is used to add a new worker to the system. It should be called when there's a need to register a new worker.",
+  "toolkit": {
+    "name": "ArcadeEngineApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "worker_id",
+        "required": true,
+        "description": "A unique identifier for the worker to be created. It should be a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "http_retry_attempts",
+        "required": false,
+        "description": "Number of retry attempts for HTTP requests if a failure occurs.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "http.retry"
+      },
+      {
+        "name": "http_secret_key",
+        "required": false,
+        "description": "A secret key used for HTTP authentication and authorization. It should be a secure string provided by the service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "http.secret"
+      },
+      {
+        "name": "http_timeout_seconds",
+        "required": false,
+        "description": "The timeout duration for the HTTP connection, specified in seconds. This defines how long the system should wait for the HTTP request to complete before timing out.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "http.timeout"
+      },
+      {
+        "name": "worker_http_uri",
+        "required": false,
+        "description": "The HTTP URI for the worker's endpoint. This expects a valid URL string that specifies where the worker's service can be accessed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "http.uri"
+      },
+      {
+        "name": "mcp_retry_attempts",
+        "required": false,
+        "description": "Specifies the number of retry attempts for MCP connections. Provide an integer value to define how many times the system should retry a connection if it fails.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mcp.retry"
+      },
+      {
+        "name": "mcp_timeout_duration",
+        "required": false,
+        "description": "The timeout duration for MCP operations in seconds. Must be an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mcp.timeout"
+      },
+      {
+        "name": "worker_resource_uri",
+        "required": false,
+        "description": "The URI for the worker's resource location or service endpoint. Provide the full URI as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mcp.uri"
+      },
+      {
+        "name": "worker_type",
+        "required": false,
+        "description": "Specifies the type of worker to be created. It should be a string indicating the category or role of the worker.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "enable_worker",
+        "required": false,
+        "description": "Set to true to enable the new worker upon creation, or false to keep it disabled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'workers-create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "ARCADE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the engine API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.arcade.dev/v1/workers",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enabled",
+        "tool_parameter_name": "enable_worker",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "http.retry",
+        "tool_parameter_name": "http_retry_attempts",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "http.secret",
+        "tool_parameter_name": "http_secret_key",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "http.timeout",
+        "tool_parameter_name": "http_timeout_seconds",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "http.uri",
+        "tool_parameter_name": "worker_http_uri",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "worker_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "mcp.retry",
+        "tool_parameter_name": "mcp_retry_attempts",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "mcp.timeout",
+        "tool_parameter_name": "mcp_timeout_duration",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "mcp.uri",
+        "tool_parameter_name": "worker_resource_uri",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "worker_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ARCADE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Worker configuration to create\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"enabled\": {\n            \"type\": \"boolean\"\n          },\n          \"http\": {\n            \"required\": [\n              \"retry\",\n              \"secret\",\n              \"timeout\",\n              \"uri\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"retry\": {\n                \"maximum\": 10,\n                \"minimum\": 0,\n                \"type\": \"integer\"\n              },\n              \"secret\": {\n                \"maxLength\": 100,\n                \"type\": \"string\"\n              },\n              \"timeout\": {\n                \"maximum\": 4000,\n                \"minimum\": 1,\n                \"type\": \"integer\"\n              },\n              \"uri\": {\n                \"maxLength\": 100,\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"id\": {\n            \"maxLength\": 100,\n            \"type\": \"string\"\n          },\n          \"mcp\": {\n            \"required\": [\n              \"retry\",\n              \"timeout\",\n              \"uri\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"retry\": {\n                \"maximum\": 10,\n                \"minimum\": 0,\n                \"type\": \"integer\"\n              },\n              \"timeout\": {\n                \"maximum\": 4000,\n                \"minimum\": 1,\n                \"type\": \"integer\"\n              },\n              \"uri\": {\n                \"maxLength\": 100,\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"type\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

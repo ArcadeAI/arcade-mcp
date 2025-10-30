@@ -1,0 +1,600 @@
+{
+  "name": "GetTimeEntriesInDateRange",
+  "fully_qualified_name": "ClickupApi.GetTimeEntriesInDateRange@0.1.0",
+  "description": "Retrieve time entries within a specified date range.\n\nUse this tool to view time entries filtered by start and end dates. By default, it returns entries from the last 30 days for the authenticated user. To access entries for other users, use the 'assignee' parameter. You may apply location filters with 'space_id', 'folder_id', 'list_id', or 'task_id', but only one at a time. Note: Negative duration entries indicate a running timer.",
+  "toolkit": {
+    "name": "ClickupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "Specify the Workspace ID for filtering time entries when using custom task IDs.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_Id"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the format of the response content. Usually set to 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "start_date_in_unix_milliseconds",
+        "required": false,
+        "description": "The start date of the time entries in Unix time (milliseconds).",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unix time in milliseconds"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_date"
+      },
+      {
+        "name": "end_date_unix_milliseconds",
+        "required": false,
+        "description": "Specify the end date in Unix time (milliseconds) to filter time entries up to this point.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unix time in milliseconds"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_date"
+      },
+      {
+        "name": "filter_by_assignee",
+        "required": false,
+        "description": "Filter by user IDs. Use commas to separate multiple IDs (e.g., '1234,9876'). Only accessible to Workspace Owners/Admins.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by `user_id`. For multiple assignees, separate `user_id` using commas.\\\n \\\n **Example:** `assignee=1234,9876`\\\n \\\n***Note:** Only Workspace Owners/Admins have access to do this.*"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignee"
+      },
+      {
+        "name": "space_id",
+        "required": false,
+        "description": "Include time entries associated only with tasks in the specified Space using its ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include time entries associated with tasks in a specific Space."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "space_id"
+      },
+      {
+        "name": "folder_id",
+        "required": false,
+        "description": "Include time entries for tasks in a specific folder by providing its ID. Only one location filter (space, folder, list, or task) can be used at a time.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include time entries associated with tasks in a specific Folder."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folder_id"
+      },
+      {
+        "name": "specific_list_id",
+        "required": false,
+        "description": "Include only time entries associated with tasks in a specified List by providing the List ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include time entries associated with tasks in a specific List."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_id"
+      },
+      {
+        "name": "specific_task_id",
+        "required": false,
+        "description": "Include only time entries associated with the specified task.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include time entries associated with a specific task."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_id"
+      },
+      {
+        "name": "workspace_id_for_custom_task_ids",
+        "required": false,
+        "description": "Provide the Workspace ID when referencing a task by its custom task ID, and `custom_task_ids` is set to true.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "include_task_tags",
+        "required": false,
+        "description": "Set to true to include task tags in the response for associated time entries.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include task tags in the response for time entries associated with tasks."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_task_tags"
+      },
+      {
+        "name": "include_location_names",
+        "required": false,
+        "description": "Include the names of the List, Folder, and Space in the response along with their IDs when set to true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the names of the List, Folder, and Space along with the `list_id`,`folder_id`, and `space_id`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_location_names"
+      },
+      {
+        "name": "include_approval_history",
+        "required": false,
+        "description": "Set to true to include the approval history for each time entry, with status changes, notes, and approvers.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the history of the approval for each time entry. Adds status changes, notes, and approvers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_approval_history"
+      },
+      {
+        "name": "include_approval_details",
+        "required": false,
+        "description": "Include detailed approval information for each time entry, such as Approver ID, Approved Time, List of Approvers, and Approval Status.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the details of the approval for each time entry. Adds Approver ID, Approved Time, List of Approvers, and Approval Status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_approval_details"
+      },
+      {
+        "name": "use_custom_task_ids",
+        "required": false,
+        "description": "Set to true to reference tasks by their custom task IDs. Requires specifying the team_id.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by it's custom task id, this value must be `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_task_ids"
+      },
+      {
+        "name": "include_only_billable_entries",
+        "required": false,
+        "description": "Set to `true` to include only billable time entries, or `false` for non-billable entries.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include only billable time entries by using a value of `true` or only non-billable time entries by using a value of `false`.\\\n \\\nFor example: `?is_billable=true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_billable"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'Gettimeentrieswithinadaterange'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-clickup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the clickup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.clickup.com/api/v2/team/{team_Id}/time_entries",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "start_date",
+        "tool_parameter_name": "start_date_in_unix_milliseconds",
+        "description": "Unix time in milliseconds",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unix time in milliseconds"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_date",
+        "tool_parameter_name": "end_date_unix_milliseconds",
+        "description": "Unix time in milliseconds",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unix time in milliseconds"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assignee",
+        "tool_parameter_name": "filter_by_assignee",
+        "description": "Filter by `user_id`. For multiple assignees, separate `user_id` using commas.\\\n \\\n **Example:** `assignee=1234,9876`\\\n \\\n***Note:** Only Workspace Owners/Admins have access to do this.*",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by `user_id`. For multiple assignees, separate `user_id` using commas.\\\n \\\n **Example:** `assignee=1234,9876`\\\n \\\n***Note:** Only Workspace Owners/Admins have access to do this.*"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_task_tags",
+        "tool_parameter_name": "include_task_tags",
+        "description": "Include task tags in the response for time entries associated with tasks.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include task tags in the response for time entries associated with tasks."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_location_names",
+        "tool_parameter_name": "include_location_names",
+        "description": "Include the names of the List, Folder, and Space along with the `list_id`,`folder_id`, and `space_id`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the names of the List, Folder, and Space along with the `list_id`,`folder_id`, and `space_id`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_approval_history",
+        "tool_parameter_name": "include_approval_history",
+        "description": "Include the history of the approval for each time entry. Adds status changes, notes, and approvers.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the history of the approval for each time entry. Adds status changes, notes, and approvers."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_approval_details",
+        "tool_parameter_name": "include_approval_details",
+        "description": "Include the details of the approval for each time entry. Adds Approver ID, Approved Time, List of Approvers, and Approval Status.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include the details of the approval for each time entry. Adds Approver ID, Approved Time, List of Approvers, and Approval Status."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "space_id",
+        "tool_parameter_name": "space_id",
+        "description": "Only include time entries associated with tasks in a specific Space.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include time entries associated with tasks in a specific Space."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "folder_id",
+        "tool_parameter_name": "folder_id",
+        "description": "Only include time entries associated with tasks in a specific Folder.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include time entries associated with tasks in a specific Folder."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "list_id",
+        "tool_parameter_name": "specific_list_id",
+        "description": "Only include time entries associated with tasks in a specific List.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include time entries associated with tasks in a specific List."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_id",
+        "tool_parameter_name": "specific_task_id",
+        "description": "Only include time entries associated with a specific task.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only include time entries associated with a specific task."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_task_ids",
+        "tool_parameter_name": "use_custom_task_ids",
+        "description": "If you want to reference a task by it's custom task id, this value must be `true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If you want to reference a task by it's custom task id, this value must be `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id_for_custom_task_ids",
+        "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the `custom_task_ids` parameter is set to `true`, the Workspace ID must be provided using the `team_id` parameter.\n \\\nFor example: `custom_task_ids=true&team_id=123`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_billable",
+        "tool_parameter_name": "include_only_billable_entries",
+        "description": "Include only billable time entries by using a value of `true` or only non-billable time entries by using a value of `false`.\\\n \\\nFor example: `?is_billable=true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include only billable time entries by using a value of `true` or only non-billable time entries by using a value of `false`.\\\n \\\nFor example: `?is_billable=true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_Id",
+        "tool_parameter_name": "workspace_id",
+        "description": "Workspace ID",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workspace ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

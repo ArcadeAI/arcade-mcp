@@ -1,0 +1,463 @@
+{
+  "name": "GetIncidentAnalytics",
+  "fully_qualified_name": "PagerdutyApi.GetIncidentAnalytics@2.0.0",
+  "description": "Fetch enriched incident metrics and data from PagerDuty Analytics.\n\nUse this tool to retrieve detailed metrics and data for multiple incidents, such as Seconds to Resolve and Sleep Hour Interruptions. A `team_ids` or `service_ids` filter is needed for certain API keys.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "Specifies the version of the API to use, set via the `Accept` header. This controls the format and version of the returned data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the format of the request body. For this endpoint, use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "incident_analytics_parameters",
+        "required": false,
+        "description": "Parameters and filters for the dataset, including filters like creation date range and urgency. Use team_ids or service_ids for certain keys.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "created_at_start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filters the result, showing only the incidents where the creation timestamp is greater than or equal to the filter value."
+                },
+                "created_at_end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filters the result, showing only the incidents where the creation timestamp is less than the filter value."
+                },
+                "updated_after": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filters the result, showing only incidents where the updated_at value is greater than the filter value."
+                },
+                "urgency": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filters the result, showing only the incidents where urgency matches the filter value."
+                },
+                "major": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An incident is classified as a [major incident](https://support.pagerduty.com/docs/operational-reviews#major-incidents) if it has one of the two highest priorities, or if multiple responders are added and acknowledge the incident."
+                },
+                "team_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of team IDs. Only incidents that are assigned to a member of these teams will be returned. Account must have the teams ability to use this parameter."
+                },
+                "service_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of service IDs. Only results related to these services will be returned."
+                },
+                "priority_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The priority_ids filter applied to the results."
+                },
+                "priority_names": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The priority_names filter applied to the results."
+                },
+                "incident_type_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filter incidents by specific incident type IDs. Only incidents matching the given IDs will be returned."
+                }
+              },
+              "inner_properties": null,
+              "description": "Filters the result, only show incidents that match the conditions passed in the filter."
+            },
+            "starting_after": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A cursor to indicate the reference point that the results should follow"
+            },
+            "ending_before": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A cursor to indicate the reference point that the results should precede"
+            },
+            "order": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order the results;  asc for ascending, desc for descending. Defaults to 'desc'."
+            },
+            "order_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "created_at",
+                "seconds_to_resolve"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The column to use for ordering the results. Defaults to 'created_at'."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of results to include in each batch.\nLimits between 1 to 1000 are accepted."
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time zone to use for the results."
+            }
+          },
+          "inner_properties": null,
+          "description": "Parameters and filters to apply to the dataset."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getAnalyticsIncidents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/analytics/raw/incidents",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_analytics_parameters",
+        "description": "Parameters and filters to apply to the dataset.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "filters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "created_at_start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filters the result, showing only the incidents where the creation timestamp is greater than or equal to the filter value."
+                },
+                "created_at_end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filters the result, showing only the incidents where the creation timestamp is less than the filter value."
+                },
+                "updated_after": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filters the result, showing only incidents where the updated_at value is greater than the filter value."
+                },
+                "urgency": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filters the result, showing only the incidents where urgency matches the filter value."
+                },
+                "major": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An incident is classified as a [major incident](https://support.pagerduty.com/docs/operational-reviews#major-incidents) if it has one of the two highest priorities, or if multiple responders are added and acknowledge the incident."
+                },
+                "team_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of team IDs. Only incidents that are assigned to a member of these teams will be returned. Account must have the teams ability to use this parameter."
+                },
+                "service_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An array of service IDs. Only results related to these services will be returned."
+                },
+                "priority_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The priority_ids filter applied to the results."
+                },
+                "priority_names": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The priority_names filter applied to the results."
+                },
+                "incident_type_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Filter incidents by specific incident type IDs. Only incidents matching the given IDs will be returned."
+                }
+              },
+              "inner_properties": null,
+              "description": "Filters the result, only show incidents that match the conditions passed in the filter."
+            },
+            "starting_after": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A cursor to indicate the reference point that the results should follow"
+            },
+            "ending_before": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A cursor to indicate the reference point that the results should precede"
+            },
+            "order": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order the results;  asc for ascending, desc for descending. Defaults to 'desc'."
+            },
+            "order_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "created_at",
+                "seconds_to_resolve"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The column to use for ordering the results. Defaults to 'created_at'."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of results to include in each batch.\nLimits between 1 to 1000 are accepted."
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time zone to use for the results."
+            }
+          },
+          "inner_properties": null,
+          "description": "Parameters and filters to apply to the dataset."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"filters\": {\n            \"type\": \"object\",\n            \"description\": \"Filters the result, only show incidents that match the conditions passed in the filter.\",\n            \"properties\": {\n              \"created_at_start\": {\n                \"type\": \"string\",\n                \"description\": \"Filters the result, showing only the incidents where the creation timestamp is greater than or equal to the filter value.\",\n                \"example\": \"2023-05-01T00:00:00-04:00\"\n              },\n              \"created_at_end\": {\n                \"type\": \"string\",\n                \"description\": \"Filters the result, showing only the incidents where the creation timestamp is less than the filter value.\",\n                \"example\": \"2023-06-01T00:00:00-04:00\"\n              },\n              \"updated_after\": {\n                \"type\": \"string\",\n                \"description\": \"Filters the result, showing only incidents where the updated_at value is greater than the filter value.\"\n              },\n              \"urgency\": {\n                \"type\": \"string\",\n                \"description\": \"Filters the result, showing only the incidents where urgency matches the filter value.\",\n                \"example\": \"high\"\n              },\n              \"major\": {\n                \"type\": \"boolean\",\n                \"description\": \"An incident is classified as a [major incident](https://support.pagerduty.com/docs/operational-reviews#major-incidents) if it has one of the two highest priorities, or if multiple responders are added and acknowledge the incident.\",\n                \"example\": true\n              },\n              \"team_ids\": {\n                \"type\": \"array\",\n                \"description\": \"An array of team IDs. Only incidents that are assigned to a member of these teams will be returned. Account must have the teams ability to use this parameter.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"example\": [\n                  \"P373JQQ\",\n                  \"PAECHJV\",\n                  \"P7SYGW6\"\n                ]\n              },\n              \"service_ids\": {\n                \"type\": \"array\",\n                \"description\": \"An array of service IDs. Only results related to these services will be returned.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"example\": [\n                  \"PC8O0L3\",\n                  \"PX01HJD\",\n                  \"P5FK83M\"\n                ]\n              },\n              \"priority_ids\": {\n                \"type\": \"array\",\n                \"description\": \"The priority_ids filter applied to the results.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"example\": [\n                  \"PITMC5Y\",\n                  \"PEHBBT8\",\n                  \"PB8QADI\"\n                ]\n              },\n              \"priority_names\": {\n                \"type\": \"array\",\n                \"description\": \"The priority_names filter applied to the results.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"example\": [\n                  \"P1\",\n                  \"P2\",\n                  \"P3\"\n                ]\n              },\n              \"incident_type_ids\": {\n                \"type\": \"array\",\n                \"description\": \"Filter incidents by specific incident type IDs. Only incidents matching the given IDs will be returned.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"example\": [\n                  \"PIJ90N7\",\n                  \"PKL73Z2\"\n                ]\n              }\n            }\n          },\n          \"starting_after\": {\n            \"type\": \"string\",\n            \"description\": \"A cursor to indicate the reference point that the results should follow\"\n          },\n          \"ending_before\": {\n            \"type\": \"string\",\n            \"description\": \"A cursor to indicate the reference point that the results should precede\"\n          },\n          \"order\": {\n            \"type\": \"string\",\n            \"description\": \"The order the results;  asc for ascending, desc for descending. Defaults to 'desc'.\",\n            \"enum\": [\n              \"asc\",\n              \"desc\"\n            ]\n          },\n          \"order_by\": {\n            \"type\": \"string\",\n            \"description\": \"The column to use for ordering the results. Defaults to 'created_at'.\",\n            \"enum\": [\n              \"created_at\",\n              \"seconds_to_resolve\"\n            ]\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"Number of results to include in each batch.\\nLimits between 1 to 1000 are accepted.\",\n            \"example\": 20,\n            \"minimum\": 0,\n            \"exclusiveMinimum\": true,\n            \"maximum\": 1000,\n            \"exclusiveMaximum\": false\n          },\n          \"time_zone\": {\n            \"type\": \"string\",\n            \"description\": \"The time zone to use for the results.\",\n            \"example\": \"Etc/UTC\"\n          }\n        }\n      },\n      \"examples\": {\n        \"Example Request\": {\n          \"value\": {\n            \"filters\": {\n              \"created_at_start\": \"2024-01-01T00:00:00-05:00\",\n              \"created_at_end\": \"2024-01-31T00:00:00-05:00\",\n              \"updated_after\": \"2024-05-01T00:00:00-05:00\",\n              \"urgency\": \"high\",\n              \"major\": true,\n              \"team_ids\": [\n                \"PGVXG6U\",\n                \"PNVU4U4\"\n              ],\n              \"service_ids\": [\n                \"PQVUB8D\",\n                \"PU2D9X3\"\n              ],\n              \"priority_names\": [\n                \"P1\",\n                \"P2\"\n              ],\n              \"incident_type_ids\": [\n                \"PIJ90N7\",\n                \"PKL73Z2\"\n              ]\n            },\n            \"limit\": 20,\n            \"order\": \"desc\",\n            \"order_by\": \"created_at\",\n            \"time_zone\": \"Etc/UTC\"\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"Parameters and filters to apply to the dataset.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

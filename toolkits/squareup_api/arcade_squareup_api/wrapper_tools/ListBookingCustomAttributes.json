@@ -1,18 +1,18 @@
 {
   "name": "ListBookingCustomAttributes",
-  "fully_qualified_name": "SquareupApi.ListBookingCustomAttributes@0.1.0",
-  "description": "Lists custom attributes for a specific booking.\n\nUse this tool to retrieve the custom attributes associated with a specific booking. Ensure the appropriate OAuth permissions (`APPOINTMENTS_READ` for buyer-level or `APPOINTMENTS_ALL_READ` and `APPOINTMENTS_READ` for seller-level) are set before calling this endpoint.",
+  "fully_qualified_name": "SquareupApi.ListBookingCustomAttributes@2.0.0",
+  "description": "Retrieve a booking's custom attributes.\n\nUse this tool to list custom attributes associated with a specific booking. Ensure proper OAuth scope with 'APPOINTMENTS_READ' for buyer-level permissions or both 'APPOINTMENTS_ALL_READ' and 'APPOINTMENTS_READ' for seller-level permissions.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "booking_identifier",
+        "name": "booking_id",
         "required": true,
-        "description": "The unique identifier for the target booking whose custom attributes you want to list.",
+        "description": "The unique identifier for the target booking to list custom attributes for. This is required to specify which booking's attributes to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "booking_id"
       },
       {
-        "name": "maximum_results_per_page",
+        "name": "maximum_results_limit",
         "required": false,
-        "description": "The maximum number of results to return per page, between 1 and 100. Default is 20.",
+        "description": "The maximum number of results to return in a single response (1-100). Default is 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Cursor for retrieving the next page of results from a previous call to the endpoint.",
+        "description": "The cursor from the previous API response used to retrieve the next page of results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "include_custom_attribute_definitions",
         "required": false,
-        "description": "Set to true to include custom attribute definition details, such as name and data type, in the response. Default is false.",
+        "description": "Set to true to include custom attribute definitions, providing names, descriptions, data types, and other details. Default is false.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -104,13 +104,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes",
@@ -119,7 +119,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "maximum_results_per_page",
+        "tool_parameter_name": "maximum_results_limit",
         "description": "The maximum number of results to return in a single paged response. This limit is advisory.\nThe response might contain more or fewer results. The minimum value is 1 and the maximum value is 100.\nThe default value is 20. For more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
         "value_schema": {
           "val_type": "integer",
@@ -132,6 +132,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -149,6 +150,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -166,11 +168,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "booking_id",
-        "tool_parameter_name": "booking_identifier",
+        "tool_parameter_name": "booking_id",
         "description": "The ID of the target [booking](entity:Booking).",
         "value_schema": {
           "val_type": "string",
@@ -183,6 +186,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -196,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

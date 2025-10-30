@@ -1,16 +1,16 @@
 {
   "name": "ListUserBoards",
-  "fully_qualified_name": "TrelloApi.ListUserBoards@0.1.0",
-  "description": "Lists the boards that a user is a member of.\n\nUse this tool to retrieve a list of boards associated with a specific user ID on Trello.",
+  "fully_qualified_name": "TrelloApi.ListUserBoards@2.0.0",
+  "description": "Retrieve boards a user is a member of on Trello.\n\nUse this tool to get a list of all boards that a specific user is a member of on Trello. Useful for managing or viewing user-related board information.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "member_id_or_username",
+        "name": "member_identifier",
         "required": true,
         "description": "The ID or username of the Trello member whose boards are to be retrieved.",
         "value_schema": {
@@ -27,7 +27,7 @@
       {
         "name": "board_filter",
         "required": false,
-        "description": "Comma-separated list of board filters like 'closed', 'members', etc., or 'all'.",
+        "description": "Filter boards by specifying 'all' or a comma-separated list of statuses like 'closed', 'members', 'open', etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -50,7 +50,7 @@
       {
         "name": "board_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of board fields to include (e.g., `id,name,desc`).",
+        "description": "Specify `all` or a comma-separated list of board fields to include in the response. Available fields include 'id', 'name', 'desc', 'descData', 'closed', 'idMemberCreator', 'idOrganization', 'pinned', 'url', 'shortUrl', 'prefs', 'labelNames', 'starred', 'limits', 'memberships', 'enterpriseOwned'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -80,9 +80,9 @@
         "http_endpoint_parameter_name": "fields"
       },
       {
-        "name": "include_lists_with_boards",
+        "name": "include_lists",
         "required": false,
-        "description": "Specify which lists to include with the boards. Choose from: `all`, `closed`, `none`, `open`.",
+        "description": "Specify which lists to include with the boards. Options: `all`, `closed`, `none`, `open`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,9 +100,9 @@
         "http_endpoint_parameter_name": "lists"
       },
       {
-        "name": "include_organization_fields",
+        "name": "organization_fields_to_include",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of organization fields to include (e.g., 'id,name').",
+        "description": "Specifies which organization fields to include, either `all` or a comma-separated list of specific fields like `id` and `name`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -120,7 +120,7 @@
       {
         "name": "include_organization",
         "required": false,
-        "description": "Indicates whether to include the Organization object with the Boards. Set to true to include.",
+        "description": "Set to true to include the Organization object with the Boards.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -165,13 +165,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/boards",
@@ -201,6 +201,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -235,11 +236,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "lists",
-        "tool_parameter_name": "include_lists_with_boards",
+        "tool_parameter_name": "include_lists",
         "description": "Which lists to include with the boards. One of: `all`, `closed`, `none`, `open`",
         "value_schema": {
           "val_type": "string",
@@ -257,6 +259,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
@@ -274,11 +277,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "organization_fields",
-        "tool_parameter_name": "include_organization_fields",
+        "tool_parameter_name": "organization_fields_to_include",
         "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -294,11 +298,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "member_id_or_username",
+        "tool_parameter_name": "member_identifier",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",
@@ -311,6 +316,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -332,6 +338,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

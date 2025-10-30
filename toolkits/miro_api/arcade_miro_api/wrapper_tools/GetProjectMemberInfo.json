@@ -1,11 +1,11 @@
 {
   "name": "GetProjectMemberInfo",
-  "fully_qualified_name": "MiroApi.GetProjectMemberInfo@0.1.0",
-  "description": "Retrieve information for a specific project member.\n\nThis tool retrieves information about a specific member of a project for users with the Enterprise plan in Miro. It requires 'projects:read' scope and Company Admin rights. Use this tool to gain insights into project member roles and details in an enterprise setting.",
+  "fully_qualified_name": "MiroApi.GetProjectMemberInfo@2.0.0",
+  "description": "Retrieve information about a specific project member.\n\nThis tool retrieves detailed information for a specific project member within an organization. It should be called by users with Enterprise plan access and the role of Company Admin. The information is essential for managing project members and understanding their roles and contributions in a team environment.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "org_id"
       },
       {
-        "name": "team_id",
+        "name": "team_identifier",
         "required": true,
-        "description": "The unique identifier of the team to which the project belongs.",
+        "description": "The ID of the team to which the project belongs.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "team_id"
       },
       {
-        "name": "project_id",
+        "name": "project_identifier",
         "required": true,
-        "description": "The ID of the project to retrieve specific member information from.",
+        "description": "The ID of the project to get information about a specific member.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "member_id",
         "required": true,
-        "description": "ID of the member whose information you want to retrieve.",
+        "description": "The ID of the project member to retrieve specific information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,13 +100,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/projects/{project_id}/members/{member_id}",
@@ -128,11 +128,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "team_id",
-        "tool_parameter_name": "team_id",
+        "tool_parameter_name": "team_identifier",
         "description": "The ID of the team to which the project belongs.",
         "value_schema": {
           "val_type": "string",
@@ -145,11 +146,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "project_id",
-        "tool_parameter_name": "project_id",
+        "tool_parameter_name": "project_identifier",
         "description": "The ID of the project from which you want to retrieve specific member information.",
         "value_schema": {
           "val_type": "string",
@@ -162,6 +164,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -179,6 +182,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -192,6 +196,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

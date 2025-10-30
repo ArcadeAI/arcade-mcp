@@ -1,18 +1,18 @@
 {
   "name": "GetEnterpriseInfo",
-  "fully_qualified_name": "AirtableApi.GetEnterpriseInfo@0.1.0",
-  "description": "Retrieve basic enterprise account information from Airtable.\n\n",
+  "fully_qualified_name": "AirtableApi.GetEnterpriseInfo@2.0.0",
+  "description": "Retrieve basic information about an enterprise account.\n\nThis tool returns fundamental details regarding a specified enterprise account, which can be useful for understanding account characteristics and status.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_account_id",
         "required": true,
-        "description": "The unique identifier for the enterprise account to retrieve information for.",
+        "description": "The unique identifier for the target enterprise account. This is required to fetch the relevant account information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "fields_to_include",
         "required": false,
-        "description": "Specify which fields to include in the enterprise account information. Provide a list of field names as strings.",
+        "description": "Specify an array of field names as strings to include in the response. Leaving this empty includes all default fields.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

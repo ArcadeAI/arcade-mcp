@@ -1,18 +1,18 @@
 {
   "name": "FetchIncidentLogs",
-  "fully_qualified_name": "PagerdutyApi.FetchIncidentLogs@0.1.0",
-  "description": "Retrieve all incident log entries from the account.\n\nThis tool retrieves a comprehensive list of all log entries for incidents across the entire account. Use it to access detailed logs of events related to incidents.",
+  "fully_qualified_name": "PagerdutyApi.FetchIncidentLogs@2.0.0",
+  "description": "Retrieve all incident log entries across the account.\n\nThis tool lists all the incident log entries, detailing events that occur for each incident across the entire account. Useful for tracking and analyzing incident-related activities.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_header",
+        "name": "response_version_header",
         "required": true,
-        "description": "The versioning header for API requests. Specify the API version to use.",
+        "description": "Specifies the API response version using the 'Accept' header. Used as a versioning header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "response_content_type",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the media type for the response. Must be 'application/json'.",
+        "description": "Specifies the media type of the request body. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "Specify the number of log entry results to return per page.",
+        "description": "Specifies the number of results returned per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "Offset value to start the pagination of search results. Used for controlling which set of results are displayed.",
+        "description": "Offset to start pagination in search results. Used for navigating through large datasets.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
       {
         "name": "render_results_in_time_zone",
         "required": false,
-        "description": "Specify the time zone for rendering results. Defaults to the account's time zone.",
+        "description": "Time zone for rendering results. Defaults to the account time zone if not specified.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
       {
         "name": "start_date_range",
         "required": false,
-        "description": "The start date for the range to search incident log entries. Format as 'YYYY-MM-DD'.",
+        "description": "Specify the start date for the search range. Format: YYYY-MM-DD.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "since"
       },
       {
-        "name": "end_date_range",
+        "name": "search_end_date",
         "required": false,
-        "description": "Specify the end date for the search date range. This is used to filter log entries up to a specific date.",
+        "description": "The end date for the search range. Specify in YYYY-MM-DD format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -119,7 +119,7 @@
       {
         "name": "additional_models_to_include",
         "required": false,
-        "description": "Array of additional models such as 'incidents', 'services', 'channels', 'teams' to include in the response.",
+        "description": "Specify additional models to include in the response, such as incidents, services, channels, or teams.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -139,7 +139,7 @@
       {
         "name": "team_ids",
         "required": false,
-        "description": "An array of team IDs for filtering log entries by team. Requires 'teams' ability.",
+        "description": "Array of team IDs to filter log entries. Requires 'teams' ability on the account.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -152,9 +152,9 @@
         "http_endpoint_parameter_name": "team_ids[]"
       },
       {
-        "name": "include_total_in_response",
+        "name": "include_total_in_pagination",
         "required": false,
-        "description": "Set to true to populate the total field in pagination responses, showing the total number of items.",
+        "description": "Set to true to populate the total field in pagination responses. Set to false for faster response times.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -167,9 +167,9 @@
         "http_endpoint_parameter_name": "total"
       },
       {
-        "name": "overview_only",
+        "name": "return_important_changes_only",
         "required": false,
-        "description": "Set to true to return only the most important changes to incidents.",
+        "description": "If true, return only the most important changes to the incident in log entries.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -212,13 +212,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/log_entries",
@@ -263,7 +263,7 @@
       },
       {
         "name": "total",
-        "tool_parameter_name": "include_total_in_response",
+        "tool_parameter_name": "include_total_in_pagination",
         "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -276,7 +276,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -317,7 +317,7 @@
       },
       {
         "name": "until",
-        "tool_parameter_name": "end_date_range",
+        "tool_parameter_name": "search_end_date",
         "description": "The end of the date range over which you want to search.",
         "value_schema": {
           "val_type": "string",
@@ -335,7 +335,7 @@
       },
       {
         "name": "is_overview",
-        "tool_parameter_name": "overview_only",
+        "tool_parameter_name": "return_important_changes_only",
         "description": "If `true`, will return a subset of log entries that show only the most important changes to the incident.",
         "value_schema": {
           "val_type": "boolean",
@@ -348,7 +348,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -394,7 +394,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header",
+        "tool_parameter_name": "response_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -412,7 +412,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "response_content_type",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -441,6 +441,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

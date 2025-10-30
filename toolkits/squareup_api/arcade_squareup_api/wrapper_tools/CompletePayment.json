@@ -1,0 +1,142 @@
+{
+  "name": "CompletePayment",
+  "fully_qualified_name": "SquareupApi.CompletePayment@2.0.0",
+  "description": "Complete an approved payment using Squareup.\n\nUse this tool to complete or capture a payment with an 'APPROVED' status, finalizing the transaction.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "payment_identifier",
+        "required": true,
+        "description": "The unique ID identifying the payment to be completed. This is required for completing a payment with an 'APPROVED' status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID identifying the payment to be completed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "payment_id"
+      },
+      {
+        "name": "current_payment_version_token",
+        "required": false,
+        "description": "The token identifying the current Payment version for optimistic concurrency. It ensures the Payment version matches the caller's expectations to prevent mismatches.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for optimistic concurrency. This opaque token identifies the current `Payment`\nversion that the caller expects. If the server has a different version of the Payment,\nthe update fails and a response with a VERSION_MISMATCH error is returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version_token"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CompletePayment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "PAYMENTS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/payments/{payment_id}/complete",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "payment_id",
+        "tool_parameter_name": "payment_identifier",
+        "description": "The unique ID identifying the payment to be completed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID identifying the payment to be completed."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "version_token",
+        "tool_parameter_name": "current_payment_version_token",
+        "description": "Used for optimistic concurrency. This opaque token identifies the current `Payment`\nversion that the caller expects. If the server has a different version of the Payment,\nthe update fails and a response with a VERSION_MISMATCH error is returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for optimistic concurrency. This opaque token identifies the current `Payment`\nversion that the caller expects. If the server has a different version of the Payment,\nthe update fails and a response with a VERSION_MISMATCH error is returned."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Describes a request to complete (capture) a payment using\\n[CompletePayment](api-endpoint:Payments-CompletePayment).\\n\\nBy default, payments are set to `autocomplete` immediately after they are created.\\nTo complete payments manually, set `autocomplete` to `false`.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"version_token\": {\n            \"type\": \"string\",\n            \"description\": \"Used for optimistic concurrency. This opaque token identifies the current `Payment`\\nversion that the caller expects. If the server has a different version of the Payment,\\nthe update fails and a response with a VERSION_MISMATCH error is returned.\",\n            \"x-release-status\": \"BETA\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {}\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "name": "DeleteTrainingDataDocuments",
+  "fully_qualified_name": "PylonApi.DeleteTrainingDataDocuments@0.1.0",
+  "description": "Deletes documents from a training data configuration.\n\nUse this tool to delete documents from a specific training data configuration by providing the relevant ID. This tool is helpful when managing or updating data sets for training purposes.",
+  "toolkit": {
+    "name": "PylonApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "training_data_id",
+        "required": true,
+        "description": "The ID of the training data from which documents will be deleted. Provide this to specify the exact dataset.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the training data."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "document_ids_to_delete",
+        "required": false,
+        "description": "An array of document IDs that need to be deleted from the training data configuration.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Document IDs to delete."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "document_ids"
+      },
+      {
+        "name": "external_ids_to_delete",
+        "required": false,
+        "description": "A list of external IDs to delete from the training data configuration.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "External IDs to delete."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "external_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteTrainingDataDocuments'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "PYLON_SECRET_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the pylon API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.usepylon.com/training-data/{id}/documents",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "document_ids",
+        "tool_parameter_name": "document_ids_to_delete",
+        "description": "Document IDs to delete.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Document IDs to delete."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "external_ids",
+        "tool_parameter_name": "external_ids_to_delete",
+        "description": "External IDs to delete.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "External IDs to delete."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "training_data_id",
+        "description": "The ID of the training data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the training data."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "PYLON_SECRET_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

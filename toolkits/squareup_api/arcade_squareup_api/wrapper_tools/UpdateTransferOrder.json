@@ -1,0 +1,357 @@
+{
+  "name": "UpdateTransferOrder",
+  "fully_qualified_name": "SquareupApi.UpdateTransferOrder@2.0.0",
+  "description": "Update specific fields of a transfer order.\n\nUse this tool to modify particular fields of an existing transfer order without affecting others. This will trigger a transfer_order.updated webhook event.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "transfer_order_identifier",
+        "required": true,
+        "description": "The unique identifier of the transfer order to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transfer_order_id"
+      },
+      {
+        "name": "transfer_order_update_data",
+        "required": true,
+        "description": "JSON object with fields to update the transfer order, including idempotency key, transfer details, and version.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this UpdateTransferOrder request. Keys must contain only alphanumeric characters, dashes and underscores"
+            },
+            "transfer_order": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "source_location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The source [Location](entity:Location) that will send the items. Must be an active location\nin your Square account with sufficient inventory of the requested items."
+                },
+                "destination_location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The destination [Location](entity:Location) that will receive the items. Must be an active location\nin your Square account."
+                },
+                "expected_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Expected transfer date in RFC 3339 format (e.g. \"2023-10-01T12:00:00Z\")."
+                },
+                "notes": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Optional notes about the transfer"
+                },
+                "tracking_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Shipment tracking number"
+                },
+                "line_items": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "uid": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Line item id being updated. Required for updating/removing existing line items, but should not be set for new line items."
+                    },
+                    "item_variation_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Catalog item variation being transferred\n\nRequired for new line items, but otherwise is not updatable."
+                    },
+                    "quantity_ordered": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Total quantity ordered"
+                    },
+                    "remove": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Flag to remove the line item during update. Must include `uid` in removal request"
+                    }
+                  },
+                  "description": "List of items being transferred"
+                }
+              },
+              "inner_properties": null,
+              "description": "Data model for updating a transfer order. All fields are optional."
+            },
+            "version": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Version for optimistic concurrency"
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateTransferOrder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVENTORY_READ",
+          "INVENTORY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/transfer-orders/{transfer_order_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "transfer_order_id",
+        "tool_parameter_name": "transfer_order_identifier",
+        "description": "The ID of the transfer order to update",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "transfer_order_update_data",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "idempotency_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique string that identifies this UpdateTransferOrder request. Keys must contain only alphanumeric characters, dashes and underscores"
+            },
+            "transfer_order": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "source_location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The source [Location](entity:Location) that will send the items. Must be an active location\nin your Square account with sufficient inventory of the requested items."
+                },
+                "destination_location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The destination [Location](entity:Location) that will receive the items. Must be an active location\nin your Square account."
+                },
+                "expected_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Expected transfer date in RFC 3339 format (e.g. \"2023-10-01T12:00:00Z\")."
+                },
+                "notes": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Optional notes about the transfer"
+                },
+                "tracking_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Shipment tracking number"
+                },
+                "line_items": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "uid": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Line item id being updated. Required for updating/removing existing line items, but should not be set for new line items."
+                    },
+                    "item_variation_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Catalog item variation being transferred\n\nRequired for new line items, but otherwise is not updatable."
+                    },
+                    "quantity_ordered": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Total quantity ordered"
+                    },
+                    "remove": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Flag to remove the line item during update. Must include `uid` in removal request"
+                    }
+                  },
+                  "description": "List of items being transferred"
+                }
+              },
+              "inner_properties": null,
+              "description": "Data model for updating a transfer order. All fields are optional."
+            },
+            "version": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Version for optimistic concurrency"
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Request to update a transfer order\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"idempotency_key\",\n          \"transfer_order\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this UpdateTransferOrder request. Keys must contain only alphanumeric characters, dashes and underscores\",\n            \"minLength\": 1\n          },\n          \"transfer_order\": {\n            \"type\": \"object\",\n            \"description\": \"Data model for updating a transfer order. All fields are optional.\",\n            \"x-release-status\": \"BETA\",\n            \"properties\": {\n              \"source_location_id\": {\n                \"type\": \"string\",\n                \"description\": \"The source [Location](entity:Location) that will send the items. Must be an active location\\nin your Square account with sufficient inventory of the requested items.\",\n                \"minLength\": 1,\n                \"maxLength\": 64,\n                \"nullable\": true\n              },\n              \"destination_location_id\": {\n                \"type\": \"string\",\n                \"description\": \"The destination [Location](entity:Location) that will receive the items. Must be an active location\\nin your Square account.\",\n                \"minLength\": 1,\n                \"maxLength\": 64,\n                \"nullable\": true\n              },\n              \"expected_at\": {\n                \"type\": \"string\",\n                \"description\": \"Expected transfer date in RFC 3339 format (e.g. \\\"2023-10-01T12:00:00Z\\\").\",\n                \"nullable\": true\n              },\n              \"notes\": {\n                \"type\": \"string\",\n                \"description\": \"Optional notes about the transfer\",\n                \"maxLength\": 4096,\n                \"nullable\": true\n              },\n              \"tracking_number\": {\n                \"type\": \"string\",\n                \"description\": \"Shipment tracking number\",\n                \"maxLength\": 64,\n                \"nullable\": true\n              },\n              \"line_items\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"description\": \"Represents a line item update in a transfer order\",\n                  \"x-release-status\": \"BETA\",\n                  \"properties\": {\n                    \"uid\": {\n                      \"type\": \"string\",\n                      \"description\": \"Line item id being updated. Required for updating/removing existing line items, but should not be set for new line items.\",\n                      \"minLength\": 1,\n                      \"maxLength\": 64,\n                      \"nullable\": true\n                    },\n                    \"item_variation_id\": {\n                      \"type\": \"string\",\n                      \"description\": \"Catalog item variation being transferred\\n\\nRequired for new line items, but otherwise is not updatable.\",\n                      \"minLength\": 1,\n                      \"maxLength\": 64,\n                      \"nullable\": true\n                    },\n                    \"quantity_ordered\": {\n                      \"type\": \"string\",\n                      \"description\": \"Total quantity ordered\",\n                      \"minLength\": 1,\n                      \"maxLength\": 16,\n                      \"pattern\": \"^(0|[1-9]\\\\d*)(\\\\.\\\\d{1,4})?$\",\n                      \"nullable\": true\n                    },\n                    \"remove\": {\n                      \"type\": \"boolean\",\n                      \"description\": \"Flag to remove the line item during update. Must include `uid` in removal request\",\n                      \"nullable\": true\n                    }\n                  }\n                },\n                \"description\": \"List of items being transferred\",\n                \"nullable\": true\n              }\n            }\n          },\n          \"version\": {\n            \"type\": \"integer\",\n            \"description\": \"Version for optimistic concurrency\",\n            \"format\": \"int64\"\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\n          \"transfer_order\": {\n            \"destination_location_id\": \"EXAMPLE_DEST_LOCATION_ID_101\",\n            \"expected_at\": \"2025-11-10T08:00:00Z\",\n            \"line_items\": [\n              {\n                \"quantity_ordered\": \"7\",\n                \"uid\": \"1\"\n              },\n              {\n                \"item_variation_id\": \"EXAMPLE_NEW_ITEM_VARIATION_ID_003\",\n                \"quantity_ordered\": \"2\"\n              },\n              {\n                \"remove\": true,\n                \"uid\": \"2\"\n              }\n            ],\n            \"notes\": \"Updated: Priority transfer due to low stock at destination\",\n            \"source_location_id\": \"EXAMPLE_SOURCE_LOCATION_ID_789\",\n            \"tracking_number\": \"TRACK987654321\"\n          },\n          \"transfer_order_id\": \"EXAMPLE_TRANSFER_ORDER_ID_123\",\n          \"version\": 1753109537351\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

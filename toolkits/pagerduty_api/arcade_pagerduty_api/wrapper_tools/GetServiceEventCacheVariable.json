@@ -1,18 +1,18 @@
 {
   "name": "GetServiceEventCacheVariable",
-  "fully_qualified_name": "PagerdutyApi.GetServiceEventCacheVariable@0.1.0",
-  "description": "Retrieve a cache variable from a service event orchestration.\n\nThis tool retrieves a specific cache variable associated with a service event orchestration in Pagerduty. Cache variables are used to store event data and can be utilized in orchestration rules for conditions or actions.",
+  "fully_qualified_name": "PagerdutyApi.GetServiceEventCacheVariable@2.0.0",
+  "description": "Get a cache variable for a service event orchestration.\n\nFetches stored event data from a service event orchestration cache variable, useful for conditions or actions in event orchestration rules.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "service_id",
+        "name": "service_identifier",
         "required": true,
-        "description": "A string representing the unique ID of the service for which the cache variable is to be retrieved.",
+        "description": "The unique identifier of the service. Use this to specify the service whose event orchestration cache variable you want to access.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "cache_variable_id",
         "required": true,
-        "description": "The unique identifier for the cache variable in the service event orchestration.",
+        "description": "The unique identifier of the cache variable to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "cache_variable_id"
       },
       {
-        "name": "versioning_header",
+        "name": "accept_versioning_header",
         "required": true,
-        "description": "Specifies the API versioning using the 'Accept' header. Provide the version of the API you want to use.",
+        "description": "Specifies the API version using the `Accept` header for versioning the request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "response_content_type",
         "required": true,
-        "description": "Specifies the media type of the resource, typically 'application/json'.",
+        "description": "Sets the Content-Type header for the request. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/event_orchestrations/services/{service_id}/cache_variables/{cache_variable_id}",
@@ -117,7 +117,7 @@
     "parameters": [
       {
         "name": "service_id",
-        "tool_parameter_name": "service_id",
+        "tool_parameter_name": "service_identifier",
         "description": "The service ID",
         "value_schema": {
           "val_type": "string",
@@ -153,7 +153,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "accept_versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -171,7 +171,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "response_content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

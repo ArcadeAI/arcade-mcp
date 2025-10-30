@@ -1,18 +1,18 @@
 {
   "name": "GetEnterpriseById",
-  "fully_qualified_name": "TrelloApi.GetEnterpriseById@0.1.0",
-  "description": "Retrieve details of an enterprise by its ID.\n\nUse this tool to retrieve information about a specific enterprise in Trello using its ID.",
+  "fully_qualified_name": "TrelloApi.GetEnterpriseById@2.0.0",
+  "description": "Retrieve details of a Trello enterprise by ID.\n\nUse this tool to obtain detailed information about a specific enterprise in Trello by providing its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "The unique ID of the enterprise to retrieve details for from Trello.",
+        "description": "The unique identifier for the enterprise you want to retrieve from Trello.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "enterprise_fields_to_retrieve",
+        "name": "enterprise_fields",
         "required": false,
-        "description": "Comma-separated list of fields to retrieve, such as `id`, `name`, `displayName`, etc.",
+        "description": "Comma-separated list of fields to include, such as `id`, `name`, `displayName`, `prefs`, and more.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "member_inclusion_type",
         "required": false,
-        "description": "Specify the type of members to include: none, normal, admins, owners, or all.",
+        "description": "Specify which member roles to include: `none`, `normal`, `admins`, `owners`, `all`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "member_fields",
         "required": false,
-        "description": "Specify one member attribute to include: `avatarHash`, `fullName`, `initials`, or `username`.",
+        "description": "Specify one of: `avatarHash`, `fullName`, `initials`, `username` to filter member fields.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "member_filter_query",
         "required": false,
-        "description": "A SCIM-style query to filter members. Overrides the normal/admins value of members.",
+        "description": "A SCIM-style query to filter members. Overrides member types ('normal', 'admins', etc.) and paginates the member array.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "member_filter"
       },
       {
-        "name": "member_sort_value",
+        "name": "member_sorting_order",
         "required": false,
-        "description": "Provide a SCIM-style sorting value. Prefix with '-' for descending order; default is ascending.",
+        "description": "SCIM-style sorting value for members. Use '-' prefix for descending order, no prefix for ascending.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,7 +102,7 @@
       {
         "name": "member_sort",
         "required": false,
-        "description": "SCIM-style sort value for members. Use `-` prefix to sort descending. Note: members array may be paginated.",
+        "description": "Use a SCIM-style sorting value prefixed by '-' for descending or ascending if no prefix. Note: Deprecated `member_sortBy` parameter.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -115,9 +115,9 @@
         "http_endpoint_parameter_name": "member_sortBy"
       },
       {
-        "name": "deprecated_member_sort_order",
+        "name": "sort_members_order",
         "required": false,
-        "description": "Deprecated parameter for sorting members. Use 'member_sort' instead. Accepts: `ascending`, `descending`, `asc`, `desc`.",
+        "description": "Order the sorting of members. Acceptable values are `ascending`, `descending`, `asc`, or `desc`. Note: This parameter is deprecated and `member_sort` is preferred.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -132,7 +132,7 @@
       {
         "name": "member_start_index",
         "required": false,
-        "description": "An integer between 0 and 100 specifying the starting index for paginated member results.",
+        "description": "Specify the starting index for paginated members. Accepts any integer between 0 and 100.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -160,9 +160,9 @@
         "http_endpoint_parameter_name": "member_count"
       },
       {
-        "name": "organization_visibility_filter",
+        "name": "organization_inclusion",
         "required": false,
-        "description": "Specify the level of visibility for the organizations. Options are: `none`, `members`, `public`, `all`.",
+        "description": "Determine scope of organizations to retrieve with the enterprise: 'none', 'members', 'public', or 'all'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -175,9 +175,9 @@
         "http_endpoint_parameter_name": "organizations"
       },
       {
-        "name": "organization_fields",
+        "name": "organization_fields_value",
         "required": false,
-        "description": "Specify fields related to organizations to retrieve. Use values accepted by nested organization field resource.",
+        "description": "Specify valid values for nested organization fields as accepted by the API.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -190,9 +190,9 @@
         "http_endpoint_parameter_name": "organization_fields"
       },
       {
-        "name": "organization_memberships_filter",
+        "name": "organization_memberships_list",
         "required": false,
-        "description": "Comma-separated list of workspace memberships to include, such as 'me', 'normal', 'admin', 'active', 'deactivated'.",
+        "description": "Comma-separated list indicating organization memberships such as `me`, `normal`, `admin`, `active`, `deactivated`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -207,7 +207,7 @@
       {
         "name": "include_paid_account_information",
         "required": false,
-        "description": "Include paid account information in the returned workspace objects if true.",
+        "description": "Include paid account information in the returned workspace objects if set to true. If false, it will be excluded.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -252,13 +252,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/enterprises/{id}",
@@ -267,7 +267,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "enterprise_fields_to_retrieve",
+        "tool_parameter_name": "enterprise_fields",
         "description": "Comma-separated list of: `id`, `name`, `displayName`, `prefs`, `ssoActivationFailed`, `idAdmins`, `idMembers` (Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data. Read the SCIM documentation [here]() for more information on filtering), `idOrganizations`, `products`, `userTypes`, `idMembers`, `idOrganizations`",
         "value_schema": {
           "val_type": "string",
@@ -280,6 +280,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -297,6 +298,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
@@ -314,6 +316,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "avatarHash, fullName, initials, username",
         "documentation_urls": []
       },
       {
@@ -331,11 +334,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
         "name": "member_sort",
-        "tool_parameter_name": "member_sort_value",
+        "tool_parameter_name": "member_sorting_order",
         "description": "This parameter expects a [SCIM-style](/cloud/trello/scim/) sorting value prefixed by a `-` to sort descending. If no `-` is prefixed, it will be sorted ascending. Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data.",
         "value_schema": {
           "val_type": "string",
@@ -348,6 +352,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -365,11 +370,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
         "name": "member_sortOrder",
-        "tool_parameter_name": "deprecated_member_sort_order",
+        "tool_parameter_name": "sort_members_order",
         "description": "Deprecated: Please use member_sort. One of: `ascending`, `descending`, `asc`, `desc`",
         "value_schema": {
           "val_type": "string",
@@ -382,6 +388,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "id",
         "documentation_urls": []
       },
       {
@@ -399,6 +406,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "1",
         "documentation_urls": []
       },
       {
@@ -416,11 +424,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "10",
         "documentation_urls": []
       },
       {
         "name": "organizations",
-        "tool_parameter_name": "organization_visibility_filter",
+        "tool_parameter_name": "organization_inclusion",
         "description": "One of: `none`, `members`, `public`, `all`",
         "value_schema": {
           "val_type": "string",
@@ -433,11 +442,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
         "name": "organization_fields",
-        "tool_parameter_name": "organization_fields",
+        "tool_parameter_name": "organization_fields_value",
         "description": "Any valid value that the [nested organization field resource]() accepts.",
         "value_schema": {
           "val_type": "string",
@@ -450,6 +460,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
@@ -467,11 +478,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "organization_memberships",
-        "tool_parameter_name": "organization_memberships_filter",
+        "tool_parameter_name": "organization_memberships_list",
         "description": "Comma-seperated list of: `me`, `normal`, `admin`, `active`, `deactivated`",
         "value_schema": {
           "val_type": "string",
@@ -484,6 +496,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
@@ -501,6 +514,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -522,6 +536,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

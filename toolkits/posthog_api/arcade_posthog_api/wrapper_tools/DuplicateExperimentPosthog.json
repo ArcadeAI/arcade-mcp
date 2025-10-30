@@ -1,0 +1,793 @@
+{
+  "name": "DuplicateExperimentPosthog",
+  "fully_qualified_name": "PosthogApi.DuplicateExperimentPosthog@0.1.0",
+  "description": "Create a duplicate of a specific experiment.\n\nUse this tool to duplicate an existing experiment within a specified Datadog project. It helps in creating a copy of an experiment for further testing or analysis.",
+  "toolkit": {
+    "name": "ArcadePosthogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "experiment_id",
+        "required": true,
+        "description": "Unique integer to identify the experiment to duplicate.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique integer value identifying this experiment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "project_identifier",
+        "required": true,
+        "description": "The ID of the project you want to access in Datadog. Obtain this by calling the /api/projects/ endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "experiment_request_body",
+        "required": true,
+        "description": "A JSON object containing details of the experiment to duplicate, including ID, name, description, dates, and other properties outlined in the API spec.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "feature_flag_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "feature_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "holdout": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "holdout_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "exposure_cohort": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "parameters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "secondary_metrics": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "saved_metrics": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "experiment": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "saved_metric": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "metadata": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "saved_metrics_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "exposure_criteria": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "metrics": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "metrics_secondary": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stats_config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "conclusion": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "conclusion_comment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "primary_metrics_ordered_uuids": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "secondary_metrics_ordered_uuids": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "user_access_level": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The effective access level the user has for this object"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'experiments_duplicate_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "POSTHOG_SERVER_URL"
+      },
+      {
+        "key": "POSTHOG_PERSONAL_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{posthog_server_url}/api/projects/{project_id}/experiments/{id}/duplicate/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "experiment_id",
+        "description": "A unique integer value identifying this experiment.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique integer value identifying this experiment."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_identifier",
+        "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project ID of the project you're trying to access. To find the ID of the project, make a call to /api/projects/."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "experiment_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "feature_flag_key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "feature_flag": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "holdout": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "holdout_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "exposure_cohort": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "parameters": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "secondary_metrics": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "saved_metrics": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "experiment": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "saved_metric": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "metadata": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "query": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "saved_metrics_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filters": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "deleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_by": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "exposure_criteria": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "metrics": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "metrics_secondary": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stats_config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_create_in_folder": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "conclusion": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "conclusion_comment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "primary_metrics_ordered_uuids": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "secondary_metrics_ordered_uuids": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "user_access_level": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The effective access level the user has for this object"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "POSTHOG_SERVER_URL",
+        "parameter_name": "posthog_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "POSTHOG_PERSONAL_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Mixin for serializers to add user access control fields\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"feature_flag_key\": {\n            \"type\": \"string\"\n          },\n          \"feature_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"holdout\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {},\n                  \"created_by\": {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"integer\",\n                            \"readOnly\": true\n                          },\n                          \"uuid\": {\n                            \"type\": \"string\",\n                            \"format\": \"uuid\",\n                            \"readOnly\": true\n                          },\n                          \"distinct_id\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"maxLength\": 200\n                          },\n                          \"first_name\": {\n                            \"type\": \"string\",\n                            \"maxLength\": 150\n                          },\n                          \"last_name\": {\n                            \"type\": \"string\",\n                            \"maxLength\": 150\n                          },\n                          \"email\": {\n                            \"type\": \"string\",\n                            \"format\": \"email\",\n                            \"title\": \"Email address\",\n                            \"maxLength\": 254\n                          },\n                          \"is_email_verified\": {\n                            \"type\": \"boolean\",\n                            \"nullable\": true\n                          },\n                          \"hedgehog_config\": {\n                            \"type\": \"object\",\n                            \"additionalProperties\": {},\n                            \"nullable\": true,\n                            \"readOnly\": true\n                          },\n                          \"role_at_organization\": {\n                            \"nullable\": true,\n                            \"oneOf\": [\n                              {\n                                \"enum\": [\n                                  \"engineering\",\n                                  \"data\",\n                                  \"product\",\n                                  \"founder\",\n                                  \"leadership\",\n                                  \"marketing\",\n                                  \"sales\",\n                                  \"other\"\n                                ],\n                                \"type\": \"string\",\n                                \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                              },\n                              {\n                                \"enum\": [\n                                  \"\"\n                                ]\n                              },\n                              {\n                                \"enum\": [\n                                  null\n                                ]\n                              }\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"email\",\n                          \"hedgehog_config\",\n                          \"id\",\n                          \"uuid\"\n                        ]\n                      }\n                    ],\n                    \"readOnly\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true\n                  },\n                  \"updated_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"created_at\",\n                  \"created_by\",\n                  \"id\",\n                  \"name\",\n                  \"updated_at\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"holdout_id\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"exposure_cohort\": {\n            \"type\": \"integer\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"parameters\": {\n            \"nullable\": true\n          },\n          \"secondary_metrics\": {\n            \"nullable\": true\n          },\n          \"saved_metrics\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"integer\",\n                  \"readOnly\": true\n                },\n                \"experiment\": {\n                  \"type\": \"integer\"\n                },\n                \"saved_metric\": {\n                  \"type\": \"integer\"\n                },\n                \"metadata\": {},\n                \"created_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true\n                },\n                \"query\": {\n                  \"readOnly\": true\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"readOnly\": true\n                }\n              },\n              \"required\": [\n                \"created_at\",\n                \"experiment\",\n                \"id\",\n                \"name\",\n                \"query\",\n                \"saved_metric\"\n              ]\n            },\n            \"readOnly\": true\n          },\n          \"saved_metrics_ids\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"nullable\": true\n          },\n          \"filters\": {},\n          \"archived\": {\n            \"type\": \"boolean\"\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"web\",\n                  \"product\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `web` - web\\n* `product` - product\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"exposure_criteria\": {\n            \"nullable\": true\n          },\n          \"metrics\": {\n            \"nullable\": true\n          },\n          \"metrics_secondary\": {\n            \"nullable\": true\n          },\n          \"stats_config\": {\n            \"nullable\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          },\n          \"conclusion\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"won\",\n                  \"lost\",\n                  \"inconclusive\",\n                  \"stopped_early\",\n                  \"invalid\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `won` - Won\\n* `lost` - Lost\\n* `inconclusive` - Inconclusive\\n* `stopped_early` - Stopped Early\\n* `invalid` - Invalid\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"conclusion_comment\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"primary_metrics_ordered_uuids\": {\n            \"nullable\": true\n          },\n          \"secondary_metrics_ordered_uuids\": {\n            \"nullable\": true\n          },\n          \"user_access_level\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true,\n            \"description\": \"The effective access level the user has for this object\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"exposure_cohort\",\n          \"feature_flag\",\n          \"feature_flag_key\",\n          \"holdout\",\n          \"id\",\n          \"name\",\n          \"saved_metrics\",\n          \"updated_at\",\n          \"user_access_level\"\n        ]\n      }\n    },\n    \"application/x-www-form-urlencoded\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Mixin for serializers to add user access control fields\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"feature_flag_key\": {\n            \"type\": \"string\"\n          },\n          \"feature_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"holdout\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {},\n                  \"created_by\": {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"integer\",\n                            \"readOnly\": true\n                          },\n                          \"uuid\": {\n                            \"type\": \"string\",\n                            \"format\": \"uuid\",\n                            \"readOnly\": true\n                          },\n                          \"distinct_id\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"maxLength\": 200\n                          },\n                          \"first_name\": {\n                            \"type\": \"string\",\n                            \"maxLength\": 150\n                          },\n                          \"last_name\": {\n                            \"type\": \"string\",\n                            \"maxLength\": 150\n                          },\n                          \"email\": {\n                            \"type\": \"string\",\n                            \"format\": \"email\",\n                            \"title\": \"Email address\",\n                            \"maxLength\": 254\n                          },\n                          \"is_email_verified\": {\n                            \"type\": \"boolean\",\n                            \"nullable\": true\n                          },\n                          \"hedgehog_config\": {\n                            \"type\": \"object\",\n                            \"additionalProperties\": {},\n                            \"nullable\": true,\n                            \"readOnly\": true\n                          },\n                          \"role_at_organization\": {\n                            \"nullable\": true,\n                            \"oneOf\": [\n                              {\n                                \"enum\": [\n                                  \"engineering\",\n                                  \"data\",\n                                  \"product\",\n                                  \"founder\",\n                                  \"leadership\",\n                                  \"marketing\",\n                                  \"sales\",\n                                  \"other\"\n                                ],\n                                \"type\": \"string\",\n                                \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                              },\n                              {\n                                \"enum\": [\n                                  \"\"\n                                ]\n                              },\n                              {\n                                \"enum\": [\n                                  null\n                                ]\n                              }\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"email\",\n                          \"hedgehog_config\",\n                          \"id\",\n                          \"uuid\"\n                        ]\n                      }\n                    ],\n                    \"readOnly\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true\n                  },\n                  \"updated_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"created_at\",\n                  \"created_by\",\n                  \"id\",\n                  \"name\",\n                  \"updated_at\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"holdout_id\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"exposure_cohort\": {\n            \"type\": \"integer\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"parameters\": {\n            \"nullable\": true\n          },\n          \"secondary_metrics\": {\n            \"nullable\": true\n          },\n          \"saved_metrics\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"integer\",\n                  \"readOnly\": true\n                },\n                \"experiment\": {\n                  \"type\": \"integer\"\n                },\n                \"saved_metric\": {\n                  \"type\": \"integer\"\n                },\n                \"metadata\": {},\n                \"created_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true\n                },\n                \"query\": {\n                  \"readOnly\": true\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"readOnly\": true\n                }\n              },\n              \"required\": [\n                \"created_at\",\n                \"experiment\",\n                \"id\",\n                \"name\",\n                \"query\",\n                \"saved_metric\"\n              ]\n            },\n            \"readOnly\": true\n          },\n          \"saved_metrics_ids\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"nullable\": true\n          },\n          \"filters\": {},\n          \"archived\": {\n            \"type\": \"boolean\"\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"web\",\n                  \"product\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `web` - web\\n* `product` - product\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"exposure_criteria\": {\n            \"nullable\": true\n          },\n          \"metrics\": {\n            \"nullable\": true\n          },\n          \"metrics_secondary\": {\n            \"nullable\": true\n          },\n          \"stats_config\": {\n            \"nullable\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          },\n          \"conclusion\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"won\",\n                  \"lost\",\n                  \"inconclusive\",\n                  \"stopped_early\",\n                  \"invalid\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `won` - Won\\n* `lost` - Lost\\n* `inconclusive` - Inconclusive\\n* `stopped_early` - Stopped Early\\n* `invalid` - Invalid\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"conclusion_comment\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"primary_metrics_ordered_uuids\": {\n            \"nullable\": true\n          },\n          \"secondary_metrics_ordered_uuids\": {\n            \"nullable\": true\n          },\n          \"user_access_level\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true,\n            \"description\": \"The effective access level the user has for this object\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"exposure_cohort\",\n          \"feature_flag\",\n          \"feature_flag_key\",\n          \"holdout\",\n          \"id\",\n          \"name\",\n          \"saved_metrics\",\n          \"updated_at\",\n          \"user_access_level\"\n        ]\n      }\n    },\n    \"multipart/form-data\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Mixin for serializers to add user access control fields\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"readOnly\": true\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 400\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"maxLength\": 400\n          },\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"nullable\": true\n          },\n          \"feature_flag_key\": {\n            \"type\": \"string\"\n          },\n          \"feature_flag\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"team_id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\"\n                  },\n                  \"key\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {}\n                  },\n                  \"deleted\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"ensure_experience_continuity\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"has_encrypted_payloads\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"version\": {\n                    \"type\": \"integer\",\n                    \"maximum\": 2147483647,\n                    \"minimum\": -2147483648,\n                    \"nullable\": true\n                  },\n                  \"evaluation_runtime\": {\n                    \"nullable\": true,\n                    \"description\": \"Specifies where this feature flag should be evaluated\\n\\n* `server` - Server\\n* `client` - Client\\n* `all` - All\",\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"server\",\n                          \"client\",\n                          \"all\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `server` - Server\\n* `client` - Client\\n* `all` - All\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  },\n                  \"evaluation_tags\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"evaluation_tags\",\n                  \"id\",\n                  \"key\",\n                  \"team_id\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"holdout\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 400\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 400\n                  },\n                  \"filters\": {},\n                  \"created_by\": {\n                    \"allOf\": [\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"integer\",\n                            \"readOnly\": true\n                          },\n                          \"uuid\": {\n                            \"type\": \"string\",\n                            \"format\": \"uuid\",\n                            \"readOnly\": true\n                          },\n                          \"distinct_id\": {\n                            \"type\": \"string\",\n                            \"nullable\": true,\n                            \"maxLength\": 200\n                          },\n                          \"first_name\": {\n                            \"type\": \"string\",\n                            \"maxLength\": 150\n                          },\n                          \"last_name\": {\n                            \"type\": \"string\",\n                            \"maxLength\": 150\n                          },\n                          \"email\": {\n                            \"type\": \"string\",\n                            \"format\": \"email\",\n                            \"title\": \"Email address\",\n                            \"maxLength\": 254\n                          },\n                          \"is_email_verified\": {\n                            \"type\": \"boolean\",\n                            \"nullable\": true\n                          },\n                          \"hedgehog_config\": {\n                            \"type\": \"object\",\n                            \"additionalProperties\": {},\n                            \"nullable\": true,\n                            \"readOnly\": true\n                          },\n                          \"role_at_organization\": {\n                            \"nullable\": true,\n                            \"oneOf\": [\n                              {\n                                \"enum\": [\n                                  \"engineering\",\n                                  \"data\",\n                                  \"product\",\n                                  \"founder\",\n                                  \"leadership\",\n                                  \"marketing\",\n                                  \"sales\",\n                                  \"other\"\n                                ],\n                                \"type\": \"string\",\n                                \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                              },\n                              {\n                                \"enum\": [\n                                  \"\"\n                                ]\n                              },\n                              {\n                                \"enum\": [\n                                  null\n                                ]\n                              }\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"email\",\n                          \"hedgehog_config\",\n                          \"id\",\n                          \"uuid\"\n                        ]\n                      }\n                    ],\n                    \"readOnly\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true\n                  },\n                  \"updated_at\": {\n                    \"type\": \"string\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"created_at\",\n                  \"created_by\",\n                  \"id\",\n                  \"name\",\n                  \"updated_at\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"holdout_id\": {\n            \"type\": \"integer\",\n            \"nullable\": true\n          },\n          \"exposure_cohort\": {\n            \"type\": \"integer\",\n            \"readOnly\": true,\n            \"nullable\": true\n          },\n          \"parameters\": {\n            \"nullable\": true\n          },\n          \"secondary_metrics\": {\n            \"nullable\": true\n          },\n          \"saved_metrics\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"integer\",\n                  \"readOnly\": true\n                },\n                \"experiment\": {\n                  \"type\": \"integer\"\n                },\n                \"saved_metric\": {\n                  \"type\": \"integer\"\n                },\n                \"metadata\": {},\n                \"created_at\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"readOnly\": true\n                },\n                \"query\": {\n                  \"readOnly\": true\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"readOnly\": true\n                }\n              },\n              \"required\": [\n                \"created_at\",\n                \"experiment\",\n                \"id\",\n                \"name\",\n                \"query\",\n                \"saved_metric\"\n              ]\n            },\n            \"readOnly\": true\n          },\n          \"saved_metrics_ids\": {\n            \"type\": \"array\",\n            \"items\": {},\n            \"nullable\": true\n          },\n          \"filters\": {},\n          \"archived\": {\n            \"type\": \"boolean\"\n          },\n          \"deleted\": {\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"created_by\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"integer\",\n                    \"readOnly\": true\n                  },\n                  \"uuid\": {\n                    \"type\": \"string\",\n                    \"format\": \"uuid\",\n                    \"readOnly\": true\n                  },\n                  \"distinct_id\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"maxLength\": 200\n                  },\n                  \"first_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"last_name\": {\n                    \"type\": \"string\",\n                    \"maxLength\": 150\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"title\": \"Email address\",\n                    \"maxLength\": 254\n                  },\n                  \"is_email_verified\": {\n                    \"type\": \"boolean\",\n                    \"nullable\": true\n                  },\n                  \"hedgehog_config\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {},\n                    \"nullable\": true,\n                    \"readOnly\": true\n                  },\n                  \"role_at_organization\": {\n                    \"nullable\": true,\n                    \"oneOf\": [\n                      {\n                        \"enum\": [\n                          \"engineering\",\n                          \"data\",\n                          \"product\",\n                          \"founder\",\n                          \"leadership\",\n                          \"marketing\",\n                          \"sales\",\n                          \"other\"\n                        ],\n                        \"type\": \"string\",\n                        \"description\": \"* `engineering` - Engineering\\n* `data` - Data\\n* `product` - Product Management\\n* `founder` - Founder\\n* `leadership` - Leadership\\n* `marketing` - Marketing\\n* `sales` - Sales / Success\\n* `other` - Other\"\n                      },\n                      {\n                        \"enum\": [\n                          \"\"\n                        ]\n                      },\n                      {\n                        \"enum\": [\n                          null\n                        ]\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"email\",\n                  \"hedgehog_config\",\n                  \"id\",\n                  \"uuid\"\n                ]\n              }\n            ],\n            \"readOnly\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"readOnly\": true\n          },\n          \"type\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"web\",\n                  \"product\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `web` - web\\n* `product` - product\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"exposure_criteria\": {\n            \"nullable\": true\n          },\n          \"metrics\": {\n            \"nullable\": true\n          },\n          \"metrics_secondary\": {\n            \"nullable\": true\n          },\n          \"stats_config\": {\n            \"nullable\": true\n          },\n          \"_create_in_folder\": {\n            \"type\": \"string\",\n            \"writeOnly\": true,\n            \"title\": \" create in folder\"\n          },\n          \"conclusion\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"enum\": [\n                  \"won\",\n                  \"lost\",\n                  \"inconclusive\",\n                  \"stopped_early\",\n                  \"invalid\"\n                ],\n                \"type\": \"string\",\n                \"description\": \"* `won` - Won\\n* `lost` - Lost\\n* `inconclusive` - Inconclusive\\n* `stopped_early` - Stopped Early\\n* `invalid` - Invalid\"\n              },\n              {\n                \"enum\": [\n                  \"\"\n                ]\n              },\n              {\n                \"enum\": [\n                  null\n                ]\n              }\n            ]\n          },\n          \"conclusion_comment\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"primary_metrics_ordered_uuids\": {\n            \"nullable\": true\n          },\n          \"secondary_metrics_ordered_uuids\": {\n            \"nullable\": true\n          },\n          \"user_access_level\": {\n            \"type\": \"string\",\n            \"nullable\": true,\n            \"readOnly\": true,\n            \"description\": \"The effective access level the user has for this object\"\n          }\n        },\n        \"required\": [\n          \"created_at\",\n          \"created_by\",\n          \"exposure_cohort\",\n          \"feature_flag\",\n          \"feature_flag_key\",\n          \"holdout\",\n          \"id\",\n          \"name\",\n          \"saved_metrics\",\n          \"updated_at\",\n          \"user_access_level\"\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
