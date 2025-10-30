@@ -1,0 +1,203 @@
+{
+  "name": "ListWebsetItems",
+  "fully_qualified_name": "ExaApi.ListWebsetItems@0.1.0",
+  "description": "Retrieve a list of items from a specific webset.\n\nThis tool fetches items from a designated webset, allowing pagination with the 'cursor' parameter if needed.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webset_identifier",
+        "required": true,
+        "description": "The ID or external ID of the Webset to retrieve items from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id or externalId of the Webset"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webset"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A string used to paginate through the results. Pass this to retrieve the next set of items in the webset.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to paginate through the results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "Specify the number of results to return. This controls the size of the page in a paginated response.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "source_id",
+        "required": false,
+        "description": "The unique identifier for the source from which to retrieve items.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the source"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sourceId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'websets-items-list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/websets/{webset}/items",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "The cursor to paginate through the results",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to paginate through the results"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "The number of results to return",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 20,
+        "documentation_urls": []
+      },
+      {
+        "name": "sourceId",
+        "tool_parameter_name": "source_id",
+        "description": "The id of the source",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the source"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "webset",
+        "tool_parameter_name": "webset_identifier",
+        "description": "The id or externalId of the Webset",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id or externalId of the Webset"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

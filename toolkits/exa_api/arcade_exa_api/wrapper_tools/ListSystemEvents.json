@@ -1,0 +1,236 @@
+{
+  "name": "ListSystemEvents",
+  "fully_qualified_name": "ExaApi.ListSystemEvents@0.1.0",
+  "description": "Retrieve a list of all system events.\n\nCall this tool to get a detailed list of events that have occurred within the system. Useful for auditing, monitoring, or reviewing activities. Supports pagination through a cursor parameter.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Cursor for paginating through event results. Use it to navigate through pages of events.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to paginate through the results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "results_limit",
+        "required": false,
+        "description": "Specify the number of event results to return. This controls the size of the result set for a single request.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "event_types_filter",
+        "required": false,
+        "description": "Filter events by specifying an array of event type names.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The types of events to filter by"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "types"
+      },
+      {
+        "name": "filter_created_before",
+        "required": false,
+        "description": "Filter events created before or at this timestamp (inclusive). Provide a valid ISO 8601 datetime string in UTC.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events created before or at this timestamp (inclusive). Must be a valid ISO 8601 datetime string. All times are in UTC."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdBefore"
+      },
+      {
+        "name": "created_after",
+        "required": false,
+        "description": "Filter events created after or at this timestamp. Use a valid ISO 8601 datetime string in UTC.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events created after or at this timestamp (inclusive). Must be a valid ISO 8601 datetime string. All times are in UTC."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdAfter"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'events-list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/events",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "The cursor to paginate through the results",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to paginate through the results"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_limit",
+        "description": "The number of results to return",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 25,
+        "documentation_urls": []
+      },
+      {
+        "name": "types",
+        "tool_parameter_name": "event_types_filter",
+        "description": "The types of events to filter by",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The types of events to filter by"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "createdBefore",
+        "tool_parameter_name": "filter_created_before",
+        "description": "Filter events created before or at this timestamp (inclusive). Must be a valid ISO 8601 datetime string. All times are in UTC.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events created before or at this timestamp (inclusive). Must be a valid ISO 8601 datetime string. All times are in UTC."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "createdAfter",
+        "tool_parameter_name": "created_after",
+        "description": "Filter events created after or at this timestamp (inclusive). Must be a valid ISO 8601 datetime string. All times are in UTC.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events created after or at this timestamp (inclusive). Must be a valid ISO 8601 datetime string. All times are in UTC."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

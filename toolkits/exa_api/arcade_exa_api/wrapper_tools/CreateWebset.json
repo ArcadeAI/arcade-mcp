@@ -1,0 +1,104 @@
+{
+  "name": "CreateWebset",
+  "fully_qualified_name": "ExaApi.CreateWebset@0.1.0",
+  "description": "Create a new Webset with optional configurations.\n\nThis tool creates a new Webset with optional search, import, and enrichment configurations. The Webset processing starts automatically once it's created. You can specify an `externalId` for easier integration with your own identifiers.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webset_configuration",
+        "required": true,
+        "description": "A JSON object detailing optional search, import, and enrichment configurations for the Webset. Include any necessary identifiers like `externalId`.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'websets-create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/websets",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "webset_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": [\n          \"object\"\n        ],\n        \"properties\": {\n          \"search\": {\n            \"type\": [\n              \"object\"\n            ],\n            \"properties\": {\n              \"query\": {\n                \"type\": [\n                  \"string\"\n                ],\n                \"minLength\": 1,\n                \"maxLength\": 5000,\n                \"description\": \"Natural language search query describing what you are looking for.\\n\\nBe specific and descriptive about your requirements, characteristics, and any constraints that help narrow down the results.\\n\\nAny URLs provided will be crawled and used as additional context for the search.\",\n                \"examples\": [\n                  \"Marketing agencies based in the US, that focus on consumer products.\",\n                  \"AI startups in Europe that raised Series A funding in 2024\",\n                  \"SaaS companies with 50-200 employees in the fintech space\"\n                ]\n              },\n              \"count\": {\n                \"default\": 10,\n                \"type\": [\n                  \"number\"\n                ],\n                \"minimum\": 1,\n                \"description\": \"Number of Items the Webset will attempt to find.\\n\\nThe actual number of Items found may be less than this number depending on the search complexity.\"\n              },\n              \"entity\": {\n                \"oneOf\": [\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"company\",\n                        \"default\": \"company\"\n                      }\n                    },\n                    \"required\": [\n                      \"type\"\n                    ],\n                    \"title\": \"Company\"\n                  },\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"person\",\n                        \"default\": \"person\"\n                      }\n                    },\n                    \"required\": [\n                      \"type\"\n                    ],\n                    \"title\": \"Person\"\n                  },\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"article\",\n                        \"default\": \"article\"\n                      }\n                    },\n                    \"required\": [\n                      \"type\"\n                    ],\n                    \"title\": \"Article\"\n                  },\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"research_paper\",\n                        \"default\": \"research_paper\"\n                      }\n                    },\n                    \"required\": [\n                      \"type\"\n                    ],\n                    \"title\": \"Research Paper\"\n                  },\n                  {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"const\": \"custom\",\n                        \"default\": \"custom\"\n                      },\n                      \"description\": {\n                        \"type\": [\n                          \"string\"\n                        ],\n                        \"minLength\": 2,\n                        \"maxLength\": 200\n                      }\n                    },\n                    \"required\": [\n                      \"type\",\n                      \"description\"\n                    ],\n                    \"title\": \"Custom\"\n                  }\n                ]\n              },\n              \"criteria\": {\n                \"type\": [\n                  \"array\"\n                ],\n                \"items\": {\n                  \"type\": [\n                    \"object\"\n                  ],\n                  \"properties\": {\n                    \"description\": {\n                      \"type\": [\n                        \"string\"\n                      ],\n                      \"minLength\": 1,\n                      \"maxLength\": 1000,\n                      \"description\": \"The description of the criterion\"\n                    }\n                  },\n                  \"required\": [\n                    \"description\"\n                  ]\n                },\n                \"minItems\": 1,\n                \"maxItems\": 5,\n                \"description\": \"Criteria every item is evaluated against.\\n\\nIt's not required to provide your own criteria, we automatically detect the criteria from all the information provided in the query. Only use this when you need more fine control.\"\n              },\n              \"recall\": {\n                \"type\": [\n                  \"boolean\"\n                ],\n                \"description\": \"Whether to provide an estimate of how many total relevant results could exist for this search.\\nResult of the analysis will be available in the `recall` field within the search request.\"\n              },\n              \"exclude\": {\n                \"type\": [\n                  \"array\"\n                ],\n                \"items\": {\n                  \"type\": [\n                    \"object\"\n                  ],\n                  \"properties\": {\n                    \"source\": {\n                      \"type\": [\n                        \"string\"\n                      ],\n                      \"enum\": [\n                        \"import\",\n                        \"webset\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": [\n                        \"string\"\n                      ],\n                      \"minLength\": 1,\n                      \"description\": \"The ID of the source to exclude.\"\n                    }\n                  },\n                  \"required\": [\n                    \"source\",\n                    \"id\"\n                  ]\n                },\n                \"description\": \"Sources (existing imports or websets) to exclude from search results. Any results found within these sources will be omitted to prevent finding them during search.\"\n              },\n              \"scope\": {\n                \"type\": [\n                  \"array\"\n                ],\n                \"items\": {\n                  \"type\": [\n                    \"object\"\n                  ],\n                  \"properties\": {\n                    \"source\": {\n                      \"type\": [\n                        \"string\"\n                      ],\n                      \"enum\": [\n                        \"import\",\n                        \"webset\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": [\n                        \"string\"\n                      ],\n                      \"minLength\": 1,\n                      \"description\": \"The ID of the source to search.\"\n                    },\n                    \"relationship\": {\n                      \"type\": [\n                        \"object\"\n                      ],\n                      \"properties\": {\n                        \"definition\": {\n                          \"type\": [\n                            \"string\"\n                          ],\n                          \"description\": \"What the relationship of the entities you hope to find is relative to the entities contained in the provided source.\"\n                        },\n                        \"limit\": {\n                          \"type\": [\n                            \"number\"\n                          ],\n                          \"minimum\": 1,\n                          \"maximum\": 10\n                        }\n                      },\n                      \"required\": [\n                        \"definition\",\n                        \"limit\"\n                      ]\n                    }\n                  },\n                  \"required\": [\n                    \"source\",\n                    \"id\"\n                  ]\n                },\n                \"description\": \"Limit the search to specific sources (existing imports or websets). Any results found within these sources matching the search criteria will be included in the Webset.\"\n              }\n            },\n            \"required\": [\n              \"query\"\n            ],\n            \"description\": \"Create initial search for the Webset.\"\n          },\n          \"import\": {\n            \"type\": [\n              \"array\"\n            ],\n            \"items\": {\n              \"type\": [\n                \"object\"\n              ],\n              \"properties\": {\n                \"source\": {\n                  \"type\": [\n                    \"string\"\n                  ],\n                  \"enum\": [\n                    \"import\",\n                    \"webset\"\n                  ]\n                },\n                \"id\": {\n                  \"type\": [\n                    \"string\"\n                  ],\n                  \"minLength\": 1,\n                  \"description\": \"The ID of the source to search.\"\n                }\n              },\n              \"required\": [\n                \"source\",\n                \"id\"\n              ]\n            },\n            \"description\": \"Import data from existing Websets and Imports into this Webset.\"\n          },\n          \"enrichments\": {\n            \"type\": [\n              \"array\"\n            ],\n            \"items\": {\n              \"type\": [\n                \"object\"\n              ],\n              \"properties\": {\n                \"description\": {\n                  \"type\": [\n                    \"string\"\n                  ],\n                  \"minLength\": 1,\n                  \"maxLength\": 5000,\n                  \"description\": \"Provide a description of the enrichment task you want to perform to each Webset Item.\"\n                },\n                \"format\": {\n                  \"type\": [\n                    \"string\"\n                  ],\n                  \"enum\": [\n                    \"text\",\n                    \"date\",\n                    \"number\",\n                    \"options\",\n                    \"email\",\n                    \"phone\",\n                    \"url\"\n                  ],\n                  \"description\": \"Format of the enrichment response.\\n\\nWe automatically select the best format based on the description. If you want to explicitly specify the format, you can do so here.\"\n                },\n                \"options\": {\n                  \"type\": [\n                    \"array\"\n                  ],\n                  \"items\": {\n                    \"type\": [\n                      \"object\"\n                    ],\n                    \"properties\": {\n                      \"label\": {\n                        \"type\": [\n                          \"string\"\n                        ],\n                        \"description\": \"The label of the option\"\n                      }\n                    },\n                    \"required\": [\n                      \"label\"\n                    ]\n                  },\n                  \"minItems\": 1,\n                  \"maxItems\": 150,\n                  \"description\": \"When the format is options, the different options for the enrichment agent to choose from.\"\n                },\n                \"metadata\": {\n                  \"description\": \"Set of key-value pairs you want to associate with this object.\",\n                  \"type\": [\n                    \"object\"\n                  ],\n                  \"additionalProperties\": {\n                    \"type\": [\n                      \"string\"\n                    ],\n                    \"maxLength\": 1000\n                  }\n                }\n              },\n              \"required\": [\n                \"description\"\n              ]\n            },\n            \"description\": \"Add enrichments to extract additional data from found items.\\n\\nEnrichments automatically search for and extract specific information (like contact details, funding data, employee counts, etc.) from each item added to your Webset.\"\n          },\n          \"exclude\": {\n            \"type\": [\n              \"array\"\n            ],\n            \"items\": {\n              \"type\": [\n                \"object\"\n              ],\n              \"properties\": {\n                \"source\": {\n                  \"type\": [\n                    \"string\"\n                  ],\n                  \"enum\": [\n                    \"import\",\n                    \"webset\"\n                  ]\n                },\n                \"id\": {\n                  \"type\": [\n                    \"string\"\n                  ],\n                  \"minLength\": 1,\n                  \"description\": \"The ID of the source to exclude.\"\n                }\n              },\n              \"required\": [\n                \"source\",\n                \"id\"\n              ]\n            },\n            \"description\": \"Global exclusion sources (existing imports or websets) that apply to all operations within this Webset. Any results found within these sources will be omitted across all search and import operations.\"\n          },\n          \"externalId\": {\n            \"type\": [\n              \"string\"\n            ],\n            \"maxLength\": 300,\n            \"description\": \"The external identifier for the webset.\\n\\nYou can use this to reference the Webset by your own internal identifiers.\"\n          },\n          \"metadata\": {\n            \"description\": \"Set of key-value pairs you want to associate with this object.\",\n            \"type\": [\n              \"object\"\n            ],\n            \"additionalProperties\": {\n              \"type\": [\n                \"string\"\n              ],\n              \"maxLength\": 1000\n            }\n          }\n        },\n        \"examples\": [\n          {\n            \"search\": {\n              \"query\": \"Marketing agencies based in the US, that focus on consumer products.\",\n              \"count\": 10\n            }\n          }\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
