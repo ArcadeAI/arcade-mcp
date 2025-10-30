@@ -1,0 +1,104 @@
+{
+  "name": "FindSimilarLinks",
+  "fully_qualified_name": "ExaApi.FindSimilarLinks@0.1.0",
+  "description": "Find similar links to a given link.\n\nThis tool finds links similar to the provided link and can optionally retrieve their contents. It should be called when a user needs to discover related web pages or resources.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "input_link_details",
+        "required": true,
+        "description": "JSON object containing the link to find similarities for. May include optional flags for retrieving content.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'findSimilar'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/findSimilar",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "input_link_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"allOf\": [\n          {\n            \"type\": \"object\",\n            \"properties\": {\n              \"url\": {\n                \"type\": \"string\",\n                \"example\": \"https://arxiv.org/abs/2307.06435\",\n                \"description\": \"The url for which you would like to find similar links.\"\n              }\n            },\n            \"required\": [\n              \"url\"\n            ]\n          },\n          {\n            \"type\": \"object\",\n            \"properties\": {\n              \"numResults\": {\n                \"type\": \"integer\",\n                \"maximum\": 100,\n                \"default\": 10,\n                \"minimum\": 1,\n                \"description\": \"Number of results to return (up to thousands of results available for custom plans)\",\n                \"example\": 10\n              },\n              \"includeDomains\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"List of domains to include in the search. If specified, results will only come from these domains.\",\n                \"example\": [\n                  \"arxiv.org\",\n                  \"paperswithcode.com\"\n                ]\n              },\n              \"excludeDomains\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"List of domains to exclude from search results. If specified, no results will be returned from these domains.\"\n              },\n              \"startCrawlDate\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"Crawl date refers to the date that Exa discovered a link. Results will include links that were crawled after this date. Must be specified in ISO 8601 format.\",\n                \"example\": \"2023-01-01\"\n              },\n              \"endCrawlDate\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"Crawl date refers to the date that Exa discovered a link. Results will include links that were crawled before this date. Must be specified in ISO 8601 format.\",\n                \"example\": \"2023-12-31\"\n              },\n              \"startPublishedDate\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"Only links with a published date after this will be returned. Must be specified in ISO 8601 format.\",\n                \"example\": \"2023-01-01\"\n              },\n              \"endPublishedDate\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"Only links with a published date before this will be returned. Must be specified in ISO 8601 format.\",\n                \"example\": \"2023-12-31\"\n              },\n              \"includeText\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"List of strings that must be present in webpage text of results. Currently, only 1 string is supported, of up to 5 words.\",\n                \"example\": [\n                  \"large language model\"\n                ]\n              },\n              \"excludeText\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"List of strings that must not be present in webpage text of results. Currently, only 1 string is supported, of up to 5 words. Checks from the first 1000 words of the webpage text.\",\n                \"example\": [\n                  \"course\"\n                ]\n              },\n              \"context\": {\n                \"oneOf\": [\n                  {\n                    \"type\": \"boolean\",\n                    \"description\": \"Return page contents as a context string for LLM. When true, combines all result contents into one string. Context strings often perform better than highlights for LLMs.\",\n                    \"example\": true\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"description\": \"Return page contents as a context string for LLM. When true, combines all result contents into one string. Context strings often perform better than highlights for LLMs.\",\n                    \"properties\": {\n                      \"maxCharacters\": {\n                        \"type\": \"integer\",\n                        \"description\": \"Maximum character limit.\",\n                        \"example\": 10000\n                      }\n                    }\n                  }\n                ]\n              },\n              \"contents\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"text\": {\n                    \"oneOf\": [\n                      {\n                        \"type\": \"boolean\",\n                        \"title\": \"Simple text retrieval\",\n                        \"description\": \"If true, returns full page text with default settings. If false, disables text return.\"\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"title\": \"Advanced text options\",\n                        \"description\": \"Advanced options for controlling text extraction. Use this when you need to limit text length or include HTML structure.\",\n                        \"properties\": {\n                          \"maxCharacters\": {\n                            \"type\": \"integer\",\n                            \"description\": \"Maximum character limit for the full page text. Useful for controlling response size and API costs.\",\n                            \"example\": 1000\n                          },\n                          \"includeHtmlTags\": {\n                            \"type\": \"boolean\",\n                            \"default\": false,\n                            \"description\": \"Include HTML tags in the response, which can help LLMs understand text structure and formatting.\",\n                            \"example\": false\n                          }\n                        }\n                      }\n                    ]\n                  },\n                  \"highlights\": {\n                    \"type\": \"object\",\n                    \"description\": \"Text snippets the LLM identifies as most relevant from each page. We recommend you using context instead of highlights for LLMs.\",\n                    \"properties\": {\n                      \"numSentences\": {\n                        \"type\": \"integer\",\n                        \"minimum\": 1,\n                        \"description\": \"The number of sentences to return for each snippet.\",\n                        \"example\": 1\n                      },\n                      \"highlightsPerUrl\": {\n                        \"type\": \"integer\",\n                        \"minimum\": 1,\n                        \"description\": \"The number of snippets to return for each result.\",\n                        \"example\": 1\n                      },\n                      \"query\": {\n                        \"type\": \"string\",\n                        \"description\": \"Custom query to direct the LLM's selection of highlights.\",\n                        \"example\": \"Key advancements\"\n                      }\n                    }\n                  },\n                  \"summary\": {\n                    \"type\": \"object\",\n                    \"description\": \"Summary of the webpage\",\n                    \"properties\": {\n                      \"query\": {\n                        \"type\": \"string\",\n                        \"description\": \"Custom query for the LLM-generated summary.\",\n                        \"example\": \"Main developments\"\n                      },\n                      \"schema\": {\n                        \"type\": \"object\",\n                        \"description\": \"JSON schema for structured output from summary. \\nSee https://json-schema.org/overview/what-is-jsonschema for JSON Schema documentation.\\n\",\n                        \"example\": {\n                          \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n                          \"title\": \"Title\",\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"Property 1\": {\n                              \"type\": \"string\",\n                              \"description\": \"Description\"\n                            },\n                            \"Property 2\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"option 1\",\n                                \"option 2\",\n                                \"option 3\"\n                              ],\n                              \"description\": \"Description\"\n                            }\n                          },\n                          \"required\": [\n                            \"Property 1\"\n                          ]\n                        }\n                      }\n                    }\n                  },\n                  \"livecrawl\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"never\",\n                      \"fallback\",\n                      \"always\",\n                      \"preferred\"\n                    ],\n                    \"description\": \"Options for livecrawling pages.\\n'never': Disable livecrawling (default for neural search).\\n'fallback': Livecrawl when cache is empty (default for keyword search).\\n'always': Always livecrawl.\\n'preferred': Always try to livecrawl, but fall back to cache if crawling fails.\\n\",\n                    \"example\": \"always\"\n                  },\n                  \"livecrawlTimeout\": {\n                    \"type\": \"integer\",\n                    \"default\": 10000,\n                    \"description\": \"The timeout for livecrawling in milliseconds.\",\n                    \"example\": 1000\n                  },\n                  \"subpages\": {\n                    \"type\": \"integer\",\n                    \"default\": 0,\n                    \"description\": \"The number of subpages to crawl. The actual number crawled may be limited by system constraints.\",\n                    \"example\": 1\n                  },\n                  \"subpageTarget\": {\n                    \"oneOf\": [\n                      {\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        }\n                      }\n                    ],\n                    \"description\": \"Keyword to find specific subpages of search results. Can be a single string or an array of strings, comma delimited.\",\n                    \"example\": \"sources\"\n                  },\n                  \"extras\": {\n                    \"type\": \"object\",\n                    \"description\": \"Extra parameters to pass.\",\n                    \"properties\": {\n                      \"links\": {\n                        \"type\": \"integer\",\n                        \"default\": 0,\n                        \"description\": \"Number of URLs to return from each webpage.\",\n                        \"example\": 1\n                      },\n                      \"imageLinks\": {\n                        \"type\": \"integer\",\n                        \"default\": 0,\n                        \"description\": \"Number of images to return for each result.\",\n                        \"example\": 1\n                      }\n                    }\n                  },\n                  \"context\": {\n                    \"oneOf\": [\n                      {\n                        \"type\": \"boolean\",\n                        \"description\": \"Return page contents as a context string for LLM. When true, combines all result contents into one string. Context strings often perform better than highlights for LLMs.\",\n                        \"example\": true\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"description\": \"Return page contents as a context string for LLM. When true, combines all result contents into one string. Context strings often perform better than highlights for LLMs.\",\n                        \"properties\": {\n                          \"maxCharacters\": {\n                            \"type\": \"integer\",\n                            \"description\": \"Maximum character limit.\",\n                            \"example\": 10000\n                          }\n                        }\n                      }\n                    ]\n                  }\n                }\n              }\n            }\n          }\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
