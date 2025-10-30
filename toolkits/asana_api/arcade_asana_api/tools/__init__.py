@@ -12873,4 +12873,3 @@ async def get_workspace_events(
         return {"response_json": response.json()}
     except Exception:
         return {"response_text": response.text}
-
