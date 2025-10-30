@@ -1,0 +1,531 @@
+{
+  "name": "ListEnterpriseDependabotAlerts",
+  "fully_qualified_name": "GithubApi.ListEnterpriseDependabotAlerts@0.1.0",
+  "description": "Get Dependabot alerts for enterprise-owned repositories.\n\nThis tool retrieves a list of Dependabot alerts for repositories owned by a specified enterprise on GitHub. It is used by members of the enterprise with appropriate access tokens. Alerts are restricted to organizations where the user is an owner or security manager.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_identifier",
+        "required": true,
+        "description": "The slug or ID of the enterprise. This identifies the enterprise for which alerts are listed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterprise"
+      },
+      {
+        "name": "alert_state_filter",
+        "required": false,
+        "description": "Comma-separated list of alert states to filter by: `dismissed`, `fixed`, `open`. Only alerts with these states will be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of states. If specified, only alerts with these states will be returned.\n\nCan be: `dismissed`, `fixed`, `open`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "alert_severities",
+        "required": false,
+        "description": "A comma-separated list of alert severities to filter results. Options: `low`, `medium`, `high`, `critical`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of severities. If specified, only alerts with these severities will be returned.\n\nCan be: `low`, `medium`, `high`, `critical`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "severity"
+      },
+      {
+        "name": "ecosystem_list",
+        "required": false,
+        "description": "A comma-separated list of ecosystems to filter alerts. Options include: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `pub`, `rubygems`, `rust`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of ecosystems. If specified, only alerts for these ecosystems will be returned.\n\nCan be: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `pub`, `rubygems`, `rust`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ecosystem"
+      },
+      {
+        "name": "package_filter",
+        "required": false,
+        "description": "A comma-separated list of package names. Specify to filter alerts by these packages.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of package names. If specified, only alerts for these packages will be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "package"
+      },
+      {
+        "name": "vulnerable_dependency_scope",
+        "required": false,
+        "description": "The scope of the vulnerable dependency to filter alerts by. Options: 'development', 'runtime'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "development",
+            "runtime"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scope of the vulnerable dependency. If specified, only alerts with this scope will be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scope"
+      },
+      {
+        "name": "sort_property_for_alerts",
+        "required": false,
+        "description": "Specifies the property to sort Dependabot alerts by. Options are 'created' (when the alert was created) or 'updated' (when the alert's state last changed).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created",
+            "updated"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The property by which to sort the results.\n`created` means when the alert was created.\n`updated` means when the alert's state last changed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "sort_direction",
+        "required": false,
+        "description": "Specifies the sorting order of the results, either ascending ('asc') or descending ('desc').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction to sort the results by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "direction"
+      },
+      {
+        "name": "before_cursor",
+        "required": false,
+        "description": "Specify a cursor to fetch results before this point. Use the format provided in the Link header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for results before this cursor."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "before"
+      },
+      {
+        "name": "cursor_after",
+        "required": false,
+        "description": "A cursor to return results after a specific point. Use as given in the Link header for pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for results after this cursor."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "number_of_results_per_page_starting_first",
+        "required": false,
+        "description": "**Deprecated**. Specifies the number of results per page (maximum 100), beginning with the first matching result. Avoid using with `number_of_results_per_page_starting_last`. Use `results_per_page` with `paging_after_cursor` instead.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated**. The number of results per page (max 100), starting from the first matching result.\nThis parameter must not be used in combination with `last`.\nInstead, use `per_page` in combination with `after` to fetch the first page of results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "first"
+      },
+      {
+        "name": "results_per_page_starting_from_last",
+        "required": false,
+        "description": "**Deprecated**. Number of results per page (max 100), starting from the last matching result. Avoid using with 'results_per_page_starting_from_first'.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated**. The number of results per page (max 100), starting from the last matching result.\nThis parameter must not be used in combination with `first`.\nInstead, use `per_page` in combination with `before` to fetch the last page of results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "The number of results to return per page, with a maximum of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'dependabot/list-alerts-for-enterprise'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/enterprises/{enterprise}/dependabot/alerts",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "state",
+        "tool_parameter_name": "alert_state_filter",
+        "description": "A comma-separated list of states. If specified, only alerts with these states will be returned.\n\nCan be: `dismissed`, `fixed`, `open`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of states. If specified, only alerts with these states will be returned.\n\nCan be: `dismissed`, `fixed`, `open`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "severity",
+        "tool_parameter_name": "alert_severities",
+        "description": "A comma-separated list of severities. If specified, only alerts with these severities will be returned.\n\nCan be: `low`, `medium`, `high`, `critical`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of severities. If specified, only alerts with these severities will be returned.\n\nCan be: `low`, `medium`, `high`, `critical`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "ecosystem",
+        "tool_parameter_name": "ecosystem_list",
+        "description": "A comma-separated list of ecosystems. If specified, only alerts for these ecosystems will be returned.\n\nCan be: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `pub`, `rubygems`, `rust`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of ecosystems. If specified, only alerts for these ecosystems will be returned.\n\nCan be: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `pub`, `rubygems`, `rust`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "package",
+        "tool_parameter_name": "package_filter",
+        "description": "A comma-separated list of package names. If specified, only alerts for these packages will be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of package names. If specified, only alerts for these packages will be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "scope",
+        "tool_parameter_name": "vulnerable_dependency_scope",
+        "description": "The scope of the vulnerable dependency. If specified, only alerts with this scope will be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "development",
+            "runtime"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scope of the vulnerable dependency. If specified, only alerts with this scope will be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_property_for_alerts",
+        "description": "The property by which to sort the results.\n`created` means when the alert was created.\n`updated` means when the alert's state last changed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created",
+            "updated"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The property by which to sort the results.\n`created` means when the alert was created.\n`updated` means when the alert's state last changed."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "created",
+        "documentation_urls": []
+      },
+      {
+        "name": "direction",
+        "tool_parameter_name": "sort_direction",
+        "description": "The direction to sort the results by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction to sort the results by."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "desc",
+        "documentation_urls": []
+      },
+      {
+        "name": "before",
+        "tool_parameter_name": "before_cursor",
+        "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for results before this cursor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for results before this cursor."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "cursor_after",
+        "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for results after this cursor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for results after this cursor."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "first",
+        "tool_parameter_name": "number_of_results_per_page_starting_first",
+        "description": "**Deprecated**. The number of results per page (max 100), starting from the first matching result.\nThis parameter must not be used in combination with `last`.\nInstead, use `per_page` in combination with `after` to fetch the first page of results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated**. The number of results per page (max 100), starting from the first matching result.\nThis parameter must not be used in combination with `last`.\nInstead, use `per_page` in combination with `after` to fetch the first page of results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "last",
+        "tool_parameter_name": "results_per_page_starting_from_last",
+        "description": "**Deprecated**. The number of results per page (max 100), starting from the last matching result.\nThis parameter must not be used in combination with `first`.\nInstead, use `per_page` in combination with `before` to fetch the last page of results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated**. The number of results per page (max 100), starting from the last matching result.\nThis parameter must not be used in combination with `first`.\nInstead, use `per_page` in combination with `before` to fetch the last page of results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "results_per_page",
+        "description": "The number of results per page (max 100).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "enterprise",
+        "tool_parameter_name": "enterprise_identifier",
+        "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

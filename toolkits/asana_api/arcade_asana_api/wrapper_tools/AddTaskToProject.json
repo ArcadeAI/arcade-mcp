@@ -1,0 +1,274 @@
+{
+  "name": "AddTaskToProject",
+  "fully_qualified_name": "AsanaApi.AddTaskToProject@0.1.0",
+  "description": "Add a task to a specified Asana project.\n\nUse this to add a task to a specific project within Asana, optionally specifying the location. It can also reorder a task within a project. Only one of `insert_before`, `insert_after`, or `section` should be used to specify the location. Tasks can be associated with up to 20 projects.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_global_id",
+        "required": true,
+        "description": "The unique global ID of the task to be operated on.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The task to operate on."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_gid"
+      },
+      {
+        "name": "project_id_to_add_task",
+        "required": false,
+        "description": "The unique identifier of the project to which the task will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The project to add the task to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.project"
+      },
+      {
+        "name": "insert_after_task_id",
+        "required": false,
+        "description": "Provide the ID of a task in the project to insert this task after, or use 'null' to insert at the beginning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A task in the project to insert the task after, or `null` to insert at the beginning of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_after"
+      },
+      {
+        "name": "insert_task_before",
+        "required": false,
+        "description": "Specify a task ID to insert the new task before it in the project, or use `null` to insert at the end of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A task in the project to insert the task before, or `null` to insert at the end of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_before"
+      },
+      {
+        "name": "target_section_id",
+        "required": false,
+        "description": "The ID of the section in the project to insert the task at the bottom.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A section in the project to insert the task into. The task will be inserted at the bottom of the section."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.section"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Set to true for formatted JSON output, making it more readable. Useful for debugging. Note: This increases response time and size.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'addProjectForTask'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "tasks:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/tasks/{task_gid}/addProject",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_gid",
+        "tool_parameter_name": "task_global_id",
+        "description": "The task to operate on.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The task to operate on."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.project",
+        "tool_parameter_name": "project_id_to_add_task",
+        "description": "The project to add the task to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The project to add the task to."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_after",
+        "tool_parameter_name": "insert_after_task_id",
+        "description": "A task in the project to insert the task after, or `null` to insert at the beginning of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A task in the project to insert the task after, or `null` to insert at the beginning of the list."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_before",
+        "tool_parameter_name": "insert_task_before",
+        "description": "A task in the project to insert the task before, or `null` to insert at the end of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A task in the project to insert the task before, or `null` to insert at the end of the list."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.section",
+        "tool_parameter_name": "target_section_id",
+        "description": "A section in the project to insert the task into. The task will be inserted at the bottom of the section.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A section in the project to insert the task into. The task will be inserted at the bottom of the section."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The project to add the task to.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"project\": {\n                \"description\": \"The project to add the task to.\",\n                \"type\": \"string\",\n                \"example\": \"13579\"\n              },\n              \"insert_after\": {\n                \"description\": \"A task in the project to insert the task after, or `null` to insert at the beginning of the list.\",\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"example\": \"124816\"\n              },\n              \"insert_before\": {\n                \"description\": \"A task in the project to insert the task before, or `null` to insert at the end of the list.\",\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"example\": \"432134\"\n              },\n              \"section\": {\n                \"description\": \"A section in the project to insert the task into. The task will be inserted at the bottom of the section.\",\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"example\": \"987654\"\n              }\n            },\n            \"required\": [\n              \"project\"\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

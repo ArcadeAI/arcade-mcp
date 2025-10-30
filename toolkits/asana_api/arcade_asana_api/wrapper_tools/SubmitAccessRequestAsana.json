@@ -1,0 +1,138 @@
+{
+  "name": "SubmitAccessRequestAsana",
+  "fully_qualified_name": "AsanaApi.SubmitAccessRequestAsana@0.1.0",
+  "description": "Submit a new access request for Asana projects or portfolios.\n\nThis tool is used to submit a new access request for accessing a private project or portfolio in Asana. It should be called when a user needs permission to access these private objects.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_gid",
+        "required": false,
+        "description": "The GID of the project or portfolio you are requesting access to in Asana.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The access requestable object that the user is requesting access to. This is the gid of the target. Supports projects and portfolios."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.target"
+      },
+      {
+        "name": "access_request_message",
+        "required": false,
+        "description": "Optional message providing context or additional information for the access request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The optional message to include with the access request. This can be used to provide context or additional information about the request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.message"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createAccessRequest'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/access_requests",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.target",
+        "tool_parameter_name": "target_gid",
+        "description": "The access requestable object that the user is requesting access to. This is the gid of the target. Supports projects and portfolios.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The access requestable object that the user is requesting access to. This is the gid of the target. Supports projects and portfolios."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.message",
+        "tool_parameter_name": "access_request_message",
+        "description": "The optional message to include with the access request. This can be used to provide context or additional information about the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The optional message to include with the access request. This can be used to provide context or additional information about the request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"required\": [\n              \"target\"\n            ],\n            \"description\": \"A request to create shareable access for a user.\",\n            \"properties\": {\n              \"target\": {\n                \"description\": \"The access requestable object that the user is requesting access to. This is the gid of the target. Supports projects and portfolios.\",\n                \"type\": \"string\",\n                \"example\": \"12345\"\n              },\n              \"message\": {\n                \"type\": \"string\",\n                \"description\": \"The optional message to include with the access request. This can be used to provide context or additional information about the request.\",\n                \"example\": \"I'm looking to request access to this item.\",\n                \"nullable\": true\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,422 @@
+{
+  "name": "UpdateGithubRelease",
+  "fully_qualified_name": "GithubApi.UpdateGithubRelease@0.1.0",
+  "description": "Edit a GitHub release with push access.\n\nUse this tool when you need to modify an existing release on a GitHub repository for which you have push access. It allows updating release information such as the title, description, and other metadata.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository. This field is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "release_identifier",
+        "required": true,
+        "description": "The unique integer identifier for the GitHub release to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the release."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "release_id"
+      },
+      {
+        "name": "release_description",
+        "required": false,
+        "description": "Text describing the contents and details of the release tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Text describing the contents of the tag."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body"
+      },
+      {
+        "name": "set_as_latest_release",
+        "required": false,
+        "description": "Specifies if this release should be the latest. Use 'true', 'false', or 'legacy'. Drafts/prereleases aren't eligible.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "true",
+            "false",
+            "legacy"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Defaults to `true` for newly published releases. `legacy` specifies that the latest release should be determined based on the release creation date and higher semantic version."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "make_latest"
+      },
+      {
+        "name": "release_name",
+        "required": false,
+        "description": "The name of the release to be updated in the repository. This is a user-friendly name for the release.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the release."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "release_tag_name",
+        "required": false,
+        "description": "The name of the tag for the GitHub release. Used to identify the release version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the tag."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag_name"
+      },
+      {
+        "name": "commitish_value",
+        "required": false,
+        "description": "Determines the source for the Git tag; can be a branch or commit SHA. Defaults to the repo's default branch if the tag exists.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the commitish value that determines where the Git tag is created from. Can be any branch or commit SHA. Unused if the Git tag already exists. Default: the repository's default branch (usually `master`)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "target_commitish"
+      },
+      {
+        "name": "is_draft",
+        "required": false,
+        "description": "Set to `true` to make the release a draft, `false` to publish it.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true` makes the release a draft, and `false` publishes the release."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "draft"
+      },
+      {
+        "name": "mark_as_prerelease",
+        "required": false,
+        "description": "Set `true` to mark the release as a prerelease, or `false` to identify as a full release.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true` to identify the release as a prerelease, `false` to identify the release as a full release."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prerelease"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/update-release'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/releases/{release_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "release_id",
+        "tool_parameter_name": "release_identifier",
+        "description": "The unique identifier of the release.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the release."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body",
+        "tool_parameter_name": "release_description",
+        "description": "Text describing the contents of the tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Text describing the contents of the tag."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "draft",
+        "tool_parameter_name": "is_draft",
+        "description": "`true` makes the release a draft, and `false` publishes the release.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true` makes the release a draft, and `false` publishes the release."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "make_latest",
+        "tool_parameter_name": "set_as_latest_release",
+        "description": "Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Defaults to `true` for newly published releases. `legacy` specifies that the latest release should be determined based on the release creation date and higher semantic version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "true",
+            "false",
+            "legacy"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Defaults to `true` for newly published releases. `legacy` specifies that the latest release should be determined based on the release creation date and higher semantic version."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": true,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "release_name",
+        "description": "The name of the release.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the release."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prerelease",
+        "tool_parameter_name": "mark_as_prerelease",
+        "description": "`true` to identify the release as a prerelease, `false` to identify the release as a full release.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true` to identify the release as a prerelease, `false` to identify the release as a full release."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag_name",
+        "tool_parameter_name": "release_tag_name",
+        "description": "The name of the tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the tag."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "target_commitish",
+        "tool_parameter_name": "commitish_value",
+        "description": "Specifies the commitish value that determines where the Git tag is created from. Can be any branch or commit SHA. Unused if the Git tag already exists. Default: the repository's default branch (usually `master`).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the commitish value that determines where the Git tag is created from. Can be any branch or commit SHA. Unused if the Git tag already exists. Default: the repository's default branch (usually `master`)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"body\": \"Description of the release\",\n            \"draft\": false,\n            \"name\": \"v1.0.0\",\n            \"prerelease\": false,\n            \"tag_name\": \"v1.0.0\",\n            \"target_commitish\": \"master\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"body\": {\n            \"description\": \"Text describing the contents of the tag.\",\n            \"type\": \"string\"\n          },\n          \"draft\": {\n            \"description\": \"`true` makes the release a draft, and `false` publishes the release.\",\n            \"type\": \"boolean\"\n          },\n          \"make_latest\": {\n            \"default\": true,\n            \"description\": \"Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Defaults to `true` for newly published releases. `legacy` specifies that the latest release should be determined based on the release creation date and higher semantic version.\",\n            \"enum\": [\n              \"true\",\n              \"false\",\n              \"legacy\"\n            ],\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"The name of the release.\",\n            \"type\": \"string\"\n          },\n          \"prerelease\": {\n            \"description\": \"`true` to identify the release as a prerelease, `false` to identify the release as a full release.\",\n            \"type\": \"boolean\"\n          },\n          \"tag_name\": {\n            \"description\": \"The name of the tag.\",\n            \"type\": \"string\"\n          },\n          \"target_commitish\": {\n            \"description\": \"Specifies the commitish value that determines where the Git tag is created from. Can be any branch or commit SHA. Unused if the Git tag already exists. Default: the repository's default branch (usually `master`).\",\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

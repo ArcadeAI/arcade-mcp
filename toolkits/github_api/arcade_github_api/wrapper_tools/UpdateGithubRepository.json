@@ -1,0 +1,589 @@
+{
+  "name": "UpdateGithubRepository",
+  "fully_qualified_name": "GithubApi.UpdateGithubRepository@0.1.0",
+  "description": "Update repository details on GitHub.\n\nThis tool updates the details of a specified GitHub repository. Note: To modify a repository's topics, a different endpoint should be used.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository to update, not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "repository_update_details",
+        "required": false,
+        "description": "A JSON object containing key-value pairs to update repository settings such as visibility, default branch, merge options, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "allow_forking": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow private forks, or `false` to prevent private forks."
+            },
+            "allow_merge_commit": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow merging pull requests with a merge commit, or `false` to prevent merging pull requests with merge commits."
+            },
+            "allow_rebase_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow rebase-merging pull requests, or `false` to prevent rebase-merging."
+            },
+            "allow_squash_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow squash-merging pull requests, or `false` to prevent squash-merging."
+            },
+            "allow_update_branch": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to always allow a pull request head branch that is behind its base branch to be updated even if it is not required to be up to date before merging, or false otherwise."
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to archive this repository. `false` will unarchive a previously archived repository."
+            },
+            "default_branch": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Updates the default branch for this repository."
+            },
+            "delete_branch_on_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow automatically deleting head branches when pull requests are merged, or `false` to prevent automatic deletion."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A short description of the repository."
+            },
+            "has_issues": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to enable issues for this repository or `false` to disable them."
+            },
+            "has_projects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to enable projects for this repository or `false` to disable them. **Note:** If you're creating a repository in an organization that has disabled repository projects, the default is `false`, and if you pass `true`, the API returns an error."
+            },
+            "has_wiki": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to enable the wiki for this repository or `false` to disable it."
+            },
+            "homepage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A URL with more information about the repository."
+            },
+            "is_template": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to make this repo available as a template repository or `false` to prevent it."
+            },
+            "merge_commit_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_BODY",
+                "PR_TITLE",
+                "BLANK"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a merge commit message.\n\n- `PR_TITLE` - default to the pull request's title.\n- `PR_BODY` - default to the pull request's body.\n- `BLANK` - default to a blank commit message."
+            },
+            "merge_commit_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_TITLE",
+                "MERGE_MESSAGE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a merge commit title.\n\n- `PR_TITLE` - default to the pull request's title.\n- `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name)."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the repository."
+            },
+            "private": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to make the repository private or `false` to make it public. Default: `false`.  \n**Note**: You will get a `422` error if the organization restricts [changing repository visibility](https://docs.github.com/enterprise-server@3.8/articles/repository-permission-levels-for-an-organization#changing-the-visibility-of-repositories) to organization owners and a non-owner tries to change the value of private."
+            },
+            "squash_merge_commit_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_BODY",
+                "COMMIT_MESSAGES",
+                "BLANK"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a squash merge commit message:\n\n- `PR_BODY` - default to the pull request's body.\n- `COMMIT_MESSAGES` - default to the branch's commit messages.\n- `BLANK` - default to a blank commit message."
+            },
+            "squash_merge_commit_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_TITLE",
+                "COMMIT_OR_PR_TITLE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a squash merge commit title:\n\n- `PR_TITLE` - default to the pull request's title.\n- `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit)."
+            },
+            "use_squash_pr_title_as_default": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property has been deprecated. Please use `squash_merge_commit_title` instead."
+            },
+            "visibility": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "public",
+                "private",
+                "internal"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The visibility of the repository."
+            },
+            "web_commit_signoff_required": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to require contributors to sign off on web-based commits, or `false` to not require contributors to sign off on web-based commits."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "repository_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "allow_forking": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow private forks, or `false` to prevent private forks."
+            },
+            "allow_merge_commit": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow merging pull requests with a merge commit, or `false` to prevent merging pull requests with merge commits."
+            },
+            "allow_rebase_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow rebase-merging pull requests, or `false` to prevent rebase-merging."
+            },
+            "allow_squash_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow squash-merging pull requests, or `false` to prevent squash-merging."
+            },
+            "allow_update_branch": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to always allow a pull request head branch that is behind its base branch to be updated even if it is not required to be up to date before merging, or false otherwise."
+            },
+            "archived": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to archive this repository. `false` will unarchive a previously archived repository."
+            },
+            "default_branch": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Updates the default branch for this repository."
+            },
+            "delete_branch_on_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow automatically deleting head branches when pull requests are merged, or `false` to prevent automatic deletion."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A short description of the repository."
+            },
+            "has_issues": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to enable issues for this repository or `false` to disable them."
+            },
+            "has_projects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to enable projects for this repository or `false` to disable them. **Note:** If you're creating a repository in an organization that has disabled repository projects, the default is `false`, and if you pass `true`, the API returns an error."
+            },
+            "has_wiki": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to enable the wiki for this repository or `false` to disable it."
+            },
+            "homepage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A URL with more information about the repository."
+            },
+            "is_template": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to make this repo available as a template repository or `false` to prevent it."
+            },
+            "merge_commit_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_BODY",
+                "PR_TITLE",
+                "BLANK"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a merge commit message.\n\n- `PR_TITLE` - default to the pull request's title.\n- `PR_BODY` - default to the pull request's body.\n- `BLANK` - default to a blank commit message."
+            },
+            "merge_commit_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_TITLE",
+                "MERGE_MESSAGE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a merge commit title.\n\n- `PR_TITLE` - default to the pull request's title.\n- `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name)."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the repository."
+            },
+            "private": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to make the repository private or `false` to make it public. Default: `false`.  \n**Note**: You will get a `422` error if the organization restricts [changing repository visibility](https://docs.github.com/enterprise-server@3.8/articles/repository-permission-levels-for-an-organization#changing-the-visibility-of-repositories) to organization owners and a non-owner tries to change the value of private."
+            },
+            "squash_merge_commit_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_BODY",
+                "COMMIT_MESSAGES",
+                "BLANK"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a squash merge commit message:\n\n- `PR_BODY` - default to the pull request's body.\n- `COMMIT_MESSAGES` - default to the branch's commit messages.\n- `BLANK` - default to a blank commit message."
+            },
+            "squash_merge_commit_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_TITLE",
+                "COMMIT_OR_PR_TITLE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a squash merge commit title:\n\n- `PR_TITLE` - default to the pull request's title.\n- `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit)."
+            },
+            "use_squash_pr_title_as_default": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property has been deprecated. Please use `squash_merge_commit_title` instead."
+            },
+            "visibility": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "public",
+                "private",
+                "internal"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The visibility of the repository."
+            },
+            "web_commit_signoff_required": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either `true` to require contributors to sign off on web-based commits, or `false` to not require contributors to sign off on web-based commits."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"description\": \"This is your first repository\",\n            \"has_issues\": true,\n            \"has_projects\": true,\n            \"has_wiki\": true,\n            \"homepage\": \"https://github.com\",\n            \"name\": \"Hello-World\",\n            \"private\": true\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"allow_forking\": {\n            \"default\": false,\n            \"description\": \"Either `true` to allow private forks, or `false` to prevent private forks.\",\n            \"type\": \"boolean\"\n          },\n          \"allow_merge_commit\": {\n            \"default\": true,\n            \"description\": \"Either `true` to allow merging pull requests with a merge commit, or `false` to prevent merging pull requests with merge commits.\",\n            \"type\": \"boolean\"\n          },\n          \"allow_rebase_merge\": {\n            \"default\": true,\n            \"description\": \"Either `true` to allow rebase-merging pull requests, or `false` to prevent rebase-merging.\",\n            \"type\": \"boolean\"\n          },\n          \"allow_squash_merge\": {\n            \"default\": true,\n            \"description\": \"Either `true` to allow squash-merging pull requests, or `false` to prevent squash-merging.\",\n            \"type\": \"boolean\"\n          },\n          \"allow_update_branch\": {\n            \"default\": false,\n            \"description\": \"Either `true` to always allow a pull request head branch that is behind its base branch to be updated even if it is not required to be up to date before merging, or false otherwise.\",\n            \"type\": \"boolean\"\n          },\n          \"archived\": {\n            \"default\": false,\n            \"description\": \"Whether to archive this repository. `false` will unarchive a previously archived repository.\",\n            \"type\": \"boolean\"\n          },\n          \"default_branch\": {\n            \"description\": \"Updates the default branch for this repository.\",\n            \"type\": \"string\"\n          },\n          \"delete_branch_on_merge\": {\n            \"default\": false,\n            \"description\": \"Either `true` to allow automatically deleting head branches when pull requests are merged, or `false` to prevent automatic deletion.\",\n            \"type\": \"boolean\"\n          },\n          \"description\": {\n            \"description\": \"A short description of the repository.\",\n            \"type\": \"string\"\n          },\n          \"has_issues\": {\n            \"default\": true,\n            \"description\": \"Either `true` to enable issues for this repository or `false` to disable them.\",\n            \"type\": \"boolean\"\n          },\n          \"has_projects\": {\n            \"default\": true,\n            \"description\": \"Either `true` to enable projects for this repository or `false` to disable them. **Note:** If you're creating a repository in an organization that has disabled repository projects, the default is `false`, and if you pass `true`, the API returns an error.\",\n            \"type\": \"boolean\"\n          },\n          \"has_wiki\": {\n            \"default\": true,\n            \"description\": \"Either `true` to enable the wiki for this repository or `false` to disable it.\",\n            \"type\": \"boolean\"\n          },\n          \"homepage\": {\n            \"description\": \"A URL with more information about the repository.\",\n            \"type\": \"string\"\n          },\n          \"is_template\": {\n            \"default\": false,\n            \"description\": \"Either `true` to make this repo available as a template repository or `false` to prevent it.\",\n            \"type\": \"boolean\"\n          },\n          \"merge_commit_message\": {\n            \"description\": \"The default value for a merge commit message.\\n\\n- `PR_TITLE` - default to the pull request's title.\\n- `PR_BODY` - default to the pull request's body.\\n- `BLANK` - default to a blank commit message.\",\n            \"enum\": [\n              \"PR_BODY\",\n              \"PR_TITLE\",\n              \"BLANK\"\n            ],\n            \"type\": \"string\"\n          },\n          \"merge_commit_title\": {\n            \"description\": \"The default value for a merge commit title.\\n\\n- `PR_TITLE` - default to the pull request's title.\\n- `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).\",\n            \"enum\": [\n              \"PR_TITLE\",\n              \"MERGE_MESSAGE\"\n            ],\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"The name of the repository.\",\n            \"type\": \"string\"\n          },\n          \"private\": {\n            \"default\": false,\n            \"description\": \"Either `true` to make the repository private or `false` to make it public. Default: `false`.  \\n**Note**: You will get a `422` error if the organization restricts [changing repository visibility](https://docs.github.com/enterprise-server@3.8/articles/repository-permission-levels-for-an-organization#changing-the-visibility-of-repositories) to organization owners and a non-owner tries to change the value of private.\",\n            \"type\": \"boolean\"\n          },\n          \"squash_merge_commit_message\": {\n            \"description\": \"The default value for a squash merge commit message:\\n\\n- `PR_BODY` - default to the pull request's body.\\n- `COMMIT_MESSAGES` - default to the branch's commit messages.\\n- `BLANK` - default to a blank commit message.\",\n            \"enum\": [\n              \"PR_BODY\",\n              \"COMMIT_MESSAGES\",\n              \"BLANK\"\n            ],\n            \"type\": \"string\"\n          },\n          \"squash_merge_commit_title\": {\n            \"description\": \"The default value for a squash merge commit title:\\n\\n- `PR_TITLE` - default to the pull request's title.\\n- `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit).\",\n            \"enum\": [\n              \"PR_TITLE\",\n              \"COMMIT_OR_PR_TITLE\"\n            ],\n            \"type\": \"string\"\n          },\n          \"use_squash_pr_title_as_default\": {\n            \"default\": false,\n            \"deprecated\": true,\n            \"description\": \"Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property has been deprecated. Please use `squash_merge_commit_title` instead.\",\n            \"type\": \"boolean\"\n          },\n          \"visibility\": {\n            \"description\": \"The visibility of the repository.\",\n            \"enum\": [\n              \"public\",\n              \"private\",\n              \"internal\"\n            ],\n            \"type\": \"string\"\n          },\n          \"web_commit_signoff_required\": {\n            \"default\": false,\n            \"description\": \"Either `true` to require contributors to sign off on web-based commits, or `false` to not require contributors to sign off on web-based commits.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

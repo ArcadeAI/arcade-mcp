@@ -1,0 +1,438 @@
+{
+  "name": "CreateGithubDeploymentStatus",
+  "fully_qualified_name": "GithubApi.CreateGithubDeploymentStatus@0.1.0",
+  "description": "Create deployment statuses for a GitHub deployment.\n\nThis tool allows users with appropriate permissions to create deployment statuses on GitHub for a specific deployment. It requires push access for users, and specific access scopes for GitHub and OAuth Apps. Use this tool to update the status of your deployments directly within GitHub repositories.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository. Case insensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "deployment_id",
+        "required": true,
+        "description": "The unique identifier for the deployment. This integer value specifies which deployment the status will be associated with.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "deployment_id parameter"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deployment_id"
+      },
+      {
+        "name": "deployment_status_state",
+        "required": true,
+        "description": "The desired state of the deployment status. Options include: 'error', 'failure', 'inactive', 'in_progress', 'queued', 'pending', 'success'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "error",
+            "failure",
+            "inactive",
+            "in_progress",
+            "queued",
+            "pending",
+            "success"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of the status. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "status_description",
+        "required": false,
+        "description": "A brief description of the deployment status, up to 140 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short description of the status. The maximum description length is 140 characters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "deployment_environment",
+        "required": false,
+        "description": "Specifies the target deployment environment, such as `production`, `staging`, or `qa`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "production",
+            "staging",
+            "qa"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for the target deployment environment, which can be changed when setting a deploy status. For example, `production`, `staging`, or `qa`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "environment"
+      },
+      {
+        "name": "deployment_environment_url",
+        "required": false,
+        "description": "Sets the URL for accessing your deployment environment. Defaults to an empty string if not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the URL for accessing your environment. Default: `\"\"`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "environment_url"
+      },
+      {
+        "name": "deployment_output_url",
+        "required": false,
+        "description": "The full URL of the deployment's output. It replaces `target_url` and automatically sets `target_url` to the same value. Recommended for output logs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The full URL of the deployment's output. This parameter replaces `target_url`. We will continue to accept `target_url` to support legacy uses, but we recommend replacing `target_url` with `log_url`. Setting `log_url` will automatically set `target_url` to the same value. Default: `\"\"`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "log_url"
+      },
+      {
+        "name": "deployment_status_target_url",
+        "required": false,
+        "description": "Specify the URL containing output related to the deployment status. Note that it's recommended to use `log_url` instead, which replaces this parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The target URL to associate with this status. This URL should contain output to keep the user updated while the task is running or serve as historical information for what happened in the deployment. **Note:** It's recommended to use the `log_url` parameter, which replaces `target_url`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "target_url"
+      },
+      {
+        "name": "add_inactive_status_to_previous_deployments",
+        "required": false,
+        "description": "Specifies if an 'inactive' status should be added to prior non-transient, non-production deployments with the same repository and environment. Defaults to true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Adds a new `inactive` status to all prior non-transient, non-production environment deployments with the same repository and `environment` name as the created status's deployment. An `inactive` status is only added to deployments that had a `success` state. Default: `true`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "auto_inactive"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/create-deployment-status'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/deployments/{deployment_id}/statuses",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "deployment_id",
+        "tool_parameter_name": "deployment_id",
+        "description": "deployment_id parameter",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "deployment_id parameter"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "auto_inactive",
+        "tool_parameter_name": "add_inactive_status_to_previous_deployments",
+        "description": "Adds a new `inactive` status to all prior non-transient, non-production environment deployments with the same repository and `environment` name as the created status's deployment. An `inactive` status is only added to deployments that had a `success` state. Default: `true`",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Adds a new `inactive` status to all prior non-transient, non-production environment deployments with the same repository and `environment` name as the created status's deployment. An `inactive` status is only added to deployments that had a `success` state. Default: `true`"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "status_description",
+        "description": "A short description of the status. The maximum description length is 140 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short description of the status. The maximum description length is 140 characters."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "",
+        "documentation_urls": []
+      },
+      {
+        "name": "environment",
+        "tool_parameter_name": "deployment_environment",
+        "description": "Name for the target deployment environment, which can be changed when setting a deploy status. For example, `production`, `staging`, or `qa`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "production",
+            "staging",
+            "qa"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for the target deployment environment, which can be changed when setting a deploy status. For example, `production`, `staging`, or `qa`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "environment_url",
+        "tool_parameter_name": "deployment_environment_url",
+        "description": "Sets the URL for accessing your environment. Default: `\"\"`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the URL for accessing your environment. Default: `\"\"`"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "",
+        "documentation_urls": []
+      },
+      {
+        "name": "log_url",
+        "tool_parameter_name": "deployment_output_url",
+        "description": "The full URL of the deployment's output. This parameter replaces `target_url`. We will continue to accept `target_url` to support legacy uses, but we recommend replacing `target_url` with `log_url`. Setting `log_url` will automatically set `target_url` to the same value. Default: `\"\"`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The full URL of the deployment's output. This parameter replaces `target_url`. We will continue to accept `target_url` to support legacy uses, but we recommend replacing `target_url` with `log_url`. Setting `log_url` will automatically set `target_url` to the same value. Default: `\"\"`"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "",
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "deployment_status_state",
+        "description": "The state of the status. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "error",
+            "failure",
+            "inactive",
+            "in_progress",
+            "queued",
+            "pending",
+            "success"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of the status. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "target_url",
+        "tool_parameter_name": "deployment_status_target_url",
+        "description": "The target URL to associate with this status. This URL should contain output to keep the user updated while the task is running or serve as historical information for what happened in the deployment. **Note:** It's recommended to use the `log_url` parameter, which replaces `target_url`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The target URL to associate with this status. This URL should contain output to keep the user updated while the task is running or serve as historical information for what happened in the deployment. **Note:** It's recommended to use the `log_url` parameter, which replaces `target_url`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"description\": \"Deployment finished successfully.\",\n            \"environment\": \"production\",\n            \"log_url\": \"https://example.com/deployment/42/output\",\n            \"state\": \"success\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"auto_inactive\": {\n            \"description\": \"Adds a new `inactive` status to all prior non-transient, non-production environment deployments with the same repository and `environment` name as the created status's deployment. An `inactive` status is only added to deployments that had a `success` state. Default: `true`\",\n            \"type\": \"boolean\"\n          },\n          \"description\": {\n            \"default\": \"\",\n            \"description\": \"A short description of the status. The maximum description length is 140 characters.\",\n            \"type\": \"string\"\n          },\n          \"environment\": {\n            \"description\": \"Name for the target deployment environment, which can be changed when setting a deploy status. For example, `production`, `staging`, or `qa`.\",\n            \"enum\": [\n              \"production\",\n              \"staging\",\n              \"qa\"\n            ],\n            \"type\": \"string\"\n          },\n          \"environment_url\": {\n            \"default\": \"\",\n            \"description\": \"Sets the URL for accessing your environment. Default: `\\\"\\\"`\",\n            \"type\": \"string\"\n          },\n          \"log_url\": {\n            \"default\": \"\",\n            \"description\": \"The full URL of the deployment's output. This parameter replaces `target_url`. We will continue to accept `target_url` to support legacy uses, but we recommend replacing `target_url` with `log_url`. Setting `log_url` will automatically set `target_url` to the same value. Default: `\\\"\\\"`\",\n            \"type\": \"string\"\n          },\n          \"state\": {\n            \"description\": \"The state of the status. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub.\",\n            \"enum\": [\n              \"error\",\n              \"failure\",\n              \"inactive\",\n              \"in_progress\",\n              \"queued\",\n              \"pending\",\n              \"success\"\n            ],\n            \"type\": \"string\"\n          },\n          \"target_url\": {\n            \"default\": \"\",\n            \"description\": \"The target URL to associate with this status. This URL should contain output to keep the user updated while the task is running or serve as historical information for what happened in the deployment. **Note:** It's recommended to use the `log_url` parameter, which replaces `target_url`.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"state\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

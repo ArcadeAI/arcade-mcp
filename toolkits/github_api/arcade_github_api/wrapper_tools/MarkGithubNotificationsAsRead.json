@@ -1,0 +1,150 @@
+{
+  "name": "MarkGithubNotificationsAsRead",
+  "fully_qualified_name": "GithubApi.MarkGithubNotificationsAsRead@0.1.0",
+  "description": "Mark all GitHub notifications as read for the current user.\n\nUse this tool to mark all notifications as 'read' in GitHub for the authenticated user. If there are too many notifications, the process may run asynchronously, and any remaining 'unread' notifications can be checked using a separate endpoint.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "notifications_last_read_timestamp",
+        "required": false,
+        "description": "A timestamp marking the last time notifications were checked. Notifications updated since this time won't be marked as read. Use ISO 8601 format `YYYY-MM-DDTHH:MM:SSZ`. Leave empty to mark all as read.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Describes the last point that notifications were checked. Anything updated since this time will not be marked as read. If you omit this parameter, all notifications are marked as read. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Default: The current timestamp."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_read_at"
+      },
+      {
+        "name": "mark_notifications_as_read",
+        "required": false,
+        "description": "A boolean flag to set notifications as read. True marks notifications as read.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the notification has been read."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "read"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'activity/mark-notifications-as-read'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/notifications",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "last_read_at",
+        "tool_parameter_name": "notifications_last_read_timestamp",
+        "description": "Describes the last point that notifications were checked. Anything updated since this time will not be marked as read. If you omit this parameter, all notifications are marked as read. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Default: The current timestamp.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Describes the last point that notifications were checked. Anything updated since this time will not be marked as read. If you omit this parameter, all notifications are marked as read. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Default: The current timestamp."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "read",
+        "tool_parameter_name": "mark_notifications_as_read",
+        "description": "Whether the notification has been read.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the notification has been read."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"last_read_at\": \"2022-06-10T00:00:00+00:00\",\n            \"read\": true\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"last_read_at\": {\n            \"description\": \"Describes the last point that notifications were checked. Anything updated since this time will not be marked as read. If you omit this parameter, all notifications are marked as read. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Default: The current timestamp.\",\n            \"format\": \"date-time\",\n            \"type\": \"string\"\n          },\n          \"read\": {\n            \"description\": \"Whether the notification has been read.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

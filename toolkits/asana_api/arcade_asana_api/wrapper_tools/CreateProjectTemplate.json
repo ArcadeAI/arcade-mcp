@@ -1,0 +1,303 @@
+{
+  "name": "CreateProjectTemplate",
+  "fully_qualified_name": "AsanaApi.CreateProjectTemplate@0.1.0",
+  "description": "Create a project template in Asana asynchronously.\n\nThis tool triggers the creation of a project template in Asana and returns details of the asynchronous job handling the process. Use this to save an existing project as a template, enabling its reuse.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_global_id",
+        "required": true,
+        "description": "Globally unique identifier for the project. Required to specify which project is being saved as a template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_gid"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "Specify a list of optional properties to include in the response by listing their names as strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "template_name",
+        "required": false,
+        "description": "The name of the new project template in Asana.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the new project template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.name"
+      },
+      {
+        "name": "team_id_for_project_template",
+        "required": false,
+        "description": "Specify the team ID for the new project template. Use this when the project is in an organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the team of the new project template. If the project exists in an organization, specify team and not workspace."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.team"
+      },
+      {
+        "name": "workspace_id_for_project_template",
+        "required": false,
+        "description": "Globally unique identifier for the workspace of the new project template. Use only if the project is in a workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the workspace of the new project template. Only specify workspace if the project exists in a workspace."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.workspace"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Enable pretty output formatting for easier readability in the response. Use mainly for debugging as it may increase response time and size.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      },
+      {
+        "name": "make_template_public",
+        "required": false,
+        "description": "Specify true to make the project template public to its team. Use false to keep it private.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the project template to public to its team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.public"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'projectSaveAsTemplate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/projects/{project_gid}/saveAsTemplate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_gid",
+        "tool_parameter_name": "project_global_id",
+        "description": "Globally unique identifier for the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the project."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.name",
+        "tool_parameter_name": "template_name",
+        "description": "The name of the new project template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the new project template."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.team",
+        "tool_parameter_name": "team_id_for_project_template",
+        "description": "Sets the team of the new project template. If the project exists in an organization, specify team and not workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the team of the new project template. If the project exists in an organization, specify team and not workspace."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.workspace",
+        "tool_parameter_name": "workspace_id_for_project_template",
+        "description": "Sets the workspace of the new project template. Only specify workspace if the project exists in a workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the workspace of the new project template. Only specify workspace if the project exists in a workspace."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.public",
+        "tool_parameter_name": "make_template_public",
+        "description": "Sets the project template to public to its team.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the project template to public to its team."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Describes the inputs used for creating a project template, such as the resulting project template's name, which team it should be created in.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"required\": [\n              \"name\",\n              \"public\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The name of the new project template.\",\n                \"type\": \"string\",\n                \"example\": \"New Project Template\"\n              },\n              \"team\": {\n                \"description\": \"Sets the team of the new project template. If the project exists in an organization, specify team and not workspace.\",\n                \"type\": \"string\",\n                \"example\": \"12345\"\n              },\n              \"workspace\": {\n                \"description\": \"Sets the workspace of the new project template. Only specify workspace if the project exists in a workspace.\",\n                \"type\": \"string\",\n                \"example\": \"12345\"\n              },\n              \"public\": {\n                \"description\": \"Sets the project template to public to its team.\",\n                \"type\": \"boolean\",\n                \"example\": true\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

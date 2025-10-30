@@ -1,0 +1,190 @@
+{
+  "name": "TriggerAsanaRule",
+  "fully_qualified_name": "AsanaApi.TriggerAsanaRule@0.1.0",
+  "description": "Trigger a rule in Asana using an incoming web request.\n\nUse this tool to trigger a specific rule in Asana that is set up with an \"incoming web request\" trigger. Ideal for automating workflows by executing preset rules on demand.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incoming_web_request_trigger_id",
+        "required": true,
+        "description": "The ID of the incoming web request trigger used to execute the rule in Asana. This is automatically generated for the API endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the incoming web request trigger. This value is a path parameter that is automatically generated for the API endpoint."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rule_trigger_gid"
+      },
+      {
+        "name": "rule_variables_dictionary",
+        "required": true,
+        "description": "A JSON dictionary containing variables accessible within the rule. It includes 'resource' (ID of the resource, always a task) and 'action_data' (dynamic keys and values for rule actions).",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "resource": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the resource. For the duration of the beta, this resource is always a task, and this task must exist in the project in which the rule is created."
+                },
+                "action_data": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The dynamic keys and values of the request. These fields are intended to be used in the action for the rule associated with this trigger."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "A dictionary of variables accessible from within the rule."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'triggerRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/rule_triggers/{rule_trigger_gid}/run",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "rule_trigger_gid",
+        "tool_parameter_name": "incoming_web_request_trigger_id",
+        "description": "The ID of the incoming web request trigger. This value is a path parameter that is automatically generated for the API endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the incoming web request trigger. This value is a path parameter that is automatically generated for the API endpoint."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "rule_variables_dictionary",
+        "description": "A dictionary of variables accessible from within the rule.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "resource": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the resource. For the duration of the beta, this resource is always a task, and this task must exist in the project in which the rule is created."
+                },
+                "action_data": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The dynamic keys and values of the request. These fields are intended to be used in the action for the rule associated with this trigger."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "A dictionary of variables accessible from within the rule."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"A dictionary of variables accessible from within the rule.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"resource\": {\n                \"description\": \"The ID of the resource. For the duration of the beta, this resource is always a task, and this task must exist in the project in which the rule is created.\",\n                \"type\": \"string\",\n                \"example\": \"12345\"\n              },\n              \"action_data\": {\n                \"type\": \"object\",\n                \"additionalProperties\": true,\n                \"description\": \"The dynamic keys and values of the request. These fields are intended to be used in the action for the rule associated with this trigger.\",\n                \"example\": {\n                  \"jira_ticket_name\": \"Test\",\n                  \"jira_ticket_id\": \"123\"\n                }\n              }\n            },\n            \"required\": [\n              \"resource\",\n              \"action_data\"\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

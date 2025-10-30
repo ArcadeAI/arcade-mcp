@@ -1,0 +1,216 @@
+{
+  "name": "ListProvisionedGroupsForEnterprise",
+  "fully_qualified_name": "GithubApi.ListProvisionedGroupsForEnterprise@0.1.0",
+  "description": "Retrieve provisioned SCIM groups for an enterprise.\n\nThis tool retrieves a list of provisioned SCIM groups within an enterprise account on GitHub. It is useful for administrators who need to manage or audit group provisions. For optimized performance, exclude 'members' from the response using the 'excludedAttributes' query parameter.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_attribute",
+        "required": false,
+        "description": "Filter results by a specific attribute. Supported filters: `externalId`, `id`, `displayName`. Example: `externalId eq '9138790-10932-109120392-12321'`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If specified, only results that match the specified filter will be returned. Multiple filters are not supported. Possible filters are `externalId`, `id`, and `displayName`. For example, `?filter=\"externalId eq '9138790-10932-109120392-12321'\"`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "exclude_attribute_from_results",
+        "required": false,
+        "description": "Specify an attribute to exclude from the results to speed up response time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Excludes the specified attribute from being returned in the results. Using this parameter can speed up response time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "excludedAttributes"
+      },
+      {
+        "name": "start_index",
+        "required": false,
+        "description": "The starting index for pagination; specifies where to begin returning results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for pagination: the starting index of the first result to return when paginating through values."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "startIndex"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "The number of SCIM group results to return per page for pagination.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for pagination: the number of results to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/list-provisioned-groups-enterprise'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/scim/v2/Groups",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter",
+        "tool_parameter_name": "filter_by_attribute",
+        "description": "If specified, only results that match the specified filter will be returned. Multiple filters are not supported. Possible filters are `externalId`, `id`, and `displayName`. For example, `?filter=\"externalId eq '9138790-10932-109120392-12321'\"`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If specified, only results that match the specified filter will be returned. Multiple filters are not supported. Possible filters are `externalId`, `id`, and `displayName`. For example, `?filter=\"externalId eq '9138790-10932-109120392-12321'\"`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "excludedAttributes",
+        "tool_parameter_name": "exclude_attribute_from_results",
+        "description": "Excludes the specified attribute from being returned in the results. Using this parameter can speed up response time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Excludes the specified attribute from being returned in the results. Using this parameter can speed up response time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "startIndex",
+        "tool_parameter_name": "start_index",
+        "description": "Used for pagination: the starting index of the first result to return when paginating through values.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for pagination: the starting index of the first result to return when paginating through values."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "results_per_page",
+        "description": "Used for pagination: the number of results to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for pagination: the number of results to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

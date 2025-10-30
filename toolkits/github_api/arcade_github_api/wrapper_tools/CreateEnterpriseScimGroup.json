@@ -1,0 +1,217 @@
+{
+  "name": "CreateEnterpriseScimGroup",
+  "fully_qualified_name": "GithubApi.CreateEnterpriseScimGroup@0.1.0",
+  "description": "Create a SCIM group for a GitHub enterprise account.\n\nFacilitates the creation of a SCIM group within a GitHub enterprise. This tool should be used when you need to establish a new group with optional member inclusion. Any specified members will be added as external group members, and it's important to maintain mapping of their identifiers.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_scim_group_details",
+        "required": true,
+        "description": "A JSON object containing group details: `displayName`, `externalId`, `members` (optional), and `schemas`. `members` is an array with `displayName` and `value` for each member.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A human-readable name for a security group."
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the resource as defined by the provisioning client."
+            },
+            "members": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "displayName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The display name associated with the member"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The local unique identifier for the member"
+                }
+              },
+              "description": "The group members."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URIs that are used to indicate the namespaces of the SCIM schemas."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/provision-enterprise-group'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/scim/v2/Groups",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "enterprise_scim_group_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A human-readable name for a security group."
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the resource as defined by the provisioning client."
+            },
+            "members": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "displayName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The display name associated with the member"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The local unique identifier for the member"
+                }
+              },
+              "description": "The group members."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URIs that are used to indicate the namespaces of the SCIM schemas."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"group\": {\n          \"value\": {\n            \"displayName\": \"Engineering\",\n            \"externalId\": \"8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159\",\n            \"schemas\": [\n              \"urn:ietf:params:scim:schemas:core:2.0:Group\"\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"displayName\": {\n            \"description\": \"A human-readable name for a security group.\",\n            \"example\": \"Engineering\",\n            \"type\": \"string\"\n          },\n          \"externalId\": {\n            \"description\": \"A unique identifier for the resource as defined by the provisioning client.\",\n            \"example\": \"8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159\",\n            \"type\": \"string\"\n          },\n          \"members\": {\n            \"description\": \"The group members.\",\n            \"items\": {\n              \"properties\": {\n                \"displayName\": {\n                  \"description\": \"The display name associated with the member\",\n                  \"example\": \"Monalisa Octocat\",\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"description\": \"The local unique identifier for the member\",\n                  \"example\": \"23a35c27-23d3-4c03-b4c5-6443c09e7173\",\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"value\",\n                \"displayName\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"schemas\": {\n            \"description\": \"The URIs that are used to indicate the namespaces of the SCIM schemas.\",\n            \"example\": [\n              \"urn:ietf:params:scim:schemas:core:2.0:Group\"\n            ],\n            \"items\": {\n              \"enum\": [\n                \"urn:ietf:params:scim:schemas:core:2.0:Group\"\n              ],\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"schemas\",\n          \"externalId\",\n          \"displayName\",\n          \"members\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

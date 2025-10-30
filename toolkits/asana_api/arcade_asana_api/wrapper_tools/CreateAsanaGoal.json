@@ -1,0 +1,189 @@
+{
+  "name": "CreateAsanaGoal",
+  "fully_qualified_name": "AsanaApi.CreateAsanaGoal@0.1.0",
+  "description": "Create a new goal in Asana workspace or team.\n\nThis tool is used to create a new goal in an Asana workspace or team. It returns the full record of the newly created goal, making it essential for managing and tracking team objectives within Asana.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "goal_data",
+        "required": true,
+        "description": "JSON object containing details of the goal to create, such as title, description, due_date, and any other relevant fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The goal to create."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "Comma-separated list of optional properties to include in the response for a more comprehensive goal record.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Enables pretty formatting for the API response, useful for debugging. Increases response time and size.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createGoal'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/goals",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "goal_data",
+        "description": "The goal to create.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The goal to create."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The goal to create.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"allOf\": [\n              {\n                \"allOf\": [\n                  {\n                    \"description\": \"A generic Asana Resource, containing a globally unique identifier.\",\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"gid\": {\n                        \"description\": \"Globally unique identifier of the resource, as a string.\",\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"example\": \"12345\",\n                        \"x-insert-after\": false\n                      },\n                      \"resource_type\": {\n                        \"description\": \"The base type of this resource.\",\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"example\": \"goal\",\n                        \"x-insert-after\": \"gid\"\n                      },\n                      \"name\": {\n                        \"type\": \"string\",\n                        \"description\": \"The name of the goal.\",\n                        \"example\": \"Grow web traffic by 30%\"\n                      },\n                      \"html_notes\": {\n                        \"type\": \"string\",\n                        \"description\": \"The notes of the goal with formatting as HTML.\",\n                        \"example\": \"<body>Start building brand awareness.</body>\"\n                      },\n                      \"notes\": {\n                        \"type\": \"string\",\n                        \"description\": \"Free-form textual information associated with the goal (i.e. its description).\",\n                        \"example\": \"Start building brand awareness.\"\n                      },\n                      \"due_on\": {\n                        \"type\": \"string\",\n                        \"description\": \"The localized day on which this goal is due. This takes a date with format `YYYY-MM-DD`.\",\n                        \"example\": \"2019-09-15\",\n                        \"nullable\": true\n                      },\n                      \"start_on\": {\n                        \"type\": \"string\",\n                        \"description\": \"The day on which work for this goal begins, or null if the goal has no start date. This takes a date with `YYYY-MM-DD` format, and cannot be set unless there is an accompanying due date.\",\n                        \"example\": \"2019-09-14\",\n                        \"nullable\": true\n                      },\n                      \"is_workspace_level\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"*Conditional*. This property is only present when the `workspace` provided is an organization. Whether the goal belongs to the `workspace` (and is listed as part of the workspace\\u2019s goals) or not. If it isn\\u2019t a workspace-level goal, it is a team-level goal, and is associated with the goal\\u2019s team.\",\n                        \"example\": true\n                      },\n                      \"liked\": {\n                        \"type\": \"boolean\",\n                        \"description\": \"True if the goal is liked by the authorized user, false if not.\",\n                        \"example\": false\n                      }\n                    }\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"team\": {\n                        \"type\": \"string\",\n                        \"description\": \"*Conditional*. This property is only present when the `workspace` provided is an organization.\",\n                        \"example\": \"12345\",\n                        \"nullable\": true\n                      },\n                      \"workspace\": {\n                        \"type\": \"string\",\n                        \"description\": \"The `gid` of a workspace.\",\n                        \"example\": \"12345\"\n                      },\n                      \"time_period\": {\n                        \"type\": \"string\",\n                        \"description\": \"The `gid` of a time period.\",\n                        \"example\": \"12345\",\n                        \"nullable\": true\n                      },\n                      \"owner\": {\n                        \"type\": \"string\",\n                        \"description\": \"The `gid` of a user.\",\n                        \"example\": \"12345\",\n                        \"nullable\": true\n                      }\n                    }\n                  }\n                ]\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"followers\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\",\n                      \"description\": \"The `gid` of a user.\"\n                    },\n                    \"example\": [\n                      \"12345\"\n                    ]\n                  }\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

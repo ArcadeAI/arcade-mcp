@@ -1,0 +1,242 @@
+{
+  "name": "UpdateEnterpriseGroupAttributes",
+  "fully_qualified_name": "GithubApi.UpdateEnterpriseGroupAttributes@0.1.0",
+  "description": "Update attributes for a provisioned enterprise group.\n\nThis tool updates individual attributes of a provisioned group in an enterprise account using the SCIM API. Users can perform add, remove, or replace operations on group attributes or memberships. Useful for updating group values or managing memberships efficiently.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "scim_group_identifier",
+        "required": true,
+        "description": "A unique identifier for the SCIM group to be updated. This is required to specify which group's attributes or memberships are being modified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier of the SCIM group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scim_group_id"
+      },
+      {
+        "name": "group_attributes_operations",
+        "required": true,
+        "description": "JSON object specifying SCIM operations for group attributes. Must include 'Operations' with at least one operation ('add', 'replace', 'remove'), and optionally 'schemas'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "Operations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "op": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "add",
+                    "replace",
+                    "remove"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Corresponding 'value' of that field specified by 'path'"
+                }
+              },
+              "description": "patch operations list"
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/update-attribute-for-enterprise-group'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/scim/v2/Groups/{scim_group_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "scim_group_id",
+        "tool_parameter_name": "scim_group_identifier",
+        "description": "A unique identifier of the SCIM group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier of the SCIM group."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "group_attributes_operations",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "Operations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "op": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "add",
+                    "replace",
+                    "remove"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Corresponding 'value' of that field specified by 'path'"
+                }
+              },
+              "description": "patch operations list"
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"addMembers\": {\n          \"summary\": \"Add Members\",\n          \"value\": {\n            \"Operations\": [\n              {\n                \"op\": \"add\",\n                \"path\": \"members\",\n                \"value\": [\n                  {\n                    \"value\": \"879db59-3bdf-4490-ad68-ab880a2694745\"\n                  },\n                  {\n                    \"value\": \"0db508eb-91e2-46e4-809c-30dcbda0c685\"\n                  }\n                ]\n              }\n            ],\n            \"schemas\": [\n              \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n            ]\n          }\n        },\n        \"updateGroup\": {\n          \"summary\": \"Update Group\",\n          \"value\": {\n            \"Operations\": [\n              {\n                \"op\": \"replace\",\n                \"path\": \"displayName\",\n                \"value\": \"Employees\"\n              }\n            ],\n            \"schemas\": [\n              \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"Operations\": {\n            \"description\": \"patch operations list\",\n            \"items\": {\n              \"properties\": {\n                \"op\": {\n                  \"enum\": [\n                    \"add\",\n                    \"replace\",\n                    \"remove\"\n                  ],\n                  \"type\": \"string\"\n                },\n                \"path\": {\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"description\": \"Corresponding 'value' of that field specified by 'path'\",\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"op\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"schemas\": {\n            \"items\": {\n              \"enum\": [\n                \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n              ],\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"Operations\",\n          \"schemas\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

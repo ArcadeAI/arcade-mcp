@@ -1,0 +1,257 @@
+{
+  "name": "CreateGithubOrgVariable",
+  "fully_qualified_name": "GithubApi.CreateGithubOrgVariable@0.1.0",
+  "description": "Create an organization variable for GitHub Actions workflows.\n\nCreates an organization variable in GitHub that can be referenced in Actions workflows. Requires an access token with `admin:org` scope or `organization_actions_variables:write` permission for GitHub Apps.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The name of the organization. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "variable_name",
+        "required": true,
+        "description": "The name of the organization variable to be created. This name will be used to reference the variable in workflows.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the variable."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "variable_value",
+        "required": true,
+        "description": "The value assigned to the organization variable in GitHub.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The value of the variable."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "value"
+      },
+      {
+        "name": "repository_access_visibility",
+        "required": true,
+        "description": "Type of repositories in the organization that can access the variable: 'all', 'private', or 'selected'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "private",
+            "selected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of repositories in the organization that can access the variable. `selected` means only the repositories specified by `selected_repository_ids` can access the variable."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "visibility"
+      },
+      {
+        "name": "repository_ids_with_variable_access",
+        "required": false,
+        "description": "List of repository IDs allowed to access the organization variable. Required when 'visibility' is 'selected'.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An array of repository ids that can access the organization variable. You can only provide a list of repository ids when the `visibility` is set to `selected`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "selected_repository_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'actions/create-org-variable'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}/actions/variables",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "variable_name",
+        "description": "The name of the variable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the variable."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "selected_repository_ids",
+        "tool_parameter_name": "repository_ids_with_variable_access",
+        "description": "An array of repository ids that can access the organization variable. You can only provide a list of repository ids when the `visibility` is set to `selected`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An array of repository ids that can access the organization variable. You can only provide a list of repository ids when the `visibility` is set to `selected`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "value",
+        "tool_parameter_name": "variable_value",
+        "description": "The value of the variable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The value of the variable."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "visibility",
+        "tool_parameter_name": "repository_access_visibility",
+        "description": "The type of repositories in the organization that can access the variable. `selected` means only the repositories specified by `selected_repository_ids` can access the variable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "private",
+            "selected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of repositories in the organization that can access the variable. `selected` means only the repositories specified by `selected_repository_ids` can access the variable."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"name\": \"USERNAME\",\n            \"selected_repository_ids\": [\n              1296269,\n              1296280\n            ],\n            \"value\": \"octocat\",\n            \"visibility\": \"selected\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"name\": {\n            \"description\": \"The name of the variable.\",\n            \"type\": \"string\"\n          },\n          \"selected_repository_ids\": {\n            \"description\": \"An array of repository ids that can access the organization variable. You can only provide a list of repository ids when the `visibility` is set to `selected`.\",\n            \"items\": {\n              \"type\": \"integer\"\n            },\n            \"type\": \"array\"\n          },\n          \"value\": {\n            \"description\": \"The value of the variable.\",\n            \"type\": \"string\"\n          },\n          \"visibility\": {\n            \"description\": \"The type of repositories in the organization that can access the variable. `selected` means only the repositories specified by `selected_repository_ids` can access the variable.\",\n            \"enum\": [\n              \"all\",\n              \"private\",\n              \"selected\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"value\",\n          \"visibility\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

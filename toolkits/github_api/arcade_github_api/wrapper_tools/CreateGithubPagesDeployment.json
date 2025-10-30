@@ -1,0 +1,282 @@
+{
+  "name": "CreateGithubPagesDeployment",
+  "fully_qualified_name": "GithubApi.CreateGithubPagesDeployment@0.1.0",
+  "description": "Create a GitHub Pages deployment for a repository.\n\nUse this tool to deploy a GitHub Pages site for a repository. Requires write permissions or `pages:write` permission for GitHub Apps.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. This is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "artifact_url",
+        "required": true,
+        "description": "URL of the artifact (.zip or .tar) with static assets for deployment. Must belong to the repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL of an artifact that contains the .zip or .tar of static assets to deploy. The artifact belongs to the repository."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "artifact_url"
+      },
+      {
+        "name": "oidc_token_for_deployment",
+        "required": true,
+        "description": "The OIDC token from GitHub Actions used to certify the deployment origin.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OIDC token issued by GitHub Actions certifying the origin of the deployment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "oidc_token"
+      },
+      {
+        "name": "build_version_identifier",
+        "required": true,
+        "description": "A unique string representing the version of the deployment build.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that represents the version of the build for this deployment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pages_build_version"
+      },
+      {
+        "name": "target_environment_for_deployment",
+        "required": false,
+        "description": "Specify the target environment for the GitHub Pages deployment (e.g., 'production', 'staging').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The target environment for this GitHub Pages deployment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "environment"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/create-pages-deployment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/pages/deployment",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "artifact_url",
+        "tool_parameter_name": "artifact_url",
+        "description": "The URL of an artifact that contains the .zip or .tar of static assets to deploy. The artifact belongs to the repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL of an artifact that contains the .zip or .tar of static assets to deploy. The artifact belongs to the repository."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "environment",
+        "tool_parameter_name": "target_environment_for_deployment",
+        "description": "The target environment for this GitHub Pages deployment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The target environment for this GitHub Pages deployment."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "github-pages",
+        "documentation_urls": []
+      },
+      {
+        "name": "oidc_token",
+        "tool_parameter_name": "oidc_token_for_deployment",
+        "description": "The OIDC token issued by GitHub Actions certifying the origin of the deployment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The OIDC token issued by GitHub Actions certifying the origin of the deployment."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "pages_build_version",
+        "tool_parameter_name": "build_version_identifier",
+        "description": "A unique string that represents the version of the build for this deployment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that represents the version of the build for this deployment."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "GITHUB_SHA",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"artifact_url\": \"https://downloadcontent/\",\n            \"environment\": \"github-pages\",\n            \"oidc_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IlV2R1h4SUhlY0JFc1JCdEttemUxUEhfUERiVSIsImtpZCI6IjUyRjE5N0M0ODFERTcwMTEyQzQ0MUI0QTlCMzdCNTNDN0ZDRjBEQjUifQ.eyJqdGkiOiJhMWIwNGNjNy0zNzZiLTQ1N2QtOTMzNS05NTY5YmVjZDExYTIiLCJzdWIiOiJyZXBvOnBhcGVyLXNwYS9taW55aTplbnZpcm9ubWVudDpQcm9kdWN0aW9uIiwiYXVkIjoiaHR0cHM6Ly9naXRodWIuY29tL3BhcGVyLXNwYSIsInJlZiI6InJlZnMvaGVhZHMvbWFpbiIsInNoYSI6ImEyODU1MWJmODdiZDk3NTFiMzdiMmM0YjM3M2MxZjU3NjFmYWM2MjYiLCJyZXBvc2l0b3J5IjoicGFwZXItc3BhL21pbnlpIiwicmVwb3NpdG9yeV9vd25lciI6InBhcGVyLXNwYSIsInJ1bl9pZCI6IjE1NDY0NTkzNjQiLCJydW5fbnVtYmVyIjoiMzQiLCJydW5fYXR0ZW1wdCI6IjYiLCJhY3RvciI6IllpTXlzdHkiLCJ3b3JrZmxvdyI6IkNJIiwiaGVhZF9yZWYiOiIiLCJiYXNlX3JlZiI6IiIsImV2ZW50X25hbWUiOiJwdXNoIiwicmVmX3R5cGUiOiJicmFuY2giLCJlbnZpcm9ubWVudCI6IlByb2R1Y3Rpb24iLCJqb2Jfd29ya2Zsb3dfcmVmIjoicGFwZXItc3BhL21pbnlpLy5naXRodWIvd29ya2Zsb3dzL2JsYW5rLnltbEByZWZzL2hlYWRzL21haW4iLCJpc3MiOiJodHRwczovL3Rva2VuLmFjdGlvbnMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwibmJmIjoxNjM5MDAwODU2LCJleHAiOjE2MzkwMDE3NTYsImlhdCI6MTYzOTAwMTQ1Nn0.VP8WictbQECKozE2SgvKb2FqJ9hisWsoMkYRTqfBrQfZTCXi5IcFEdgDMB2X7a99C2DeUuTvHh9RMKXLL2a0zg3-Sd7YrO7a2ll2kNlnvyIypcN6AeIc7BxHsTTnZN9Ud_xmEsTrSRGOEKmzCFkULQ6N4zlVD0sidypmXlMemmWEcv_ZHqhioEI_VMp5vwXQurketWH7qX4oDgG4okyYtPrv5RQHbfQcVo9izaPJ_jnsDd0CBA0QOx9InjPidtIkMYQLyUgJy33HLJy86EFNUnAf8UhBQuQi5mAsEpEzBBuKpG3PDiPtYCHOk64JZkZGd5mR888a5sbHRiaF8hm8YA\",\n            \"pages_build_version\": \"4fd754f7e594640989b406850d0bc8f06a121251\",\n            \"preview\": false\n          }\n        }\n      },\n      \"schema\": {\n        \"description\": \"The object used to create GitHub Pages deployment\",\n        \"properties\": {\n          \"artifact_url\": {\n            \"description\": \"The URL of an artifact that contains the .zip or .tar of static assets to deploy. The artifact belongs to the repository.\",\n            \"type\": \"string\"\n          },\n          \"environment\": {\n            \"default\": \"github-pages\",\n            \"description\": \"The target environment for this GitHub Pages deployment.\",\n            \"type\": \"string\"\n          },\n          \"oidc_token\": {\n            \"description\": \"The OIDC token issued by GitHub Actions certifying the origin of the deployment.\",\n            \"type\": \"string\"\n          },\n          \"pages_build_version\": {\n            \"default\": \"GITHUB_SHA\",\n            \"description\": \"A unique string that represents the version of the build for this deployment.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"artifact_url\",\n          \"pages_build_version\",\n          \"oidc_token\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

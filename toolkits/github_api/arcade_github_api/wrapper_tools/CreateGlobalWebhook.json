@@ -1,0 +1,315 @@
+{
+  "name": "CreateGlobalWebhook",
+  "fully_qualified_name": "GithubApi.CreateGlobalWebhook@0.1.0",
+  "description": "Create a global webhook in GitHub Enterprise Admin.\n\nUse this tool to create a global webhook for GitHub Enterprise. It should be called when you need to set up notifications for all repositories across the organization.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "payload_delivery_url",
+        "required": true,
+        "description": "The destination URL where the webhook payloads will be delivered. Ensure this URL is accessible and properly configured to handle incoming requests.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL to which the payloads will be delivered."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.url"
+      },
+      {
+        "name": "webhook_type",
+        "required": true,
+        "description": "Specifies the type of webhook. Must be set to \"web\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Must be passed as \"web\"."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "payload_content_type",
+        "required": false,
+        "description": "Specifies the media type for payload serialization. Options: 'json', 'form'. Default is 'form'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.content_type"
+      },
+      {
+        "name": "ssl_verification",
+        "required": false,
+        "description": "Set '0' to verify SSL certificate of the host for the URL; '1' to skip verification. Default is '0'. Avoid setting to '1' to prevent security risks.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.insecure_ssl"
+      },
+      {
+        "name": "hmac_key_for_signature",
+        "required": false,
+        "description": "The key for generating the HMAC hex digest in the X-Hub-Signature header. Optional.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value in the [`X-Hub-Signature`](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers) header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "config.secret"
+      },
+      {
+        "name": "trigger_events",
+        "required": false,
+        "description": "List of events that trigger the webhook. Default events are `user` and `organization`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The [events](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads) that trigger this webhook. A global webhook can be triggered by `user` and `organization` events. Default: `user` and `organization`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "events"
+      },
+      {
+        "name": "send_notifications",
+        "required": false,
+        "description": "Set to `true` to send notifications when the webhook is triggered.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines if notifications are sent when the webhook is triggered. Set to `true` to send notifications."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "active"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/create-global-webhook'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/admin/hooks",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "active",
+        "tool_parameter_name": "send_notifications",
+        "description": "Determines if notifications are sent when the webhook is triggered. Set to `true` to send notifications.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines if notifications are sent when the webhook is triggered. Set to `true` to send notifications."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": true,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.content_type",
+        "tool_parameter_name": "payload_content_type",
+        "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.insecure_ssl",
+        "tool_parameter_name": "ssl_verification",
+        "description": "Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.secret",
+        "tool_parameter_name": "hmac_key_for_signature",
+        "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value in the [`X-Hub-Signature`](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers) header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value in the [`X-Hub-Signature`](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers) header."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "config.url",
+        "tool_parameter_name": "payload_delivery_url",
+        "description": "The URL to which the payloads will be delivered.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL to which the payloads will be delivered."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "events",
+        "tool_parameter_name": "trigger_events",
+        "description": "The [events](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads) that trigger this webhook. A global webhook can be triggered by `user` and `organization` events. Default: `user` and `organization`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The [events](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads) that trigger this webhook. A global webhook can be triggered by `user` and `organization` events. Default: `user` and `organization`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "webhook_type",
+        "description": "Must be passed as \"web\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Must be passed as \"web\"."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"config\": {\n              \"content_type\": \"json\",\n              \"secret\": \"secret\",\n              \"url\": \"https://example.com/webhook\"\n            },\n            \"events\": [\n              \"organization\",\n              \"user\"\n            ],\n            \"name\": \"web\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"active\": {\n            \"default\": true,\n            \"description\": \"Determines if notifications are sent when the webhook is triggered. Set to `true` to send notifications.\",\n            \"type\": \"boolean\"\n          },\n          \"config\": {\n            \"description\": \"Key/value pairs to provide settings for this webhook.\",\n            \"properties\": {\n              \"content_type\": {\n                \"description\": \"The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`.\",\n                \"type\": \"string\"\n              },\n              \"insecure_ssl\": {\n                \"description\": \"Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**\",\n                \"type\": \"string\"\n              },\n              \"secret\": {\n                \"description\": \"If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value in the [`X-Hub-Signature`](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers) header.\",\n                \"type\": \"string\"\n              },\n              \"url\": {\n                \"description\": \"The URL to which the payloads will be delivered.\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"url\"\n            ],\n            \"type\": \"object\"\n          },\n          \"events\": {\n            \"description\": \"The [events](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads) that trigger this webhook. A global webhook can be triggered by `user` and `organization` events. Default: `user` and `organization`.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"name\": {\n            \"description\": \"Must be passed as \\\"web\\\".\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"config\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

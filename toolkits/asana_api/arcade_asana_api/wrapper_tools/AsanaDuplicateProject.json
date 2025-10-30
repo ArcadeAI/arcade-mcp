@@ -1,0 +1,373 @@
+{
+  "name": "AsanaDuplicateProject",
+  "fully_qualified_name": "AsanaApi.AsanaDuplicateProject@0.1.0",
+  "description": "Initiate duplication of a project in Asana.\n\nCreates and returns a job to handle the asynchronous duplication of a project in Asana. It requires 'projects:write' scope.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_global_id",
+        "required": true,
+        "description": "Globally unique identifier for the project to be duplicated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_gid"
+      },
+      {
+        "name": "include_optional_fields",
+        "required": false,
+        "description": "Comma-separated list of optional properties to include in the response, such as additional project details.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "new_project_name",
+        "required": false,
+        "description": "The name for the duplicated project in Asana.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the new project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.name"
+      },
+      {
+        "name": "new_project_team_id",
+        "required": false,
+        "description": "Globally unique identifier for the team to set for the new project. If not provided, the project will remain in the same team as the original.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the team of the new project. If team is not defined, the new project will be in the same team as the the original project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.team"
+      },
+      {
+        "name": "include_elements_in_project_duplication",
+        "required": false,
+        "description": "A comma-separated list of optional elements to include when duplicating a project. Some elements are auto-included and cannot be excluded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of elements to include when duplicating a project.\nSome elements are automatically included and cannot be excluded,\nwhile others are **optional** and must be explicitly specified in this field.\n\n**Auto-included fields (non-configurable)**\n- Tasks\n- [Project Views](https://asana.com/features/project-management/project-views)\n(i.e., tabs in a project such as List, Board, Dashboard, etc.)\n- [Rules](https://help.asana.com/s/article/rules)\n\n*Note: The Owner of the Rules copied to the new project is the user who performs the API call.\nIf the duplication is performed using a [Service Account](/docs/authentication#/service-account),\nnote that Service Accounts cannot access the UI to modify or pause Rules.\nTo prevent unwanted automation behavior, consider pausing Rules in the source project before duplication \u2014\ntheir active/paused state is preserved in the new project.*\n\n**Optional fields (configurable)**\n- allocations\n- forms\n- members\n- notes\n- permissions\n- task_assignee\n- task_attachments\n- task_dates\n- task_dependencies\n- task_followers\n- task_notes\n- task_projects\n- task_subtasks\n- task_tags\n- task_templates\n- task_type_default"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.include"
+      },
+      {
+        "name": "last_due_date_in_duplicated_project",
+        "required": false,
+        "description": "Sets the last due date in the duplicated project. The subsequent due dates will be offset similarly to the original project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the last due date in the duplicated project to the given date. The rest of the due dates will be offset by the same amount as the due dates in the original project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.schedule_dates.due_on"
+      },
+      {
+        "name": "start_date_for_first_task",
+        "required": false,
+        "description": "Sets the first start date in the duplicated project. Adjusts other start dates based on this.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the first start date in the duplicated project to the given date. The rest of the start dates will be offset by the same amount as the start dates in the original project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.schedule_dates.start_on"
+      },
+      {
+        "name": "pretty_output_enabled",
+        "required": false,
+        "description": "Enable pretty formatting for the response output. Useful for debugging but increases response size and time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      },
+      {
+        "name": "skip_weekends_in_schedule",
+        "required": false,
+        "description": "Set to true to skip weekends for auto-shifted dates in the duplicated project schedule. This is a required parameter.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Required**: Determines if the auto-shifted dates should skip weekends."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.schedule_dates.should_skip_weekends"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'duplicateProject'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "projects:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/projects/{project_gid}/duplicate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "pretty_output_enabled",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_fields",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_gid",
+        "tool_parameter_name": "project_global_id",
+        "description": "Globally unique identifier for the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the project."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.name",
+        "tool_parameter_name": "new_project_name",
+        "description": "The name of the new project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the new project."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.team",
+        "tool_parameter_name": "new_project_team_id",
+        "description": "Sets the team of the new project. If team is not defined, the new project will be in the same team as the the original project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the team of the new project. If team is not defined, the new project will be in the same team as the the original project."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.include",
+        "tool_parameter_name": "include_elements_in_project_duplication",
+        "description": "A comma-separated list of elements to include when duplicating a project.\nSome elements are automatically included and cannot be excluded,\nwhile others are **optional** and must be explicitly specified in this field.\n\n**Auto-included fields (non-configurable)**\n- Tasks\n- [Project Views](https://asana.com/features/project-management/project-views)\n(i.e., tabs in a project such as List, Board, Dashboard, etc.)\n- [Rules](https://help.asana.com/s/article/rules)\n\n*Note: The Owner of the Rules copied to the new project is the user who performs the API call.\nIf the duplication is performed using a [Service Account](/docs/authentication#/service-account),\nnote that Service Accounts cannot access the UI to modify or pause Rules.\nTo prevent unwanted automation behavior, consider pausing Rules in the source project before duplication \u2014\ntheir active/paused state is preserved in the new project.*\n\n**Optional fields (configurable)**\n- allocations\n- forms\n- members\n- notes\n- permissions\n- task_assignee\n- task_attachments\n- task_dates\n- task_dependencies\n- task_followers\n- task_notes\n- task_projects\n- task_subtasks\n- task_tags\n- task_templates\n- task_type_default",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of elements to include when duplicating a project.\nSome elements are automatically included and cannot be excluded,\nwhile others are **optional** and must be explicitly specified in this field.\n\n**Auto-included fields (non-configurable)**\n- Tasks\n- [Project Views](https://asana.com/features/project-management/project-views)\n(i.e., tabs in a project such as List, Board, Dashboard, etc.)\n- [Rules](https://help.asana.com/s/article/rules)\n\n*Note: The Owner of the Rules copied to the new project is the user who performs the API call.\nIf the duplication is performed using a [Service Account](/docs/authentication#/service-account),\nnote that Service Accounts cannot access the UI to modify or pause Rules.\nTo prevent unwanted automation behavior, consider pausing Rules in the source project before duplication \u2014\ntheir active/paused state is preserved in the new project.*\n\n**Optional fields (configurable)**\n- allocations\n- forms\n- members\n- notes\n- permissions\n- task_assignee\n- task_attachments\n- task_dates\n- task_dependencies\n- task_followers\n- task_notes\n- task_projects\n- task_subtasks\n- task_tags\n- task_templates\n- task_type_default"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.schedule_dates.should_skip_weekends",
+        "tool_parameter_name": "skip_weekends_in_schedule",
+        "description": "**Required**: Determines if the auto-shifted dates should skip weekends.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Required**: Determines if the auto-shifted dates should skip weekends."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.schedule_dates.due_on",
+        "tool_parameter_name": "last_due_date_in_duplicated_project",
+        "description": "Sets the last due date in the duplicated project to the given date. The rest of the due dates will be offset by the same amount as the due dates in the original project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the last due date in the duplicated project to the given date. The rest of the due dates will be offset by the same amount as the due dates in the original project."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.schedule_dates.start_on",
+        "tool_parameter_name": "start_date_for_first_task",
+        "description": "Sets the first start date in the duplicated project to the given date. The rest of the start dates will be offset by the same amount as the start dates in the original project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the first start date in the duplicated project to the given date. The rest of the start dates will be offset by the same amount as the start dates in the original project."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Describes the duplicate's name and the elements that will be duplicated.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"required\": [\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The name of the new project.\",\n                \"type\": \"string\",\n                \"example\": \"New Project Name\"\n              },\n              \"team\": {\n                \"description\": \"Sets the team of the new project. If team is not defined, the new project will be in the same team as the the original project.\",\n                \"type\": \"string\",\n                \"example\": \"12345\"\n              },\n              \"include\": {\n                \"description\": \"A comma-separated list of elements to include when duplicating a project.\\nSome elements are automatically included and cannot be excluded,\\nwhile others are **optional** and must be explicitly specified in this field.\\n\\n**Auto-included fields (non-configurable)**\\n- Tasks\\n- [Project Views](https://asana.com/features/project-management/project-views)\\n(i.e., tabs in a project such as List, Board, Dashboard, etc.)\\n- [Rules](https://help.asana.com/s/article/rules)\\n\\n*Note: The Owner of the Rules copied to the new project is the user who performs the API call.\\nIf the duplication is performed using a [Service Account](/docs/authentication#/service-account),\\nnote that Service Accounts cannot access the UI to modify or pause Rules.\\nTo prevent unwanted automation behavior, consider pausing Rules in the source project before duplication \\u2014\\ntheir active/paused state is preserved in the new project.*\\n\\n**Optional fields (configurable)**\\n- allocations\\n- forms\\n- members\\n- notes\\n- permissions\\n- task_assignee\\n- task_attachments\\n- task_dates\\n- task_dependencies\\n- task_followers\\n- task_notes\\n- task_projects\\n- task_subtasks\\n- task_tags\\n- task_templates\\n- task_type_default\",\n                \"type\": \"string\",\n                \"pattern\": \"([allocations|forms|members|notes|permissions|task_assignee|task_attachments|task_dates|task_dependencies|task_followers|task_notes|task_projects|task_subtasks|task_tags|task_templates|task_type_default])(,\\\\1)*\",\n                \"example\": [\n                  \"allocations,forms,members,notes,permissions,task_assignee,task_attachments,task_dates,task_dependencies,task_followers,task_notes,task_projects,task_subtasks,task_tags,task_templates,task_type_default\"\n                ]\n              },\n              \"schedule_dates\": {\n                \"description\": \"A dictionary of options to auto-shift dates. `task_dates` must be included to use this option. Requires `should_skip_weekends` and either `start_on` or `due_on`, but not both.\",\n                \"type\": \"object\",\n                \"properties\": {\n                  \"should_skip_weekends\": {\n                    \"description\": \"**Required**: Determines if the auto-shifted dates should skip weekends.\",\n                    \"type\": \"boolean\",\n                    \"example\": true\n                  },\n                  \"due_on\": {\n                    \"description\": \"Sets the last due date in the duplicated project to the given date. The rest of the due dates will be offset by the same amount as the due dates in the original project.\",\n                    \"type\": \"string\",\n                    \"example\": \"2019-05-21\"\n                  },\n                  \"start_on\": {\n                    \"description\": \"Sets the first start date in the duplicated project to the given date. The rest of the start dates will be offset by the same amount as the start dates in the original project.\",\n                    \"type\": \"string\",\n                    \"example\": \"2019-05-21\"\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

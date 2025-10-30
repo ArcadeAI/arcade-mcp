@@ -1,0 +1,442 @@
+{
+  "name": "CreateGoalMetric",
+  "fully_qualified_name": "AsanaApi.CreateGoalMetric@0.1.0",
+  "description": "Create and add a goal metric to a specific goal.\n\nUse this tool to create and add a metric to a specified goal in Asana. It replaces an existing goal metric if one already exists.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "goal_global_id",
+        "required": true,
+        "description": "Globally unique identifier for the goal to which the metric will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the goal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "goal_gid"
+      },
+      {
+        "name": "goal_metric_data",
+        "required": true,
+        "description": "The JSON data for creating a goal metric, containing details such as gid, resource type, and metric specifics.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "gid": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Globally unique identifier of the resource, as a string."
+                },
+                "resource_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The base type of this resource."
+                },
+                "resource_subtype": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "number"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The subtype of this resource. Different subtypes retain many of the same fields and behavior, but may render differently in Asana or represent resources with different semantic meaning."
+                },
+                "precision": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Conditional*. Only relevant for goal metrics of type `Number`. This field dictates the number of places after the decimal to round to, i.e. 0 is integer values, 1 rounds to the nearest tenth, and so on. Must be between 0 and 6, inclusive.\nFor percentage format, this may be unintuitive, as a value of 0.25 has a precision of 0, while a value of 0.251 has a precision of 1. This is due to 0.25 being displayed as 25%."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "currency",
+                    "percentage"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A supported unit of measure for the goal metric, or none."
+                },
+                "currency_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ISO 4217 currency code to format this custom field. This will be null if the `unit` is not `currency`."
+                },
+                "initial_number_value": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This number is the start value of a goal metric of type number."
+                },
+                "target_number_value": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This number is the end value of a goal metric of type number. This number cannot equal `initial_number_value`."
+                },
+                "current_number_value": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This number is the current value of a goal metric of type number."
+                },
+                "current_display_value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This string is the current value of a goal metric of type string."
+                },
+                "progress_source": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "manual",
+                    "subgoal_progress",
+                    "project_task_completion",
+                    "project_milestone_completion",
+                    "task_completion",
+                    "external"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This field defines how the progress value of a goal metric is being calculated. A goal's progress can be provided manually by the user, calculated automatically from contributing subgoals, projects, or tasks, or managed by an integration with an external data source, such as Salesforce."
+                },
+                "is_custom_weight": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Conditional*. Only relevant if `metric.progress_source` is one of `subgoal_progress`, `project_task_completion`, `project_milestone_completion`, or `task_completion`. If true, we use the supporting object's custom weight to calculate the goal's progress. If false, we treat all supporting objects as equally weighted"
+                }
+              },
+              "inner_properties": null,
+              "description": "A generic Asana Resource, containing a globally unique identifier."
+            }
+          },
+          "inner_properties": null,
+          "description": "The goal metric to create."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "Specify the optional properties to include in the response as a list of strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Set to true for formatted, human-readable output in JSON. Ideal for debugging. May increase response time and size.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createGoalMetric'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/goals/{goal_gid}/setMetric",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "goal_gid",
+        "tool_parameter_name": "goal_global_id",
+        "description": "Globally unique identifier for the goal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the goal."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "goal_metric_data",
+        "description": "The goal metric to create.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "gid": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Globally unique identifier of the resource, as a string."
+                },
+                "resource_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The base type of this resource."
+                },
+                "resource_subtype": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "number"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The subtype of this resource. Different subtypes retain many of the same fields and behavior, but may render differently in Asana or represent resources with different semantic meaning."
+                },
+                "precision": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Conditional*. Only relevant for goal metrics of type `Number`. This field dictates the number of places after the decimal to round to, i.e. 0 is integer values, 1 rounds to the nearest tenth, and so on. Must be between 0 and 6, inclusive.\nFor percentage format, this may be unintuitive, as a value of 0.25 has a precision of 0, while a value of 0.251 has a precision of 1. This is due to 0.25 being displayed as 25%."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "currency",
+                    "percentage"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A supported unit of measure for the goal metric, or none."
+                },
+                "currency_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ISO 4217 currency code to format this custom field. This will be null if the `unit` is not `currency`."
+                },
+                "initial_number_value": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This number is the start value of a goal metric of type number."
+                },
+                "target_number_value": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This number is the end value of a goal metric of type number. This number cannot equal `initial_number_value`."
+                },
+                "current_number_value": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This number is the current value of a goal metric of type number."
+                },
+                "current_display_value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This string is the current value of a goal metric of type string."
+                },
+                "progress_source": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "manual",
+                    "subgoal_progress",
+                    "project_task_completion",
+                    "project_milestone_completion",
+                    "task_completion",
+                    "external"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This field defines how the progress value of a goal metric is being calculated. A goal's progress can be provided manually by the user, calculated automatically from contributing subgoals, projects, or tasks, or managed by an integration with an external data source, such as Salesforce."
+                },
+                "is_custom_weight": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Conditional*. Only relevant if `metric.progress_source` is one of `subgoal_progress`, `project_task_completion`, `project_milestone_completion`, or `task_completion`. If true, we use the supporting object's custom weight to calculate the goal's progress. If false, we treat all supporting objects as equally weighted"
+                }
+              },
+              "inner_properties": null,
+              "description": "A generic Asana Resource, containing a globally unique identifier."
+            }
+          },
+          "inner_properties": null,
+          "description": "The goal metric to create."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The goal metric to create.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"A generic Asana Resource, containing a globally unique identifier.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"gid\": {\n                \"description\": \"Globally unique identifier of the resource, as a string.\",\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"example\": \"12345\",\n                \"x-insert-after\": false\n              },\n              \"resource_type\": {\n                \"description\": \"The base type of this resource.\",\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"example\": \"task\",\n                \"x-insert-after\": \"gid\"\n              },\n              \"resource_subtype\": {\n                \"description\": \"The subtype of this resource. Different subtypes retain many of the same fields and behavior, but may render differently in Asana or represent resources with different semantic meaning.\",\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"example\": \"number\",\n                \"enum\": [\n                  \"number\"\n                ]\n              },\n              \"precision\": {\n                \"description\": \"*Conditional*. Only relevant for goal metrics of type `Number`. This field dictates the number of places after the decimal to round to, i.e. 0 is integer values, 1 rounds to the nearest tenth, and so on. Must be between 0 and 6, inclusive.\\nFor percentage format, this may be unintuitive, as a value of 0.25 has a precision of 0, while a value of 0.251 has a precision of 1. This is due to 0.25 being displayed as 25%.\",\n                \"type\": \"integer\",\n                \"example\": 2\n              },\n              \"unit\": {\n                \"description\": \"A supported unit of measure for the goal metric, or none.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"none\",\n                  \"currency\",\n                  \"percentage\"\n                ]\n              },\n              \"currency_code\": {\n                \"description\": \"ISO 4217 currency code to format this custom field. This will be null if the `unit` is not `currency`.\",\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"example\": \"EUR\"\n              },\n              \"initial_number_value\": {\n                \"description\": \"This number is the start value of a goal metric of type number.\",\n                \"type\": \"number\",\n                \"example\": 5.2\n              },\n              \"target_number_value\": {\n                \"description\": \"This number is the end value of a goal metric of type number. This number cannot equal `initial_number_value`.\",\n                \"type\": \"number\",\n                \"example\": 10.2\n              },\n              \"current_number_value\": {\n                \"description\": \"This number is the current value of a goal metric of type number.\",\n                \"type\": \"number\",\n                \"example\": 8.12\n              },\n              \"current_display_value\": {\n                \"description\": \"This string is the current value of a goal metric of type string.\",\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"example\": \"8.12\"\n              },\n              \"progress_source\": {\n                \"description\": \"This field defines how the progress value of a goal metric is being calculated. A goal's progress can be provided manually by the user, calculated automatically from contributing subgoals, projects, or tasks, or managed by an integration with an external data source, such as Salesforce.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"manual\",\n                  \"subgoal_progress\",\n                  \"project_task_completion\",\n                  \"project_milestone_completion\",\n                  \"task_completion\",\n                  \"external\"\n                ],\n                \"example\": \"manual\"\n              },\n              \"is_custom_weight\": {\n                \"description\": \"*Conditional*. Only relevant if `metric.progress_source` is one of `subgoal_progress`, `project_task_completion`, `project_milestone_completion`, or `task_completion`. If true, we use the supporting object's custom weight to calculate the goal's progress. If false, we treat all supporting objects as equally weighted\",\n                \"type\": \"boolean\",\n                \"example\": false\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

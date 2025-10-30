@@ -1,0 +1,183 @@
+{
+  "name": "MoveProjectCard",
+  "fully_qualified_name": "GithubApi.MoveProjectCard@0.1.0",
+  "description": "Move a project card to a different position.\n\nUse this tool to move a card in a GitHub project to a different position within a column. This is helpful when reorganizing tasks or priorities in project management.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "card_identifier",
+        "required": true,
+        "description": "The unique identifier for the card to be moved within the project.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the card."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_id"
+      },
+      {
+        "name": "card_position",
+        "required": true,
+        "description": "Specify where to place the card within the column: 'top', 'bottom', or 'after:<card_id>'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the card in a column. Can be one of: `top`, `bottom`, or `after:<card_id>` to place after the specified card."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position"
+      },
+      {
+        "name": "destination_column_id",
+        "required": false,
+        "description": "The unique identifier of the column to which the card should be moved.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the column the card should be moved to"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "column_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'projects/move-card'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/projects/columns/cards/{card_id}/moves",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "card_id",
+        "tool_parameter_name": "card_identifier",
+        "description": "The unique identifier of the card.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the card."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "column_id",
+        "tool_parameter_name": "destination_column_id",
+        "description": "The unique identifier of the column the card should be moved to",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the column the card should be moved to"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "position",
+        "tool_parameter_name": "card_position",
+        "description": "The position of the card in a column. Can be one of: `top`, `bottom`, or `after:<card_id>` to place after the specified card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the card in a column. Can be one of: `top`, `bottom`, or `after:<card_id>` to place after the specified card."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"summary\": \"Move the card to the bottom of the column\",\n          \"value\": {\n            \"column_id\": 42,\n            \"position\": \"bottom\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"column_id\": {\n            \"description\": \"The unique identifier of the column the card should be moved to\",\n            \"example\": 42,\n            \"type\": \"integer\"\n          },\n          \"position\": {\n            \"description\": \"The position of the card in a column. Can be one of: `top`, `bottom`, or `after:<card_id>` to place after the specified card.\",\n            \"example\": \"bottom\",\n            \"pattern\": \"^(?:top|bottom|after:\\\\d+)$\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"position\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

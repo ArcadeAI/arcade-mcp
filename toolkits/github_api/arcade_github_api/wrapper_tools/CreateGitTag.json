@@ -1,0 +1,389 @@
+{
+  "name": "CreateGitTag",
+  "fully_qualified_name": "GithubApi.CreateGitTag@0.1.0",
+  "description": "Create a Git tag object on GitHub.\n\nUse this tool to create a Git tag object on GitHub. Note that this does not automatically create the reference to make a tag in the repository; an additional call is required to create the reference. The response includes a verification object with details on the commit's signature verification, providing insights into if and why a signature was verified, or any issues that occurred.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository. This value is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "tag_message",
+        "required": true,
+        "description": "The message or description for the tag, providing context or details about it.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tag message."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "message"
+      },
+      {
+        "name": "git_object_sha",
+        "required": true,
+        "description": "The SHA of the Git object to tag, typically a commit, tree, or blob.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The SHA of the git object this is tagging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "object"
+      },
+      {
+        "name": "tag_name",
+        "required": true,
+        "description": "The name of the tag, typically a version (e.g., 'v0.0.1').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tag's name. This is typically a version (e.g., \"v0.0.1\")."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag"
+      },
+      {
+        "name": "tag_object_type",
+        "required": true,
+        "description": "Specifies the type of the object being tagged. Acceptable values are 'commit', 'tree', or 'blob'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "commit",
+            "tree",
+            "blob"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the object we're tagging. Normally this is a `commit` but it can also be a `tree` or a `blob`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "tagging_date",
+        "required": false,
+        "description": "The date and time when the object was tagged, in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When this object was tagged. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tagger.date"
+      },
+      {
+        "name": "tagger_email",
+        "required": false,
+        "description": "The email address of the tag author. This should be in a valid email format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email of the author of the tag"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tagger.email"
+      },
+      {
+        "name": "author_of_tag_name",
+        "required": false,
+        "description": "The name of the author of the tag. It should be a string providing the full name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the author of the tag"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tagger.name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'git/create-tag'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/git/tags",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "message",
+        "tool_parameter_name": "tag_message",
+        "description": "The tag message.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tag message."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "object",
+        "tool_parameter_name": "git_object_sha",
+        "description": "The SHA of the git object this is tagging.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The SHA of the git object this is tagging."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag",
+        "tool_parameter_name": "tag_name",
+        "description": "The tag's name. This is typically a version (e.g., \"v0.0.1\").",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tag's name. This is typically a version (e.g., \"v0.0.1\")."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tagger.date",
+        "tool_parameter_name": "tagging_date",
+        "description": "When this object was tagged. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When this object was tagged. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tagger.email",
+        "tool_parameter_name": "tagger_email",
+        "description": "The email of the author of the tag",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email of the author of the tag"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tagger.name",
+        "tool_parameter_name": "author_of_tag_name",
+        "description": "The name of the author of the tag",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the author of the tag"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "tag_object_type",
+        "description": "The type of the object we're tagging. Normally this is a `commit` but it can also be a `tree` or a `blob`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "commit",
+            "tree",
+            "blob"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the object we're tagging. Normally this is a `commit` but it can also be a `tree` or a `blob`."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"message\": \"initial version\",\n            \"object\": \"c3d0be41ecbe669545ee3e94d31ed9a4bc91ee3c\",\n            \"tag\": \"v0.0.1\",\n            \"tagger\": {\n              \"date\": \"2011-06-17T14:53:35-07:00\",\n              \"email\": \"octocat@github.com\",\n              \"name\": \"Monalisa Octocat\"\n            },\n            \"type\": \"commit\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"message\": {\n            \"description\": \"The tag message.\",\n            \"type\": \"string\"\n          },\n          \"object\": {\n            \"description\": \"The SHA of the git object this is tagging.\",\n            \"type\": \"string\"\n          },\n          \"tag\": {\n            \"description\": \"The tag's name. This is typically a version (e.g., \\\"v0.0.1\\\").\",\n            \"type\": \"string\"\n          },\n          \"tagger\": {\n            \"description\": \"An object with information about the individual creating the tag.\",\n            \"properties\": {\n              \"date\": {\n                \"description\": \"When this object was tagged. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.\",\n                \"format\": \"date-time\",\n                \"type\": \"string\"\n              },\n              \"email\": {\n                \"description\": \"The email of the author of the tag\",\n                \"type\": \"string\"\n              },\n              \"name\": {\n                \"description\": \"The name of the author of the tag\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"name\",\n              \"email\"\n            ],\n            \"type\": \"object\"\n          },\n          \"type\": {\n            \"description\": \"The type of the object we're tagging. Normally this is a `commit` but it can also be a `tree` or a `blob`.\",\n            \"enum\": [\n              \"commit\",\n              \"tree\",\n              \"blob\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"tag\",\n          \"message\",\n          \"object\",\n          \"type\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

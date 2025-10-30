@@ -1,0 +1,150 @@
+{
+  "name": "SetGithubAnnouncement",
+  "fully_qualified_name": "GithubApi.SetGithubAnnouncement@0.1.0",
+  "description": "Set the announcement banner message and expiration in GitHub Enterprise.\n\nUse this tool to configure the global announcement banner message and expiration time in your GitHub Enterprise. This is useful for communicating important messages to all users in the enterprise.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "announcement_text_gfm",
+        "required": true,
+        "description": "The announcement text in GitHub Flavored Markdown. Use for global messages in GitHub Enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The announcement text in GitHub Flavored Markdown. For more information about GitHub Flavored Markdown, see \"[Basic writing and formatting syntax](https://docs.github.com/enterprise-server@3.8/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).\""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "announcement"
+      },
+      {
+        "name": "announcement_expiration_time",
+        "required": false,
+        "description": "Timestamp for when the announcement expires in ISO 8601 format. Use `null` or an empty string for no expiration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The time at which the announcement expires. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. To set an announcement that never expires, omit this parameter, set it to `null`, or set it to an empty string."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expires_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/set-announcement'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/enterprise/announcement",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "announcement",
+        "tool_parameter_name": "announcement_text_gfm",
+        "description": "The announcement text in GitHub Flavored Markdown. For more information about GitHub Flavored Markdown, see \"[Basic writing and formatting syntax](https://docs.github.com/enterprise-server@3.8/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).\"",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The announcement text in GitHub Flavored Markdown. For more information about GitHub Flavored Markdown, see \"[Basic writing and formatting syntax](https://docs.github.com/enterprise-server@3.8/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).\""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "expires_at",
+        "tool_parameter_name": "announcement_expiration_time",
+        "description": "The time at which the announcement expires. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. To set an announcement that never expires, omit this parameter, set it to `null`, or set it to an empty string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The time at which the announcement expires. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. To set an announcement that never expires, omit this parameter, set it to `null`, or set it to an empty string."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"announcement\": \"Very **important** announcement about _something_.\",\n            \"expires_at\": \"2021-01-01T00:00:00+00:00\"\n          }\n        }\n      },\n      \"schema\": {\n        \"description\": \"Enterprise global announcement\",\n        \"properties\": {\n          \"announcement\": {\n            \"description\": \"The announcement text in GitHub Flavored Markdown. For more information about GitHub Flavored Markdown, see \\\"[Basic writing and formatting syntax](https://docs.github.com/enterprise-server@3.8/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).\\\"\",\n            \"example\": \"Very **important** announcement about _something_.\",\n            \"nullable\": true,\n            \"type\": \"string\"\n          },\n          \"expires_at\": {\n            \"description\": \"The time at which the announcement expires. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. To set an announcement that never expires, omit this parameter, set it to `null`, or set it to an empty string.\",\n            \"example\": \"\\\"2021-01-01T00:00:00.000-07:00\\\"\",\n            \"format\": \"date-time\",\n            \"nullable\": true,\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"announcement\"\n        ],\n        \"title\": \"Enterprise Announcement\",\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

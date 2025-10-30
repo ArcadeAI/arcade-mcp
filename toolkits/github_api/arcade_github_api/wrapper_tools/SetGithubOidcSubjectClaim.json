@@ -1,0 +1,216 @@
+{
+  "name": "SetGithubOidcSubjectClaim",
+  "fully_qualified_name": "GithubApi.SetGithubOidcSubjectClaim@0.1.0",
+  "description": "Customize OIDC subject claim for a GitHub repository.\n\nThis tool is used to set the customization template and opt-in or opt-out flag for an OpenID Connect (OIDC) subject claim in a GitHub repository. It requires authentication with a token having `repo` scope or GitHub App permissions with `actions:write`.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. Not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository. This value is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "use_default_template",
+        "required": true,
+        "description": "Set to true to use the default template, which ignores `include_claim_keys`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to use the default template or not. If `true`, the `include_claim_keys` field is ignored."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "use_default"
+      },
+      {
+        "name": "claim_keys_to_include",
+        "required": false,
+        "description": "Array of unique strings for claim keys, containing only alphanumeric characters and underscores.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of unique strings. Each claim key can only contain alphanumeric characters and underscores."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_claim_keys"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'actions/set-custom-oidc-sub-claim-for-repo'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/actions/oidc/customization/sub",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_claim_keys",
+        "tool_parameter_name": "claim_keys_to_include",
+        "description": "Array of unique strings. Each claim key can only contain alphanumeric characters and underscores.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of unique strings. Each claim key can only contain alphanumeric characters and underscores."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "use_default",
+        "tool_parameter_name": "use_default_template",
+        "description": "Whether to use the default template or not. If `true`, the `include_claim_keys` field is ignored.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to use the default template or not. If `true`, the `include_claim_keys` field is ignored."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"include_claim_keys\": [\n              \"repo\",\n              \"context\"\n            ],\n            \"use_default\": false\n          }\n        }\n      },\n      \"schema\": {\n        \"description\": \"Actions OIDC subject customization for a repository\",\n        \"properties\": {\n          \"include_claim_keys\": {\n            \"description\": \"Array of unique strings. Each claim key can only contain alphanumeric characters and underscores.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"use_default\": {\n            \"description\": \"Whether to use the default template or not. If `true`, the `include_claim_keys` field is ignored.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"required\": [\n          \"use_default\"\n        ],\n        \"title\": \"Actions OIDC subject customization for a repository\",\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

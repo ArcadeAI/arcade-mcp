@@ -1,0 +1,249 @@
+{
+  "name": "MergeGithubBranch",
+  "fully_qualified_name": "GithubApi.MergeGithubBranch@0.1.0",
+  "description": "Merge a branch into a GitHub repository.\n\nUse this tool when you need to merge one branch into another in a GitHub repository. It facilitates branch management by integrating changes from different branches.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository, not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "base_branch_name",
+        "required": true,
+        "description": "The name of the base branch that the head will be merged into. This is the branch you want to merge changes into.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the base branch that the head will be merged into."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "base"
+      },
+      {
+        "name": "head_branch_or_commit_sha",
+        "required": true,
+        "description": "The branch name or commit SHA1 to be merged into the base branch.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The head to merge. This can be a branch name or a commit SHA1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "head"
+      },
+      {
+        "name": "merge_commit_message",
+        "required": false,
+        "description": "Custom commit message for the merge. Defaults to a standard message if not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Commit message to use for the merge commit. If omitted, a default message will be used."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "commit_message"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/merge'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/merges",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "base",
+        "tool_parameter_name": "base_branch_name",
+        "description": "The name of the base branch that the head will be merged into.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the base branch that the head will be merged into."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "commit_message",
+        "tool_parameter_name": "merge_commit_message",
+        "description": "Commit message to use for the merge commit. If omitted, a default message will be used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Commit message to use for the merge commit. If omitted, a default message will be used."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "head",
+        "tool_parameter_name": "head_branch_or_commit_sha",
+        "description": "The head to merge. This can be a branch name or a commit SHA1.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The head to merge. This can be a branch name or a commit SHA1."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"base\": \"master\",\n            \"commit_message\": \"Shipped cool_feature!\",\n            \"head\": \"cool_feature\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"base\": {\n            \"description\": \"The name of the base branch that the head will be merged into.\",\n            \"type\": \"string\"\n          },\n          \"commit_message\": {\n            \"description\": \"Commit message to use for the merge commit. If omitted, a default message will be used.\",\n            \"type\": \"string\"\n          },\n          \"head\": {\n            \"description\": \"The head to merge. This can be a branch name or a commit SHA1.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"base\",\n          \"head\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

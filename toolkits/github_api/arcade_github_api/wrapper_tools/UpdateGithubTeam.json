@@ -1,0 +1,329 @@
+{
+  "name": "UpdateGithubTeam",
+  "fully_qualified_name": "GithubApi.UpdateGithubTeam@0.1.0",
+  "description": "Update a team's details within a GitHub organization.\n\nThis tool allows modifying the details of a specific team within a GitHub organization. The authenticated user must be an organization owner or team maintainer to perform this action. It's intended for updating team information such as name or permissions.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The name of the organization. This is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "team_slug",
+        "required": true,
+        "description": "The slug of the team name, used to uniquely identify the team within the organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug of the team name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_slug"
+      },
+      {
+        "name": "team_description",
+        "required": false,
+        "description": "The description of the team. Provide a concise summary or details for team identification.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The description of the team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "team_name",
+        "required": false,
+        "description": "The new name for the GitHub team within the organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "parent_team_id",
+        "required": false,
+        "description": "The ID of the team to set as the parent team for nesting purposes.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a team to set as the parent team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parent_team_id"
+      },
+      {
+        "name": "team_repository_permission",
+        "required": false,
+        "description": "**Deprecated**. Specifies the default permission for newly added repositories. Options: 'pull', 'push', 'admin'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pull",
+            "push",
+            "admin"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated**. The permission that new repositories will be added to the team with when none is specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "permission"
+      },
+      {
+        "name": "team_privacy_level",
+        "required": false,
+        "description": "Specifies the team's privacy level. Options: 'secret' (visible only to owners and team members) or 'closed' (visible to all organization members). Parent teams cannot be 'secret'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "secret",
+            "closed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The level of privacy this team should have. Editing teams without specifying this parameter leaves `privacy` intact. When a team is nested, the `privacy` for parent teams cannot be `secret`. The options are:  \n**For a non-nested team:**  \n * `secret` - only visible to organization owners and members of this team.  \n * `closed` - visible to all members of this organization.  \n**For a parent or child team:**  \n * `closed` - visible to all members of this organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "privacy"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'teams/update-in-org'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}/teams/{team_slug}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The slug of the team name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug of the team name."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "team_description",
+        "description": "The description of the team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The description of the team."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "team_name",
+        "description": "The name of the team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the team."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "parent_team_id",
+        "tool_parameter_name": "parent_team_id",
+        "description": "The ID of a team to set as the parent team.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a team to set as the parent team."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "permission",
+        "tool_parameter_name": "team_repository_permission",
+        "description": "**Deprecated**. The permission that new repositories will be added to the team with when none is specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pull",
+            "push",
+            "admin"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated**. The permission that new repositories will be added to the team with when none is specified."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "pull",
+        "documentation_urls": []
+      },
+      {
+        "name": "privacy",
+        "tool_parameter_name": "team_privacy_level",
+        "description": "The level of privacy this team should have. Editing teams without specifying this parameter leaves `privacy` intact. When a team is nested, the `privacy` for parent teams cannot be `secret`. The options are:  \n**For a non-nested team:**  \n * `secret` - only visible to organization owners and members of this team.  \n * `closed` - visible to all members of this organization.  \n**For a parent or child team:**  \n * `closed` - visible to all members of this organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "secret",
+            "closed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The level of privacy this team should have. Editing teams without specifying this parameter leaves `privacy` intact. When a team is nested, the `privacy` for parent teams cannot be `secret`. The options are:  \n**For a non-nested team:**  \n * `secret` - only visible to organization owners and members of this team.  \n * `closed` - visible to all members of this organization.  \n**For a parent or child team:**  \n * `closed` - visible to all members of this organization."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"description\": \"new team description\",\n            \"name\": \"new team name\",\n            \"privacy\": \"closed\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"description\": {\n            \"description\": \"The description of the team.\",\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"The name of the team.\",\n            \"type\": \"string\"\n          },\n          \"parent_team_id\": {\n            \"description\": \"The ID of a team to set as the parent team.\",\n            \"nullable\": true,\n            \"type\": \"integer\"\n          },\n          \"permission\": {\n            \"default\": \"pull\",\n            \"description\": \"**Deprecated**. The permission that new repositories will be added to the team with when none is specified.\",\n            \"enum\": [\n              \"pull\",\n              \"push\",\n              \"admin\"\n            ],\n            \"type\": \"string\"\n          },\n          \"privacy\": {\n            \"description\": \"The level of privacy this team should have. Editing teams without specifying this parameter leaves `privacy` intact. When a team is nested, the `privacy` for parent teams cannot be `secret`. The options are:  \\n**For a non-nested team:**  \\n * `secret` - only visible to organization owners and members of this team.  \\n * `closed` - visible to all members of this organization.  \\n**For a parent or child team:**  \\n * `closed` - visible to all members of this organization.\",\n            \"enum\": [\n              \"secret\",\n              \"closed\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

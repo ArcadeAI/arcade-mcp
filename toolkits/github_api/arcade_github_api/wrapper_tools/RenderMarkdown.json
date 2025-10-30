@@ -1,0 +1,189 @@
+{
+  "name": "RenderMarkdown",
+  "fully_qualified_name": "GithubApi.RenderMarkdown@0.1.0",
+  "description": "Convert Markdown content to HTML rendering.\n\nUse this tool to convert Markdown text into HTML format, suitable for displaying on web pages or applications.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "markdown_text",
+        "required": true,
+        "description": "The Markdown text to convert into HTML format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Markdown text to render in HTML."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "text"
+      },
+      {
+        "name": "repository_context",
+        "required": false,
+        "description": "The repository context for linking references in `gfm` mode (e.g., 'octo-org/octo-repo').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The repository context to use when creating references in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo` will change the text `#42` into an HTML link to issue 42 in the `octo-org/octo-repo` repository."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "context"
+      },
+      {
+        "name": "rendering_mode",
+        "required": false,
+        "description": "Specifies the rendering mode: 'markdown' for plain Markdown or 'gfm' for GitHub Flavored Markdown.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "markdown",
+            "gfm"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The rendering mode."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mode"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'markdown/render'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/markdown",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "context",
+        "tool_parameter_name": "repository_context",
+        "description": "The repository context to use when creating references in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo` will change the text `#42` into an HTML link to issue 42 in the `octo-org/octo-repo` repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The repository context to use when creating references in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo` will change the text `#42` into an HTML link to issue 42 in the `octo-org/octo-repo` repository."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "mode",
+        "tool_parameter_name": "rendering_mode",
+        "description": "The rendering mode.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "markdown",
+            "gfm"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The rendering mode."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "markdown",
+        "documentation_urls": []
+      },
+      {
+        "name": "text",
+        "tool_parameter_name": "markdown_text",
+        "description": "The Markdown text to render in HTML.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Markdown text to render in HTML."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"summary\": \"Rendering markdown\",\n          \"value\": {\n            \"text\": \"Hello **world**\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"context\": {\n            \"description\": \"The repository context to use when creating references in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo` will change the text `#42` into an HTML link to issue 42 in the `octo-org/octo-repo` repository.\",\n            \"type\": \"string\"\n          },\n          \"mode\": {\n            \"default\": \"markdown\",\n            \"description\": \"The rendering mode.\",\n            \"enum\": [\n              \"markdown\",\n              \"gfm\"\n            ],\n            \"example\": \"markdown\",\n            \"type\": \"string\"\n          },\n          \"text\": {\n            \"description\": \"The Markdown text to render in HTML.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"text\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

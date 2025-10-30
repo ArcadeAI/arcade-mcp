@@ -1,0 +1,224 @@
+{
+  "name": "UpdateRepoActionsPermissions",
+  "fully_qualified_name": "GithubApi.UpdateRepoActionsPermissions@0.1.0",
+  "description": "Sets GitHub Actions permissions for a repository.\n\nUse this tool to set the GitHub Actions permissions policy for a specific repository. Ideal when you need to enable or restrict actions in a repository under certain conditions. Ensure to authenticate with a token having the `repo` scope or a GitHub App with `administration` permissions.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "enable_github_actions",
+        "required": true,
+        "description": "Boolean flag indicating if GitHub Actions should be enabled on the repository. `True` enables, `False` disables.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether GitHub Actions is enabled on the repository."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enabled"
+      },
+      {
+        "name": "actions_permission_policy",
+        "required": false,
+        "description": "Defines the policy for actions allowed to run: 'all', 'local_only', or 'selected'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "local_only",
+            "selected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The permissions policy that controls the actions that are allowed to run."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "allowed_actions"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'actions/set-github-actions-permissions-repository'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/actions/permissions",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "allowed_actions",
+        "tool_parameter_name": "actions_permission_policy",
+        "description": "The permissions policy that controls the actions that are allowed to run.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "local_only",
+            "selected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The permissions policy that controls the actions that are allowed to run."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "enabled",
+        "tool_parameter_name": "enable_github_actions",
+        "description": "Whether GitHub Actions is enabled on the repository.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether GitHub Actions is enabled on the repository."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"allowed_actions\": \"selected\",\n            \"enabled\": true\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"allowed_actions\": {\n            \"description\": \"The permissions policy that controls the actions that are allowed to run.\",\n            \"enum\": [\n              \"all\",\n              \"local_only\",\n              \"selected\"\n            ],\n            \"type\": \"string\"\n          },\n          \"enabled\": {\n            \"description\": \"Whether GitHub Actions is enabled on the repository.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"required\": [\n          \"enabled\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

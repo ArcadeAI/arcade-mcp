@@ -1,0 +1,274 @@
+{
+  "name": "UpdateTaskParentAsana",
+  "fully_qualified_name": "AsanaApi.UpdateTaskParentAsana@0.1.0",
+  "description": "Update the parent of an Asana task.\n\nThis tool updates the parent of a given task in Asana, allowing it to become a subtask of another task or to remove its existing parent. Utilize `insert_before` or `insert_after` to position subtasks appropriately, ensuring they are already part of the parent task. Requires 'tasks:write' scope.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_identifier",
+        "required": true,
+        "description": "The unique identifier of the task to operate on. It should be a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The task to operate on."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_gid"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "A list of optional task properties to include in the response. Use a list of property names.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "new_task_parent",
+        "required": false,
+        "description": "The new parent task ID for the task, or null to remove its current parent.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new parent of the task, or `null` for no parent."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.parent"
+      },
+      {
+        "name": "subtask_to_insert_after",
+        "required": false,
+        "description": "Specify the subtask ID to insert the task after, or use 'null' to insert at the beginning of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A subtask of the parent to insert the task after, or `null` to insert at the beginning of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_after"
+      },
+      {
+        "name": "subtask_to_insert_before",
+        "required": false,
+        "description": "Specify a subtask ID to insert the task before, or null to place at the end of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A subtask of the parent to insert the task before, or `null` to insert at the end of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_before"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Set this to true to receive formatted output with line breaks and indentation. This is useful for debugging but increases response size and time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'setParentForTask'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "tasks:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/tasks/{task_gid}/setParent",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_gid",
+        "tool_parameter_name": "task_identifier",
+        "description": "The task to operate on.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The task to operate on."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.parent",
+        "tool_parameter_name": "new_task_parent",
+        "description": "The new parent of the task, or `null` for no parent.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new parent of the task, or `null` for no parent."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_after",
+        "tool_parameter_name": "subtask_to_insert_after",
+        "description": "A subtask of the parent to insert the task after, or `null` to insert at the beginning of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A subtask of the parent to insert the task after, or `null` to insert at the beginning of the list."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_before",
+        "tool_parameter_name": "subtask_to_insert_before",
+        "description": "A subtask of the parent to insert the task before, or `null` to insert at the end of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A subtask of the parent to insert the task before, or `null` to insert at the end of the list."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The new parent of the subtask.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"parent\": {\n                \"description\": \"The new parent of the task, or `null` for no parent.\",\n                \"type\": \"string\",\n                \"example\": \"987654\"\n              },\n              \"insert_after\": {\n                \"description\": \"A subtask of the parent to insert the task after, or `null` to insert at the beginning of the list.\",\n                \"type\": \"string\",\n                \"example\": \"null\"\n              },\n              \"insert_before\": {\n                \"description\": \"A subtask of the parent to insert the task before, or `null` to insert at the end of the list.\",\n                \"type\": \"string\",\n                \"example\": \"124816\"\n              }\n            },\n            \"required\": [\n              \"parent\"\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

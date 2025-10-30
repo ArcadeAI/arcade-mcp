@@ -1,0 +1,414 @@
+{
+  "name": "UpdateOrCreateGithubFile",
+  "fully_qualified_name": "GithubApi.UpdateOrCreateGithubFile@0.1.0",
+  "description": "Create or update a file in a GitHub repository.\n\nThis tool creates a new file or updates an existing one in a GitHub repository. It requires authentication with an access token having the `workflow` scope. Avoid using this tool concurrently with file deletion to prevent conflicts.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the GitHub repository, not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "file_path_in_repository",
+        "required": true,
+        "description": "The file path within the repository where the file will be created or updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "path parameter"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "path"
+      },
+      {
+        "name": "file_update_details",
+        "required": true,
+        "description": "JSON object containing author, committer, content, message, branch, and sha details for file creation or update. Base64 encode file content.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "author": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "date": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted."
+                }
+              },
+              "inner_properties": null,
+              "description": "The author of the file. Default: The `committer` or the authenticated user if you omit `committer`."
+            },
+            "branch": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The branch name. Default: the repository\u2019s default branch (usually `master`)"
+            },
+            "committer": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "date": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted."
+                }
+              },
+              "inner_properties": null,
+              "description": "The person that committed the file. Default: the authenticated user."
+            },
+            "content": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The new file content, using Base64 encoding."
+            },
+            "message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The commit message."
+            },
+            "sha": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "**Required if you are updating a file**. The blob SHA of the file being replaced."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/create-or-update-file-contents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/contents/{path}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "path",
+        "tool_parameter_name": "file_path_in_repository",
+        "description": "path parameter",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "path parameter"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "file_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "author": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "date": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted."
+                }
+              },
+              "inner_properties": null,
+              "description": "The author of the file. Default: The `committer` or the authenticated user if you omit `committer`."
+            },
+            "branch": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The branch name. Default: the repository\u2019s default branch (usually `master`)"
+            },
+            "committer": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "date": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted."
+                }
+              },
+              "inner_properties": null,
+              "description": "The person that committed the file. Default: the authenticated user."
+            },
+            "content": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The new file content, using Base64 encoding."
+            },
+            "message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The commit message."
+            },
+            "sha": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "**Required if you are updating a file**. The blob SHA of the file being replaced."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"example-for-creating-a-file\": {\n          \"summary\": \"Example for creating a file\",\n          \"value\": {\n            \"committer\": {\n              \"email\": \"octocat@github.com\",\n              \"name\": \"Monalisa Octocat\"\n            },\n            \"content\": \"bXkgbmV3IGZpbGUgY29udGVudHM=\",\n            \"message\": \"my commit message\"\n          }\n        },\n        \"example-for-updating-a-file\": {\n          \"summary\": \"Example for updating a file\",\n          \"value\": {\n            \"committer\": {\n              \"email\": \"octocat@github.com\",\n              \"name\": \"Monalisa Octocat\"\n            },\n            \"content\": \"bXkgdXBkYXRlZCBmaWxlIGNvbnRlbnRz\",\n            \"message\": \"a new commit message\",\n            \"sha\": \"95b966ae1c166bd92f8ae7d1c313e738c731dfc3\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"author\": {\n            \"description\": \"The author of the file. Default: The `committer` or the authenticated user if you omit `committer`.\",\n            \"properties\": {\n              \"date\": {\n                \"example\": \"\\\"2013-01-15T17:13:22+05:00\\\"\",\n                \"type\": \"string\"\n              },\n              \"email\": {\n                \"description\": \"The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted.\",\n                \"type\": \"string\"\n              },\n              \"name\": {\n                \"description\": \"The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted.\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"name\",\n              \"email\"\n            ],\n            \"type\": \"object\"\n          },\n          \"branch\": {\n            \"description\": \"The branch name. Default: the repository\\u2019s default branch (usually `master`)\",\n            \"type\": \"string\"\n          },\n          \"committer\": {\n            \"description\": \"The person that committed the file. Default: the authenticated user.\",\n            \"properties\": {\n              \"date\": {\n                \"example\": \"\\\"2013-01-05T13:13:22+05:00\\\"\",\n                \"type\": \"string\"\n              },\n              \"email\": {\n                \"description\": \"The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted.\",\n                \"type\": \"string\"\n              },\n              \"name\": {\n                \"description\": \"The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted.\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"name\",\n              \"email\"\n            ],\n            \"type\": \"object\"\n          },\n          \"content\": {\n            \"description\": \"The new file content, using Base64 encoding.\",\n            \"type\": \"string\"\n          },\n          \"message\": {\n            \"description\": \"The commit message.\",\n            \"type\": \"string\"\n          },\n          \"sha\": {\n            \"description\": \"**Required if you are updating a file**. The blob SHA of the file being replaced.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"message\",\n          \"content\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

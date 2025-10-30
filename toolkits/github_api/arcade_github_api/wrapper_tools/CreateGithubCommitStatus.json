@@ -1,0 +1,325 @@
+{
+  "name": "CreateGithubCommitStatus",
+  "fully_qualified_name": "GithubApi.CreateGithubCommitStatus@0.1.0",
+  "description": "Create a commit status for a specific SHA on GitHub.\n\nUse this tool to set a commit status for a specific SHA in a GitHub repository if you have push access. Useful for marking build status, testing results, or other commit contexts. Be mindful of the 1000 status limit per SHA and context.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. Enter the owner's username (not case sensitive).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "commit_sha",
+        "required": true,
+        "description": "The SHA hash of the commit to set the status for. This uniquely identifies the commit in the repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sha"
+      },
+      {
+        "name": "status_state",
+        "required": true,
+        "description": "The state of the status for the commit. Possible values are 'error', 'failure', 'pending', or 'success'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "error",
+            "failure",
+            "pending",
+            "success"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of the status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "status_label",
+        "required": false,
+        "description": "A case-insensitive string label to differentiate this status from other systems.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A string label to differentiate this status from the status of other systems. This field is case-insensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "context"
+      },
+      {
+        "name": "status_description",
+        "required": false,
+        "description": "A short description of the commit status, providing context or details about the status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short description of the status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "commit_status_target_url",
+        "required": false,
+        "description": "The URL associated with the status for easy navigation in GitHub. Example: a deep link to CI build output.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The target URL to associate with this status. This URL will be linked from the GitHub UI to allow users to easily see the source of the status.  \nFor example, if your continuous integration system is posting build status, you would want to provide the deep link for the build output for this specific SHA:  \n`http://ci.example.com/user/repo/build/sha`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "target_url"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/create-commit-status'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/statuses/{sha}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sha",
+        "tool_parameter_name": "commit_sha",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "context",
+        "tool_parameter_name": "status_label",
+        "description": "A string label to differentiate this status from the status of other systems. This field is case-insensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A string label to differentiate this status from the status of other systems. This field is case-insensitive."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "default",
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "status_description",
+        "description": "A short description of the status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short description of the status."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "status_state",
+        "description": "The state of the status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "error",
+            "failure",
+            "pending",
+            "success"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of the status."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "target_url",
+        "tool_parameter_name": "commit_status_target_url",
+        "description": "The target URL to associate with this status. This URL will be linked from the GitHub UI to allow users to easily see the source of the status.  \nFor example, if your continuous integration system is posting build status, you would want to provide the deep link for the build output for this specific SHA:  \n`http://ci.example.com/user/repo/build/sha`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The target URL to associate with this status. This URL will be linked from the GitHub UI to allow users to easily see the source of the status.  \nFor example, if your continuous integration system is posting build status, you would want to provide the deep link for the build output for this specific SHA:  \n`http://ci.example.com/user/repo/build/sha`"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"context\": \"continuous-integration/jenkins\",\n            \"description\": \"The build succeeded!\",\n            \"state\": \"success\",\n            \"target_url\": \"https://example.com/build/status\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"context\": {\n            \"default\": \"default\",\n            \"description\": \"A string label to differentiate this status from the status of other systems. This field is case-insensitive.\",\n            \"type\": \"string\"\n          },\n          \"description\": {\n            \"description\": \"A short description of the status.\",\n            \"nullable\": true,\n            \"type\": \"string\"\n          },\n          \"state\": {\n            \"description\": \"The state of the status.\",\n            \"enum\": [\n              \"error\",\n              \"failure\",\n              \"pending\",\n              \"success\"\n            ],\n            \"type\": \"string\"\n          },\n          \"target_url\": {\n            \"description\": \"The target URL to associate with this status. This URL will be linked from the GitHub UI to allow users to easily see the source of the status.  \\nFor example, if your continuous integration system is posting build status, you would want to provide the deep link for the build output for this specific SHA:  \\n`http://ci.example.com/user/repo/build/sha`\",\n            \"nullable\": true,\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"state\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

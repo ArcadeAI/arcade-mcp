@@ -1,0 +1,315 @@
+{
+  "name": "CreateRepoFromTemplate",
+  "fully_qualified_name": "GithubApi.CreateRepoFromTemplate@0.1.0",
+  "description": "Create a new repository from a template.\n\nUse this tool to create a new GitHub repository using an existing repository template. Specify the template by providing the template owner's and repository's names. Ensure the template is accessible and the necessary OAuth scopes are authorized. This tool is useful when needing to quickly start a new project with predefined settings and structure.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "template_repository_owner",
+        "required": true,
+        "description": "Username or organization name that owns the template repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template_owner"
+      },
+      {
+        "name": "template_repository_name",
+        "required": true,
+        "description": "The name of the repository template to use for creating the new repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template_repo"
+      },
+      {
+        "name": "new_repository_name",
+        "required": true,
+        "description": "The name of the new repository to be created using the template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the new repository."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "repository_description",
+        "required": false,
+        "description": "A short description of the new GitHub repository to be created from the template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short description of the new repository."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "repository_owner",
+        "required": false,
+        "description": "The organization or user that will own the new repository. Must be a valid organization member if creating under an organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization or person who will own the new repository. To create a new repository in an organization, the authenticated user must be a member of the specified organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "include_all_branches_from_template",
+        "required": false,
+        "description": "Set to true to include files from all branches in the template repository, not just the default branch. Default: false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Set to `true` to include the directory structure and files from all branches in the template repository, and not just the default branch. Default: `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_all_branches"
+      },
+      {
+        "name": "create_private_repository",
+        "required": false,
+        "description": "Set to true to create a private repository, or false to create a public one.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Either `true` to create a new private repository or `false` to create a new public one."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "private"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/create-using-template'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{template_owner}/{template_repo}/generate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "template_owner",
+        "tool_parameter_name": "template_repository_owner",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "template_repo",
+        "tool_parameter_name": "template_repository_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "repository_description",
+        "description": "A short description of the new repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short description of the new repository."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_all_branches",
+        "tool_parameter_name": "include_all_branches_from_template",
+        "description": "Set to `true` to include the directory structure and files from all branches in the template repository, and not just the default branch. Default: `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Set to `true` to include the directory structure and files from all branches in the template repository, and not just the default branch. Default: `false`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "new_repository_name",
+        "description": "The name of the new repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the new repository."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The organization or person who will own the new repository. To create a new repository in an organization, the authenticated user must be a member of the specified organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization or person who will own the new repository. To create a new repository in an organization, the authenticated user must be a member of the specified organization."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "private",
+        "tool_parameter_name": "create_private_repository",
+        "description": "Either `true` to create a new private repository or `false` to create a new public one.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Either `true` to create a new private repository or `false` to create a new public one."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"description\": \"This is your first repository\",\n            \"include_all_branches\": false,\n            \"name\": \"Hello-World\",\n            \"owner\": \"octocat\",\n            \"private\": false\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"description\": {\n            \"description\": \"A short description of the new repository.\",\n            \"type\": \"string\"\n          },\n          \"include_all_branches\": {\n            \"default\": false,\n            \"description\": \"Set to `true` to include the directory structure and files from all branches in the template repository, and not just the default branch. Default: `false`.\",\n            \"type\": \"boolean\"\n          },\n          \"name\": {\n            \"description\": \"The name of the new repository.\",\n            \"type\": \"string\"\n          },\n          \"owner\": {\n            \"description\": \"The organization or person who will own the new repository. To create a new repository in an organization, the authenticated user must be a member of the specified organization.\",\n            \"type\": \"string\"\n          },\n          \"private\": {\n            \"default\": false,\n            \"description\": \"Either `true` to create a new private repository or `false` to create a new public one.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

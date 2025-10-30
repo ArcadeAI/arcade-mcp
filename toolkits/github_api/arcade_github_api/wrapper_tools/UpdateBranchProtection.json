@@ -1,0 +1,726 @@
+{
+  "name": "UpdateBranchProtection",
+  "fully_qualified_name": "GithubApi.UpdateBranchProtection@0.1.0",
+  "description": "Update GitHub repository branch protection settings.\n\nUse this tool to update the protection settings of a branch in a GitHub repository. It requires admin or owner permissions. Note that specifying new arrays for users and teams will replace their previous values, and there is a limit of 100 items for users, apps, and teams combined.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository on GitHub. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository, which is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "branch_name",
+        "required": true,
+        "description": "The name of the branch to update protection settings for. It cannot contain wildcard characters. For wildcard support, use the GraphQL API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch. Cannot contain wildcard characters. To use wildcard characters in branch names, use [the GraphQL API](https://docs.github.com/enterprise-server@3.8/graphql)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "branch"
+      },
+      {
+        "name": "branch_protection_settings",
+        "required": true,
+        "description": "JSON object specifying the branch protection options, such as allowing deletions and force pushes, requiring code reviews, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "allow_deletions": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Allows deletion of the protected branch by anyone with write access to the repository. Set to `false` to prevent deletion of the protected branch. Default: `false`. For more information, see \"[Enabling force pushes to a protected branch](https://docs.github.com/enterprise-server@3.8/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)\" in the GitHub Help documentation."
+            },
+            "allow_force_pushes": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Permits force pushes to the protected branch by anyone with write access to the repository. Set to `true` to allow force pushes. Set to `false` or `null` to block force pushes. Default: `false`. For more information, see \"[Enabling force pushes to a protected branch](https://docs.github.com/enterprise-server@3.8/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)\" in the GitHub Help documentation.\""
+            },
+            "allow_fork_syncing": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether users can pull changes from upstream when the branch is locked. Set to `true` to allow fork syncing. Set to `false` to prevent fork syncing. Default: `false`."
+            },
+            "block_creations": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set to `true`, the `restrictions` branch protection settings which limits who can push will also block pushes which create new branches, unless the push is initiated by a user, team, or app which has the ability to push. Set to `true` to restrict new branch creation. Default: `false`."
+            },
+            "enforce_admins": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enforce all configured restrictions for administrators. Set to `true` to enforce required status checks for repository administrators. Set to `null` to disable."
+            },
+            "lock_branch": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to set the branch as read-only. If this is true, users will not be able to push to the branch. Default: `false`."
+            },
+            "required_conversation_resolution": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Requires all conversations on code to be resolved before a pull request can be merged into a branch that matches this rule. Set to `false` to disable. Default: `false`."
+            },
+            "required_linear_history": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enforces a linear commit Git history, which prevents anyone from pushing merge commits to a branch. Set to `true` to enforce a linear commit history. Set to `false` to disable a linear commit Git history. Your repository must allow squash merging or rebase merging before you can enable a linear commit history. Default: `false`. For more information, see \"[Requiring a linear commit history](https://docs.github.com/enterprise-server@3.8/github/administering-a-repository/requiring-a-linear-commit-history)\" in the GitHub Help documentation."
+            },
+            "required_pull_request_reviews": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "bypass_pull_request_allowances": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "apps": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of app `slug`s allowed to bypass pull request requirements."
+                    },
+                    "teams": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of team `slug`s allowed to bypass pull request requirements."
+                    },
+                    "users": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of user `login`s allowed to bypass pull request requirements."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Allow specific users, teams, or apps to bypass pull request requirements."
+                },
+                "dismiss_stale_reviews": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set to `true` if you want to automatically dismiss approving reviews when someone pushes a new commit."
+                },
+                "dismissal_restrictions": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "apps": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of app `slug`s with dismissal access"
+                    },
+                    "teams": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of team `slug`s with dismissal access"
+                    },
+                    "users": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of user `login`s with dismissal access"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Specify which users, teams, and apps can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories."
+                },
+                "require_code_owner_reviews": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Blocks merging pull requests until [code owners](https://docs.github.com/enterprise-server@3.8/articles/about-code-owners/) review them."
+                },
+                "require_last_push_approval": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the most recent push must be approved by someone other than the person who pushed it. Default: `false`."
+                },
+                "required_approving_review_count": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify the number of reviewers required to approve pull requests. Use a number between 1 and 6 or 0 to not require reviewers."
+                }
+              },
+              "inner_properties": null,
+              "description": "Require at least one approving review on a pull request, before merging. Set to `null` to disable."
+            },
+            "required_status_checks": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "checks": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "app_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the GitHub App that must provide this check. Omit this field to automatically select the GitHub App that has recently provided this check, or any app if it was not set by a GitHub App. Pass -1 to explicitly allow any app to set the status."
+                    },
+                    "context": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the required check"
+                    }
+                  },
+                  "description": "The list of status checks to require in order to merge into this branch."
+                },
+                "contexts": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "**Deprecated**: The list of status checks to require in order to merge into this branch. If any of these checks have recently been set by a particular GitHub App, they will be required to come from that app in future for the branch to merge. Use `checks` instead of `contexts` for more fine-grained control.\n"
+                },
+                "strict": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Require branches to be up to date before merging."
+                }
+              },
+              "inner_properties": null,
+              "description": "Require status checks to pass before merging. Set to `null` to disable."
+            },
+            "restrictions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "apps": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of app `slug`s with push access"
+                },
+                "teams": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of team `slug`s with push access"
+                },
+                "users": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of user `login`s with push access"
+                }
+              },
+              "inner_properties": null,
+              "description": "Restrict who can push to the protected branch. User, app, and team `restrictions` are only available for organization-owned repositories. Set to `null` to disable."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/update-branch-protection'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/branches/{branch}/protection",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "branch",
+        "tool_parameter_name": "branch_name",
+        "description": "The name of the branch. Cannot contain wildcard characters. To use wildcard characters in branch names, use [the GraphQL API](https://docs.github.com/enterprise-server@3.8/graphql).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch. Cannot contain wildcard characters. To use wildcard characters in branch names, use [the GraphQL API](https://docs.github.com/enterprise-server@3.8/graphql)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "branch_protection_settings",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "allow_deletions": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Allows deletion of the protected branch by anyone with write access to the repository. Set to `false` to prevent deletion of the protected branch. Default: `false`. For more information, see \"[Enabling force pushes to a protected branch](https://docs.github.com/enterprise-server@3.8/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)\" in the GitHub Help documentation."
+            },
+            "allow_force_pushes": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Permits force pushes to the protected branch by anyone with write access to the repository. Set to `true` to allow force pushes. Set to `false` or `null` to block force pushes. Default: `false`. For more information, see \"[Enabling force pushes to a protected branch](https://docs.github.com/enterprise-server@3.8/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)\" in the GitHub Help documentation.\""
+            },
+            "allow_fork_syncing": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether users can pull changes from upstream when the branch is locked. Set to `true` to allow fork syncing. Set to `false` to prevent fork syncing. Default: `false`."
+            },
+            "block_creations": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If set to `true`, the `restrictions` branch protection settings which limits who can push will also block pushes which create new branches, unless the push is initiated by a user, team, or app which has the ability to push. Set to `true` to restrict new branch creation. Default: `false`."
+            },
+            "enforce_admins": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enforce all configured restrictions for administrators. Set to `true` to enforce required status checks for repository administrators. Set to `null` to disable."
+            },
+            "lock_branch": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to set the branch as read-only. If this is true, users will not be able to push to the branch. Default: `false`."
+            },
+            "required_conversation_resolution": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Requires all conversations on code to be resolved before a pull request can be merged into a branch that matches this rule. Set to `false` to disable. Default: `false`."
+            },
+            "required_linear_history": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enforces a linear commit Git history, which prevents anyone from pushing merge commits to a branch. Set to `true` to enforce a linear commit history. Set to `false` to disable a linear commit Git history. Your repository must allow squash merging or rebase merging before you can enable a linear commit history. Default: `false`. For more information, see \"[Requiring a linear commit history](https://docs.github.com/enterprise-server@3.8/github/administering-a-repository/requiring-a-linear-commit-history)\" in the GitHub Help documentation."
+            },
+            "required_pull_request_reviews": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "bypass_pull_request_allowances": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "apps": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of app `slug`s allowed to bypass pull request requirements."
+                    },
+                    "teams": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of team `slug`s allowed to bypass pull request requirements."
+                    },
+                    "users": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of user `login`s allowed to bypass pull request requirements."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Allow specific users, teams, or apps to bypass pull request requirements."
+                },
+                "dismiss_stale_reviews": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set to `true` if you want to automatically dismiss approving reviews when someone pushes a new commit."
+                },
+                "dismissal_restrictions": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "apps": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of app `slug`s with dismissal access"
+                    },
+                    "teams": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of team `slug`s with dismissal access"
+                    },
+                    "users": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of user `login`s with dismissal access"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Specify which users, teams, and apps can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories."
+                },
+                "require_code_owner_reviews": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Blocks merging pull requests until [code owners](https://docs.github.com/enterprise-server@3.8/articles/about-code-owners/) review them."
+                },
+                "require_last_push_approval": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the most recent push must be approved by someone other than the person who pushed it. Default: `false`."
+                },
+                "required_approving_review_count": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify the number of reviewers required to approve pull requests. Use a number between 1 and 6 or 0 to not require reviewers."
+                }
+              },
+              "inner_properties": null,
+              "description": "Require at least one approving review on a pull request, before merging. Set to `null` to disable."
+            },
+            "required_status_checks": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "checks": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "app_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the GitHub App that must provide this check. Omit this field to automatically select the GitHub App that has recently provided this check, or any app if it was not set by a GitHub App. Pass -1 to explicitly allow any app to set the status."
+                    },
+                    "context": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the required check"
+                    }
+                  },
+                  "description": "The list of status checks to require in order to merge into this branch."
+                },
+                "contexts": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "**Deprecated**: The list of status checks to require in order to merge into this branch. If any of these checks have recently been set by a particular GitHub App, they will be required to come from that app in future for the branch to merge. Use `checks` instead of `contexts` for more fine-grained control.\n"
+                },
+                "strict": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Require branches to be up to date before merging."
+                }
+              },
+              "inner_properties": null,
+              "description": "Require status checks to pass before merging. Set to `null` to disable."
+            },
+            "restrictions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "apps": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of app `slug`s with push access"
+                },
+                "teams": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of team `slug`s with push access"
+                },
+                "users": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of user `login`s with push access"
+                }
+              },
+              "inner_properties": null,
+              "description": "Restrict who can push to the protected branch. User, app, and team `restrictions` are only available for organization-owned repositories. Set to `null` to disable."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"allow_deletions\": true,\n            \"allow_force_pushes\": true,\n            \"allow_fork_syncing\": true,\n            \"block_creations\": true,\n            \"enforce_admins\": true,\n            \"lock_branch\": true,\n            \"required_conversation_resolution\": true,\n            \"required_linear_history\": true,\n            \"required_pull_request_reviews\": {\n              \"bypass_pull_request_allowances\": {\n                \"teams\": [\n                  \"justice-league\"\n                ],\n                \"users\": [\n                  \"octocat\"\n                ]\n              },\n              \"dismiss_stale_reviews\": true,\n              \"dismissal_restrictions\": {\n                \"teams\": [\n                  \"justice-league\"\n                ],\n                \"users\": [\n                  \"octocat\"\n                ]\n              },\n              \"require_code_owner_reviews\": true,\n              \"require_last_push_approval\": true,\n              \"required_approving_review_count\": 2\n            },\n            \"required_status_checks\": {\n              \"contexts\": [\n                \"continuous-integration/travis-ci\"\n              ],\n              \"strict\": true\n            },\n            \"restrictions\": {\n              \"apps\": [\n                \"super-ci\"\n              ],\n              \"teams\": [\n                \"justice-league\"\n              ],\n              \"users\": [\n                \"octocat\"\n              ]\n            }\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"allow_deletions\": {\n            \"description\": \"Allows deletion of the protected branch by anyone with write access to the repository. Set to `false` to prevent deletion of the protected branch. Default: `false`. For more information, see \\\"[Enabling force pushes to a protected branch](https://docs.github.com/enterprise-server@3.8/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)\\\" in the GitHub Help documentation.\",\n            \"type\": \"boolean\"\n          },\n          \"allow_force_pushes\": {\n            \"description\": \"Permits force pushes to the protected branch by anyone with write access to the repository. Set to `true` to allow force pushes. Set to `false` or `null` to block force pushes. Default: `false`. For more information, see \\\"[Enabling force pushes to a protected branch](https://docs.github.com/enterprise-server@3.8/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)\\\" in the GitHub Help documentation.\\\"\",\n            \"nullable\": true,\n            \"type\": \"boolean\"\n          },\n          \"allow_fork_syncing\": {\n            \"default\": false,\n            \"description\": \"Whether users can pull changes from upstream when the branch is locked. Set to `true` to allow fork syncing. Set to `false` to prevent fork syncing. Default: `false`.\",\n            \"type\": \"boolean\"\n          },\n          \"block_creations\": {\n            \"description\": \"If set to `true`, the `restrictions` branch protection settings which limits who can push will also block pushes which create new branches, unless the push is initiated by a user, team, or app which has the ability to push. Set to `true` to restrict new branch creation. Default: `false`.\",\n            \"type\": \"boolean\"\n          },\n          \"enforce_admins\": {\n            \"description\": \"Enforce all configured restrictions for administrators. Set to `true` to enforce required status checks for repository administrators. Set to `null` to disable.\",\n            \"nullable\": true,\n            \"type\": \"boolean\"\n          },\n          \"lock_branch\": {\n            \"default\": false,\n            \"description\": \"Whether to set the branch as read-only. If this is true, users will not be able to push to the branch. Default: `false`.\",\n            \"type\": \"boolean\"\n          },\n          \"required_conversation_resolution\": {\n            \"description\": \"Requires all conversations on code to be resolved before a pull request can be merged into a branch that matches this rule. Set to `false` to disable. Default: `false`.\",\n            \"type\": \"boolean\"\n          },\n          \"required_linear_history\": {\n            \"description\": \"Enforces a linear commit Git history, which prevents anyone from pushing merge commits to a branch. Set to `true` to enforce a linear commit history. Set to `false` to disable a linear commit Git history. Your repository must allow squash merging or rebase merging before you can enable a linear commit history. Default: `false`. For more information, see \\\"[Requiring a linear commit history](https://docs.github.com/enterprise-server@3.8/github/administering-a-repository/requiring-a-linear-commit-history)\\\" in the GitHub Help documentation.\",\n            \"type\": \"boolean\"\n          },\n          \"required_pull_request_reviews\": {\n            \"description\": \"Require at least one approving review on a pull request, before merging. Set to `null` to disable.\",\n            \"nullable\": true,\n            \"properties\": {\n              \"bypass_pull_request_allowances\": {\n                \"description\": \"Allow specific users, teams, or apps to bypass pull request requirements.\",\n                \"properties\": {\n                  \"apps\": {\n                    \"description\": \"The list of app `slug`s allowed to bypass pull request requirements.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"teams\": {\n                    \"description\": \"The list of team `slug`s allowed to bypass pull request requirements.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"users\": {\n                    \"description\": \"The list of user `login`s allowed to bypass pull request requirements.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"dismiss_stale_reviews\": {\n                \"description\": \"Set to `true` if you want to automatically dismiss approving reviews when someone pushes a new commit.\",\n                \"type\": \"boolean\"\n              },\n              \"dismissal_restrictions\": {\n                \"description\": \"Specify which users, teams, and apps can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories.\",\n                \"properties\": {\n                  \"apps\": {\n                    \"description\": \"The list of app `slug`s with dismissal access\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"teams\": {\n                    \"description\": \"The list of team `slug`s with dismissal access\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"users\": {\n                    \"description\": \"The list of user `login`s with dismissal access\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"require_code_owner_reviews\": {\n                \"description\": \"Blocks merging pull requests until [code owners](https://docs.github.com/enterprise-server@3.8/articles/about-code-owners/) review them.\",\n                \"type\": \"boolean\"\n              },\n              \"require_last_push_approval\": {\n                \"default\": false,\n                \"description\": \"Whether the most recent push must be approved by someone other than the person who pushed it. Default: `false`.\",\n                \"type\": \"boolean\"\n              },\n              \"required_approving_review_count\": {\n                \"description\": \"Specify the number of reviewers required to approve pull requests. Use a number between 1 and 6 or 0 to not require reviewers.\",\n                \"type\": \"integer\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"required_status_checks\": {\n            \"description\": \"Require status checks to pass before merging. Set to `null` to disable.\",\n            \"nullable\": true,\n            \"properties\": {\n              \"checks\": {\n                \"description\": \"The list of status checks to require in order to merge into this branch.\",\n                \"items\": {\n                  \"properties\": {\n                    \"app_id\": {\n                      \"description\": \"The ID of the GitHub App that must provide this check. Omit this field to automatically select the GitHub App that has recently provided this check, or any app if it was not set by a GitHub App. Pass -1 to explicitly allow any app to set the status.\",\n                      \"type\": \"integer\"\n                    },\n                    \"context\": {\n                      \"description\": \"The name of the required check\",\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"context\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"type\": \"array\"\n              },\n              \"contexts\": {\n                \"deprecated\": true,\n                \"description\": \"**Deprecated**: The list of status checks to require in order to merge into this branch. If any of these checks have recently been set by a particular GitHub App, they will be required to come from that app in future for the branch to merge. Use `checks` instead of `contexts` for more fine-grained control.\\n\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              },\n              \"strict\": {\n                \"description\": \"Require branches to be up to date before merging.\",\n                \"type\": \"boolean\"\n              }\n            },\n            \"required\": [\n              \"strict\",\n              \"contexts\"\n            ],\n            \"type\": \"object\"\n          },\n          \"restrictions\": {\n            \"description\": \"Restrict who can push to the protected branch. User, app, and team `restrictions` are only available for organization-owned repositories. Set to `null` to disable.\",\n            \"nullable\": true,\n            \"properties\": {\n              \"apps\": {\n                \"description\": \"The list of app `slug`s with push access\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              },\n              \"teams\": {\n                \"description\": \"The list of team `slug`s with push access\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              },\n              \"users\": {\n                \"description\": \"The list of user `login`s with push access\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              }\n            },\n            \"required\": [\n              \"users\",\n              \"teams\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"required_status_checks\",\n          \"enforce_admins\",\n          \"required_pull_request_reviews\",\n          \"restrictions\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

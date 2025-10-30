@@ -1,0 +1,340 @@
+{
+  "name": "UpdateEnumOption",
+  "fully_qualified_name": "AsanaApi.UpdateEnumOption@0.1.0",
+  "description": "Update an existing enum option in Asana custom fields.\n\nThis tool is used to update an existing enum option in Asana custom fields. It's necessary to have the 'custom_fields:write' scope. Locked custom fields can only be updated by the user who locked them.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enum_option_gid",
+        "required": true,
+        "description": "The globally unique identifier for the enum option to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the enum option."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enum_option_gid"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "Provide a list of properties to include in the response, beyond the default set.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "resource_gid",
+        "required": false,
+        "description": "Globally unique identifier for the resource as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier of the resource, as a string."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.gid"
+      },
+      {
+        "name": "resource_type",
+        "required": false,
+        "description": "The base type of the resource, specified as a string. This is necessary for updating the enum option.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The base type of this resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.resource_type"
+      },
+      {
+        "name": "enum_option_name",
+        "required": false,
+        "description": "The name of the enum option to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the enum option."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.name"
+      },
+      {
+        "name": "enum_option_color",
+        "required": false,
+        "description": "The color of the enum option. Defaults to 'none' if not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The color of the enum option. Defaults to `none`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.color"
+      },
+      {
+        "name": "pretty_output",
+        "required": false,
+        "description": "Set to true to receive the response in a pretty-printed format. Increases response time and size, useful for debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      },
+      {
+        "name": "enum_option_enabled",
+        "required": false,
+        "description": "Indicates if the enum option is selectable for the custom field. Provide 'true' to make it selectable, 'false' otherwise.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not the enum option is a selectable value for the custom field."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateEnumOption'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "custom_fields:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/enum_options/{enum_option_gid}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "enum_option_gid",
+        "tool_parameter_name": "enum_option_gid",
+        "description": "Globally unique identifier for the enum option.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the enum option."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.gid",
+        "tool_parameter_name": "resource_gid",
+        "description": "Globally unique identifier of the resource, as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier of the resource, as a string."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.resource_type",
+        "tool_parameter_name": "resource_type",
+        "description": "The base type of this resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The base type of this resource."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.name",
+        "tool_parameter_name": "enum_option_name",
+        "description": "The name of the enum option.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the enum option."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.enabled",
+        "tool_parameter_name": "enum_option_enabled",
+        "description": "Whether or not the enum option is a selectable value for the custom field.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not the enum option is a selectable value for the custom field."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.color",
+        "tool_parameter_name": "enum_option_color",
+        "description": "The color of the enum option. Defaults to `none`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The color of the enum option. Defaults to `none`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The enum option object to update\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Enum options are the possible values which an enum custom field can adopt. An enum custom field must contain at least 1 enum option but no more than 500.\\n\\nYou can add enum options to a custom field by using the `POST /custom_fields/custom_field_gid/enum_options` endpoint.\\n\\n**It is not possible to remove or delete an enum option**. Instead, enum options can be disabled by updating the `enabled` field to false with the `PUT /enum_options/enum_option_gid` endpoint. Other attributes can be updated similarly.\\n\\nOn creation of an enum option, `enabled` is always set to `true`, meaning the enum option is a selectable value for the custom field. Setting `enabled=false` is equivalent to \\u201ctrashing\\u201d the enum option in the Asana web app within the \\u201cEdit Fields\\u201d dialog. The enum option will no longer be selectable but, if the enum option value was previously set within a task, the task will retain the value.\\n\\nEnum options are an ordered list and by default new enum options are inserted at the end. Ordering in relation to existing enum options can be specified on creation by using `insert_before` or `insert_after` to reference an existing enum option. Only one of `insert_before` and `insert_after` can be provided when creating a new enum option.\\n\\nAn enum options list can be reordered with the `POST /custom_fields/custom_field_gid/enum_options/insert` endpoint.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"gid\": {\n                \"description\": \"Globally unique identifier of the resource, as a string.\",\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"example\": \"12345\",\n                \"x-insert-after\": false\n              },\n              \"resource_type\": {\n                \"description\": \"The base type of this resource.\",\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"example\": \"enum_option\",\n                \"x-insert-after\": \"gid\"\n              },\n              \"name\": {\n                \"description\": \"The name of the enum option.\",\n                \"type\": \"string\",\n                \"example\": \"Low\"\n              },\n              \"enabled\": {\n                \"description\": \"Whether or not the enum option is a selectable value for the custom field.\",\n                \"type\": \"boolean\",\n                \"example\": true\n              },\n              \"color\": {\n                \"description\": \"The color of the enum option. Defaults to `none`.\",\n                \"type\": \"string\",\n                \"example\": \"blue\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

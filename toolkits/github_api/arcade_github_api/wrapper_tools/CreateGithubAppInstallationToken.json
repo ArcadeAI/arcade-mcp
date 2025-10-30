@@ -1,0 +1,906 @@
+{
+  "name": "CreateGithubAppInstallationToken",
+  "fully_qualified_name": "GithubApi.CreateGithubAppInstallationToken@0.1.0",
+  "description": "Create an installation access token for a GitHub App.\n\nUse this tool to generate an installation access token for a GitHub App, allowing it to make authenticated API requests for its installation on an organization or individual account. Tokens expire in one hour and can be restricted to specific repositories by providing `repository_ids`. Requires JWT authentication.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "installation_id",
+        "required": true,
+        "description": "The unique identifier for the GitHub App installation. Required to create the access token.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the installation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "installation_id"
+      },
+      {
+        "name": "installation_access_token_permissions",
+        "required": false,
+        "description": "Define the permissions and repository access for the installation access token. Include permissions as an object specifying \"read\" or \"write\" for each action and lists of repository names or IDs.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "permissions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "actions": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for GitHub Actions workflows, workflow runs, and artifacts."
+                },
+                "administration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for repository creation, deletion, settings, teams, and collaborators creation."
+                },
+                "checks": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for checks on code."
+                },
+                "contents": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for repository contents, commits, branches, downloads, releases, and merges."
+                },
+                "deployments": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for deployments and deployment statuses."
+                },
+                "environments": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for managing repository environments."
+                },
+                "issues": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for issues and related comments, assignees, labels, and milestones."
+                },
+                "members": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for organization teams and members."
+                },
+                "metadata": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to search repositories, list collaborators, and access repository metadata."
+                },
+                "organization_administration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage access to an organization."
+                },
+                "organization_announcement_banners": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage announcement banners for an organization."
+                },
+                "organization_hooks": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage the post-receive hooks for an organization."
+                },
+                "organization_packages": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for organization packages published to GitHub Packages."
+                },
+                "organization_plan": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for viewing an organization's plan."
+                },
+                "organization_projects": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write",
+                    "admin"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage organization projects and projects beta (where available)."
+                },
+                "organization_secrets": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage organization secrets."
+                },
+                "organization_self_hosted_runners": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage GitHub Actions self-hosted runners available to an organization."
+                },
+                "organization_user_blocking": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage users blocked by the organization."
+                },
+                "packages": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for packages published to GitHub Packages."
+                },
+                "pages": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to retrieve Pages statuses, configuration, and builds, as well as create new builds."
+                },
+                "pull_requests": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for pull requests and related comments, assignees, labels, milestones, and merges."
+                },
+                "repository_announcement_banners": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage announcement banners for a repository."
+                },
+                "repository_hooks": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage the post-receive hooks for a repository."
+                },
+                "repository_projects": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write",
+                    "admin"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage repository projects, columns, and cards."
+                },
+                "secret_scanning_alerts": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage secret scanning alerts."
+                },
+                "secrets": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage repository secrets."
+                },
+                "security_events": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage security events like code scanning alerts."
+                },
+                "single_file": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage just a single file."
+                },
+                "statuses": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for commit statuses."
+                },
+                "team_discussions": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage team discussions and related comments."
+                },
+                "vulnerability_alerts": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage Dependabot alerts."
+                },
+                "workflows": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to update GitHub Actions workflow files."
+                }
+              },
+              "inner_properties": null,
+              "description": "The permissions granted to the user-to-server access token."
+            },
+            "repositories": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of repository names that the token should have access to"
+            },
+            "repository_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of repository IDs that the token should have access to"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'apps/create-installation-access-token'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/app/installations/{installation_id}/access_tokens",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "installation_id",
+        "tool_parameter_name": "installation_id",
+        "description": "The unique identifier of the installation.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the installation."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "installation_access_token_permissions",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "permissions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "actions": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for GitHub Actions workflows, workflow runs, and artifacts."
+                },
+                "administration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for repository creation, deletion, settings, teams, and collaborators creation."
+                },
+                "checks": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for checks on code."
+                },
+                "contents": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for repository contents, commits, branches, downloads, releases, and merges."
+                },
+                "deployments": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for deployments and deployment statuses."
+                },
+                "environments": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for managing repository environments."
+                },
+                "issues": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for issues and related comments, assignees, labels, and milestones."
+                },
+                "members": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for organization teams and members."
+                },
+                "metadata": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to search repositories, list collaborators, and access repository metadata."
+                },
+                "organization_administration": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage access to an organization."
+                },
+                "organization_announcement_banners": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage announcement banners for an organization."
+                },
+                "organization_hooks": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage the post-receive hooks for an organization."
+                },
+                "organization_packages": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for organization packages published to GitHub Packages."
+                },
+                "organization_plan": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for viewing an organization's plan."
+                },
+                "organization_projects": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write",
+                    "admin"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage organization projects and projects beta (where available)."
+                },
+                "organization_secrets": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage organization secrets."
+                },
+                "organization_self_hosted_runners": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage GitHub Actions self-hosted runners available to an organization."
+                },
+                "organization_user_blocking": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage users blocked by the organization."
+                },
+                "packages": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for packages published to GitHub Packages."
+                },
+                "pages": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to retrieve Pages statuses, configuration, and builds, as well as create new builds."
+                },
+                "pull_requests": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for pull requests and related comments, assignees, labels, milestones, and merges."
+                },
+                "repository_announcement_banners": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage announcement banners for a repository."
+                },
+                "repository_hooks": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage the post-receive hooks for a repository."
+                },
+                "repository_projects": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write",
+                    "admin"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage repository projects, columns, and cards."
+                },
+                "secret_scanning_alerts": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage secret scanning alerts."
+                },
+                "secrets": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage repository secrets."
+                },
+                "security_events": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to view and manage security events like code scanning alerts."
+                },
+                "single_file": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage just a single file."
+                },
+                "statuses": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token for commit statuses."
+                },
+                "team_discussions": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage team discussions and related comments."
+                },
+                "vulnerability_alerts": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "read",
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to manage Dependabot alerts."
+                },
+                "workflows": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "write"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The level of permission to grant the access token to update GitHub Actions workflow files."
+                }
+              },
+              "inner_properties": null,
+              "description": "The permissions granted to the user-to-server access token."
+            },
+            "repositories": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of repository names that the token should have access to"
+            },
+            "repository_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of repository IDs that the token should have access to"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"permissions\": {\n              \"contents\": \"read\",\n              \"issues\": \"write\"\n            },\n            \"repository\": \"Hello-World\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"permissions\": {\n            \"description\": \"The permissions granted to the user-to-server access token.\",\n            \"example\": {\n              \"contents\": \"read\",\n              \"deployments\": \"write\",\n              \"issues\": \"read\",\n              \"single_file\": \"read\"\n            },\n            \"properties\": {\n              \"actions\": {\n                \"description\": \"The level of permission to grant the access token for GitHub Actions workflows, workflow runs, and artifacts.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"administration\": {\n                \"description\": \"The level of permission to grant the access token for repository creation, deletion, settings, teams, and collaborators creation.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"checks\": {\n                \"description\": \"The level of permission to grant the access token for checks on code.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"contents\": {\n                \"description\": \"The level of permission to grant the access token for repository contents, commits, branches, downloads, releases, and merges.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"deployments\": {\n                \"description\": \"The level of permission to grant the access token for deployments and deployment statuses.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"environments\": {\n                \"description\": \"The level of permission to grant the access token for managing repository environments.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"issues\": {\n                \"description\": \"The level of permission to grant the access token for issues and related comments, assignees, labels, and milestones.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"members\": {\n                \"description\": \"The level of permission to grant the access token for organization teams and members.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"metadata\": {\n                \"description\": \"The level of permission to grant the access token to search repositories, list collaborators, and access repository metadata.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"organization_administration\": {\n                \"description\": \"The level of permission to grant the access token to manage access to an organization.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"organization_announcement_banners\": {\n                \"description\": \"The level of permission to grant the access token to view and manage announcement banners for an organization.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"organization_hooks\": {\n                \"description\": \"The level of permission to grant the access token to manage the post-receive hooks for an organization.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"organization_packages\": {\n                \"description\": \"The level of permission to grant the access token for organization packages published to GitHub Packages.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"organization_plan\": {\n                \"description\": \"The level of permission to grant the access token for viewing an organization's plan.\",\n                \"enum\": [\n                  \"read\"\n                ],\n                \"type\": \"string\"\n              },\n              \"organization_projects\": {\n                \"description\": \"The level of permission to grant the access token to manage organization projects and projects beta (where available).\",\n                \"enum\": [\n                  \"read\",\n                  \"write\",\n                  \"admin\"\n                ],\n                \"type\": \"string\"\n              },\n              \"organization_secrets\": {\n                \"description\": \"The level of permission to grant the access token to manage organization secrets.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"organization_self_hosted_runners\": {\n                \"description\": \"The level of permission to grant the access token to view and manage GitHub Actions self-hosted runners available to an organization.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"organization_user_blocking\": {\n                \"description\": \"The level of permission to grant the access token to view and manage users blocked by the organization.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"packages\": {\n                \"description\": \"The level of permission to grant the access token for packages published to GitHub Packages.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"pages\": {\n                \"description\": \"The level of permission to grant the access token to retrieve Pages statuses, configuration, and builds, as well as create new builds.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"pull_requests\": {\n                \"description\": \"The level of permission to grant the access token for pull requests and related comments, assignees, labels, milestones, and merges.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"repository_announcement_banners\": {\n                \"description\": \"The level of permission to grant the access token to view and manage announcement banners for a repository.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"repository_hooks\": {\n                \"description\": \"The level of permission to grant the access token to manage the post-receive hooks for a repository.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"repository_projects\": {\n                \"description\": \"The level of permission to grant the access token to manage repository projects, columns, and cards.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\",\n                  \"admin\"\n                ],\n                \"type\": \"string\"\n              },\n              \"secret_scanning_alerts\": {\n                \"description\": \"The level of permission to grant the access token to view and manage secret scanning alerts.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"secrets\": {\n                \"description\": \"The level of permission to grant the access token to manage repository secrets.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"security_events\": {\n                \"description\": \"The level of permission to grant the access token to view and manage security events like code scanning alerts.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"single_file\": {\n                \"description\": \"The level of permission to grant the access token to manage just a single file.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"statuses\": {\n                \"description\": \"The level of permission to grant the access token for commit statuses.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"team_discussions\": {\n                \"description\": \"The level of permission to grant the access token to manage team discussions and related comments.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"vulnerability_alerts\": {\n                \"description\": \"The level of permission to grant the access token to manage Dependabot alerts.\",\n                \"enum\": [\n                  \"read\",\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              },\n              \"workflows\": {\n                \"description\": \"The level of permission to grant the access token to update GitHub Actions workflow files.\",\n                \"enum\": [\n                  \"write\"\n                ],\n                \"type\": \"string\"\n              }\n            },\n            \"title\": \"App Permissions\",\n            \"type\": \"object\"\n          },\n          \"repositories\": {\n            \"description\": \"List of repository names that the token should have access to\",\n            \"items\": {\n              \"example\": \"rails\",\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"repository_ids\": {\n            \"description\": \"List of repository IDs that the token should have access to\",\n            \"example\": [\n              1\n            ],\n            \"items\": {\n              \"type\": \"integer\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

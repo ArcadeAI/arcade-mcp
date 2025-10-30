@@ -1,0 +1,414 @@
+{
+  "name": "DeleteGithubFile",
+  "fully_qualified_name": "GithubApi.DeleteGithubFile@0.1.0",
+  "description": "Delete a file from a GitHub repository.\n\nThis tool deletes a specified file from a GitHub repository. It should be called when you need to remove a file, ensuring that either committer or author details such as name and email are provided. This action cannot be done concurrently with file creation or updates.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository in a case-insensitive format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository from which the file will be deleted. This is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "file_path",
+        "required": true,
+        "description": "The file path in the repository to be deleted. This path is case-sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "path parameter"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "path"
+      },
+      {
+        "name": "commit_message",
+        "required": true,
+        "description": "The commit message explaining why the file is being deleted. This information is mandatory.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The commit message."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "message"
+      },
+      {
+        "name": "file_sha_to_delete",
+        "required": true,
+        "description": "The SHA of the file to be deleted. This is required to identify the specific file version in the repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The blob SHA of the file being deleted."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sha"
+      },
+      {
+        "name": "author_email",
+        "required": false,
+        "description": "Email of the author or committer for the commit. Required if using author or committer details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email of the author (or committer) of the commit"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "author.email"
+      },
+      {
+        "name": "author_name",
+        "required": false,
+        "description": "The name of the author or committer of the commit. Required if 'author' is used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the author (or committer) of the commit"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "author.name"
+      },
+      {
+        "name": "branch_name",
+        "required": false,
+        "description": "The name of the branch from which to delete the file. Defaults to the repository's default branch (usually 'master').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The branch name. Default: the repository\u2019s default branch (usually `master`)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "branch"
+      },
+      {
+        "name": "committer_email",
+        "required": false,
+        "description": "The email of the committer for the commit. This is required for deleting a file.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email of the author (or committer) of the commit"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "committer.email"
+      },
+      {
+        "name": "committer_name",
+        "required": false,
+        "description": "The name of the committer or author of the commit for deleting the file.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the author (or committer) of the commit"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "committer.name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/delete-file'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/contents/{path}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "path",
+        "tool_parameter_name": "file_path",
+        "description": "path parameter",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "path parameter"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "author.email",
+        "tool_parameter_name": "author_email",
+        "description": "The email of the author (or committer) of the commit",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email of the author (or committer) of the commit"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "author.name",
+        "tool_parameter_name": "author_name",
+        "description": "The name of the author (or committer) of the commit",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the author (or committer) of the commit"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "branch",
+        "tool_parameter_name": "branch_name",
+        "description": "The branch name. Default: the repository\u2019s default branch (usually `master`)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The branch name. Default: the repository\u2019s default branch (usually `master`)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "committer.email",
+        "tool_parameter_name": "committer_email",
+        "description": "The email of the author (or committer) of the commit",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email of the author (or committer) of the commit"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "committer.name",
+        "tool_parameter_name": "committer_name",
+        "description": "The name of the author (or committer) of the commit",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the author (or committer) of the commit"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "message",
+        "tool_parameter_name": "commit_message",
+        "description": "The commit message.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The commit message."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sha",
+        "tool_parameter_name": "file_sha_to_delete",
+        "description": "The blob SHA of the file being deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The blob SHA of the file being deleted."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"committer\": {\n              \"email\": \"octocat@github.com\",\n              \"name\": \"Monalisa Octocat\"\n            },\n            \"message\": \"my commit message\",\n            \"sha\": \"329688480d39049927147c162b9d2deaf885005f\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"author\": {\n            \"description\": \"object containing information about the author.\",\n            \"properties\": {\n              \"email\": {\n                \"description\": \"The email of the author (or committer) of the commit\",\n                \"type\": \"string\"\n              },\n              \"name\": {\n                \"description\": \"The name of the author (or committer) of the commit\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"branch\": {\n            \"description\": \"The branch name. Default: the repository\\u2019s default branch (usually `master`)\",\n            \"type\": \"string\"\n          },\n          \"committer\": {\n            \"description\": \"object containing information about the committer.\",\n            \"properties\": {\n              \"email\": {\n                \"description\": \"The email of the author (or committer) of the commit\",\n                \"type\": \"string\"\n              },\n              \"name\": {\n                \"description\": \"The name of the author (or committer) of the commit\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"message\": {\n            \"description\": \"The commit message.\",\n            \"type\": \"string\"\n          },\n          \"sha\": {\n            \"description\": \"The blob SHA of the file being deleted.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"message\",\n          \"sha\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

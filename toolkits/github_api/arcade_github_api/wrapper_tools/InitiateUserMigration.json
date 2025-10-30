@@ -1,0 +1,381 @@
+{
+  "name": "InitiateUserMigration",
+  "fully_qualified_name": "GithubApi.InitiateUserMigration@0.1.0",
+  "description": "Begin the creation of a user migration archive.\n\nThis tool is used to initiate the generation of a migration archive for an authenticated GitHub user. Call this when you want to start the process of exporting your data for transfer or backup purposes.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_list",
+        "required": true,
+        "description": "A list of repository names to be included in the migration. Expect an array of strings representing repository names.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repositories"
+      },
+      {
+        "name": "exclude_attributes",
+        "required": false,
+        "description": "List of attributes to exclude from the API response for better performance.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Exclude attributes from the API response to improve performance"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude"
+      },
+      {
+        "name": "exclude_attachments",
+        "required": false,
+        "description": "Set to true to exclude attachments from the migration.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Do not include attachments in the migration"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_attachments"
+      },
+      {
+        "name": "exclude_repository_git_data",
+        "required": false,
+        "description": "Set to true to exclude repository git data from the migration.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the repository git data should be excluded from the migration."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_git_data"
+      },
+      {
+        "name": "exclude_metadata",
+        "required": false,
+        "description": "Set to true to exclude metadata and include only git source in the migration.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether metadata should be excluded and only git source should be included for the migration."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_metadata"
+      },
+      {
+        "name": "exclude_owner_projects",
+        "required": false,
+        "description": "Set to true to exclude projects owned by the organization or users from the migration process.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether projects owned by the organization or users should be excluded."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_owner_projects"
+      },
+      {
+        "name": "exclude_releases",
+        "required": false,
+        "description": "Set to true to exclude releases from the migration process.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Do not include releases in the migration"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_releases"
+      },
+      {
+        "name": "lock_repositories",
+        "required": false,
+        "description": "Set to true to lock the repositories at the start of the migration.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Lock the repositories being migrated at the start of the migration"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "lock_repositories"
+      },
+      {
+        "name": "org_metadata_only",
+        "required": false,
+        "description": "Set to true to include only organization metadata. Repositories array will be empty and other flags are ignored.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether this should only include organization metadata (repositories array should be empty and will ignore other flags)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_metadata_only"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'migrations/start-for-authenticated-user'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/user/migrations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "exclude",
+        "tool_parameter_name": "exclude_attributes",
+        "description": "Exclude attributes from the API response to improve performance",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Exclude attributes from the API response to improve performance"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_attachments",
+        "tool_parameter_name": "exclude_attachments",
+        "description": "Do not include attachments in the migration",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Do not include attachments in the migration"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_git_data",
+        "tool_parameter_name": "exclude_repository_git_data",
+        "description": "Indicates whether the repository git data should be excluded from the migration.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the repository git data should be excluded from the migration."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_metadata",
+        "tool_parameter_name": "exclude_metadata",
+        "description": "Indicates whether metadata should be excluded and only git source should be included for the migration.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether metadata should be excluded and only git source should be included for the migration."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_owner_projects",
+        "tool_parameter_name": "exclude_owner_projects",
+        "description": "Indicates whether projects owned by the organization or users should be excluded.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether projects owned by the organization or users should be excluded."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_releases",
+        "tool_parameter_name": "exclude_releases",
+        "description": "Do not include releases in the migration",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Do not include releases in the migration"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "lock_repositories",
+        "tool_parameter_name": "lock_repositories",
+        "description": "Lock the repositories being migrated at the start of the migration",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Lock the repositories being migrated at the start of the migration"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "org_metadata_only",
+        "tool_parameter_name": "org_metadata_only",
+        "description": "Indicates whether this should only include organization metadata (repositories array should be empty and will ignore other flags).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether this should only include organization metadata (repositories array should be empty and will ignore other flags)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "repositories",
+        "tool_parameter_name": "repository_list",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"lock_repositories\": true,\n            \"repositories\": [\n              \"octocat/Hello-World\"\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"exclude\": {\n            \"description\": \"Exclude attributes from the API response to improve performance\",\n            \"example\": [\n              \"repositories\"\n            ],\n            \"items\": {\n              \"description\": \"Allowed values that can be passed to the exclude param.\",\n              \"enum\": [\n                \"repositories\"\n              ],\n              \"example\": \"repositories\",\n              \"type\": \"string\"\n            },\n            \"readOnly\": false,\n            \"type\": \"array\"\n          },\n          \"exclude_attachments\": {\n            \"description\": \"Do not include attachments in the migration\",\n            \"example\": true,\n            \"readOnly\": false,\n            \"type\": \"boolean\"\n          },\n          \"exclude_git_data\": {\n            \"description\": \"Indicates whether the repository git data should be excluded from the migration.\",\n            \"example\": true,\n            \"readOnly\": false,\n            \"type\": \"boolean\"\n          },\n          \"exclude_metadata\": {\n            \"description\": \"Indicates whether metadata should be excluded and only git source should be included for the migration.\",\n            \"example\": true,\n            \"readOnly\": false,\n            \"type\": \"boolean\"\n          },\n          \"exclude_owner_projects\": {\n            \"description\": \"Indicates whether projects owned by the organization or users should be excluded.\",\n            \"example\": true,\n            \"readOnly\": false,\n            \"type\": \"boolean\"\n          },\n          \"exclude_releases\": {\n            \"description\": \"Do not include releases in the migration\",\n            \"example\": true,\n            \"readOnly\": false,\n            \"type\": \"boolean\"\n          },\n          \"lock_repositories\": {\n            \"description\": \"Lock the repositories being migrated at the start of the migration\",\n            \"example\": true,\n            \"readOnly\": false,\n            \"type\": \"boolean\"\n          },\n          \"org_metadata_only\": {\n            \"default\": false,\n            \"description\": \"Indicates whether this should only include organization metadata (repositories array should be empty and will ignore other flags).\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"repositories\": {\n            \"items\": {\n              \"description\": \"Repository path, owner and name\",\n              \"example\": \"acme/widgets\",\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"repositories\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

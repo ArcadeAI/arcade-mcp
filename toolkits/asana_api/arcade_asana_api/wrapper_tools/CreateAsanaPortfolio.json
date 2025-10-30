@@ -1,0 +1,193 @@
+{
+  "name": "CreateAsanaPortfolio",
+  "fully_qualified_name": "AsanaApi.CreateAsanaPortfolio@0.1.0",
+  "description": "Create a new portfolio in an Asana workspace.\n\nUse this tool to create a new portfolio in a specific Asana workspace with a supplied name. Note that this API does not automatically add states like 'Priority' that might be present in portfolios created through the Asana UI.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "portfolio_data",
+        "required": true,
+        "description": "JSON object representing the portfolio to create, including name and additional settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The portfolio to create."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_optional_fields",
+        "required": false,
+        "description": "List the optional properties to include in the response, such as ['name', 'members'].",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "If true, formats the response with line breaks and indentation for easier readability. Recommended for debugging as it may increase response size and time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createPortfolio'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "portfolios:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/portfolios",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_fields",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "portfolio_data",
+        "description": "The portfolio to create.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The portfolio to create."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The portfolio to create.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"allOf\": [\n              {\n                \"allOf\": [\n                  {\n                    \"description\": \"A *portfolio* gives a high-level overview of the status of multiple initiatives in Asana. Portfolios provide a dashboard overview of the state of multiple projects, including a progress report and the most recent [project status](/reference/project-statuses) update.\\nPortfolios have some restrictions on size. Each portfolio has a max of 1500 items and, like projects, a max of 20 custom fields.\",\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"gid\": {\n                        \"description\": \"Globally unique identifier of the resource, as a string.\",\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"example\": \"12345\",\n                        \"x-insert-after\": false\n                      },\n                      \"resource_type\": {\n                        \"description\": \"The base type of this resource.\",\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"example\": \"portfolio\",\n                        \"x-insert-after\": \"gid\"\n                      },\n                      \"name\": {\n                        \"description\": \"The name of the portfolio.\",\n                        \"type\": \"string\",\n                        \"example\": \"Bug Portfolio\"\n                      }\n                    }\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"archived\": {\n                        \"description\": \"[Opt In](/docs/inputoutput-options). True if the portfolio is archived, false if not. Archived portfolios do not show in the UI by default and may be treated differently for queries.\",\n                        \"type\": \"boolean\",\n                        \"example\": false\n                      },\n                      \"color\": {\n                        \"description\": \"Color of the portfolio.\",\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"dark-pink\",\n                          \"dark-green\",\n                          \"dark-blue\",\n                          \"dark-red\",\n                          \"dark-teal\",\n                          \"dark-brown\",\n                          \"dark-orange\",\n                          \"dark-purple\",\n                          \"dark-warm-gray\",\n                          \"light-pink\",\n                          \"light-green\",\n                          \"light-blue\",\n                          \"light-red\",\n                          \"light-teal\",\n                          \"light-brown\",\n                          \"light-orange\",\n                          \"light-purple\",\n                          \"light-warm-gray\"\n                        ],\n                        \"example\": \"light-green\"\n                      },\n                      \"start_on\": {\n                        \"description\": \"The day on which work for this portfolio begins, or null if the portfolio has no start date. This takes a date with `YYYY-MM-DD` format. *Note: `due_on` must be present in the request when setting or unsetting the `start_on` parameter. Additionally, `start_on` and `due_on` cannot be the same date.*\",\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"format\": \"date\",\n                        \"example\": \"2019-09-14\"\n                      },\n                      \"due_on\": {\n                        \"description\": \"The day on which this portfolio is due. This takes a date with format YYYY-MM-DD.\",\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"format\": \"date\",\n                        \"example\": \"2019-09-15\"\n                      },\n                      \"default_access_level\": {\n                        \"description\": \"The default access level when inviting new members to the portfolio\",\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"admin\",\n                          \"editor\",\n                          \"viewer\"\n                        ],\n                        \"example\": \"viewer\"\n                      }\n                    }\n                  }\n                ]\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"workspace\": {\n                    \"type\": \"string\",\n                    \"description\": \"*Create-only*. The workspace or organization that the portfolio belongs to.\",\n                    \"example\": \"167589\"\n                  },\n                  \"public\": {\n                    \"description\": \"*Deprecated:* new integrations use `privacy_setting` instead.\",\n                    \"type\": \"boolean\",\n                    \"deprecated\": true,\n                    \"example\": false\n                  }\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

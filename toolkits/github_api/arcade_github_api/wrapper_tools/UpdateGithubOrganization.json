@@ -1,0 +1,602 @@
+{
+  "name": "UpdateGithubOrganization",
+  "fully_qualified_name": "GithubApi.UpdateGithubOrganization@0.1.0",
+  "description": "Update a GitHub organization's profile and member privileges.\n\nAllows an authenticated organization owner to update the organization's profile and set member privileges using the `admin:org` scope. New parameters enable more granular permissions for repository creation.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The GitHub organization name. This is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "update_organization_profile",
+        "required": false,
+        "description": "A JSON object containing fields to update a GitHub organization profile and configure member privileges. Options include security settings, repository permissions, and organization details like billing email or company name.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "advanced_security_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether GitHub Advanced Security is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "billing_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Billing email address. This address is not publicized."
+            },
+            "blog": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "company": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The company name."
+            },
+            "default_repository_permission": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "read",
+                "write",
+                "admin",
+                "none"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Default permission level members have for organization repositories."
+            },
+            "dependabot_alerts_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether Dependabot alerts is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "dependabot_security_updates_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether Dependabot security updates is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "dependency_graph_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether dependency graph is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of the company."
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The publicly visible email address."
+            },
+            "has_organization_projects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether an organization can use organization projects."
+            },
+            "has_repository_projects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether repositories that belong to the organization can use repository projects."
+            },
+            "location": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The location."
+            },
+            "members_allowed_repository_creation_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "all",
+                "private",
+                "none"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies which types of repositories non-admin organization members can create. \n**Note:** This parameter is deprecated and will be removed in the future. Its return value ignores internal repositories. Using this parameter overrides values set in `members_can_create_repositories`. See the parameter deprecation notice in the operation description for details."
+            },
+            "members_can_create_internal_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can create internal repositories, which are visible to all enterprise members. You can only allow members to create internal repositories if your organization is associated with an enterprise account using GitHub Enterprise Cloud or GitHub Enterprise Server 2.20+. For more information, see \"[Restricting repository creation in your organization](https://docs.github.com/enterprise-server@3.8/github/setting-up-and-managing-organizations-and-teams/restricting-repository-creation-in-your-organization)\" in the GitHub Help documentation."
+            },
+            "members_can_create_pages": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can create GitHub Pages sites. Existing published sites will not be impacted."
+            },
+            "members_can_create_private_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can create private repositories, which are visible to organization members with permission. For more information, see \"[Restricting repository creation in your organization](https://docs.github.com/enterprise-server@3.8/github/setting-up-and-managing-organizations-and-teams/restricting-repository-creation-in-your-organization)\" in the GitHub Help documentation."
+            },
+            "members_can_create_public_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can create public repositories, which are visible to anyone. For more information, see \"[Restricting repository creation in your organization](https://docs.github.com/enterprise-server@3.8/github/setting-up-and-managing-organizations-and-teams/restricting-repository-creation-in-your-organization)\" in the GitHub Help documentation."
+            },
+            "members_can_create_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether of non-admin organization members can create repositories. **Note:** A parameter can override this parameter. See `members_allowed_repository_creation_type` in this table for details."
+            },
+            "members_can_fork_private_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can fork private organization repositories."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The shorthand name of the company."
+            },
+            "secret_scanning_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether secret scanning is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "secret_scanning_push_protection_custom_link": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If `secret_scanning_push_protection_custom_link_enabled` is true, the URL that will be displayed to contributors who are blocked from pushing a secret."
+            },
+            "secret_scanning_push_protection_custom_link_enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether a custom link is shown to contributors who are blocked from pushing a secret by push protection."
+            },
+            "secret_scanning_push_protection_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether secret scanning push protection is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "twitter_username": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Twitter username of the company."
+            },
+            "web_commit_signoff_required": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether contributors to organization repositories are required to sign off on commits they make through GitHub's web interface."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'orgs/update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "update_organization_profile",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "advanced_security_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether GitHub Advanced Security is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "billing_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Billing email address. This address is not publicized."
+            },
+            "blog": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "company": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The company name."
+            },
+            "default_repository_permission": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "read",
+                "write",
+                "admin",
+                "none"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Default permission level members have for organization repositories."
+            },
+            "dependabot_alerts_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether Dependabot alerts is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "dependabot_security_updates_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether Dependabot security updates is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "dependency_graph_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether dependency graph is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of the company."
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The publicly visible email address."
+            },
+            "has_organization_projects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether an organization can use organization projects."
+            },
+            "has_repository_projects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether repositories that belong to the organization can use repository projects."
+            },
+            "location": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The location."
+            },
+            "members_allowed_repository_creation_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "all",
+                "private",
+                "none"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies which types of repositories non-admin organization members can create. \n**Note:** This parameter is deprecated and will be removed in the future. Its return value ignores internal repositories. Using this parameter overrides values set in `members_can_create_repositories`. See the parameter deprecation notice in the operation description for details."
+            },
+            "members_can_create_internal_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can create internal repositories, which are visible to all enterprise members. You can only allow members to create internal repositories if your organization is associated with an enterprise account using GitHub Enterprise Cloud or GitHub Enterprise Server 2.20+. For more information, see \"[Restricting repository creation in your organization](https://docs.github.com/enterprise-server@3.8/github/setting-up-and-managing-organizations-and-teams/restricting-repository-creation-in-your-organization)\" in the GitHub Help documentation."
+            },
+            "members_can_create_pages": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can create GitHub Pages sites. Existing published sites will not be impacted."
+            },
+            "members_can_create_private_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can create private repositories, which are visible to organization members with permission. For more information, see \"[Restricting repository creation in your organization](https://docs.github.com/enterprise-server@3.8/github/setting-up-and-managing-organizations-and-teams/restricting-repository-creation-in-your-organization)\" in the GitHub Help documentation."
+            },
+            "members_can_create_public_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can create public repositories, which are visible to anyone. For more information, see \"[Restricting repository creation in your organization](https://docs.github.com/enterprise-server@3.8/github/setting-up-and-managing-organizations-and-teams/restricting-repository-creation-in-your-organization)\" in the GitHub Help documentation."
+            },
+            "members_can_create_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether of non-admin organization members can create repositories. **Note:** A parameter can override this parameter. See `members_allowed_repository_creation_type` in this table for details."
+            },
+            "members_can_fork_private_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether organization members can fork private organization repositories."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The shorthand name of the company."
+            },
+            "secret_scanning_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether secret scanning is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "secret_scanning_push_protection_custom_link": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If `secret_scanning_push_protection_custom_link_enabled` is true, the URL that will be displayed to contributors who are blocked from pushing a secret."
+            },
+            "secret_scanning_push_protection_custom_link_enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether a custom link is shown to contributors who are blocked from pushing a secret by push protection."
+            },
+            "secret_scanning_push_protection_enabled_for_new_repositories": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether secret scanning push protection is automatically enabled for new repositories.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request."
+            },
+            "twitter_username": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Twitter username of the company."
+            },
+            "web_commit_signoff_required": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether contributors to organization repositories are required to sign off on commits they make through GitHub's web interface."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"billing_email\": \"mona@github.com\",\n            \"company\": \"GitHub\",\n            \"default_repository_permission\": \"read\",\n            \"description\": \"GitHub, the company.\",\n            \"email\": \"mona@github.com\",\n            \"location\": \"San Francisco\",\n            \"members_allowed_repository_creation_type\": \"all\",\n            \"members_can_create_repositories\": true,\n            \"name\": \"github\",\n            \"twitter_username\": \"github\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"advanced_security_enabled_for_new_repositories\": {\n            \"description\": \"Whether GitHub Advanced Security is automatically enabled for new repositories.\\n\\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \\\"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\\\"\\n\\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.\",\n            \"type\": \"boolean\"\n          },\n          \"billing_email\": {\n            \"description\": \"Billing email address. This address is not publicized.\",\n            \"type\": \"string\"\n          },\n          \"blog\": {\n            \"example\": \"\\\"http://github.blog\\\"\",\n            \"type\": \"string\"\n          },\n          \"company\": {\n            \"description\": \"The company name.\",\n            \"type\": \"string\"\n          },\n          \"default_repository_permission\": {\n            \"default\": \"read\",\n            \"description\": \"Default permission level members have for organization repositories.\",\n            \"enum\": [\n              \"read\",\n              \"write\",\n              \"admin\",\n              \"none\"\n            ],\n            \"type\": \"string\"\n          },\n          \"dependabot_alerts_enabled_for_new_repositories\": {\n            \"description\": \"Whether Dependabot alerts is automatically enabled for new repositories.\\n\\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \\\"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\\\"\\n\\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.\",\n            \"type\": \"boolean\"\n          },\n          \"dependabot_security_updates_enabled_for_new_repositories\": {\n            \"description\": \"Whether Dependabot security updates is automatically enabled for new repositories.\\n\\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \\\"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\\\"\\n\\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.\",\n            \"type\": \"boolean\"\n          },\n          \"dependency_graph_enabled_for_new_repositories\": {\n            \"description\": \"Whether dependency graph is automatically enabled for new repositories.\\n\\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \\\"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\\\"\\n\\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.\",\n            \"type\": \"boolean\"\n          },\n          \"description\": {\n            \"description\": \"The description of the company.\",\n            \"type\": \"string\"\n          },\n          \"email\": {\n            \"description\": \"The publicly visible email address.\",\n            \"type\": \"string\"\n          },\n          \"has_organization_projects\": {\n            \"description\": \"Whether an organization can use organization projects.\",\n            \"type\": \"boolean\"\n          },\n          \"has_repository_projects\": {\n            \"description\": \"Whether repositories that belong to the organization can use repository projects.\",\n            \"type\": \"boolean\"\n          },\n          \"location\": {\n            \"description\": \"The location.\",\n            \"type\": \"string\"\n          },\n          \"members_allowed_repository_creation_type\": {\n            \"description\": \"Specifies which types of repositories non-admin organization members can create. \\n**Note:** This parameter is deprecated and will be removed in the future. Its return value ignores internal repositories. Using this parameter overrides values set in `members_can_create_repositories`. See the parameter deprecation notice in the operation description for details.\",\n            \"enum\": [\n              \"all\",\n              \"private\",\n              \"none\"\n            ],\n            \"type\": \"string\"\n          },\n          \"members_can_create_internal_repositories\": {\n            \"description\": \"Whether organization members can create internal repositories, which are visible to all enterprise members. You can only allow members to create internal repositories if your organization is associated with an enterprise account using GitHub Enterprise Cloud or GitHub Enterprise Server 2.20+. For more information, see \\\"[Restricting repository creation in your organization](https://docs.github.com/enterprise-server@3.8/github/setting-up-and-managing-organizations-and-teams/restricting-repository-creation-in-your-organization)\\\" in the GitHub Help documentation.\",\n            \"type\": \"boolean\"\n          },\n          \"members_can_create_pages\": {\n            \"default\": true,\n            \"description\": \"Whether organization members can create GitHub Pages sites. Existing published sites will not be impacted.\",\n            \"type\": \"boolean\"\n          },\n          \"members_can_create_private_repositories\": {\n            \"description\": \"Whether organization members can create private repositories, which are visible to organization members with permission. For more information, see \\\"[Restricting repository creation in your organization](https://docs.github.com/enterprise-server@3.8/github/setting-up-and-managing-organizations-and-teams/restricting-repository-creation-in-your-organization)\\\" in the GitHub Help documentation.\",\n            \"type\": \"boolean\"\n          },\n          \"members_can_create_public_repositories\": {\n            \"description\": \"Whether organization members can create public repositories, which are visible to anyone. For more information, see \\\"[Restricting repository creation in your organization](https://docs.github.com/enterprise-server@3.8/github/setting-up-and-managing-organizations-and-teams/restricting-repository-creation-in-your-organization)\\\" in the GitHub Help documentation.\",\n            \"type\": \"boolean\"\n          },\n          \"members_can_create_repositories\": {\n            \"default\": true,\n            \"description\": \"Whether of non-admin organization members can create repositories. **Note:** A parameter can override this parameter. See `members_allowed_repository_creation_type` in this table for details.\",\n            \"type\": \"boolean\"\n          },\n          \"members_can_fork_private_repositories\": {\n            \"default\": false,\n            \"description\": \"Whether organization members can fork private organization repositories.\",\n            \"type\": \"boolean\"\n          },\n          \"name\": {\n            \"description\": \"The shorthand name of the company.\",\n            \"type\": \"string\"\n          },\n          \"secret_scanning_enabled_for_new_repositories\": {\n            \"description\": \"Whether secret scanning is automatically enabled for new repositories.\\n\\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \\\"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\\\"\\n\\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.\",\n            \"type\": \"boolean\"\n          },\n          \"secret_scanning_push_protection_custom_link\": {\n            \"description\": \"If `secret_scanning_push_protection_custom_link_enabled` is true, the URL that will be displayed to contributors who are blocked from pushing a secret.\",\n            \"type\": \"string\"\n          },\n          \"secret_scanning_push_protection_custom_link_enabled\": {\n            \"description\": \"Whether a custom link is shown to contributors who are blocked from pushing a secret by push protection.\",\n            \"type\": \"boolean\"\n          },\n          \"secret_scanning_push_protection_enabled_for_new_repositories\": {\n            \"description\": \"Whether secret scanning push protection is automatically enabled for new repositories.\\n\\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \\\"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.8/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\\\"\\n\\nYou can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.\",\n            \"type\": \"boolean\"\n          },\n          \"twitter_username\": {\n            \"description\": \"The Twitter username of the company.\",\n            \"type\": \"string\"\n          },\n          \"web_commit_signoff_required\": {\n            \"default\": false,\n            \"description\": \"Whether contributors to organization repositories are required to sign off on commits they make through GitHub's web interface.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
