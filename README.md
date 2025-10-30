@@ -61,7 +61,7 @@ uv tool install arcade-mcp
 arcade new my_server
 
 # Navigate to the project
-cd my_server
+cd my_server/src/my_server
 ```
 
 This generates a project with:

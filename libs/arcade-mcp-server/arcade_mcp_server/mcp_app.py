@@ -11,7 +11,8 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Callable, Literal, ParamSpec, TypeVar
+from types import ModuleType
+from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
 
 import uvicorn
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
@@ -190,6 +191,10 @@ class MCPApp:
         logger.debug(f"Added tool: {func.__name__}")
         return func
 
+    def add_tools_from_module(self, module: ModuleType) -> None:
+        """Add all the tools in a module to the catalog."""
+        self._catalog.add_module(module)
+
     def tool(
         self,
         func: Callable[P, T] | None = None,
@@ -358,7 +363,7 @@ class MCPApp:
     ) -> tuple[str, int, TransportType, bool]:
         """Get configuration overrides from environment variables."""
         if envvar_transport := os.getenv("ARCADE_SERVER_TRANSPORT"):
-            transport = envvar_transport
+            transport = cast(TransportType, envvar_transport)
             logger.debug(
                 f"Using '{transport}' as transport from ARCADE_SERVER_TRANSPORT environment variable"
             )

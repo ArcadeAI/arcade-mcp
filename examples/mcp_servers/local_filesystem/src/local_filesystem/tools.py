@@ -1,46 +1,14 @@
 import base64
-import fnmatch
 import os
 import re
 import shutil
-import stat
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
 from arcade_mcp_server import tool
 
-
-def _split_globs(globs: str) -> list[str]:
-    patterns = [p.strip() for p in globs.split(",") if p.strip()]
-    return patterns
-
-
-def _is_hidden(path: Path) -> bool:
-    return path.name.startswith(".")
-
-
-def _match_any(name: str, patterns: list[str]) -> bool:
-    if not patterns:
-        return True
-    return any(fnmatch.fnmatch(name, pattern) for pattern in patterns)
-
-
-def _match_none(name: str, patterns: list[str]) -> bool:
-    return all(not fnmatch.fnmatch(name, pattern) for pattern in patterns)
-
-
-def _path_type(path: Path, follow_symlinks: bool) -> str:
-    try:
-        st = path.stat() if follow_symlinks else path.lstat()
-        mode = st.st_mode
-        if stat.S_ISDIR(mode):
-            return "dir"
-        if stat.S_ISLNK(mode):
-            return "symlink"
-        return "file"  # noqa: TRY300
-    except FileNotFoundError:
-        return "unknown"
+from local_filesystem.utils import is_hidden, match_any, match_none, path_type, split_globs
 
 
 @tool
@@ -56,8 +24,8 @@ def list_directory(
 ) -> list[dict]:
     """Enumerate files and folders with metadata."""
     root = Path(path).expanduser().resolve()
-    includes = _split_globs(include_globs)
-    excludes = _split_globs(exclude_globs)
+    includes = split_globs(include_globs)
+    excludes = split_globs(exclude_globs)
 
     results: list[dict] = []
     entries_count = 0
@@ -68,11 +36,11 @@ def list_directory(
             st = p.stat() if follow_symlinks else p.lstat()
         except FileNotFoundError:
             return
-        entry_type = _path_type(p, follow_symlinks)
-        if not show_hidden and _is_hidden(p):
+        entry_type = path_type(p, follow_symlinks)
+        if not show_hidden and is_hidden(p):
             return
         name = p.name
-        if not _match_any(name, includes) or not _match_none(name, excludes):
+        if not match_any(name, includes) or not match_none(name, excludes):
             return
         results.append(
             {
@@ -267,7 +235,7 @@ def stat_path(
     info = {
         "exists": exists,
         "path": str(p),
-        "type": _path_type(p, follow_symlinks),
+        "type": path_type(p, follow_symlinks),
         "size": int(st.st_size),
         "mode": int(st.st_mode),
         "uid": int(getattr(st, "st_uid", 0)),
@@ -382,8 +350,8 @@ def search_files(
     if not base.exists() or not base.is_dir():
         return []
 
-    includes = _split_globs(name_globs)
-    excludes = _split_globs(exclude_globs)
+    includes = split_globs(name_globs)
+    excludes = split_globs(exclude_globs)
 
     flags = re.IGNORECASE if case_insensitive else 0
     pattern = None
@@ -404,9 +372,9 @@ def search_files(
                 return results
             if not include_hidden and name.startswith("."):
                 continue
-            if includes and not _match_any(name, includes):
+            if includes and not match_any(name, includes):
                 continue
-            if not _match_none(name, excludes):
+            if not match_none(name, excludes):
                 continue
 
             file_path = current / name

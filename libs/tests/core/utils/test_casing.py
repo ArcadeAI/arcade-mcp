@@ -1,5 +1,5 @@
 import pytest
-from arcade_core.utils import pascal_to_snake_case, snake_to_pascal_case
+from arcade_core.utils import pascal_to_snake_case, snake_to_pascal_case, space_to_snake_case
 
 
 @pytest.mark.parametrize(
@@ -23,3 +23,17 @@ def test_pascal_to_snake_case(input_str: str, expected: str):
 )
 def test_snake_to_pascal_case(input_str: str, expected: str):
     assert snake_to_pascal_case(input_str) == expected
+
+
+@pytest.mark.parametrize(
+    "input_str, expected",
+    [
+        ("the simple server name", "the_simple_server_name"),
+        (
+            "the SIMPLE nAME and numbers 456",
+            "the_SIMPLE_nAME_and_numbers_456",
+        ),
+    ],
+)
+def test_space_to_snake_case(input_str: str, expected: str):
+    assert space_to_snake_case(input_str) == expected
