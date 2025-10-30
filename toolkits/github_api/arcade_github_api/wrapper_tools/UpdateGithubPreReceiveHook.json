@@ -1,0 +1,248 @@
+{
+  "name": "UpdateGithubPreReceiveHook",
+  "fully_qualified_name": "GithubApi.UpdateGithubPreReceiveHook@0.1.0",
+  "description": "Update a GitHub enterprise pre-receive hook.\n\nUse this tool to update details of a pre-receive hook in a GitHub enterprise environment. This is useful for modifying hook settings or configurations.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "pre_receive_hook_id",
+        "required": true,
+        "description": "The unique identifier of the pre-receive hook in the GitHub enterprise environment. This is required for updating hook details.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the pre-receive hook."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pre_receive_hook_id"
+      },
+      {
+        "name": "pre_receive_hook_request_body",
+        "required": false,
+        "description": "A JSON object containing fields such as 'allow_downstream_configuration', 'enforcement', 'environment', 'name', 'script', and 'script_repository'. These specify details to update the pre-receive hook.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "allow_downstream_configuration": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether enforcement can be overridden at the org or repo level."
+            },
+            "enforcement": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The state of enforcement for this hook."
+            },
+            "environment": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The pre-receive environment where the script is executed."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the hook."
+            },
+            "script": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The script that the hook runs."
+            },
+            "script_repository": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The GitHub repository where the script is kept."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/update-pre-receive-hook'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/admin/pre-receive-hooks/{pre_receive_hook_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "pre_receive_hook_id",
+        "tool_parameter_name": "pre_receive_hook_id",
+        "description": "The unique identifier of the pre-receive hook.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the pre-receive hook."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "pre_receive_hook_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "allow_downstream_configuration": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether enforcement can be overridden at the org or repo level."
+            },
+            "enforcement": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The state of enforcement for this hook."
+            },
+            "environment": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The pre-receive environment where the script is executed."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the hook."
+            },
+            "script": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The script that the hook runs."
+            },
+            "script_repository": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The GitHub repository where the script is kept."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"allow_downstream_configuration\": true,\n            \"environment\": {\n              \"id\": 1\n            },\n            \"name\": \"Check Commits\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"allow_downstream_configuration\": {\n            \"description\": \"Whether enforcement can be overridden at the org or repo level.\",\n            \"type\": \"boolean\"\n          },\n          \"enforcement\": {\n            \"description\": \"The state of enforcement for this hook.\",\n            \"type\": \"string\"\n          },\n          \"environment\": {\n            \"additionalProperties\": true,\n            \"description\": \"The pre-receive environment where the script is executed.\",\n            \"properties\": {},\n            \"type\": \"object\"\n          },\n          \"name\": {\n            \"description\": \"The name of the hook.\",\n            \"type\": \"string\"\n          },\n          \"script\": {\n            \"description\": \"The script that the hook runs.\",\n            \"type\": \"string\"\n          },\n          \"script_repository\": {\n            \"additionalProperties\": true,\n            \"description\": \"The GitHub repository where the script is kept.\",\n            \"properties\": {},\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

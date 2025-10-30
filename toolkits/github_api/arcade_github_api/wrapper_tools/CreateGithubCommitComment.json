@@ -1,0 +1,315 @@
+{
+  "name": "CreateGithubCommitComment",
+  "fully_qualified_name": "GithubApi.CreateGithubCommitComment@0.1.0",
+  "description": "Create a comment on a specific GitHub commit.\n\nUse this tool to add a comment to a specific commit on a GitHub repository using the commit's SHA identifier. Useful for discussing changes directly within the commit history. Be mindful of rate limiting when using this endpoint.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the GitHub repository. Name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository where the commit resides. It's not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "commit_sha",
+        "required": true,
+        "description": "The SHA identifier of the commit to comment on. It uniquely identifies the commit within the repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The SHA of the commit."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "commit_sha"
+      },
+      {
+        "name": "comment_content",
+        "required": true,
+        "description": "The text of the comment to be added to the commit. It should be a clear and concise message.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The contents of the comment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body"
+      },
+      {
+        "name": "deprecated_line_number",
+        "required": false,
+        "description": "Line number in the file to comment on. **Deprecated**. Use the `position_in_diff` instead.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated**. Use **position** parameter instead. Line number in the file to comment on."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "line"
+      },
+      {
+        "name": "relative_file_path",
+        "required": false,
+        "description": "Relative path of the file to comment on within the repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Relative path of the file to comment on."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "path"
+      },
+      {
+        "name": "line_index_in_diff",
+        "required": false,
+        "description": "Line index in the diff to comment on.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Line index in the diff to comment on."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/create-commit-comment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/commits/{commit_sha}/comments",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "commit_sha",
+        "tool_parameter_name": "commit_sha",
+        "description": "The SHA of the commit.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The SHA of the commit."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body",
+        "tool_parameter_name": "comment_content",
+        "description": "The contents of the comment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The contents of the comment."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "line",
+        "tool_parameter_name": "deprecated_line_number",
+        "description": "**Deprecated**. Use **position** parameter instead. Line number in the file to comment on.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated**. Use **position** parameter instead. Line number in the file to comment on."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "path",
+        "tool_parameter_name": "relative_file_path",
+        "description": "Relative path of the file to comment on.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Relative path of the file to comment on."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "position",
+        "tool_parameter_name": "line_index_in_diff",
+        "description": "Line index in the diff to comment on.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Line index in the diff to comment on."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"body\": \"Great stuff\",\n            \"line\": 1,\n            \"path\": \"file1.txt\",\n            \"position\": 4\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"body\": {\n            \"description\": \"The contents of the comment.\",\n            \"type\": \"string\"\n          },\n          \"line\": {\n            \"description\": \"**Deprecated**. Use **position** parameter instead. Line number in the file to comment on.\",\n            \"type\": \"integer\"\n          },\n          \"path\": {\n            \"description\": \"Relative path of the file to comment on.\",\n            \"type\": \"string\"\n          },\n          \"position\": {\n            \"description\": \"Line index in the diff to comment on.\",\n            \"type\": \"integer\"\n          }\n        },\n        \"required\": [\n          \"body\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

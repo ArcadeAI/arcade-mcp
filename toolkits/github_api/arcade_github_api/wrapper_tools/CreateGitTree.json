@@ -1,0 +1,319 @@
+{
+  "name": "CreateGitTree",
+  "fully_qualified_name": "GithubApi.CreateGitTree@0.1.0",
+  "description": "Create or modify a git tree in a GitHub repository.\n\nUse this tool to create or modify a tree structure in a specified GitHub repository. It is useful for organizing files and directories within a repository's tree. Note that after creating or modifying a tree, you must commit the changes and update the branch reference.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The GitHub account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "tree_creation_details",
+        "required": true,
+        "description": "JSON object detailing the tree structure. Includes base tree SHA, paths, file modes, content or SHA of each entry.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "base_tree": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The SHA1 of an existing Git tree object which will be used as the base for the new tree. If provided, a new Git tree object will be created from entries in the Git tree object pointed to by `base_tree` and entries defined in the `tree` parameter. Entries defined in the `tree` parameter will overwrite items from `base_tree` with the same `path`. If you're creating new changes on a branch, then normally you'd set `base_tree` to the SHA1 of the Git tree object of the current latest commit on the branch you're working on.\nIf not provided, GitHub will create a new Git tree object from only the entries defined in the `tree` parameter. If you create a new commit pointing to such a tree, then all files which were a part of the parent commit's tree and were not defined in the `tree` parameter will be listed as deleted by the new commit.\n"
+            },
+            "tree": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The content you want this file to have. GitHub will write this blob out and use that SHA for this entry. Use either this, or `tree.sha`.  \n  \n**Note:** Use either `tree.sha` or `content` to specify the contents of the entry. Using both `tree.sha` and `content` will return an error."
+                },
+                "mode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "100644",
+                    "100755",
+                    "040000",
+                    "160000",
+                    "120000"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The file mode; one of `100644` for file (blob), `100755` for executable (blob), `040000` for subdirectory (tree), `160000` for submodule (commit), or `120000` for a blob that specifies the path of a symlink."
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The file referenced in the tree."
+                },
+                "sha": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The SHA1 checksum ID of the object in the tree. Also called `tree.sha`. If the value is `null` then the file will be deleted.  \n  \n**Note:** Use either `tree.sha` or `content` to specify the contents of the entry. Using both `tree.sha` and `content` will return an error."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "blob",
+                    "tree",
+                    "commit"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Either `blob`, `tree`, or `commit`."
+                }
+              },
+              "description": "Objects (of `path`, `mode`, `type`, and `sha`) specifying a tree structure."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'git/create-tree'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/git/trees",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "tree_creation_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "base_tree": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The SHA1 of an existing Git tree object which will be used as the base for the new tree. If provided, a new Git tree object will be created from entries in the Git tree object pointed to by `base_tree` and entries defined in the `tree` parameter. Entries defined in the `tree` parameter will overwrite items from `base_tree` with the same `path`. If you're creating new changes on a branch, then normally you'd set `base_tree` to the SHA1 of the Git tree object of the current latest commit on the branch you're working on.\nIf not provided, GitHub will create a new Git tree object from only the entries defined in the `tree` parameter. If you create a new commit pointing to such a tree, then all files which were a part of the parent commit's tree and were not defined in the `tree` parameter will be listed as deleted by the new commit.\n"
+            },
+            "tree": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The content you want this file to have. GitHub will write this blob out and use that SHA for this entry. Use either this, or `tree.sha`.  \n  \n**Note:** Use either `tree.sha` or `content` to specify the contents of the entry. Using both `tree.sha` and `content` will return an error."
+                },
+                "mode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "100644",
+                    "100755",
+                    "040000",
+                    "160000",
+                    "120000"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The file mode; one of `100644` for file (blob), `100755` for executable (blob), `040000` for subdirectory (tree), `160000` for submodule (commit), or `120000` for a blob that specifies the path of a symlink."
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The file referenced in the tree."
+                },
+                "sha": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The SHA1 checksum ID of the object in the tree. Also called `tree.sha`. If the value is `null` then the file will be deleted.  \n  \n**Note:** Use either `tree.sha` or `content` to specify the contents of the entry. Using both `tree.sha` and `content` will return an error."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "blob",
+                    "tree",
+                    "commit"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Either `blob`, `tree`, or `commit`."
+                }
+              },
+              "description": "Objects (of `path`, `mode`, `type`, and `sha`) specifying a tree structure."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"base_tree\": \"9fb037999f264ba9a7fc6274d15fa3ae2ab98312\",\n            \"tree\": [\n              {\n                \"mode\": \"100644\",\n                \"path\": \"file.rb\",\n                \"sha\": \"44b4fc6d56897b048c772eb4087f854f46256132\",\n                \"type\": \"blob\"\n              }\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"base_tree\": {\n            \"description\": \"The SHA1 of an existing Git tree object which will be used as the base for the new tree. If provided, a new Git tree object will be created from entries in the Git tree object pointed to by `base_tree` and entries defined in the `tree` parameter. Entries defined in the `tree` parameter will overwrite items from `base_tree` with the same `path`. If you're creating new changes on a branch, then normally you'd set `base_tree` to the SHA1 of the Git tree object of the current latest commit on the branch you're working on.\\nIf not provided, GitHub will create a new Git tree object from only the entries defined in the `tree` parameter. If you create a new commit pointing to such a tree, then all files which were a part of the parent commit's tree and were not defined in the `tree` parameter will be listed as deleted by the new commit.\\n\",\n            \"type\": \"string\"\n          },\n          \"tree\": {\n            \"description\": \"Objects (of `path`, `mode`, `type`, and `sha`) specifying a tree structure.\",\n            \"items\": {\n              \"properties\": {\n                \"content\": {\n                  \"description\": \"The content you want this file to have. GitHub will write this blob out and use that SHA for this entry. Use either this, or `tree.sha`.  \\n  \\n**Note:** Use either `tree.sha` or `content` to specify the contents of the entry. Using both `tree.sha` and `content` will return an error.\",\n                  \"type\": \"string\"\n                },\n                \"mode\": {\n                  \"description\": \"The file mode; one of `100644` for file (blob), `100755` for executable (blob), `040000` for subdirectory (tree), `160000` for submodule (commit), or `120000` for a blob that specifies the path of a symlink.\",\n                  \"enum\": [\n                    \"100644\",\n                    \"100755\",\n                    \"040000\",\n                    \"160000\",\n                    \"120000\"\n                  ],\n                  \"type\": \"string\"\n                },\n                \"path\": {\n                  \"description\": \"The file referenced in the tree.\",\n                  \"type\": \"string\"\n                },\n                \"sha\": {\n                  \"description\": \"The SHA1 checksum ID of the object in the tree. Also called `tree.sha`. If the value is `null` then the file will be deleted.  \\n  \\n**Note:** Use either `tree.sha` or `content` to specify the contents of the entry. Using both `tree.sha` and `content` will return an error.\",\n                  \"nullable\": true,\n                  \"type\": \"string\"\n                },\n                \"type\": {\n                  \"description\": \"Either `blob`, `tree`, or `commit`.\",\n                  \"enum\": [\n                    \"blob\",\n                    \"tree\",\n                    \"commit\"\n                  ],\n                  \"type\": \"string\"\n                }\n              },\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"tree\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

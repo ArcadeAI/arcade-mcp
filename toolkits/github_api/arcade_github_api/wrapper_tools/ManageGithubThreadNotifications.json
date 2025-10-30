@@ -1,0 +1,150 @@
+{
+  "name": "ManageGithubThreadNotifications",
+  "fully_qualified_name": "GithubApi.ManageGithubThreadNotifications@0.1.0",
+  "description": "Manage GitHub notifications for specific threads.\n\nUse this tool to ignore future notifications for GitHub threads, or to subscribe to threads you aren't receiving notifications for. Ideal for managing notifications on watched repositories by ignoring or subscribing to specific threads.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "notification_thread_id",
+        "required": true,
+        "description": "The unique ID of the notification thread, as retrieved from the GitHub notifications API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the notification thread. This corresponds to the value returned in the `id` field when you retrieve notifications (for example with the [`GET /notifications` operation](https://docs.github.com/enterprise-server@3.8/rest/reference/activity#list-notifications-for-the-authenticated-user))."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "thread_id"
+      },
+      {
+        "name": "ignore_thread_notifications",
+        "required": false,
+        "description": "Set to true to block all notifications from a thread. Use false to allow notifications.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to block all notifications from a thread."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ignored"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'activity/set-thread-subscription'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/notifications/threads/{thread_id}/subscription",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "thread_id",
+        "tool_parameter_name": "notification_thread_id",
+        "description": "The unique identifier of the notification thread. This corresponds to the value returned in the `id` field when you retrieve notifications (for example with the [`GET /notifications` operation](https://docs.github.com/enterprise-server@3.8/rest/reference/activity#list-notifications-for-the-authenticated-user)).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the notification thread. This corresponds to the value returned in the `id` field when you retrieve notifications (for example with the [`GET /notifications` operation](https://docs.github.com/enterprise-server@3.8/rest/reference/activity#list-notifications-for-the-authenticated-user))."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "ignored",
+        "tool_parameter_name": "ignore_thread_notifications",
+        "description": "Whether to block all notifications from a thread.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to block all notifications from a thread."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"ignored\": false\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"ignored\": {\n            \"default\": false,\n            \"description\": \"Whether to block all notifications from a thread.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

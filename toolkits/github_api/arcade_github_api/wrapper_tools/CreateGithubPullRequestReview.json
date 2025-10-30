@@ -1,0 +1,404 @@
+{
+  "name": "CreateGithubPullRequestReview",
+  "fully_qualified_name": "GithubApi.CreateGithubPullRequestReview@0.1.0",
+  "description": "Create a review for a GitHub pull request.\n\nUse this tool to create a review for a specific pull request on GitHub, either in the 'PENDING' state or by submitting it. Ideal for adding comments or feedback on code changes.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository (case-insensitive).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository where the pull request exists, not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "pull_request_number",
+        "required": true,
+        "description": "The number that uniquely identifies the pull request for which the review is being created.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies the pull request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pull_number"
+      },
+      {
+        "name": "review_request_body",
+        "required": false,
+        "description": "JSON object containing details for the pull request review, including comments, commit SHA, review action (`APPROVE`, `REQUEST_CHANGES`, `COMMENT`), and review body text.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "**Required** when using `REQUEST_CHANGES` or `COMMENT` for the `event` parameter. The body text of the pull request review."
+            },
+            "comments": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "body": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Text of the review comment."
+                },
+                "line": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The relative path to the file that necessitates a review comment."
+                },
+                "position": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The position in the diff where you want to add a review comment. Note this value is not the same as the line number in the file. For help finding the position value, read the note below."
+                },
+                "side": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "start_line": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "start_side": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Use the following table to specify the location, destination, and contents of the draft review comment."
+            },
+            "commit_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The SHA of the commit that needs a review. Not using the latest commit SHA may render your review comment outdated if a subsequent commit modifies the line you specify as the `position`. Defaults to the most recent commit in the pull request when you do not specify a value."
+            },
+            "event": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "APPROVE",
+                "REQUEST_CHANGES",
+                "COMMENT"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The review action you want to perform. The review actions include: `APPROVE`, `REQUEST_CHANGES`, or `COMMENT`. By leaving this blank, you set the review action state to `PENDING`, which means you will need to [submit the pull request review](https://docs.github.com/enterprise-server@3.8/rest/pulls#submit-a-review-for-a-pull-request) when you are ready."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'pulls/create-review'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/pulls/{pull_number}/reviews",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "pull_number",
+        "tool_parameter_name": "pull_request_number",
+        "description": "The number that identifies the pull request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies the pull request."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "review_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "**Required** when using `REQUEST_CHANGES` or `COMMENT` for the `event` parameter. The body text of the pull request review."
+            },
+            "comments": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "body": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Text of the review comment."
+                },
+                "line": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The relative path to the file that necessitates a review comment."
+                },
+                "position": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The position in the diff where you want to add a review comment. Note this value is not the same as the line number in the file. For help finding the position value, read the note below."
+                },
+                "side": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "start_line": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "start_side": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Use the following table to specify the location, destination, and contents of the draft review comment."
+            },
+            "commit_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The SHA of the commit that needs a review. Not using the latest commit SHA may render your review comment outdated if a subsequent commit modifies the line you specify as the `position`. Defaults to the most recent commit in the pull request when you do not specify a value."
+            },
+            "event": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "APPROVE",
+                "REQUEST_CHANGES",
+                "COMMENT"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The review action you want to perform. The review actions include: `APPROVE`, `REQUEST_CHANGES`, or `COMMENT`. By leaving this blank, you set the review action state to `PENDING`, which means you will need to [submit the pull request review](https://docs.github.com/enterprise-server@3.8/rest/pulls#submit-a-review-for-a-pull-request) when you are ready."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"body\": \"This is close to perfect! Please address the suggested inline change.\",\n            \"comments\": [\n              {\n                \"body\": \"Please add more information here, and fix this typo.\",\n                \"path\": \"file.md\",\n                \"position\": 6\n              }\n            ],\n            \"commit_id\": \"ecdd80bb57125d7ba9641ffaa4d7d2c19d3f3091\",\n            \"event\": \"REQUEST_CHANGES\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"body\": {\n            \"description\": \"**Required** when using `REQUEST_CHANGES` or `COMMENT` for the `event` parameter. The body text of the pull request review.\",\n            \"type\": \"string\"\n          },\n          \"comments\": {\n            \"description\": \"Use the following table to specify the location, destination, and contents of the draft review comment.\",\n            \"items\": {\n              \"properties\": {\n                \"body\": {\n                  \"description\": \"Text of the review comment.\",\n                  \"type\": \"string\"\n                },\n                \"line\": {\n                  \"example\": 28,\n                  \"type\": \"integer\"\n                },\n                \"path\": {\n                  \"description\": \"The relative path to the file that necessitates a review comment.\",\n                  \"type\": \"string\"\n                },\n                \"position\": {\n                  \"description\": \"The position in the diff where you want to add a review comment. Note this value is not the same as the line number in the file. For help finding the position value, read the note below.\",\n                  \"type\": \"integer\"\n                },\n                \"side\": {\n                  \"example\": \"RIGHT\",\n                  \"type\": \"string\"\n                },\n                \"start_line\": {\n                  \"example\": 26,\n                  \"type\": \"integer\"\n                },\n                \"start_side\": {\n                  \"example\": \"LEFT\",\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"path\",\n                \"body\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"commit_id\": {\n            \"description\": \"The SHA of the commit that needs a review. Not using the latest commit SHA may render your review comment outdated if a subsequent commit modifies the line you specify as the `position`. Defaults to the most recent commit in the pull request when you do not specify a value.\",\n            \"type\": \"string\"\n          },\n          \"event\": {\n            \"description\": \"The review action you want to perform. The review actions include: `APPROVE`, `REQUEST_CHANGES`, or `COMMENT`. By leaving this blank, you set the review action state to `PENDING`, which means you will need to [submit the pull request review](https://docs.github.com/enterprise-server@3.8/rest/pulls#submit-a-review-for-a-pull-request) when you are ready.\",\n            \"enum\": [\n              \"APPROVE\",\n              \"REQUEST_CHANGES\",\n              \"COMMENT\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

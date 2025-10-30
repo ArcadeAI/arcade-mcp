@@ -1,0 +1,249 @@
+{
+  "name": "CreateTeamDiscussionGithub",
+  "fully_qualified_name": "GithubApi.CreateTeamDiscussionGithub@0.1.0",
+  "description": "Create a discussion post on a GitHub team's page.\n\nUse this tool to create a new discussion post on a specified team's page within an organization on GitHub. This requires appropriate OAuth access tokens with the `write:discussion` scope. Be aware that creating content too quickly can lead to rate limiting. This action will trigger notifications associated with the created discussion.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The organization name, not case-sensitive, for which the team discussion will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "team_slug",
+        "required": true,
+        "description": "The unique slug of the team name. This is required to specify which team's page the discussion will be posted on.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug of the team name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_slug"
+      },
+      {
+        "name": "discussion_body_text",
+        "required": true,
+        "description": "The content of the discussion post. Provide detailed text for the discussion body.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The discussion post's body text."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body"
+      },
+      {
+        "name": "discussion_post_title",
+        "required": true,
+        "description": "The title for the discussion post on the team's page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The discussion post's title."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "title"
+      },
+      {
+        "name": "create_private_post",
+        "required": false,
+        "description": "Set to `true` to create a private post visible only to team members and maintainers, or `false` for a public post visible to all organization members.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Private posts are only visible to team members, organization owners, and team maintainers. Public posts are visible to all members of the organization. Set to `true` to create a private post."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "private"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'teams/create-discussion-in-org'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}/teams/{team_slug}/discussions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The slug of the team name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug of the team name."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body",
+        "tool_parameter_name": "discussion_body_text",
+        "description": "The discussion post's body text.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The discussion post's body text."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "private",
+        "tool_parameter_name": "create_private_post",
+        "description": "Private posts are only visible to team members, organization owners, and team maintainers. Public posts are visible to all members of the organization. Set to `true` to create a private post.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Private posts are only visible to team members, organization owners, and team maintainers. Public posts are visible to all members of the organization. Set to `true` to create a private post."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "title",
+        "tool_parameter_name": "discussion_post_title",
+        "description": "The discussion post's title.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The discussion post's title."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"body\": \"Hi! This is an area for us to collaborate as a team.\",\n            \"title\": \"Our first team post\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"body\": {\n            \"description\": \"The discussion post's body text.\",\n            \"type\": \"string\"\n          },\n          \"private\": {\n            \"default\": false,\n            \"description\": \"Private posts are only visible to team members, organization owners, and team maintainers. Public posts are visible to all members of the organization. Set to `true` to create a private post.\",\n            \"type\": \"boolean\"\n          },\n          \"title\": {\n            \"description\": \"The discussion post's title.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"title\",\n          \"body\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

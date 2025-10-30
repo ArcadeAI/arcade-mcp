@@ -1,0 +1,61 @@
+[build-system]
+requires = [ "hatchling",]
+build-backend = "hatchling.build"
+
+[project]
+name = "arcade_github_api"
+version = "0.1.0"
+description = "Tools that enable LLMs to interact directly with the GitHub API."
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-tdk>=3.0.0,<4.0.0",
+    "httpx[http2]>=0.27.2,<1.0.0",
+    "jsonschema>=4.0.0,<5.0.0",
+]
+[[project.authors]]
+email = "support@arcade.dev"
+
+[project.optional-dependencies]
+dev = [
+    "arcade-mcp[all]>=1.2.0,<2.0.0",
+    "arcade-serve>=3.0.0,<4.0.0",
+    "pytest>=8.3.0,<8.4.0",
+    "pytest-cov>=4.0.0,<4.1.0",
+    "pytest-mock>=3.11.1,<3.12.0",
+    "pytest-asyncio>=0.24.0,<0.25.0",
+    "mypy>=1.5.1,<1.6.0",
+    "pre-commit>=3.4.0,<3.5.0",
+    "tox>=4.11.1,<4.12.0",
+    "ruff>=0.7.4,<0.8.0",
+]
+
+# Use local path sources for arcade libs when working locally
+[tool.uv.sources]
+arcade-mcp = { path = "../../", editable = true }
+arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
+arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
+
+# Tell Arcade.dev that this package is a toolkit
+[project.entry-points.arcade_toolkits]
+toolkit_name = "arcade_github_api"
+
+[tool.mypy]
+files = [ "arcade_github_api/**/*.py",]
+python_version = "3.10"
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = [ "tests",]
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.hatch.build.targets.wheel]
+packages = [ "arcade_github_api",]

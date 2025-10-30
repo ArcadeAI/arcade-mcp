@@ -1,0 +1,416 @@
+{
+  "name": "InstantiateProjectFromTemplate",
+  "fully_qualified_name": "AsanaApi.InstantiateProjectFromTemplate@0.1.0",
+  "description": "Asynchronously instantiate a project from a template.\n\nThis tool creates a job to asynchronously handle project instantiation using a specified project template. It should be called when you need to create a new project from an existing template in Asana. Ensure you have the 'projects:write' scope and verify if your workspace is an organization.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_template_id",
+        "required": true,
+        "description": "Globally unique identifier for the project template to instantiate the project from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the project template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_template_gid"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "A list of optional properties to include in the response. Provide as a comma-separated list.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "project_instantiation_details",
+        "required": false,
+        "description": "JSON object detailing the inputs for instantiating a project, such as the project's name, team, privacy setting, and date or role mappings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the new project."
+                },
+                "team": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Optional*. Sets the team of the new project. If the project template exists in an _organization_, you may specify a value for `team`. If no value is provided then it defaults to the same team as the project template."
+                },
+                "public": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Deprecated:* new integrations use `privacy_setting` instead."
+                },
+                "privacy_setting": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "public_to_workspace",
+                    "private_to_team",
+                    "private"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The privacy setting of the project. *Note: Administrators in your organization may restrict the values of `privacy_setting`.*"
+                },
+                "is_strict": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Optional*. If set to `true`, the endpoint returns an \"Unprocessable Entity\" error if you fail to provide a calendar date value for any date variable. If set to `false`, a default date is used for each unfulfilled date variable (e.g., the current date is used as the Start Date of a project)."
+                },
+                "requested_dates": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "gid": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Globally unique identifier of the date field in the project template. A value of `1` refers to the project start date, while `2` refers to the project due date."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The date with which the date variable should be replaced when instantiating a project. This takes a date with `YYYY-MM-DD` format."
+                    }
+                  },
+                  "description": "*Conditional*. Array of mappings of date variables to calendar dates. This property is required in the instantiation request if the project template includes dates (e.g., a start date on a task)."
+                },
+                "requested_roles": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "gid": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Globally unique identifier of the template role in the project template."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The user id that should be assigned to the template role."
+                    }
+                  },
+                  "description": "Array of mappings of template roles to user ids"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Describes the inputs used for instantiating a project, such as the resulting project's name, which team it should be created in, and values for date variables."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Enable pretty formatting for the response. Use this for debugging purposes as it increases response time and size.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'instantiateProject'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "projects:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/project_templates/{project_template_gid}/instantiateProject",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_template_gid",
+        "tool_parameter_name": "project_template_id",
+        "description": "Globally unique identifier for the project template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the project template."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "project_instantiation_details",
+        "description": "Describes the inputs used for instantiating a project, such as the resulting project's name, which team it should be created in, and values for date variables.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the new project."
+                },
+                "team": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Optional*. Sets the team of the new project. If the project template exists in an _organization_, you may specify a value for `team`. If no value is provided then it defaults to the same team as the project template."
+                },
+                "public": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Deprecated:* new integrations use `privacy_setting` instead."
+                },
+                "privacy_setting": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "public_to_workspace",
+                    "private_to_team",
+                    "private"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The privacy setting of the project. *Note: Administrators in your organization may restrict the values of `privacy_setting`.*"
+                },
+                "is_strict": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Optional*. If set to `true`, the endpoint returns an \"Unprocessable Entity\" error if you fail to provide a calendar date value for any date variable. If set to `false`, a default date is used for each unfulfilled date variable (e.g., the current date is used as the Start Date of a project)."
+                },
+                "requested_dates": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "gid": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Globally unique identifier of the date field in the project template. A value of `1` refers to the project start date, while `2` refers to the project due date."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The date with which the date variable should be replaced when instantiating a project. This takes a date with `YYYY-MM-DD` format."
+                    }
+                  },
+                  "description": "*Conditional*. Array of mappings of date variables to calendar dates. This property is required in the instantiation request if the project template includes dates (e.g., a start date on a task)."
+                },
+                "requested_roles": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "gid": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Globally unique identifier of the template role in the project template."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The user id that should be assigned to the template role."
+                    }
+                  },
+                  "description": "Array of mappings of template roles to user ids"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Describes the inputs used for instantiating a project, such as the resulting project's name, which team it should be created in, and values for date variables."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Describes the inputs used for instantiating a project, such as the resulting project's name, which team it should be created in, and values for date variables.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"required\": [\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The name of the new project.\",\n                \"type\": \"string\",\n                \"example\": \"New Project Name\"\n              },\n              \"team\": {\n                \"description\": \"*Optional*. Sets the team of the new project. If the project template exists in an _organization_, you may specify a value for `team`. If no value is provided then it defaults to the same team as the project template.\",\n                \"type\": \"string\",\n                \"example\": \"12345\"\n              },\n              \"public\": {\n                \"description\": \"*Deprecated:* new integrations use `privacy_setting` instead.\",\n                \"deprecated\": true,\n                \"type\": \"boolean\",\n                \"example\": true\n              },\n              \"privacy_setting\": {\n                \"description\": \"The privacy setting of the project. *Note: Administrators in your organization may restrict the values of `privacy_setting`.*\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"public_to_workspace\",\n                  \"private_to_team\",\n                  \"private\"\n                ],\n                \"example\": \"public_to_workspace\"\n              },\n              \"is_strict\": {\n                \"description\": \"*Optional*. If set to `true`, the endpoint returns an \\\"Unprocessable Entity\\\" error if you fail to provide a calendar date value for any date variable. If set to `false`, a default date is used for each unfulfilled date variable (e.g., the current date is used as the Start Date of a project).\",\n                \"type\": \"boolean\",\n                \"example\": true\n              },\n              \"requested_dates\": {\n                \"description\": \"*Conditional*. Array of mappings of date variables to calendar dates. This property is required in the instantiation request if the project template includes dates (e.g., a start date on a task).\",\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"gid\": {\n                      \"description\": \"Globally unique identifier of the date field in the project template. A value of `1` refers to the project start date, while `2` refers to the project due date.\",\n                      \"type\": \"string\",\n                      \"example\": \"1\"\n                    },\n                    \"value\": {\n                      \"description\": \"The date with which the date variable should be replaced when instantiating a project. This takes a date with `YYYY-MM-DD` format.\",\n                      \"type\": \"string\",\n                      \"nullable\": true,\n                      \"format\": \"date-time\",\n                      \"example\": \"2022-01-01\"\n                    }\n                  }\n                }\n              },\n              \"requested_roles\": {\n                \"description\": \"Array of mappings of template roles to user ids\",\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"gid\": {\n                      \"description\": \"Globally unique identifier of the template role in the project template.\",\n                      \"type\": \"string\",\n                      \"example\": \"1\"\n                    },\n                    \"value\": {\n                      \"description\": \"The user id that should be assigned to the template role.\",\n                      \"type\": \"string\",\n                      \"example\": \"123\"\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

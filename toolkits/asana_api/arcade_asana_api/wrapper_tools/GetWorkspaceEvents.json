@@ -1,0 +1,171 @@
+{
+  "name": "GetWorkspaceEvents",
+  "fully_qualified_name": "AsanaApi.GetWorkspaceEvents@0.1.0",
+  "description": "Retrieve all events in a workspace since a specific sync token.\n\nUse this tool to get a full record of events that have occurred in an Asana workspace since a specified sync token. If the number of events exceeds 1000, the response will indicate there are more events to retrieve.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_global_id",
+        "required": true,
+        "description": "Globally unique identifier for the workspace or organization in Asana.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the workspace or organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workspace_gid"
+      },
+      {
+        "name": "sync_token",
+        "required": false,
+        "description": "A sync token received from the last request to fetch events from a specific point in time. Omit on first sync to receive a new token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A sync token received from the last request, or none on first sync. Events will be returned from the point in time that the sync token was generated.\n*Note: On your first request, omit the sync token. The response will be the same as for an expired sync token, and will include a new valid sync token. If the sync token is too old (which may happen from time to time) the API will return a `412 Precondition Failed` error, and include a fresh sync token in the response.*"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sync"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Enable pretty output for better readability. Recommended for debugging as it increases response size and takes extra time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getWorkspaceEvents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/workspaces/{workspace_gid}/events",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sync",
+        "tool_parameter_name": "sync_token",
+        "description": "A sync token received from the last request, or none on first sync. Events will be returned from the point in time that the sync token was generated.\n*Note: On your first request, omit the sync token. The response will be the same as for an expired sync token, and will include a new valid sync token. If the sync token is too old (which may happen from time to time) the API will return a `412 Precondition Failed` error, and include a fresh sync token in the response.*",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A sync token received from the last request, or none on first sync. Events will be returned from the point in time that the sync token was generated.\n*Note: On your first request, omit the sync token. The response will be the same as for an expired sync token, and will include a new valid sync token. If the sync token is too old (which may happen from time to time) the API will return a `412 Precondition Failed` error, and include a fresh sync token in the response.*"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workspace_gid",
+        "tool_parameter_name": "workspace_global_id",
+        "description": "Globally unique identifier for the workspace or organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the workspace or organization."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,333 @@
+{
+  "name": "ListTeamDiscussionCommentReactions",
+  "fully_qualified_name": "GithubApi.ListTeamDiscussionCommentReactions@0.1.0",
+  "description": "Retrieve reactions for a team discussion comment in an organization.\n\nThis tool retrieves the list of reactions for a specific comment in a team discussion within an organization on GitHub. It requires OAuth access tokens with the `read:discussion` scope. Use this when you need to analyze or display reactions to a particular discussion comment.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The name of the GitHub organization. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "team_slug",
+        "required": true,
+        "description": "The slug of the team name, case-insensitive, used to identify the team in the organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug of the team name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_slug"
+      },
+      {
+        "name": "discussion_number",
+        "required": true,
+        "description": "The number identifying the specific discussion in the team.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies the discussion."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "discussion_number"
+      },
+      {
+        "name": "comment_identifier",
+        "required": true,
+        "description": "The unique number identifying the discussion comment.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies the comment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "comment_number"
+      },
+      {
+        "name": "filter_by_reaction_type",
+        "required": false,
+        "description": "Specify a single reaction type to filter results. Options: '+1', '-1', 'laugh', 'confused', 'heart', 'hooray', 'rocket', 'eyes'. Omit to list all reactions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "+1",
+            "-1",
+            "laugh",
+            "confused",
+            "heart",
+            "hooray",
+            "rocket",
+            "eyes"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns a single [reaction type](https://docs.github.com/enterprise-server@3.8/rest/reference/reactions#reaction-types). Omit this parameter to list all reactions to a team discussion comment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "content"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "The number of results per page to return (maximum 100).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "results_page_number",
+        "required": false,
+        "description": "The page number of the comments reactions to fetch from the results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'reactions/list-for-team-discussion-comment-in-org'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}/reactions",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "content",
+        "tool_parameter_name": "filter_by_reaction_type",
+        "description": "Returns a single [reaction type](https://docs.github.com/enterprise-server@3.8/rest/reference/reactions#reaction-types). Omit this parameter to list all reactions to a team discussion comment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "+1",
+            "-1",
+            "laugh",
+            "confused",
+            "heart",
+            "hooray",
+            "rocket",
+            "eyes"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns a single [reaction type](https://docs.github.com/enterprise-server@3.8/rest/reference/reactions#reaction-types). Omit this parameter to list all reactions to a team discussion comment."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "results_per_page",
+        "description": "The number of results per page (max 100).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "results_page_number",
+        "description": "Page number of the results to fetch.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The slug of the team name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug of the team name."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "discussion_number",
+        "tool_parameter_name": "discussion_number",
+        "description": "The number that identifies the discussion.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies the discussion."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "comment_number",
+        "tool_parameter_name": "comment_identifier",
+        "description": "The number that identifies the comment.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies the comment."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

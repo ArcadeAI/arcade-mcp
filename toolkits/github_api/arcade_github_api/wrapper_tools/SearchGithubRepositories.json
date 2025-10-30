@@ -1,0 +1,265 @@
+{
+  "name": "SearchGithubRepositories",
+  "fully_qualified_name": "GithubApi.SearchGithubRepositories@0.1.0",
+  "description": "Search GitHub repositories using various criteria.\n\nThis tool finds GitHub repositories based on specific criteria such as keywords, language, and sort order. It can return up to 100 results per page and provides options for text match metadata to highlight search results in the name and description fields.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "search_query",
+        "required": true,
+        "description": "A string containing search keywords and qualifiers to find specific repositories. Supports qualifiers and keywords for targeted searches. Refer to GitHub's documentation for query construction details: https://docs.github.com/enterprise-server@3.8/articles/searching-for-repositories/.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub Enterprise Server. The REST API supports the same qualifiers as the web interface for GitHub Enterprise Server. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.8/rest/reference/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/enterprise-server@3.8/articles/searching-for-repositories/)\" for a detailed list of qualifiers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "q"
+      },
+      {
+        "name": "sort_by",
+        "required": false,
+        "description": "Sort results by `stars`, `forks`, `help-wanted-issues`, or `updated`. Default is best match.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "stars",
+            "forks",
+            "help-wanted-issues",
+            "updated"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sorts the results of your query by number of `stars`, `forks`, or `help-wanted-issues` or how recently the items were `updated`. Default: [best match](https://docs.github.com/enterprise-server@3.8/rest/reference/search#ranking-search-results)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "result_order",
+        "required": false,
+        "description": "Set to 'desc' for highest matches first or 'asc' for lowest matches first in search results. Ignored if 'sort' is not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "desc",
+            "asc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the first search result returned is the highest number of matches (`desc`) or lowest number of matches (`asc`). This parameter is ignored unless you provide `sort`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specify the number of repository results to return per page, with a maximum of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "results_page_number",
+        "required": false,
+        "description": "Specify the page number of the results to fetch in the search query. Useful for navigating through paginated results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'search/repos'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/search/repositories",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "q",
+        "tool_parameter_name": "search_query",
+        "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub Enterprise Server. The REST API supports the same qualifiers as the web interface for GitHub Enterprise Server. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.8/rest/reference/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/enterprise-server@3.8/articles/searching-for-repositories/)\" for a detailed list of qualifiers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub Enterprise Server. The REST API supports the same qualifiers as the web interface for GitHub Enterprise Server. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.8/rest/reference/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/enterprise-server@3.8/articles/searching-for-repositories/)\" for a detailed list of qualifiers."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_by",
+        "description": "Sorts the results of your query by number of `stars`, `forks`, or `help-wanted-issues` or how recently the items were `updated`. Default: [best match](https://docs.github.com/enterprise-server@3.8/rest/reference/search#ranking-search-results)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "stars",
+            "forks",
+            "help-wanted-issues",
+            "updated"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sorts the results of your query by number of `stars`, `forks`, or `help-wanted-issues` or how recently the items were `updated`. Default: [best match](https://docs.github.com/enterprise-server@3.8/rest/reference/search#ranking-search-results)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order",
+        "tool_parameter_name": "result_order",
+        "description": "Determines whether the first search result returned is the highest number of matches (`desc`) or lowest number of matches (`asc`). This parameter is ignored unless you provide `sort`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "desc",
+            "asc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the first search result returned is the highest number of matches (`desc`) or lowest number of matches (`asc`). This parameter is ignored unless you provide `sort`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "desc",
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "results_per_page",
+        "description": "The number of results per page (max 100).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "results_page_number",
+        "description": "Page number of the results to fetch.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

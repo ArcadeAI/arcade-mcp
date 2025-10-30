@@ -1,0 +1,323 @@
+{
+  "name": "UpdateRunnerGroupSettings",
+  "fully_qualified_name": "GithubApi.UpdateRunnerGroupSettings@0.1.0",
+  "description": "Update name and visibility of a runner group in an organization.\n\nCall this tool to change the name or visibility of a self-hosted runner group within a GitHub organization. Requires authentication with an access token that has the `admin:org` scope.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The name of the organization. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "runner_group_id",
+        "required": true,
+        "description": "Unique identifier of the self-hosted runner group being updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the self-hosted runner group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "runner_group_id"
+      },
+      {
+        "name": "runner_group_name",
+        "required": true,
+        "description": "The new name for the self-hosted runner group in the organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the runner group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "allowed_workflow_list",
+        "required": false,
+        "description": "List of workflows the runner group can run. Ignored unless workflows are restricted.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of workflows the runner group should be allowed to run. This setting will be ignored unless `restricted_to_workflows` is set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "selected_workflows"
+      },
+      {
+        "name": "runner_group_visibility",
+        "required": false,
+        "description": "Specifies the visibility of the runner group. Options: 'selected' for individual repositories, 'all' for all repositories, 'private' for all private repositories.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "selected",
+            "all",
+            "private"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Visibility of a runner group. You can select all repositories, select individual repositories, or all private repositories."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "visibility"
+      },
+      {
+        "name": "allow_public_repository_usage",
+        "required": false,
+        "description": "Set to `true` to allow the runner group to be used by public repositories.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the runner group can be used by `public` repositories."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "allows_public_repositories"
+      },
+      {
+        "name": "restrict_runner_group_to_workflows",
+        "required": false,
+        "description": "Set to `true` to restrict the runner group to running only the workflows specified in `selected_workflows`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, the runner group will be restricted to running only the workflows specified in the `selected_workflows` array."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "restricted_to_workflows"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'actions/update-self-hosted-runner-group-for-org'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}/actions/runner-groups/{runner_group_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "runner_group_id",
+        "tool_parameter_name": "runner_group_id",
+        "description": "Unique identifier of the self-hosted runner group.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the self-hosted runner group."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "allows_public_repositories",
+        "tool_parameter_name": "allow_public_repository_usage",
+        "description": "Whether the runner group can be used by `public` repositories.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the runner group can be used by `public` repositories."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "runner_group_name",
+        "description": "Name of the runner group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the runner group."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "restricted_to_workflows",
+        "tool_parameter_name": "restrict_runner_group_to_workflows",
+        "description": "If `true`, the runner group will be restricted to running only the workflows specified in the `selected_workflows` array.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, the runner group will be restricted to running only the workflows specified in the `selected_workflows` array."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "selected_workflows",
+        "tool_parameter_name": "allowed_workflow_list",
+        "description": "List of workflows the runner group should be allowed to run. This setting will be ignored unless `restricted_to_workflows` is set to `true`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of workflows the runner group should be allowed to run. This setting will be ignored unless `restricted_to_workflows` is set to `true`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "visibility",
+        "tool_parameter_name": "runner_group_visibility",
+        "description": "Visibility of a runner group. You can select all repositories, select individual repositories, or all private repositories.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "selected",
+            "all",
+            "private"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Visibility of a runner group. You can select all repositories, select individual repositories, or all private repositories."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"name\": \"Expensive hardware runners\",\n            \"visibility\": \"selected\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"allows_public_repositories\": {\n            \"default\": false,\n            \"description\": \"Whether the runner group can be used by `public` repositories.\",\n            \"type\": \"boolean\"\n          },\n          \"name\": {\n            \"description\": \"Name of the runner group.\",\n            \"type\": \"string\"\n          },\n          \"restricted_to_workflows\": {\n            \"default\": false,\n            \"description\": \"If `true`, the runner group will be restricted to running only the workflows specified in the `selected_workflows` array.\",\n            \"type\": \"boolean\"\n          },\n          \"selected_workflows\": {\n            \"description\": \"List of workflows the runner group should be allowed to run. This setting will be ignored unless `restricted_to_workflows` is set to `true`.\",\n            \"items\": {\n              \"description\": \"Name of workflow the runner group should be allowed to run. Note that a ref, tag, or long SHA is required.\",\n              \"example\": \"octo-org/octo-repo/.github/workflows/deploy.yaml@main\",\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"visibility\": {\n            \"description\": \"Visibility of a runner group. You can select all repositories, select individual repositories, or all private repositories.\",\n            \"enum\": [\n              \"selected\",\n              \"all\",\n              \"private\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

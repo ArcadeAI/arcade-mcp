@@ -1,0 +1,281 @@
+{
+  "name": "CreateGithubIssue",
+  "fully_qualified_name": "GithubApi.CreateGithubIssue@0.1.0",
+  "description": "Create a new issue in a GitHub repository.\n\nUse this tool to create a new issue in a specific GitHub repository. This can be done by any user with pull access to the repository. Note that if issues are disabled for the repository, a 410 status will be returned. Be cautious of triggering secondary rate limits by creating content too quickly.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the GitHub repository. Provide the username or organization name, case insensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository. Case insensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "issue_details",
+        "required": true,
+        "description": "JSON containing the issue details such as title, body, assignees, labels, and milestone. The title and body are required. Only users with push access can set additional fields like assignees and labels.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "assignee": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Login for the user that this issue should be assigned to. _NOTE: Only users with push access can set the assignee for new issues. The assignee is silently dropped otherwise. **This field is deprecated.**_"
+            },
+            "assignees": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Logins for Users to assign to this issue. _NOTE: Only users with push access can set assignees for new issues. Assignees are silently dropped otherwise._"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The contents of the issue."
+            },
+            "labels": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "Labels to associate with this issue. _NOTE: Only users with push access can set labels for new issues. Labels are silently dropped otherwise._"
+            },
+            "milestone": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "title": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of the issue."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'issues/create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/issues",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "issue_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "assignee": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Login for the user that this issue should be assigned to. _NOTE: Only users with push access can set the assignee for new issues. The assignee is silently dropped otherwise. **This field is deprecated.**_"
+            },
+            "assignees": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Logins for Users to assign to this issue. _NOTE: Only users with push access can set assignees for new issues. Assignees are silently dropped otherwise._"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The contents of the issue."
+            },
+            "labels": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "Labels to associate with this issue. _NOTE: Only users with push access can set labels for new issues. Labels are silently dropped otherwise._"
+            },
+            "milestone": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "title": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of the issue."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"assignees\": [\n              \"octocat\"\n            ],\n            \"body\": \"I'm having a problem with this.\",\n            \"labels\": [\n              \"bug\"\n            ],\n            \"milestone\": 1,\n            \"title\": \"Found a bug\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"assignee\": {\n            \"description\": \"Login for the user that this issue should be assigned to. _NOTE: Only users with push access can set the assignee for new issues. The assignee is silently dropped otherwise. **This field is deprecated.**_\",\n            \"nullable\": true,\n            \"type\": \"string\"\n          },\n          \"assignees\": {\n            \"description\": \"Logins for Users to assign to this issue. _NOTE: Only users with push access can set assignees for new issues. Assignees are silently dropped otherwise._\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"body\": {\n            \"description\": \"The contents of the issue.\",\n            \"type\": \"string\"\n          },\n          \"labels\": {\n            \"description\": \"Labels to associate with this issue. _NOTE: Only users with push access can set labels for new issues. Labels are silently dropped otherwise._\",\n            \"items\": {\n              \"oneOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"properties\": {\n                    \"color\": {\n                      \"nullable\": true,\n                      \"type\": \"string\"\n                    },\n                    \"description\": {\n                      \"nullable\": true,\n                      \"type\": \"string\"\n                    },\n                    \"id\": {\n                      \"type\": \"integer\"\n                    },\n                    \"name\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"type\": \"object\"\n                }\n              ]\n            },\n            \"type\": \"array\"\n          },\n          \"milestone\": {\n            \"nullable\": true,\n            \"oneOf\": [\n              {\n                \"type\": \"string\"\n              },\n              {\n                \"description\": \"The `number` of the milestone to associate this issue with. _NOTE: Only users with push access can set the milestone for new issues. The milestone is silently dropped otherwise._\",\n                \"type\": \"integer\"\n              }\n            ]\n          },\n          \"title\": {\n            \"description\": \"The title of the issue.\",\n            \"oneOf\": [\n              {\n                \"type\": \"string\"\n              },\n              {\n                \"type\": \"integer\"\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"title\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

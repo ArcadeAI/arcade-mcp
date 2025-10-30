@@ -1,0 +1,183 @@
+{
+  "name": "UpdateGithubAppWebhookConfig",
+  "fully_qualified_name": "GithubApi.UpdateGithubAppWebhookConfig@0.1.0",
+  "description": "Update the webhook configuration for a GitHub App.\n\nUse this tool to update the webhook configuration settings for a GitHub App. This requires authentication with a JSON Web Token (JWT).",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_configuration",
+        "required": true,
+        "description": "A JSON object containing the webhook settings: 'content_type' for payload serialization, 'insecure_ssl' for SSL verification, 'secret' for HMAC signature key, and 'url' for the payload delivery endpoint.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "content_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+            },
+            "insecure_ssl": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "secret": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value for [delivery signature headers](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers)."
+            },
+            "url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL to which the payloads will be delivered."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'apps/update-webhook-config-for-app'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/app/hook/config",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "webhook_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "content_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+            },
+            "insecure_ssl": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "secret": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value for [delivery signature headers](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers)."
+            },
+            "url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL to which the payloads will be delivered."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"content_type\": \"json\",\n            \"insecure_ssl\": \"0\",\n            \"secret\": \"********\",\n            \"url\": \"https://example.com/webhook\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"content_type\": {\n            \"description\": \"The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`.\",\n            \"example\": \"\\\"json\\\"\",\n            \"type\": \"string\"\n          },\n          \"insecure_ssl\": {\n            \"oneOf\": [\n              {\n                \"description\": \"Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**\",\n                \"example\": \"\\\"0\\\"\",\n                \"type\": \"string\"\n              },\n              {\n                \"type\": \"number\"\n              }\n            ]\n          },\n          \"secret\": {\n            \"description\": \"If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value for [delivery signature headers](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers).\",\n            \"example\": \"\\\"********\\\"\",\n            \"type\": \"string\"\n          },\n          \"url\": {\n            \"description\": \"The URL to which the payloads will be delivered.\",\n            \"example\": \"https://example.com/webhook\",\n            \"format\": \"uri\",\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

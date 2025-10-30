@@ -1,0 +1,263 @@
+{
+  "name": "ConfigureGithubPagesSite",
+  "fully_qualified_name": "GithubApi.ConfigureGithubPagesSite@0.1.0",
+  "description": "Configures a GitHub Pages site for a repository.\n\nThis tool is used to configure a Pages site for a GitHub repository on an Enterprise Server. It requires administrative permissions on the repository and a token with appropriate scopes. Use this when you need to set up or manage a GitHub Pages site.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. This is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository to configure. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "pages_configuration",
+        "required": true,
+        "description": "JSON object specifying the build type and source details for the Pages site. It includes 'build_type' and 'source' (with 'branch' and 'path'). 'build_type' can be 'legacy' or 'workflow'. 'source' requires a 'branch' and an optional 'path', which can be '/' or '/docs'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "build_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "legacy",
+                "workflow"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The process in which the Page will be built. Possible values are `\"legacy\"` and `\"workflow\"`."
+            },
+            "source": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "branch": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The repository branch used to publish your site's source files."
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "/",
+                    "/docs"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The repository directory that includes the source files for the Pages site. Allowed paths are `/` or `/docs`. Default: `/`"
+                }
+              },
+              "inner_properties": null,
+              "description": "The source branch and directory used to publish your Pages site."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/create-pages-site'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/pages",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "pages_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "build_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "legacy",
+                "workflow"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The process in which the Page will be built. Possible values are `\"legacy\"` and `\"workflow\"`."
+            },
+            "source": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "branch": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The repository branch used to publish your site's source files."
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "/",
+                    "/docs"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The repository directory that includes the source files for the Pages site. Allowed paths are `/` or `/docs`. Default: `/`"
+                }
+              },
+              "inner_properties": null,
+              "description": "The source branch and directory used to publish your Pages site."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"source\": {\n              \"branch\": \"main\",\n              \"path\": \"/docs\"\n            }\n          }\n        }\n      },\n      \"schema\": {\n        \"anyOf\": [\n          {\n            \"required\": [\n              \"source\"\n            ]\n          },\n          {\n            \"required\": [\n              \"build_type\"\n            ]\n          }\n        ],\n        \"description\": \"The source branch and directory used to publish your Pages site.\",\n        \"nullable\": true,\n        \"properties\": {\n          \"build_type\": {\n            \"description\": \"The process in which the Page will be built. Possible values are `\\\"legacy\\\"` and `\\\"workflow\\\"`.\",\n            \"enum\": [\n              \"legacy\",\n              \"workflow\"\n            ],\n            \"type\": \"string\"\n          },\n          \"source\": {\n            \"description\": \"The source branch and directory used to publish your Pages site.\",\n            \"properties\": {\n              \"branch\": {\n                \"description\": \"The repository branch used to publish your site's source files.\",\n                \"type\": \"string\"\n              },\n              \"path\": {\n                \"default\": \"/\",\n                \"description\": \"The repository directory that includes the source files for the Pages site. Allowed paths are `/` or `/docs`. Default: `/`\",\n                \"enum\": [\n                  \"/\",\n                  \"/docs\"\n                ],\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"branch\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

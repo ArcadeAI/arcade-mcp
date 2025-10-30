@@ -1,0 +1,117 @@
+{
+  "name": "CreateGithubEnterpriseRegistrationToken",
+  "fully_qualified_name": "GithubApi.CreateGithubEnterpriseRegistrationToken@0.1.0",
+  "description": "Generate a registration token for GitHub Enterprise runners.\n\nUse this tool to obtain a registration token for configuring self-hosted GitHub Enterprise runners. The token expires after one hour and requires authentication with a token having the `manage_runners:enterprise` scope.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_slug_or_id",
+        "required": true,
+        "description": "The slug version of the enterprise name or the enterprise ID for GitHub Enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterprise"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/create-registration-token-for-enterprise'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/enterprises/{enterprise}/actions/runners/registration-token",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterprise",
+        "tool_parameter_name": "enterprise_slug_or_id",
+        "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

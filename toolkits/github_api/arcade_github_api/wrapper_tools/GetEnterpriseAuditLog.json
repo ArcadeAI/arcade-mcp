@@ -1,0 +1,362 @@
+{
+  "name": "GetEnterpriseAuditLog",
+  "fully_qualified_name": "GithubApi.GetEnterpriseAuditLog@0.1.0",
+  "description": "Retrieve the audit log for a specified enterprise.\n\nThis tool fetches the audit log for an enterprise on GitHub. It is intended for use by enterprise admins with proper access rights. The audit log provides insights into various activities and changes within the enterprise.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_slug_or_id",
+        "required": true,
+        "description": "The slug or ID of the enterprise to fetch the audit log for. Either the slug version of the enterprise name or the enterprise ID can be used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterprise"
+      },
+      {
+        "name": "search_phrase",
+        "required": false,
+        "description": "A search phrase to filter audit log entries. Refer to [GitHub Docs](https://docs.github.com/enterprise-server@3.8/admin/monitoring-activity-in-your-enterprise/reviewing-audit-logs-for-your-enterprise/searching-the-audit-log-for-your-enterprise#searching-the-audit-log) for more details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A search phrase. For more information, see [Searching the audit log](https://docs.github.com/enterprise-server@3.8/admin/monitoring-activity-in-your-enterprise/reviewing-audit-logs-for-your-enterprise/searching-the-audit-log-for-your-enterprise#searching-the-audit-log)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "phrase"
+      },
+      {
+        "name": "event_types_to_include",
+        "required": false,
+        "description": "Specify event types to include: 'web' for web events, 'git' for Git events, or 'all' for both. Defaults to 'web'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "web",
+            "git",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The event types to include:\n\n- `web` - returns web (non-Git) events.\n- `git` - returns Git events.\n- `all` - returns both web and Git events.\n\nThe default is `web`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      },
+      {
+        "name": "after_cursor",
+        "required": false,
+        "description": "A cursor from the Link header to search for events after this point.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for events after this cursor."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "search_events_before_cursor",
+        "required": false,
+        "description": "A cursor to filter events occurring before the specified position in the audit log.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for events before this cursor."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "before"
+      },
+      {
+        "name": "audit_log_event_order",
+        "required": false,
+        "description": "Specify 'desc' for newest events first or 'asc' for oldest events first. Default is 'desc'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "desc",
+            "asc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order of audit log events. To list newest events first, specify `desc`. To list oldest events first, specify `asc`.\n\nThe default is `desc`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order"
+      },
+      {
+        "name": "result_page_number",
+        "required": false,
+        "description": "The page number of audit log results to fetch.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specify the number of results to display per page, with a maximum limit of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/get-audit-log'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/enterprises/{enterprise}/audit-log",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "phrase",
+        "tool_parameter_name": "search_phrase",
+        "description": "A search phrase. For more information, see [Searching the audit log](https://docs.github.com/enterprise-server@3.8/admin/monitoring-activity-in-your-enterprise/reviewing-audit-logs-for-your-enterprise/searching-the-audit-log-for-your-enterprise#searching-the-audit-log).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A search phrase. For more information, see [Searching the audit log](https://docs.github.com/enterprise-server@3.8/admin/monitoring-activity-in-your-enterprise/reviewing-audit-logs-for-your-enterprise/searching-the-audit-log-for-your-enterprise#searching-the-audit-log)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include",
+        "tool_parameter_name": "event_types_to_include",
+        "description": "The event types to include:\n\n- `web` - returns web (non-Git) events.\n- `git` - returns Git events.\n- `all` - returns both web and Git events.\n\nThe default is `web`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "web",
+            "git",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The event types to include:\n\n- `web` - returns web (non-Git) events.\n- `git` - returns Git events.\n- `all` - returns both web and Git events.\n\nThe default is `web`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "after_cursor",
+        "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for events after this cursor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for events after this cursor."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "before",
+        "tool_parameter_name": "search_events_before_cursor",
+        "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for events before this cursor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.8/rest/overview/resources-in-the-rest-api#link-header). If specified, the query only searches for events before this cursor."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order",
+        "tool_parameter_name": "audit_log_event_order",
+        "description": "The order of audit log events. To list newest events first, specify `desc`. To list oldest events first, specify `asc`.\n\nThe default is `desc`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "desc",
+            "asc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order of audit log events. To list newest events first, specify `desc`. To list oldest events first, specify `asc`.\n\nThe default is `desc`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "result_page_number",
+        "description": "Page number of the results to fetch.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "results_per_page",
+        "description": "The number of results per page (max 100).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "enterprise",
+        "tool_parameter_name": "enterprise_slug_or_id",
+        "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

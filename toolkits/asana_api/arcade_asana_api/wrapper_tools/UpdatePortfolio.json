@@ -1,0 +1,226 @@
+{
+  "name": "UpdatePortfolio",
+  "fully_qualified_name": "AsanaApi.UpdatePortfolio@0.1.0",
+  "description": "Update an existing Asana portfolio.\n\nUse this tool to update an existing Asana portfolio. Only the specified fields in the request data will be updated, and any unspecified fields will remain unchanged. Requires the 'portfolios:write' scope.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "portfolio_unique_identifier",
+        "required": true,
+        "description": "Globally unique identifier for the portfolio to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the portfolio."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "portfolio_gid"
+      },
+      {
+        "name": "portfolio_update_data",
+        "required": true,
+        "description": "JSON object containing the fields to update in the portfolio. Only specified fields will change.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The updated fields for the portfolio."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_optional_fields",
+        "required": false,
+        "description": "A list of optional portfolio properties to include in the response, specified as an array of strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Provides formatted and indented output. Use primarily for debugging as it increases response size and processing time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updatePortfolio'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "portfolios:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/portfolios/{portfolio_gid}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_fields",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "portfolio_gid",
+        "tool_parameter_name": "portfolio_unique_identifier",
+        "description": "Globally unique identifier for the portfolio.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the portfolio."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "portfolio_update_data",
+        "description": "The updated fields for the portfolio.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The updated fields for the portfolio."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The updated fields for the portfolio.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"allOf\": [\n              {\n                \"allOf\": [\n                  {\n                    \"description\": \"A *portfolio* gives a high-level overview of the status of multiple initiatives in Asana. Portfolios provide a dashboard overview of the state of multiple projects, including a progress report and the most recent [project status](/reference/project-statuses) update.\\nPortfolios have some restrictions on size. Each portfolio has a max of 1500 items and, like projects, a max of 20 custom fields.\",\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"gid\": {\n                        \"description\": \"Globally unique identifier of the resource, as a string.\",\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"example\": \"12345\",\n                        \"x-insert-after\": false\n                      },\n                      \"resource_type\": {\n                        \"description\": \"The base type of this resource.\",\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"example\": \"portfolio\",\n                        \"x-insert-after\": \"gid\"\n                      },\n                      \"name\": {\n                        \"description\": \"The name of the portfolio.\",\n                        \"type\": \"string\",\n                        \"example\": \"Bug Portfolio\"\n                      }\n                    }\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"archived\": {\n                        \"description\": \"[Opt In](/docs/inputoutput-options). True if the portfolio is archived, false if not. Archived portfolios do not show in the UI by default and may be treated differently for queries.\",\n                        \"type\": \"boolean\",\n                        \"example\": false\n                      },\n                      \"color\": {\n                        \"description\": \"Color of the portfolio.\",\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"dark-pink\",\n                          \"dark-green\",\n                          \"dark-blue\",\n                          \"dark-red\",\n                          \"dark-teal\",\n                          \"dark-brown\",\n                          \"dark-orange\",\n                          \"dark-purple\",\n                          \"dark-warm-gray\",\n                          \"light-pink\",\n                          \"light-green\",\n                          \"light-blue\",\n                          \"light-red\",\n                          \"light-teal\",\n                          \"light-brown\",\n                          \"light-orange\",\n                          \"light-purple\",\n                          \"light-warm-gray\"\n                        ],\n                        \"example\": \"light-green\"\n                      },\n                      \"start_on\": {\n                        \"description\": \"The day on which work for this portfolio begins, or null if the portfolio has no start date. This takes a date with `YYYY-MM-DD` format. *Note: `due_on` must be present in the request when setting or unsetting the `start_on` parameter. Additionally, `start_on` and `due_on` cannot be the same date.*\",\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"format\": \"date\",\n                        \"example\": \"2019-09-14\"\n                      },\n                      \"due_on\": {\n                        \"description\": \"The day on which this portfolio is due. This takes a date with format YYYY-MM-DD.\",\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"format\": \"date\",\n                        \"example\": \"2019-09-15\"\n                      },\n                      \"default_access_level\": {\n                        \"description\": \"The default access level when inviting new members to the portfolio\",\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"admin\",\n                          \"editor\",\n                          \"viewer\"\n                        ],\n                        \"example\": \"viewer\"\n                      }\n                    }\n                  }\n                ]\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"custom_fields\": {\n                    \"description\": \"An object where each key is the GID of a custom field and its corresponding value is either an enum GID, string, number, or object (depending on the custom field type). See the [custom fields guide](/docs/custom-fields-guide) for details on creating and updating custom field values.\",\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\",\n                      \"description\": \"\\\"{custom_field_gid}\\\" => Value (can be text, enum GID, a number, etc.). For date, use format \\\"YYYY-MM-DD\\\" (e.g., 2019-09-15). For date-time, use ISO 8601 date string in UTC (e.g., 2019-09-15T02:06:58.147Z).\"\n                    },\n                    \"example\": {\n                      \"5678904321\": \"On Hold\",\n                      \"4578152156\": \"Not Started\"\n                    }\n                  }\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

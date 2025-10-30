@@ -1,0 +1,222 @@
+{
+  "name": "CreateProjectBrief",
+  "fully_qualified_name": "AsanaApi.CreateProjectBrief@0.1.0",
+  "description": "Create a new project brief in Asana.\n\nUse this tool to create and initialize a new project brief within a specified Asana project. It returns the full details of the project brief after creation.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_global_id",
+        "required": true,
+        "description": "Globally unique identifier for the project in which the brief will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_gid"
+      },
+      {
+        "name": "project_brief_content",
+        "required": true,
+        "description": "JSON object containing the details of the project brief to be created. It includes necessary properties like title, description, and any other fields required by Asana's API.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The project brief to create."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "List of properties to include that are excluded by default in the response. Provide as an array of strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Set to true to format the response with line breaks and indentation for readability. Useful for debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createProjectBrief'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/projects/{project_gid}/project_briefs",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "project_gid",
+        "tool_parameter_name": "project_global_id",
+        "description": "Globally unique identifier for the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the project."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "project_brief_content",
+        "description": "The project brief to create.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The project brief to create."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The project brief to create.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"allOf\": [\n              {\n                \"allOf\": [\n                  {\n                    \"description\": \"A *Project Brief* allows you to explain the what and why of the project to your team.\",\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"gid\": {\n                        \"description\": \"Globally unique identifier of the resource, as a string.\",\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"example\": \"12345\",\n                        \"x-insert-after\": false\n                      },\n                      \"resource_type\": {\n                        \"description\": \"The base type of this resource.\",\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"example\": \"project_brief\",\n                        \"x-insert-after\": \"gid\"\n                      }\n                    }\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"title\": {\n                        \"description\": \"The title of the project brief.\",\n                        \"type\": \"string\",\n                        \"example\": \"Stuff to buy \\u2014 Project Brief\"\n                      },\n                      \"html_text\": {\n                        \"description\": \"HTML formatted text for the project brief.\",\n                        \"type\": \"string\",\n                        \"example\": \"<body>This is a <strong>project brief</strong>.</body>\"\n                      }\n                    }\n                  }\n                ]\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"text\": {\n                    \"description\": \"The plain text of the project brief. When writing to a project brief, you can specify either `html_text` (preferred) or `text`, but not both.\",\n                    \"type\": \"string\",\n                    \"example\": \"This is a project brief.\"\n                  }\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

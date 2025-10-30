@@ -1,0 +1,413 @@
+{
+  "name": "CreateRepoDependencySnapshot",
+  "fully_qualified_name": "GithubApi.CreateRepoDependencySnapshot@0.1.0",
+  "description": "Create a snapshot of a repository's dependencies.\n\nThis tool creates a new snapshot of a GitHub repository's dependencies. It requires authentication with an access token that has the `repo` scope. Use this tool to capture the current state of a repository's dependencies for analysis or auditing.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the GitHub repository. This name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository to create a dependency snapshot for. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "snapshot_details",
+        "required": true,
+        "description": "The JSON object containing details of the snapshot, including detector info, job data, manifests, metadata, ref, scanned time, SHA, and version.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "detector": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the detector used."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The url of the detector used."
+                },
+                "version": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The version of the detector used."
+                }
+              },
+              "inner_properties": null,
+              "description": "A description of the detector used."
+            },
+            "job": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "correlator": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Correlator provides a key that is used to group snapshots submitted over time. Only the \"latest\" submitted snapshot for a given combination of `job.correlator` and `detector.name` will be considered when calculating a repository's current dependencies. Correlator should be as unique as it takes to distinguish all detection runs for a given \"wave\" of CI workflow you run. If you're using GitHub Actions, a good default value for this could be the environment variables GITHUB_WORKFLOW and GITHUB_JOB concatenated together. If you're using a build matrix, then you'll also need to add additional key(s) to distinguish between each submission inside a matrix variation."
+                },
+                "html_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The url for the job."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The external ID of the job."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "manifests": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A collection of package manifests, which are a collection of related dependencies declared in a file or representing a logical group of dependencies."
+            },
+            "metadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "User-defined metadata to store domain-specific information limited to 8 keys with scalar values."
+            },
+            "ref": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The repository branch that triggered this snapshot."
+            },
+            "scanned": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time at which the snapshot was scanned."
+            },
+            "sha": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The commit SHA associated with this dependency snapshot. Maximum length: 40 characters."
+            },
+            "version": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The version of the repository snapshot submission."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'dependency-graph/create-repository-snapshot'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/dependency-graph/snapshots",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "snapshot_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "detector": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the detector used."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The url of the detector used."
+                },
+                "version": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The version of the detector used."
+                }
+              },
+              "inner_properties": null,
+              "description": "A description of the detector used."
+            },
+            "job": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "correlator": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Correlator provides a key that is used to group snapshots submitted over time. Only the \"latest\" submitted snapshot for a given combination of `job.correlator` and `detector.name` will be considered when calculating a repository's current dependencies. Correlator should be as unique as it takes to distinguish all detection runs for a given \"wave\" of CI workflow you run. If you're using GitHub Actions, a good default value for this could be the environment variables GITHUB_WORKFLOW and GITHUB_JOB concatenated together. If you're using a build matrix, then you'll also need to add additional key(s) to distinguish between each submission inside a matrix variation."
+                },
+                "html_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The url for the job."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The external ID of the job."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "manifests": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A collection of package manifests, which are a collection of related dependencies declared in a file or representing a logical group of dependencies."
+            },
+            "metadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "User-defined metadata to store domain-specific information limited to 8 keys with scalar values."
+            },
+            "ref": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The repository branch that triggered this snapshot."
+            },
+            "scanned": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time at which the snapshot was scanned."
+            },
+            "sha": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The commit SHA associated with this dependency snapshot. Maximum length: 40 characters."
+            },
+            "version": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The version of the repository snapshot submission."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"example-of-a-dependency-submission\": {\n          \"$ref\": \"#/components/examples/dependency-graph-create-snapshot-request\"\n        }\n      },\n      \"schema\": {\n        \"additionalProperties\": false,\n        \"description\": \"Create a new snapshot of a repository's dependencies.\",\n        \"properties\": {\n          \"detector\": {\n            \"additionalProperties\": false,\n            \"description\": \"A description of the detector used.\",\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The name of the detector used.\",\n                \"example\": \"docker buildtime detector\",\n                \"type\": \"string\"\n              },\n              \"url\": {\n                \"description\": \"The url of the detector used.\",\n                \"example\": \"http://example.com/docker-buildtimer-detector\",\n                \"type\": \"string\"\n              },\n              \"version\": {\n                \"description\": \"The version of the detector used.\",\n                \"example\": \"1.0.0\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"name\",\n              \"version\",\n              \"url\"\n            ],\n            \"type\": \"object\"\n          },\n          \"job\": {\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"correlator\": {\n                \"description\": \"Correlator provides a key that is used to group snapshots submitted over time. Only the \\\"latest\\\" submitted snapshot for a given combination of `job.correlator` and `detector.name` will be considered when calculating a repository's current dependencies. Correlator should be as unique as it takes to distinguish all detection runs for a given \\\"wave\\\" of CI workflow you run. If you're using GitHub Actions, a good default value for this could be the environment variables GITHUB_WORKFLOW and GITHUB_JOB concatenated together. If you're using a build matrix, then you'll also need to add additional key(s) to distinguish between each submission inside a matrix variation.\",\n                \"example\": \"yourworkflowname_yourjobname\",\n                \"type\": \"string\"\n              },\n              \"html_url\": {\n                \"description\": \"The url for the job.\",\n                \"example\": \"http://example.com/build\",\n                \"type\": \"string\"\n              },\n              \"id\": {\n                \"description\": \"The external ID of the job.\",\n                \"example\": \"5622a2b0-63f6-4732-8c34-a1ab27e102a11\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"correlator\"\n            ],\n            \"type\": \"object\"\n          },\n          \"manifests\": {\n            \"additionalProperties\": {\n              \"additionalProperties\": false,\n              \"properties\": {\n                \"file\": {\n                  \"additionalProperties\": false,\n                  \"properties\": {\n                    \"source_location\": {\n                      \"description\": \"The path of the manifest file relative to the root of the Git repository.\",\n                      \"example\": \"/src/build/package-lock.json\",\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"type\": \"object\"\n                },\n                \"metadata\": {\n                  \"additionalProperties\": {\n                    \"anyOf\": [\n                      {\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"boolean\"\n                      }\n                    ],\n                    \"nullable\": true\n                  },\n                  \"description\": \"User-defined metadata to store domain-specific information limited to 8 keys with scalar values.\",\n                  \"maxProperties\": 8,\n                  \"title\": \"metadata\",\n                  \"type\": \"object\"\n                },\n                \"name\": {\n                  \"description\": \"The name of the manifest.\",\n                  \"example\": \"package-lock.json\",\n                  \"type\": \"string\"\n                },\n                \"resolved\": {\n                  \"additionalProperties\": {\n                    \"additionalProperties\": false,\n                    \"properties\": {\n                      \"dependencies\": {\n                        \"description\": \"Array of package-url (PURLs) of direct child dependencies.\",\n                        \"example\": \"@actions/http-client\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"metadata\": {\n                        \"additionalProperties\": {\n                          \"anyOf\": [\n                            {\n                              \"type\": \"string\"\n                            },\n                            {\n                              \"type\": \"number\"\n                            },\n                            {\n                              \"type\": \"boolean\"\n                            }\n                          ],\n                          \"nullable\": true\n                        },\n                        \"description\": \"User-defined metadata to store domain-specific information limited to 8 keys with scalar values.\",\n                        \"maxProperties\": 8,\n                        \"title\": \"metadata\",\n                        \"type\": \"object\"\n                      },\n                      \"package_url\": {\n                        \"description\": \"Package-url (PURL) of dependency. See https://github.com/package-url/purl-spec for more details.\",\n                        \"example\": \"pkg:/npm/%40actions/http-client@1.0.11\",\n                        \"pattern\": \"^pkg\",\n                        \"type\": \"string\"\n                      },\n                      \"relationship\": {\n                        \"description\": \"A notation of whether a dependency is requested directly by this manifest or is a dependency of another dependency.\",\n                        \"enum\": [\n                          \"direct\",\n                          \"indirect\"\n                        ],\n                        \"example\": \"direct\",\n                        \"type\": \"string\"\n                      },\n                      \"scope\": {\n                        \"description\": \"A notation of whether the dependency is required for the primary build artifact (runtime) or is only used for development. Future versions of this specification may allow for more granular scopes.\",\n                        \"enum\": [\n                          \"runtime\",\n                          \"development\"\n                        ],\n                        \"example\": \"runtime\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"description\": \"A collection of resolved package dependencies.\",\n                  \"type\": \"object\"\n                }\n              },\n              \"required\": [\n                \"name\"\n              ],\n              \"type\": \"object\"\n            },\n            \"description\": \"A collection of package manifests, which are a collection of related dependencies declared in a file or representing a logical group of dependencies.\",\n            \"type\": \"object\"\n          },\n          \"metadata\": {\n            \"additionalProperties\": {\n              \"anyOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"number\"\n                },\n                {\n                  \"type\": \"boolean\"\n                }\n              ],\n              \"nullable\": true\n            },\n            \"description\": \"User-defined metadata to store domain-specific information limited to 8 keys with scalar values.\",\n            \"maxProperties\": 8,\n            \"title\": \"metadata\",\n            \"type\": \"object\"\n          },\n          \"ref\": {\n            \"description\": \"The repository branch that triggered this snapshot.\",\n            \"example\": \"refs/heads/main\",\n            \"pattern\": \"^refs/\",\n            \"type\": \"string\"\n          },\n          \"scanned\": {\n            \"description\": \"The time at which the snapshot was scanned.\",\n            \"example\": \"2020-06-13T14:52:50-05:00\",\n            \"format\": \"date-time\",\n            \"type\": \"string\"\n          },\n          \"sha\": {\n            \"description\": \"The commit SHA associated with this dependency snapshot. Maximum length: 40 characters.\",\n            \"example\": \"ddc951f4b1293222421f2c8df679786153acf689\",\n            \"maxLength\": 40,\n            \"minLength\": 40,\n            \"type\": \"string\"\n          },\n          \"version\": {\n            \"description\": \"The version of the repository snapshot submission.\",\n            \"type\": \"integer\"\n          }\n        },\n        \"required\": [\n          \"detector\",\n          \"version\",\n          \"ref\",\n          \"sha\",\n          \"job\",\n          \"scanned\"\n        ],\n        \"title\": \"snapshot\",\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

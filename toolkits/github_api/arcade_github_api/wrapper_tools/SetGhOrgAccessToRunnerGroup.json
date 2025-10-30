@@ -1,0 +1,183 @@
+{
+  "name": "SetGhOrgAccessToRunnerGroup",
+  "fully_qualified_name": "GithubApi.SetGhOrgAccessToRunnerGroup@0.1.0",
+  "description": "Update organization access for a GitHub runner group.\n\nThis tool allows updating which organizations have access to a self-hosted runner group within a GitHub enterprise. It requires authentication with a token that has the 'manage_runners:enterprise' scope.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_identifier",
+        "required": true,
+        "description": "The slug or ID of the enterprise. Specify either for identifying the enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterprise"
+      },
+      {
+        "name": "runner_group_identifier",
+        "required": true,
+        "description": "Unique integer identifier of the self-hosted runner group within the enterprise.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the self-hosted runner group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "runner_group_id"
+      },
+      {
+        "name": "organization_ids_for_runner_access",
+        "required": true,
+        "description": "List of organization IDs permitted to access the self-hosted runner group.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of organization IDs that can access the runner group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "selected_organization_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/set-org-access-to-self-hosted-runner-group-in-enterprise'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/enterprises/{enterprise}/actions/runner-groups/{runner_group_id}/organizations",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterprise",
+        "tool_parameter_name": "enterprise_identifier",
+        "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "runner_group_id",
+        "tool_parameter_name": "runner_group_identifier",
+        "description": "Unique identifier of the self-hosted runner group.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the self-hosted runner group."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "selected_organization_ids",
+        "tool_parameter_name": "organization_ids_for_runner_access",
+        "description": "List of organization IDs that can access the runner group.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of organization IDs that can access the runner group."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"selected_organization_ids\": [\n              32,\n              91\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"selected_organization_ids\": {\n            \"description\": \"List of organization IDs that can access the runner group.\",\n            \"items\": {\n              \"description\": \"Unique identifier of the organization.\",\n              \"type\": \"integer\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"selected_organization_ids\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "name": "UpdateAllocation",
+  "fully_qualified_name": "AsanaApi.UpdateAllocation@0.1.0",
+  "description": "Update an existing allocation in Asana.\n\nUse this tool to update an existing allocation in Asana by providing specific fields to be changed. Unspecified fields will remain unchanged.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "allocation_global_id",
+        "required": true,
+        "description": "Globally unique identifier for the allocation to be updated. This is required to specify which allocation record to modify.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the allocation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "allocation_gid"
+      },
+      {
+        "name": "updated_allocation_fields",
+        "required": true,
+        "description": "JSON object containing the fields to be updated for the allocation. Only provided fields will be changed, others remain untouched.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The updated fields for the allocation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_optional_fields",
+        "required": false,
+        "description": "Comma-separated list of optional properties to include in the response.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Set to true to receive the response in a more readable, formatted JSON output. This increases response size and should be used mainly for debugging purposes.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateAllocation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/allocations/{allocation_gid}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_fields",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "allocation_gid",
+        "tool_parameter_name": "allocation_global_id",
+        "description": "Globally unique identifier for the allocation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the allocation."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "updated_allocation_fields",
+        "description": "The updated fields for the allocation.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The updated fields for the allocation."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The updated fields for the allocation.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"allOf\": [\n              {\n                \"description\": \"A generic Asana Resource, containing a globally unique identifier.\",\n                \"type\": \"object\",\n                \"properties\": {\n                  \"gid\": {\n                    \"description\": \"Globally unique identifier of the resource, as a string.\",\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"example\": \"12345\",\n                    \"x-insert-after\": false\n                  },\n                  \"resource_type\": {\n                    \"description\": \"The base type of this resource.\",\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"example\": \"allocation\",\n                    \"x-insert-after\": \"gid\"\n                  },\n                  \"start_date\": {\n                    \"type\": \"string\",\n                    \"format\": \"date\",\n                    \"description\": \"The localized day on which the allocation starts.\",\n                    \"example\": \"2024-02-28\"\n                  },\n                  \"end_date\": {\n                    \"type\": \"string\",\n                    \"format\": \"date\",\n                    \"description\": \"The localized day on which the allocation ends.\",\n                    \"example\": \"2024-02-28\"\n                  },\n                  \"effort\": {\n                    \"type\": \"object\",\n                    \"nullable\": true,\n                    \"description\": \"The amount of time associated with the allocation, represented as a percentage or number of hours\",\n                    \"properties\": {\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"description\": \"The units used for tracking effort on an allocation, either \\\"hours\\\" or \\\"percent\\\".\",\n                        \"enum\": [\n                          \"hours\",\n                          \"percent\"\n                        ]\n                      },\n                      \"value\": {\n                        \"type\": \"number\",\n                        \"description\": \"The numeric effort value on the allocation.\",\n                        \"example\": 50\n                      }\n                    }\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"assignee\": {\n                    \"type\": \"string\",\n                    \"description\": \"Globally unique identifier for the user or placeholder assigned to the allocation.\"\n                  },\n                  \"parent\": {\n                    \"type\": \"string\",\n                    \"description\": \"Globally unique identifier for the project the allocation is on.\"\n                  }\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

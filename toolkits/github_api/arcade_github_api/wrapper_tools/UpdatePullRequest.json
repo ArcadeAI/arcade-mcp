@@ -1,0 +1,354 @@
+{
+  "name": "UpdatePullRequest",
+  "fully_qualified_name": "GithubApi.UpdatePullRequest@0.1.0",
+  "description": "Update an existing pull request on GitHub.\n\nUse this tool to update an existing pull request in a GitHub repository. This can be used when you need to modify the details of a pull request, such as its title, body, or state. Requires write access to the source branch or membership in the owning organization.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. This name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository to update the pull request in. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "pull_request_number",
+        "required": true,
+        "description": "The unique number identifying the pull request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies the pull request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pull_number"
+      },
+      {
+        "name": "target_base_branch",
+        "required": false,
+        "description": "The name of the branch where changes should be pulled into. Must be an existing branch on the current repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch you want your changes pulled into. This should be an existing branch on the current repository. You cannot update the base branch on a pull request to point to another repository."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "base"
+      },
+      {
+        "name": "pull_request_body",
+        "required": false,
+        "description": "Provide the updated content or description for the pull request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The contents of the pull request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body"
+      },
+      {
+        "name": "pull_request_state",
+        "required": false,
+        "description": "Specifies whether the pull request should be 'open' or 'closed'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "closed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "State of this Pull Request. Either `open` or `closed`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "pull_request_title",
+        "required": false,
+        "description": "The new title for the pull request. Use this to update the PR title.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of the pull request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "title"
+      },
+      {
+        "name": "maintainers_can_modify",
+        "required": false,
+        "description": "Boolean value indicating whether maintainers can modify the pull request.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether [maintainers can modify](https://docs.github.com/enterprise-server@3.8/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) the pull request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "maintainer_can_modify"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'pulls/update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/pulls/{pull_number}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "pull_number",
+        "tool_parameter_name": "pull_request_number",
+        "description": "The number that identifies the pull request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies the pull request."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "base",
+        "tool_parameter_name": "target_base_branch",
+        "description": "The name of the branch you want your changes pulled into. This should be an existing branch on the current repository. You cannot update the base branch on a pull request to point to another repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch you want your changes pulled into. This should be an existing branch on the current repository. You cannot update the base branch on a pull request to point to another repository."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body",
+        "tool_parameter_name": "pull_request_body",
+        "description": "The contents of the pull request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The contents of the pull request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "maintainer_can_modify",
+        "tool_parameter_name": "maintainers_can_modify",
+        "description": "Indicates whether [maintainers can modify](https://docs.github.com/enterprise-server@3.8/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) the pull request.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether [maintainers can modify](https://docs.github.com/enterprise-server@3.8/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) the pull request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "pull_request_state",
+        "description": "State of this Pull Request. Either `open` or `closed`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "closed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "State of this Pull Request. Either `open` or `closed`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "title",
+        "tool_parameter_name": "pull_request_title",
+        "description": "The title of the pull request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of the pull request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"base\": \"master\",\n            \"body\": \"updated body\",\n            \"state\": \"open\",\n            \"title\": \"new title\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"base\": {\n            \"description\": \"The name of the branch you want your changes pulled into. This should be an existing branch on the current repository. You cannot update the base branch on a pull request to point to another repository.\",\n            \"type\": \"string\"\n          },\n          \"body\": {\n            \"description\": \"The contents of the pull request.\",\n            \"type\": \"string\"\n          },\n          \"maintainer_can_modify\": {\n            \"description\": \"Indicates whether [maintainers can modify](https://docs.github.com/enterprise-server@3.8/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) the pull request.\",\n            \"type\": \"boolean\"\n          },\n          \"state\": {\n            \"description\": \"State of this Pull Request. Either `open` or `closed`.\",\n            \"enum\": [\n              \"open\",\n              \"closed\"\n            ],\n            \"type\": \"string\"\n          },\n          \"title\": {\n            \"description\": \"The title of the pull request.\",\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

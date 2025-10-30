@@ -1,0 +1,171 @@
+{
+  "name": "UpdateMembership",
+  "fully_qualified_name": "AsanaApi.UpdateMembership@0.1.0",
+  "description": "Update an existing membership in Asana.\n\nUse this tool to update fields of an existing membership for goals, projects, portfolios, or custom fields in Asana. Only the provided fields in the data block will be updated, while others remain unchanged.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "membership_id",
+        "required": true,
+        "description": "Globally unique identifier for the membership to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the membership."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "membership_gid"
+      },
+      {
+        "name": "member_access_level",
+        "required": false,
+        "description": "Specify the access level for the member. Valid options depend on the membership type: Goals ('viewer', 'commenter', 'editor', 'admin'), Projects ('admin', 'editor', 'commenter'), Portfolios ('admin', 'editor', 'viewer'), Custom Fields ('admin', 'editor', 'user').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the access level for the member. Goals can have access levels `viewer`, `commenter`, `editor` or `admin` (`viewer` and `admin` are currently only available for Goals when you include the `Asana-Enable: goal_sals_api` change flag header). Projects can have access levels `admin`, `editor` or `commenter`. Portfolios can have access levels `admin`, `editor` or `viewer`. Custom Fields can have access levels `admin`, `editor` or `user`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.access_level"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "If true, formats the response for readability with line breaks and indentation, useful for debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateMembership'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/memberships/{membership_gid}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "membership_gid",
+        "tool_parameter_name": "membership_id",
+        "description": "Globally unique identifier for the membership.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the membership."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.access_level",
+        "tool_parameter_name": "member_access_level",
+        "description": "Sets the access level for the member. Goals can have access levels `viewer`, `commenter`, `editor` or `admin` (`viewer` and `admin` are currently only available for Goals when you include the `Asana-Enable: goal_sals_api` change flag header). Projects can have access levels `admin`, `editor` or `commenter`. Portfolios can have access levels `admin`, `editor` or `viewer`. Custom Fields can have access levels `admin`, `editor` or `user`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the access level for the member. Goals can have access levels `viewer`, `commenter`, `editor` or `admin` (`viewer` and `admin` are currently only available for Goals when you include the `Asana-Enable: goal_sals_api` change flag header). Projects can have access levels `admin`, `editor` or `commenter`. Portfolios can have access levels `admin`, `editor` or `viewer`. Custom Fields can have access levels `admin`, `editor` or `user`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The membership to update.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"access_level\": {\n                \"description\": \"Sets the access level for the member. Goals can have access levels `viewer`, `commenter`, `editor` or `admin` (`viewer` and `admin` are currently only available for Goals when you include the `Asana-Enable: goal_sals_api` change flag header). Projects can have access levels `admin`, `editor` or `commenter`. Portfolios can have access levels `admin`, `editor` or `viewer`. Custom Fields can have access levels `admin`, `editor` or `user`.\",\n                \"type\": \"string\",\n                \"example\": \"editor\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

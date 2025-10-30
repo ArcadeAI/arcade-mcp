@@ -1,0 +1,405 @@
+{
+  "name": "ListPullRequests",
+  "fully_qualified_name": "GithubApi.ListPullRequests@0.1.0",
+  "description": "Retrieve pull requests from a GitHub repository.\n\nThis tool retrieves a list of pull requests from a specified GitHub repository, including both open and draft requests, for users with appropriate GitHub plans.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository from which to retrieve pull requests. This name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "filter_by_state",
+        "required": false,
+        "description": "Filter pull requests by state: `open`, `closed`, or `all`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "closed",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Either `open`, `closed`, or `all` to filter by state."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "filter_by_head",
+        "required": false,
+        "description": "Filter pull requests by head user/organization and branch in `user:ref-name` format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter pulls by head user or head organization and branch name in the format of `user:ref-name` or `organization:ref-name`. For example: `github:new-script-format` or `octocat:test-branch`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "head"
+      },
+      {
+        "name": "base_branch_name",
+        "required": false,
+        "description": "Specify the base branch name to filter pull requests. Example: 'gh-pages'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter pulls by base branch name. Example: `gh-pages`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "base"
+      },
+      {
+        "name": "sort_pull_request_results_by",
+        "required": false,
+        "description": "Specify the criterion for sorting pull request results. Options are 'created', 'updated', 'popularity', or 'long-running'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created",
+            "updated",
+            "popularity",
+            "long-running"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "What to sort results by. `popularity` will sort by the number of comments. `long-running` will sort by date created and will limit the results to pull requests that have been open for more than a month and have had activity within the past month."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "sort_direction",
+        "required": false,
+        "description": "The direction of the sorting for pull requests. Use 'asc' for ascending or 'desc' for descending order. Defaults to 'desc' when 'sort' is 'created' or not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction of the sort. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "direction"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "The number of pull requests to retrieve per page, with a maximum of 100 results allowed.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Page number of the results to fetch from the list of pull requests.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'pulls/list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/pulls",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "state",
+        "tool_parameter_name": "filter_by_state",
+        "description": "Either `open`, `closed`, or `all` to filter by state.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "closed",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Either `open`, `closed`, or `all` to filter by state."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "open",
+        "documentation_urls": []
+      },
+      {
+        "name": "head",
+        "tool_parameter_name": "filter_by_head",
+        "description": "Filter pulls by head user or head organization and branch name in the format of `user:ref-name` or `organization:ref-name`. For example: `github:new-script-format` or `octocat:test-branch`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter pulls by head user or head organization and branch name in the format of `user:ref-name` or `organization:ref-name`. For example: `github:new-script-format` or `octocat:test-branch`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "base",
+        "tool_parameter_name": "base_branch_name",
+        "description": "Filter pulls by base branch name. Example: `gh-pages`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter pulls by base branch name. Example: `gh-pages`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_pull_request_results_by",
+        "description": "What to sort results by. `popularity` will sort by the number of comments. `long-running` will sort by date created and will limit the results to pull requests that have been open for more than a month and have had activity within the past month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created",
+            "updated",
+            "popularity",
+            "long-running"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "What to sort results by. `popularity` will sort by the number of comments. `long-running` will sort by date created and will limit the results to pull requests that have been open for more than a month and have had activity within the past month."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "created",
+        "documentation_urls": []
+      },
+      {
+        "name": "direction",
+        "tool_parameter_name": "sort_direction",
+        "description": "The direction of the sort. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction of the sort. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "results_per_page",
+        "description": "The number of results per page (max 100).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Page number of the results to fetch.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "name": "SetGithubActionsPermissions",
+  "fully_qualified_name": "GithubApi.SetGithubActionsPermissions@0.1.0",
+  "description": "Set GitHub Actions permissions for an enterprise.\n\nSet the permissions policy for GitHub Actions within an enterprise. Requires admin authentication with the `admin:enterprise` scope.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_identifier",
+        "required": true,
+        "description": "The slug or ID of the enterprise for setting GitHub Actions permissions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterprise"
+      },
+      {
+        "name": "enabled_organizations_policy",
+        "required": true,
+        "description": "Specifies which organizations can run GitHub Actions: 'all', 'none', or 'selected'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "none",
+            "selected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The policy that controls the organizations in the enterprise that are allowed to run GitHub Actions."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enabled_organizations"
+      },
+      {
+        "name": "actions_permission_policy",
+        "required": false,
+        "description": "Specifies the actions allowed to run in the enterprise. Possible values: 'all', 'local_only', 'selected'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "local_only",
+            "selected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The permissions policy that controls the actions that are allowed to run."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "allowed_actions"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/set-github-actions-permissions-enterprise'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/enterprises/{enterprise}/actions/permissions",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterprise",
+        "tool_parameter_name": "enterprise_identifier",
+        "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "allowed_actions",
+        "tool_parameter_name": "actions_permission_policy",
+        "description": "The permissions policy that controls the actions that are allowed to run.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "local_only",
+            "selected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The permissions policy that controls the actions that are allowed to run."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "enabled_organizations",
+        "tool_parameter_name": "enabled_organizations_policy",
+        "description": "The policy that controls the organizations in the enterprise that are allowed to run GitHub Actions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "none",
+            "selected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The policy that controls the organizations in the enterprise that are allowed to run GitHub Actions."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"allowed_actions\": \"selected\",\n            \"enabled_organizations\": \"all\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"allowed_actions\": {\n            \"description\": \"The permissions policy that controls the actions that are allowed to run.\",\n            \"enum\": [\n              \"all\",\n              \"local_only\",\n              \"selected\"\n            ],\n            \"type\": \"string\"\n          },\n          \"enabled_organizations\": {\n            \"description\": \"The policy that controls the organizations in the enterprise that are allowed to run GitHub Actions.\",\n            \"enum\": [\n              \"all\",\n              \"none\",\n              \"selected\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"enabled_organizations\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

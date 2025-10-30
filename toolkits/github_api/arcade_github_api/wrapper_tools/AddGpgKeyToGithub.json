@@ -1,0 +1,150 @@
+{
+  "name": "AddGpgKeyToGithub",
+  "fully_qualified_name": "GithubApi.AddGpgKeyToGithub@0.1.0",
+  "description": "Add a GPG key to your authenticated GitHub account.\n\nThis tool allows you to add a GPG key to your GitHub account after authenticating via Basic Auth or OAuth with the appropriate scope. Use it to enhance security by managing GPG keys on GitHub.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "gpg_key_ascii_armored_format",
+        "required": true,
+        "description": "A GPG key in ASCII-armored format to be added to your GitHub account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A GPG key in ASCII-armored format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "armored_public_key"
+      },
+      {
+        "name": "new_gpg_key_name",
+        "required": false,
+        "description": "A descriptive name for the new GPG key to be added to your GitHub account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A descriptive name for the new key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'users/create-gpg-key-for-authenticated-user'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/user/gpg_keys",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "armored_public_key",
+        "tool_parameter_name": "gpg_key_ascii_armored_format",
+        "description": "A GPG key in ASCII-armored format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A GPG key in ASCII-armored format."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "new_gpg_key_name",
+        "description": "A descriptive name for the new key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A descriptive name for the new key."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"armored_public_key\": \"-----BEGIN PGP PUBLIC KEY BLOCK-----\\nVersion: GnuPG v1\\n\\nmQINBFnZ2ZIBEADQ2Z7Z7\\n-----END PGP PUBLIC KEY BLOCK-----\",\n            \"name\": \"Octocat's GPG Key\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"armored_public_key\": {\n            \"description\": \"A GPG key in ASCII-armored format.\",\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"A descriptive name for the new key.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"armored_public_key\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

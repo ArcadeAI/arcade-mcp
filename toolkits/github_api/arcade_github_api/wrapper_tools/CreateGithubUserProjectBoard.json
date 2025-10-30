@@ -1,0 +1,150 @@
+{
+  "name": "CreateGithubUserProjectBoard",
+  "fully_qualified_name": "GithubApi.CreateGithubUserProjectBoard@0.1.0",
+  "description": "Create a project board for a GitHub user.\n\nThis tool creates a project board for an authenticated GitHub user. It returns a `410 Gone` status if the user does not have existing classic projects, or `401 Unauthorized` if privileges are insufficient.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_name",
+        "required": true,
+        "description": "The name for the GitHub project board to be created. It should be a string representing the desired name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "project_body",
+        "required": false,
+        "description": "The content or description of the GitHub project board. It should be a concise string summarizing the project's purpose or details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Body of the project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'projects/create-for-authenticated-user'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/user/projects",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "body",
+        "tool_parameter_name": "project_body",
+        "description": "Body of the project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Body of the project"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "project_name",
+        "description": "Name of the project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the project"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"summary\": \"Create a new project\",\n          \"value\": {\n            \"body\": \"A board to manage my personal projects.\",\n            \"name\": \"My Projects\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"body\": {\n            \"description\": \"Body of the project\",\n            \"example\": \"This project represents the sprint of the first week in January\",\n            \"nullable\": true,\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"Name of the project\",\n            \"example\": \"Week One Sprint\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

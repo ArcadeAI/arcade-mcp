@@ -1,0 +1,417 @@
+{
+  "name": "ListOrganizationIssuesForUser",
+  "fully_qualified_name": "GithubApi.ListOrganizationIssuesForUser@0.1.0",
+  "description": "Retrieve issues and pull requests for a user in an organization.\n\nCall this tool to list all issues and pull requests assigned to the authenticated user within a specific organization on GitHub. This tool returns both issues and pull requests, identifiable by the `pull_request` key. It is useful for tracking user-specific tasks within an organization.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The name of the GitHub organization. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "issue_filter",
+        "required": false,
+        "description": "Specifies the type of issues to return: 'assigned', 'created', 'mentioned', 'subscribed', 'all', or 'repos'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "assigned",
+            "created",
+            "mentioned",
+            "subscribed",
+            "repos",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates which sorts of issues to return. `assigned` means issues assigned to you. `created` means issues created by you. `mentioned` means issues mentioning you. `subscribed` means issues you're subscribed to updates for. `all` or `repos` means all issues you can see, regardless of participation or creation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "issues_state",
+        "required": false,
+        "description": "Specify the state of issues to return: 'open', 'closed', or 'all'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "closed",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the state of the issues to return."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "issue_labels",
+        "required": false,
+        "description": "Comma-separated list of label names to filter issues. Example: `bug,ui,@high`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of comma separated label names. Example: `bug,ui,@high`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "labels"
+      },
+      {
+        "name": "sort_criteria",
+        "required": false,
+        "description": "Defines the attribute to sort the issues by. Options are 'created', 'updated', or 'comments'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created",
+            "updated",
+            "comments"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "What to sort results by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "sort_direction",
+        "required": false,
+        "description": "The direction to sort the results by. Accepted values are 'asc' for ascending and 'desc' for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction to sort the results by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "direction"
+      },
+      {
+        "name": "updated_since",
+        "required": false,
+        "description": "Filter to show notifications updated after this timestamp in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only show notifications updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "The number of results to display per page (maximum 100).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "result_page_number",
+        "required": false,
+        "description": "Page number of results to fetch, used for pagination. Starts from 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'issues/list-for-org'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}/issues",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter",
+        "tool_parameter_name": "issue_filter",
+        "description": "Indicates which sorts of issues to return. `assigned` means issues assigned to you. `created` means issues created by you. `mentioned` means issues mentioning you. `subscribed` means issues you're subscribed to updates for. `all` or `repos` means all issues you can see, regardless of participation or creation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "assigned",
+            "created",
+            "mentioned",
+            "subscribed",
+            "repos",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates which sorts of issues to return. `assigned` means issues assigned to you. `created` means issues created by you. `mentioned` means issues mentioning you. `subscribed` means issues you're subscribed to updates for. `all` or `repos` means all issues you can see, regardless of participation or creation."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "assigned",
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "issues_state",
+        "description": "Indicates the state of the issues to return.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "closed",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the state of the issues to return."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "open",
+        "documentation_urls": []
+      },
+      {
+        "name": "labels",
+        "tool_parameter_name": "issue_labels",
+        "description": "A list of comma separated label names. Example: `bug,ui,@high`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of comma separated label names. Example: `bug,ui,@high`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_criteria",
+        "description": "What to sort results by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "created",
+            "updated",
+            "comments"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "What to sort results by."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "created",
+        "documentation_urls": []
+      },
+      {
+        "name": "direction",
+        "tool_parameter_name": "sort_direction",
+        "description": "The direction to sort the results by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction to sort the results by."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "desc",
+        "documentation_urls": []
+      },
+      {
+        "name": "since",
+        "tool_parameter_name": "updated_since",
+        "description": "Only show notifications updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only show notifications updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "results_per_page",
+        "description": "The number of results per page (max 100).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page (max 100)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "result_page_number",
+        "description": "Page number of the results to fetch.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number of the results to fetch."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

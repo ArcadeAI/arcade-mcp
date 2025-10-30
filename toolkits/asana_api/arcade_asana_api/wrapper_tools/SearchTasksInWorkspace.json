@@ -1,0 +1,1944 @@
+{
+  "name": "SearchTasksInWorkspace",
+  "fully_qualified_name": "AsanaApi.SearchTasksInWorkspace@0.1.0",
+  "description": "Search for tasks in an Asana workspace using complex filters.\n\nUtilize this tool to perform an advanced search for tasks within a specified Asana workspace. It supports complex filters and is available to premium Asana users. Use it to find tasks with specific criteria, including custom field parameters. Note that pagination needs to be handled manually due to search result variability.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_global_id",
+        "required": true,
+        "description": "Globally unique identifier for the workspace or organization where tasks are searched.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the workspace or organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workspace_gid"
+      },
+      {
+        "name": "search_text",
+        "required": false,
+        "description": "Full-text search on task names and descriptions within the workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Performs full-text search on both task name and description"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "text"
+      },
+      {
+        "name": "task_resource_subtype",
+        "required": false,
+        "description": "Filter tasks by their resource subtype, such as 'default_task', 'milestone', or 'approval'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "default_task",
+            "milestone",
+            "approval"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by the task's resource_subtype"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "resource_subtype"
+      },
+      {
+        "name": "assignee_identifiers_any",
+        "required": false,
+        "description": "Provide a comma-separated list of user identifiers for any assignee to include in the search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignee.any"
+      },
+      {
+        "name": "exclude_assignees",
+        "required": false,
+        "description": "Comma-separated list of user identifiers to exclude from the search results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assignee.not"
+      },
+      {
+        "name": "portfolio_ids_included",
+        "required": false,
+        "description": "A comma-separated list of portfolio IDs to include in the search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of portfolio IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "portfolios.any"
+      },
+      {
+        "name": "project_ids_any",
+        "required": false,
+        "description": "Comma-separated list of project IDs to include in the search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of project IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projects.any"
+      },
+      {
+        "name": "exclude_projects_by_id",
+        "required": false,
+        "description": "A comma-separated list of project IDs to exclude from the search results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of project IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projects.not"
+      },
+      {
+        "name": "filter_by_all_projects",
+        "required": false,
+        "description": "Comma-separated list of project IDs to filter tasks that belong to all specified projects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of project IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projects.all"
+      },
+      {
+        "name": "include_sections_in_search",
+        "required": false,
+        "description": "A comma-separated list of section or column IDs to filter tasks in the search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of section or column IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sections.any"
+      },
+      {
+        "name": "exclude_sections_by_id",
+        "required": false,
+        "description": "Comma-separated list of section or column IDs to exclude from the search results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of section or column IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sections.not"
+      },
+      {
+        "name": "filter_sections_all",
+        "required": false,
+        "description": "Comma-separated list of section or column IDs to filter tasks by inclusion in all specified sections.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of section or column IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sections.all"
+      },
+      {
+        "name": "include_any_tags_ids",
+        "required": false,
+        "description": "Comma-separated list of tag IDs to include in the search filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tag IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tags.any"
+      },
+      {
+        "name": "exclude_tags_by_ids",
+        "required": false,
+        "description": "A comma-separated list of tag IDs to exclude from the search results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tag IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tags.not"
+      },
+      {
+        "name": "all_tags_filters",
+        "required": false,
+        "description": "Comma-separated list of tag IDs to filter tasks that have all specified tags.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tag IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tags.all"
+      },
+      {
+        "name": "filter_by_any_team_ids",
+        "required": false,
+        "description": "Comma-separated list of team IDs to filter tasks associated with any of these teams.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of team IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teams.any"
+      },
+      {
+        "name": "filter_by_any_follower_ids",
+        "required": false,
+        "description": "Filter tasks by providing a comma-separated list of user IDs who are followers of the tasks.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "followers.any"
+      },
+      {
+        "name": "exclude_followers_by_user_ids",
+        "required": false,
+        "description": "Comma-separated list of user identifiers to exclude from the followers filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "followers.not"
+      },
+      {
+        "name": "created_by_users",
+        "required": false,
+        "description": "Comma-separated list of user IDs to filter tasks created by specific users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_by.any"
+      },
+      {
+        "name": "exclude_created_by_user_ids",
+        "required": false,
+        "description": "Comma-separated list of user IDs to exclude from the search results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_by.not"
+      },
+      {
+        "name": "assigned_by_user_ids",
+        "required": false,
+        "description": "A comma-separated list of user IDs to filter tasks assigned by specific users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assigned_by.any"
+      },
+      {
+        "name": "exclude_assigned_by_users",
+        "required": false,
+        "description": "A comma-separated list of user IDs to exclude tasks assigned by these users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assigned_by.not"
+      },
+      {
+        "name": "excluded_liked_by_user_ids",
+        "required": false,
+        "description": "A comma-separated list of user IDs to exclude tasks liked by these users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "liked_by.not"
+      },
+      {
+        "name": "exclude_tasks_commented_by_users",
+        "required": false,
+        "description": "Comma-separated list of user identifiers to exclude tasks commented on by these users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "commented_on_by.not"
+      },
+      {
+        "name": "filter_due_date_before",
+        "required": false,
+        "description": "Specify tasks with a due date earlier than this ISO 8601 date string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_on.before"
+      },
+      {
+        "name": "tasks_due_after_date",
+        "required": false,
+        "description": "Specify an ISO 8601 date string to filter tasks due after this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_on.after"
+      },
+      {
+        "name": "due_date_on",
+        "required": false,
+        "description": "Filter tasks due on a specific date using an ISO 8601 date string or specify `null` for tasks with no due date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_on"
+      },
+      {
+        "name": "due_at_before",
+        "required": false,
+        "description": "An ISO 8601 datetime string to filter tasks due before this date and time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_at.before"
+      },
+      {
+        "name": "due_at_after_datetime",
+        "required": false,
+        "description": "Specify the start date and time for tasks due after this point. Use an ISO 8601 datetime string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_at.after"
+      },
+      {
+        "name": "end_date_before_start_on",
+        "required": false,
+        "description": "Filter tasks starting before a specified date, using an ISO 8601 date string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_on.before"
+      },
+      {
+        "name": "start_date_after",
+        "required": false,
+        "description": "An ISO 8601 date string to filter tasks starting after this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_on.after"
+      },
+      {
+        "name": "start_on_date",
+        "required": false,
+        "description": "ISO 8601 date string specifying the start date of tasks to be searched, or `null` for unspecified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_on"
+      },
+      {
+        "name": "created_on_before_date",
+        "required": false,
+        "description": "Filter tasks created before a specific date using an ISO 8601 date string format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_on.before"
+      },
+      {
+        "name": "created_after_date",
+        "required": false,
+        "description": "Specify the earliest creation date for tasks using an ISO 8601 date string. Filters tasks created after this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_on.after"
+      },
+      {
+        "name": "created_on_date",
+        "required": false,
+        "description": "Filter tasks by their creation date using an ISO 8601 date string or `null`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_on"
+      },
+      {
+        "name": "created_at_before",
+        "required": false,
+        "description": "An ISO 8601 datetime string to filter tasks created before this date and time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at.before"
+      },
+      {
+        "name": "created_after_datetime",
+        "required": false,
+        "description": "Filter tasks created after this ISO 8601 datetime string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at.after"
+      },
+      {
+        "name": "completed_on_before_date",
+        "required": false,
+        "description": "Filter tasks completed before a specific date using an ISO 8601 date string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "completed_on.before"
+      },
+      {
+        "name": "completed_on_after_date",
+        "required": false,
+        "description": "Specify an ISO 8601 date to filter tasks completed after this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "completed_on.after"
+      },
+      {
+        "name": "completed_on_date",
+        "required": false,
+        "description": "Filter tasks by their completion date using an ISO 8601 date string or `null` for no specific date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "completed_on"
+      },
+      {
+        "name": "completed_at_before_datetime",
+        "required": false,
+        "description": "Filter tasks completed before the specified ISO 8601 datetime.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "completed_at.before"
+      },
+      {
+        "name": "completed_at_after",
+        "required": false,
+        "description": "Specify an ISO 8601 datetime string to filter tasks completed after this date and time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "completed_at.after"
+      },
+      {
+        "name": "before_modified_on_date",
+        "required": false,
+        "description": "ISO 8601 date string to filter tasks modified before this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "modified_on.before"
+      },
+      {
+        "name": "filter_modified_date_start",
+        "required": false,
+        "description": "Start date to filter tasks modified after this date in ISO 8601 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "modified_on.after"
+      },
+      {
+        "name": "last_modified_on",
+        "required": false,
+        "description": "ISO 8601 date string or `null` to filter tasks based on the modification date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "modified_on"
+      },
+      {
+        "name": "modified_at_before_date",
+        "required": false,
+        "description": "Filter tasks modified before this date. Use ISO 8601 datetime format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "modified_at.before"
+      },
+      {
+        "name": "modified_after_datetime",
+        "required": false,
+        "description": "Filter tasks modified after this ISO 8601 datetime string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "modified_at.after"
+      },
+      {
+        "name": "task_sort_order",
+        "required": false,
+        "description": "Specify the sorting criteria for the task results. Options include 'due_date', 'created_at', 'completed_at', 'likes', or 'modified_at'. Defaults to 'modified_at'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "due_date",
+            "created_at",
+            "completed_at",
+            "likes",
+            "modified_at"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of `due_date`, `created_at`, `completed_at`, `likes`, or `modified_at`, defaults to `modified_at`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_by"
+      },
+      {
+        "name": "included_optional_properties",
+        "required": false,
+        "description": "List of optional properties to include for each returned task. Provide as comma-separated values.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Formats the response with line breaks and indentation for readability. Use for debugging, as it increases response size and processing time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      },
+      {
+        "name": "filter_to_incomplete_tasks_with_dependents",
+        "required": false,
+        "description": "Set to true to filter tasks to those that are incomplete and have dependents.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to incomplete tasks with dependents"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_blocking"
+      },
+      {
+        "name": "filter_tasks_with_incomplete_dependencies",
+        "required": false,
+        "description": "Filter tasks to those with incomplete dependencies. Use true to apply the filter.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to tasks with incomplete dependencies"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_blocked"
+      },
+      {
+        "name": "filter_tasks_with_attachments",
+        "required": false,
+        "description": "Set to true to filter tasks that have attachments, and false to include all tasks regardless of attachments.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to tasks with attachments"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "has_attachment"
+      },
+      {
+        "name": "filter_to_completed_tasks",
+        "required": false,
+        "description": "Set to true to filter and display only completed tasks.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to completed tasks"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "completed"
+      },
+      {
+        "name": "include_only_subtasks",
+        "required": false,
+        "description": "Set to true to include only subtasks in the results, false to include all tasks.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to subtasks"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_subtask"
+      },
+      {
+        "name": "sort_results_ascending",
+        "required": false,
+        "description": "Set to true to sort search results in ascending order. Default is false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Default `false`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_ascending"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'searchTasksForWorkspace'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "tasks:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/workspaces/{workspace_gid}/tasks/search",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "text",
+        "tool_parameter_name": "search_text",
+        "description": "Performs full-text search on both task name and description",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Performs full-text search on both task name and description"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "resource_subtype",
+        "tool_parameter_name": "task_resource_subtype",
+        "description": "Filters results by the task's resource_subtype",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "default_task",
+            "milestone",
+            "approval"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by the task's resource_subtype"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "milestone",
+        "documentation_urls": []
+      },
+      {
+        "name": "assignee.any",
+        "tool_parameter_name": "assignee_identifiers_any",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assignee.not",
+        "tool_parameter_name": "exclude_assignees",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "portfolios.any",
+        "tool_parameter_name": "portfolio_ids_included",
+        "description": "Comma-separated list of portfolio IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of portfolio IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "projects.any",
+        "tool_parameter_name": "project_ids_any",
+        "description": "Comma-separated list of project IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of project IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "projects.not",
+        "tool_parameter_name": "exclude_projects_by_id",
+        "description": "Comma-separated list of project IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of project IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "projects.all",
+        "tool_parameter_name": "filter_by_all_projects",
+        "description": "Comma-separated list of project IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of project IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sections.any",
+        "tool_parameter_name": "include_sections_in_search",
+        "description": "Comma-separated list of section or column IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of section or column IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sections.not",
+        "tool_parameter_name": "exclude_sections_by_id",
+        "description": "Comma-separated list of section or column IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of section or column IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sections.all",
+        "tool_parameter_name": "filter_sections_all",
+        "description": "Comma-separated list of section or column IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of section or column IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tags.any",
+        "tool_parameter_name": "include_any_tags_ids",
+        "description": "Comma-separated list of tag IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tag IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tags.not",
+        "tool_parameter_name": "exclude_tags_by_ids",
+        "description": "Comma-separated list of tag IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tag IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tags.all",
+        "tool_parameter_name": "all_tags_filters",
+        "description": "Comma-separated list of tag IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tag IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teams.any",
+        "tool_parameter_name": "filter_by_any_team_ids",
+        "description": "Comma-separated list of team IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of team IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "followers.any",
+        "tool_parameter_name": "filter_by_any_follower_ids",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "followers.not",
+        "tool_parameter_name": "exclude_followers_by_user_ids",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_by.any",
+        "tool_parameter_name": "created_by_users",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_by.not",
+        "tool_parameter_name": "exclude_created_by_user_ids",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assigned_by.any",
+        "tool_parameter_name": "assigned_by_user_ids",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assigned_by.not",
+        "tool_parameter_name": "exclude_assigned_by_users",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "liked_by.not",
+        "tool_parameter_name": "excluded_liked_by_user_ids",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "commented_on_by.not",
+        "tool_parameter_name": "exclude_tasks_commented_by_users",
+        "description": "Comma-separated list of user identifiers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of user identifiers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_on.before",
+        "tool_parameter_name": "filter_due_date_before",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_on.after",
+        "tool_parameter_name": "tasks_due_after_date",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_on",
+        "tool_parameter_name": "due_date_on",
+        "description": "ISO 8601 date string or `null`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_at.before",
+        "tool_parameter_name": "due_at_before",
+        "description": "ISO 8601 datetime string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_at.after",
+        "tool_parameter_name": "due_at_after_datetime",
+        "description": "ISO 8601 datetime string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_on.before",
+        "tool_parameter_name": "end_date_before_start_on",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_on.after",
+        "tool_parameter_name": "start_date_after",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_on",
+        "tool_parameter_name": "start_on_date",
+        "description": "ISO 8601 date string or `null`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_on.before",
+        "tool_parameter_name": "created_on_before_date",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_on.after",
+        "tool_parameter_name": "created_after_date",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_on",
+        "tool_parameter_name": "created_on_date",
+        "description": "ISO 8601 date string or `null`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at.before",
+        "tool_parameter_name": "created_at_before",
+        "description": "ISO 8601 datetime string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at.after",
+        "tool_parameter_name": "created_after_datetime",
+        "description": "ISO 8601 datetime string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "completed_on.before",
+        "tool_parameter_name": "completed_on_before_date",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "completed_on.after",
+        "tool_parameter_name": "completed_on_after_date",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "completed_on",
+        "tool_parameter_name": "completed_on_date",
+        "description": "ISO 8601 date string or `null`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "completed_at.before",
+        "tool_parameter_name": "completed_at_before_datetime",
+        "description": "ISO 8601 datetime string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "completed_at.after",
+        "tool_parameter_name": "completed_at_after",
+        "description": "ISO 8601 datetime string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "modified_on.before",
+        "tool_parameter_name": "before_modified_on_date",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "modified_on.after",
+        "tool_parameter_name": "filter_modified_date_start",
+        "description": "ISO 8601 date string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "modified_on",
+        "tool_parameter_name": "last_modified_on",
+        "description": "ISO 8601 date string or `null`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string or `null`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "modified_at.before",
+        "tool_parameter_name": "modified_at_before_date",
+        "description": "ISO 8601 datetime string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "modified_at.after",
+        "tool_parameter_name": "modified_after_datetime",
+        "description": "ISO 8601 datetime string",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 datetime string"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_blocking",
+        "tool_parameter_name": "filter_to_incomplete_tasks_with_dependents",
+        "description": "Filter to incomplete tasks with dependents",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to incomplete tasks with dependents"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_blocked",
+        "tool_parameter_name": "filter_tasks_with_incomplete_dependencies",
+        "description": "Filter to tasks with incomplete dependencies",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to tasks with incomplete dependencies"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "has_attachment",
+        "tool_parameter_name": "filter_tasks_with_attachments",
+        "description": "Filter to tasks with attachments",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to tasks with attachments"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "completed",
+        "tool_parameter_name": "filter_to_completed_tasks",
+        "description": "Filter to completed tasks",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to completed tasks"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_subtask",
+        "tool_parameter_name": "include_only_subtasks",
+        "description": "Filter to subtasks",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to subtasks"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_by",
+        "tool_parameter_name": "task_sort_order",
+        "description": "One of `due_date`, `created_at`, `completed_at`, `likes`, or `modified_at`, defaults to `modified_at`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "due_date",
+            "created_at",
+            "completed_at",
+            "likes",
+            "modified_at"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of `due_date`, `created_at`, `completed_at`, `likes`, or `modified_at`, defaults to `modified_at`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "modified_at",
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_ascending",
+        "tool_parameter_name": "sort_results_ascending",
+        "description": "Default `false`",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Default `false`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "included_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workspace_gid",
+        "tool_parameter_name": "workspace_global_id",
+        "description": "Globally unique identifier for the workspace or organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the workspace or organization."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

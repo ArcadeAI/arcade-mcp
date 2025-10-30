@@ -1,0 +1,292 @@
+{
+  "name": "UpdateProjectBoard",
+  "fully_qualified_name": "GithubApi.UpdateProjectBoard@0.1.0",
+  "description": "Update a project board's information on GitHub.\n\nThis tool updates the details of a specified project board on GitHub. It should be called when there is a need to modify the information of a project board. Note that a `404` error indicates projects are disabled, while a `401` or `410` error indicates insufficient privileges.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_unique_identifier",
+        "required": true,
+        "description": "The unique identifier of the GitHub project board to update.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "project_description",
+        "required": false,
+        "description": "A detailed description or content of the project board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Body of the project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body"
+      },
+      {
+        "name": "project_name",
+        "required": false,
+        "description": "The new name for the project board. Must be a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "organization_permission_level",
+        "required": false,
+        "description": "Sets the baseline permission for all organization members on this project. Options are 'read', 'write', 'admin', or 'none'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "read",
+            "write",
+            "admin",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The baseline permission that all organization members have on this project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_permission"
+      },
+      {
+        "name": "project_state",
+        "required": false,
+        "description": "Specify the state of the project; use 'open' or 'closed'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "State of the project; either 'open' or 'closed'"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "is_private",
+        "required": false,
+        "description": "A boolean indicating if the project is private. Set to true for private (not visible to everyone) and false for public.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not this project can be seen by everyone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "private"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'projects/update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/projects/{project_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_unique_identifier",
+        "description": "The unique identifier of the project.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the project."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body",
+        "tool_parameter_name": "project_description",
+        "description": "Body of the project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Body of the project"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "project_name",
+        "description": "Name of the project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the project"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization_permission",
+        "tool_parameter_name": "organization_permission_level",
+        "description": "The baseline permission that all organization members have on this project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "read",
+            "write",
+            "admin",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The baseline permission that all organization members have on this project"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "private",
+        "tool_parameter_name": "is_private",
+        "description": "Whether or not this project can be seen by everyone.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not this project can be seen by everyone."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "project_state",
+        "description": "State of the project; either 'open' or 'closed'",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "State of the project; either 'open' or 'closed'"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"summary\": \"Change the name, state, and permissions for a project\",\n          \"value\": {\n            \"name\": \"Week One Sprint\",\n            \"organization_permission\": \"write\",\n            \"state\": \"open\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"body\": {\n            \"description\": \"Body of the project\",\n            \"example\": \"This project represents the sprint of the first week in January\",\n            \"nullable\": true,\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"Name of the project\",\n            \"example\": \"Week One Sprint\",\n            \"type\": \"string\"\n          },\n          \"organization_permission\": {\n            \"description\": \"The baseline permission that all organization members have on this project\",\n            \"enum\": [\n              \"read\",\n              \"write\",\n              \"admin\",\n              \"none\"\n            ],\n            \"type\": \"string\"\n          },\n          \"private\": {\n            \"description\": \"Whether or not this project can be seen by everyone.\",\n            \"type\": \"boolean\"\n          },\n          \"state\": {\n            \"description\": \"State of the project; either 'open' or 'closed'\",\n            \"example\": \"open\",\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "name": "AddProjectCollaborator",
+  "fully_qualified_name": "GithubApi.AddProjectCollaborator@0.1.0",
+  "description": "Add a collaborator to an organization project.\n\nThis tool adds a collaborator to a specified organization project and assigns a permission level. It requires the user to be an organization owner or a project admin.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The unique identifier of the project to which a collaborator is being added. This ID is required to specify the exact project for collaboration.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "project_id"
+      },
+      {
+        "name": "collaborator_username",
+        "required": true,
+        "description": "The GitHub username of the collaborator to be added to the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The handle for the GitHub user account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "username"
+      },
+      {
+        "name": "collaborator_permission_level",
+        "required": false,
+        "description": "The permission level to assign to the collaborator. Options are: 'read', 'write', or 'admin'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "read",
+            "write",
+            "admin"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The permission to grant the collaborator."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "permission"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'projects/add-collaborator'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/projects/{project_id}/collaborators/{username}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "project_id",
+        "tool_parameter_name": "project_id",
+        "description": "The unique identifier of the project.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the project."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "username",
+        "tool_parameter_name": "collaborator_username",
+        "description": "The handle for the GitHub user account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The handle for the GitHub user account."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "permission",
+        "tool_parameter_name": "collaborator_permission_level",
+        "description": "The permission to grant the collaborator.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "read",
+            "write",
+            "admin"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The permission to grant the collaborator."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "write",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"summary\": \"Applying write permissions for the new collaborator\",\n          \"value\": {\n            \"permission\": \"write\"\n          }\n        }\n      },\n      \"schema\": {\n        \"nullable\": true,\n        \"properties\": {\n          \"permission\": {\n            \"default\": \"write\",\n            \"description\": \"The permission to grant the collaborator.\",\n            \"enum\": [\n              \"read\",\n              \"write\",\n              \"admin\"\n            ],\n            \"example\": \"write\",\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

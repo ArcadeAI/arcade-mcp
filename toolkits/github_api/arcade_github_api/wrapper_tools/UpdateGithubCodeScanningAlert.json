@@ -1,0 +1,298 @@
+{
+  "name": "UpdateGithubCodeScanningAlert",
+  "fully_qualified_name": "GithubApi.UpdateGithubCodeScanningAlert@0.1.0",
+  "description": "Update the status of a GitHub code scanning alert.\n\nThis tool updates the status of a code scanning alert on a GitHub repository. It's useful when you need to manage alert statuses for security reasons. Requires appropriate access token scopes.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. This is case insensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "alert_identifier_number",
+        "required": true,
+        "description": "The unique number identifying a GitHub code scanning alert, found at the end of the alert URL or in the response of the alerts list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies an alert. You can find this at the end of the URL for a code scanning alert within GitHub, and in the `number` field in the response from the `GET /repos/{owner}/{repo}/code-scanning/alerts` operation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "alert_number"
+      },
+      {
+        "name": "alert_state",
+        "required": true,
+        "description": "Specifies the new state of the code scanning alert. Use 'open' or 'dismissed'. Provide `dismissed_reason` if 'dismissed'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "dismissed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the state of the code scanning alert. You must provide `dismissed_reason` when you set the state to `dismissed`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "dismissal_comment",
+        "required": false,
+        "description": "The comment explaining the reason for dismissing the code scanning alert.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The dismissal comment associated with the dismissal of the alert."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dismissed_comment"
+      },
+      {
+        "name": "dismissed_reason_for_alert",
+        "required": false,
+        "description": "Required if the alert state is dismissed. Specify the reason using one of: 'None', 'false positive', 'won't fix', 'used in tests'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "None",
+            "false positive",
+            "won't fix",
+            "used in tests"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Required when the state is dismissed.** The reason for dismissing or closing the alert."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dismissed_reason"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'code-scanning/update-alert'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/code-scanning/alerts/{alert_number}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "alert_number",
+        "tool_parameter_name": "alert_identifier_number",
+        "description": "The number that identifies an alert. You can find this at the end of the URL for a code scanning alert within GitHub, and in the `number` field in the response from the `GET /repos/{owner}/{repo}/code-scanning/alerts` operation.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies an alert. You can find this at the end of the URL for a code scanning alert within GitHub, and in the `number` field in the response from the `GET /repos/{owner}/{repo}/code-scanning/alerts` operation."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "dismissed_comment",
+        "tool_parameter_name": "dismissal_comment",
+        "description": "The dismissal comment associated with the dismissal of the alert.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The dismissal comment associated with the dismissal of the alert."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "dismissed_reason",
+        "tool_parameter_name": "dismissed_reason_for_alert",
+        "description": "**Required when the state is dismissed.** The reason for dismissing or closing the alert.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "None",
+            "false positive",
+            "won't fix",
+            "used in tests"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Required when the state is dismissed.** The reason for dismissing or closing the alert."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "alert_state",
+        "description": "Sets the state of the code scanning alert. You must provide `dismissed_reason` when you set the state to `dismissed`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "dismissed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the state of the code scanning alert. You must provide `dismissed_reason` when you set the state to `dismissed`."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"dismissed_comment\": \"This alert is not actually correct, because there's a sanitizer included in the library.\",\n            \"dismissed_reason\": \"false positive\",\n            \"state\": \"dismissed\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"dismissed_comment\": {\n            \"description\": \"The dismissal comment associated with the dismissal of the alert.\",\n            \"maxLength\": 280,\n            \"nullable\": true,\n            \"type\": \"string\"\n          },\n          \"dismissed_reason\": {\n            \"description\": \"**Required when the state is dismissed.** The reason for dismissing or closing the alert.\",\n            \"enum\": [\n              null,\n              \"false positive\",\n              \"won't fix\",\n              \"used in tests\"\n            ],\n            \"nullable\": true,\n            \"type\": \"string\"\n          },\n          \"state\": {\n            \"description\": \"Sets the state of the code scanning alert. You must provide `dismissed_reason` when you set the state to `dismissed`.\",\n            \"enum\": [\n              \"open\",\n              \"dismissed\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"state\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

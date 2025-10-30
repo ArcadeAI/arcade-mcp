@@ -1,0 +1,183 @@
+{
+  "name": "SetOrgVariableRepos",
+  "fully_qualified_name": "GithubApi.SetOrgVariableRepos@0.1.0",
+  "description": "Replace repositories for an organization's variable.\n\nThis tool replaces all repositories associated with an organization variable that is set to selected visibility. Use it to update the repositories list where an org variable is available. Requires appropriate authentication and permissions.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The name of the organization. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "variable_name",
+        "required": true,
+        "description": "The name of the organization variable to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the variable."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "repository_ids_for_access",
+        "required": true,
+        "description": "An array of integers representing the repository IDs that can access the organization variable. Ensure the IDs are valid and accessible.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the repositories that can access the organization variable."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "selected_repository_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'actions/set-selected-repos-for-org-variable'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}/actions/variables/{name}/repositories",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "variable_name",
+        "description": "The name of the variable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the variable."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "selected_repository_ids",
+        "tool_parameter_name": "repository_ids_for_access",
+        "description": "The IDs of the repositories that can access the organization variable.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the repositories that can access the organization variable."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"selected_repository_ids\": [\n              64780797\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"selected_repository_ids\": {\n            \"description\": \"The IDs of the repositories that can access the organization variable.\",\n            \"items\": {\n              \"type\": \"integer\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"selected_repository_ids\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

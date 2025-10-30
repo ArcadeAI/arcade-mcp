@@ -1,0 +1,300 @@
+{
+  "name": "UpdateGithubDependabotAlert",
+  "fully_qualified_name": "GithubApi.UpdateGithubDependabotAlert@0.1.0",
+  "description": "Update a GitHub Dependabot alert.\n\nUse this tool to update a Dependabot alert in a GitHub repository. Requires an access token with `security_events` scope for private repositories or `public_repo` scope for public repositories. GitHub Apps need **Dependabot alerts** write permission.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the GitHub repository. Not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository to update. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "alert_identifier",
+        "required": true,
+        "description": "The unique number identifying a Dependabot alert in the repository. Find this at the end of the alert URL or in `number` fields from the `GET /repos/{owner}/{repo}/dependabot/alerts` response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies a Dependabot alert in its repository.\nYou can find this at the end of the URL for a Dependabot alert within GitHub,\nor in `number` fields in the response from the\n`GET /repos/{owner}/{repo}/dependabot/alerts` operation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "alert_number"
+      },
+      {
+        "name": "alert_state",
+        "required": true,
+        "description": "Specifies the state of the Dependabot alert. Use 'dismissed' to dismiss an alert and 'open' to keep it open. A 'dismissed_reason' is required when setting to 'dismissed'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "dismissed",
+            "open"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of the Dependabot alert.\nA `dismissed_reason` must be provided when setting the state to `dismissed`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "dismissed_alert_comment",
+        "required": false,
+        "description": "An optional comment to provide context when dismissing the alert.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An optional comment associated with dismissing the alert."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dismissed_comment"
+      },
+      {
+        "name": "dismissed_reason_for_alert",
+        "required": false,
+        "description": "Reason for dismissing the alert. Required if `state` is set to `dismissed`. Allowed values: 'fix_started', 'inaccurate', 'no_bandwidth', 'not_used', 'tolerable_risk'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "fix_started",
+            "inaccurate",
+            "no_bandwidth",
+            "not_used",
+            "tolerable_risk"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Required when `state` is `dismissed`.** A reason for dismissing the alert."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dismissed_reason"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'dependabot/update-alert'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/dependabot/alerts/{alert_number}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "alert_number",
+        "tool_parameter_name": "alert_identifier",
+        "description": "The number that identifies a Dependabot alert in its repository.\nYou can find this at the end of the URL for a Dependabot alert within GitHub,\nor in `number` fields in the response from the\n`GET /repos/{owner}/{repo}/dependabot/alerts` operation.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number that identifies a Dependabot alert in its repository.\nYou can find this at the end of the URL for a Dependabot alert within GitHub,\nor in `number` fields in the response from the\n`GET /repos/{owner}/{repo}/dependabot/alerts` operation."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "dismissed_comment",
+        "tool_parameter_name": "dismissed_alert_comment",
+        "description": "An optional comment associated with dismissing the alert.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An optional comment associated with dismissing the alert."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "dismissed_reason",
+        "tool_parameter_name": "dismissed_reason_for_alert",
+        "description": "**Required when `state` is `dismissed`.** A reason for dismissing the alert.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "fix_started",
+            "inaccurate",
+            "no_bandwidth",
+            "not_used",
+            "tolerable_risk"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Required when `state` is `dismissed`.** A reason for dismissing the alert."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "alert_state",
+        "description": "The state of the Dependabot alert.\nA `dismissed_reason` must be provided when setting the state to `dismissed`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "dismissed",
+            "open"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of the Dependabot alert.\nA `dismissed_reason` must be provided when setting the state to `dismissed`."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"dismissed_comment\": \"This alert is accurate but we use a sanitizer.\",\n            \"dismissed_reason\": \"tolerable_risk\",\n            \"state\": \"dismissed\"\n          }\n        }\n      },\n      \"schema\": {\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"dismissed_comment\": {\n            \"description\": \"An optional comment associated with dismissing the alert.\",\n            \"maxLength\": 280,\n            \"type\": \"string\"\n          },\n          \"dismissed_reason\": {\n            \"description\": \"**Required when `state` is `dismissed`.** A reason for dismissing the alert.\",\n            \"enum\": [\n              \"fix_started\",\n              \"inaccurate\",\n              \"no_bandwidth\",\n              \"not_used\",\n              \"tolerable_risk\"\n            ],\n            \"type\": \"string\"\n          },\n          \"state\": {\n            \"description\": \"The state of the Dependabot alert.\\nA `dismissed_reason` must be provided when setting the state to `dismissed`.\",\n            \"enum\": [\n              \"dismissed\",\n              \"open\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"state\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

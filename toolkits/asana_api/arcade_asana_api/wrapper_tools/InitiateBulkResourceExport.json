@@ -1,0 +1,369 @@
+{
+  "name": "InitiateBulkResourceExport",
+  "fully_qualified_name": "AsanaApi.InitiateBulkResourceExport@0.1.0",
+  "description": "Initiate a bulk export of tasks, teams, or messages in a workspace.\n\nUse this tool to start exporting tasks, teams, or messages from a workspace in Asana. The export is processed asynchronously, and results can be monitored using the jobs endpoint. The export includes attachments and stories by default, with options to specify fields and apply filters. The final export file is in JSON Lines format, compressed in a gzip container.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_export_payload",
+        "required": true,
+        "description": "A JSON object detailing the resources to export, filters, and fields. Includes workspace GID, export parameters, and field specifications.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "workspace": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Gid of a workspace."
+                },
+                "export_request_parameters": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "resource_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of the resource to be exported. This can be a task, team, or message."
+                    },
+                    "filters": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "assigned_by.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who assigned the resource. This array accepts a list of user GIDs. This is only applicable to tasks."
+                        },
+                        "assignee.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who are assigned to the resource. This array accepts a list of user GIDs. This is only applicable to tasks."
+                        },
+                        "commented_on_by.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who commented on the resource. This array accepts a list of user GIDs."
+                        },
+                        "created_at.after": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter results to resources created after a specified date and time."
+                        },
+                        "created_at.before": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter results to resources created before a specified date and time."
+                        },
+                        "created_by.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who created the resource. This array accepts a list of user GIDs."
+                        },
+                        "followers.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who are following the resource. This array accepts a list of user GIDs."
+                        },
+                        "liked_by.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who liked the resource. This array accepts a list of user GIDs."
+                        },
+                        "modified_at.after": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter results to resources modified after a specified date and time."
+                        },
+                        "modified_at.before": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter results to resources modified before a specified date and time."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filters to apply to a resource that will be exported. These filters can be used to narrow down the resources that are included in the export."
+                    },
+                    "fields": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An array of fields to include for the resource type. If not provided, all non-optional fields for the resource type will be included. This conforms to the fields optional parameter available for all Asana endpoints which is documented [here](https://developers.asana.com/docs/inputoutput-options)"
+                    }
+                  },
+                  "description": "An object containing the parameters for the export request. The keys of this object are the GIDs of the resources to be exported. The values are objects with additional parameters for each resource."
+                }
+              },
+              "inner_properties": null,
+              "description": "A *resource_export* request starts a job to bulk export objects for one or more resources."
+            }
+          },
+          "inner_properties": null,
+          "description": "A JSON payload specifying the resources to export, including filters to apply and fields to be exported."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createResourceExport'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/exports/resource",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "resource_export_payload",
+        "description": "A JSON payload specifying the resources to export, including filters to apply and fields to be exported.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "workspace": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Gid of a workspace."
+                },
+                "export_request_parameters": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "resource_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of the resource to be exported. This can be a task, team, or message."
+                    },
+                    "filters": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "assigned_by.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who assigned the resource. This array accepts a list of user GIDs. This is only applicable to tasks."
+                        },
+                        "assignee.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who are assigned to the resource. This array accepts a list of user GIDs. This is only applicable to tasks."
+                        },
+                        "commented_on_by.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who commented on the resource. This array accepts a list of user GIDs."
+                        },
+                        "created_at.after": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter results to resources created after a specified date and time."
+                        },
+                        "created_at.before": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter results to resources created before a specified date and time."
+                        },
+                        "created_by.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who created the resource. This array accepts a list of user GIDs."
+                        },
+                        "followers.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who are following the resource. This array accepts a list of user GIDs."
+                        },
+                        "liked_by.any": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter by the users who liked the resource. This array accepts a list of user GIDs."
+                        },
+                        "modified_at.after": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter results to resources modified after a specified date and time."
+                        },
+                        "modified_at.before": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filter results to resources modified before a specified date and time."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filters to apply to a resource that will be exported. These filters can be used to narrow down the resources that are included in the export."
+                    },
+                    "fields": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An array of fields to include for the resource type. If not provided, all non-optional fields for the resource type will be included. This conforms to the fields optional parameter available for all Asana endpoints which is documented [here](https://developers.asana.com/docs/inputoutput-options)"
+                    }
+                  },
+                  "description": "An object containing the parameters for the export request. The keys of this object are the GIDs of the resources to be exported. The values are objects with additional parameters for each resource."
+                }
+              },
+              "inner_properties": null,
+              "description": "A *resource_export* request starts a job to bulk export objects for one or more resources."
+            }
+          },
+          "inner_properties": null,
+          "description": "A JSON payload specifying the resources to export, including filters to apply and fields to be exported."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"A JSON payload specifying the resources to export, including filters to apply and fields to be exported.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"description\": \"A *resource_export* request starts a job to bulk export objects for one or more resources.\",\n            \"properties\": {\n              \"workspace\": {\n                \"type\": \"string\",\n                \"description\": \"Gid of a workspace.\",\n                \"example\": \"12345\"\n              },\n              \"export_request_parameters\": {\n                \"type\": \"array\",\n                \"description\": \"An object containing the parameters for the export request. The keys of this object are the GIDs of the resources to be exported. The values are objects with additional parameters for each resource.\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"resource_type\": {\n                      \"type\": \"string\",\n                      \"description\": \"The type of the resource to be exported. This can be a task, team, or message.\",\n                      \"example\": \"task\"\n                    },\n                    \"filters\": {\n                      \"type\": \"object\",\n                      \"description\": \"Filters to apply to a resource that will be exported. These filters can be used to narrow down the resources that are included in the export.\",\n                      \"properties\": {\n                        \"assigned_by.any\": {\n                          \"description\": \"Filter by the users who assigned the resource. This array accepts a list of user GIDs. This is only applicable to tasks.\",\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"string\",\n                            \"example\": \"12345\"\n                          }\n                        },\n                        \"assignee.any\": {\n                          \"description\": \"Filter by the users who are assigned to the resource. This array accepts a list of user GIDs. This is only applicable to tasks.\",\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"string\",\n                            \"example\": \"12345\"\n                          }\n                        },\n                        \"commented_on_by.any\": {\n                          \"description\": \"Filter by the users who commented on the resource. This array accepts a list of user GIDs.\",\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"string\",\n                            \"example\": \"12345\"\n                          }\n                        },\n                        \"created_at.after\": {\n                          \"description\": \"Filter results to resources created after a specified date and time.\",\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"example\": \"2023-01-01T00:00:00Z\"\n                        },\n                        \"created_at.before\": {\n                          \"description\": \"Filter results to resources created before a specified date and time.\",\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"example\": \"2023-01-01T00:00:00Z\"\n                        },\n                        \"created_by.any\": {\n                          \"description\": \"Filter by the users who created the resource. This array accepts a list of user GIDs.\",\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"string\",\n                            \"example\": \"12345\"\n                          }\n                        },\n                        \"followers.any\": {\n                          \"description\": \"Filter by the users who are following the resource. This array accepts a list of user GIDs.\",\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"string\",\n                            \"example\": \"12345\"\n                          }\n                        },\n                        \"liked_by.any\": {\n                          \"description\": \"Filter by the users who liked the resource. This array accepts a list of user GIDs.\",\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"string\",\n                            \"example\": \"12345\"\n                          }\n                        },\n                        \"modified_at.after\": {\n                          \"description\": \"Filter results to resources modified after a specified date and time.\",\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"example\": \"2023-01-01T00:00:00Z\"\n                        },\n                        \"modified_at.before\": {\n                          \"description\": \"Filter results to resources modified before a specified date and time.\",\n                          \"type\": \"string\",\n                          \"format\": \"date-time\",\n                          \"example\": \"2023-01-01T00:00:00Z\"\n                        }\n                      }\n                    },\n                    \"fields\": {\n                      \"type\": \"array\",\n                      \"description\": \"An array of fields to include for the resource type. If not provided, all non-optional fields for the resource type will be included. This conforms to the fields optional parameter available for all Asana endpoints which is documented [here](https://developers.asana.com/docs/inputoutput-options)\",\n                      \"items\": {\n                        \"type\": \"string\",\n                        \"example\": \"gid\"\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

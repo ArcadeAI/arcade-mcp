@@ -1,0 +1,183 @@
+{
+  "name": "CreateGithubOrganization",
+  "fully_qualified_name": "GithubApi.CreateGithubOrganization@0.1.0",
+  "description": "Create a new organization on GitHub.\n\nThis tool is used to create a new organization on GitHub Enterprise. Call it when you need to set up a new organization within a GitHub Enterprise setup.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "admin_user_login",
+        "required": true,
+        "description": "The login username of the user designated to manage the new GitHub organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The login of the user who will manage this organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "admin"
+      },
+      {
+        "name": "organization_username",
+        "required": true,
+        "description": "The username for the organization in GitHub.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization's username."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "login"
+      },
+      {
+        "name": "organization_display_name",
+        "required": false,
+        "description": "The display name for the organization to be created on GitHub.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization's display name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "profile_name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/create-org'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/admin/organizations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "admin",
+        "tool_parameter_name": "admin_user_login",
+        "description": "The login of the user who will manage this organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The login of the user who will manage this organization."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "login",
+        "tool_parameter_name": "organization_username",
+        "description": "The organization's username.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization's username."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "profile_name",
+        "tool_parameter_name": "organization_display_name",
+        "description": "The organization's display name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization's display name."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"admin\": \"monalisaoctocat\",\n            \"login\": \"github\",\n            \"profile_name\": \"GitHub, Inc.\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"admin\": {\n            \"description\": \"The login of the user who will manage this organization.\",\n            \"type\": \"string\"\n          },\n          \"login\": {\n            \"description\": \"The organization's username.\",\n            \"type\": \"string\"\n          },\n          \"profile_name\": {\n            \"description\": \"The organization's display name.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"login\",\n          \"admin\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
