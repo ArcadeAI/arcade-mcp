@@ -8,6 +8,7 @@ from arcade_mcp_server.context import Context
 from arcade_mcp_server.context import get_current_model_context as get_current_context
 from arcade_mcp_server.context import set_current_model_context as set_current_context
 from arcade_mcp_server.types import (
+    MCPTool,
     ModelHint,
     ModelPreferences,
 )
@@ -124,6 +125,25 @@ class TestContext:
         await context.log.info("Info message")
         await context.log.warning("Warning message")
         await context.log.error("Error message")
+
+    @pytest.mark.asyncio
+    async def test_tools_methods(self, mcp_server):
+        """Test tools methods."""
+        context = Context(server=mcp_server)
+
+        # Test list tools
+        tools = await context.tools.list()
+        assert len(tools) == 2
+
+        # Test call raw for tool that doesn't exist
+        result = await context.tools.call_raw("TheLimitDoesNotExist", {"param": "value"})
+        assert result.isError is True
+
+        # Test call raw for tool that exists
+        result = await context.tools.call_raw(
+            "TestToolkit_test_tool", {"text": "The text to send to tool"}
+        )
+        assert result.isError is False
 
     @pytest.mark.asyncio
     async def test_progress_reporting(self, mcp_server):

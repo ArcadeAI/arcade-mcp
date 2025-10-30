@@ -753,10 +753,10 @@ class HTTPStreamableTransport:
         the session to the correct per-request stream (or the standalone GET
         stream identified by `GET_STREAM_KEY`).
         """
-        # Create memory streams
-        read_stream_writer, read_stream = anyio.create_memory_object_stream[str | Exception](0)
+        # Create memory streams with buffer
+        read_stream_writer, read_stream = anyio.create_memory_object_stream[str | Exception](100)
         write_stream, write_stream_reader = anyio.create_memory_object_stream[str | SessionMessage](
-            0
+            100
         )
 
         # Store the streams

@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import uuid
 import weakref
 from builtins import list as builtins_list
 from contextvars import ContextVar, Token
@@ -33,13 +34,19 @@ from typing import Any, cast
 
 from arcade_core.context import ModelContext as ModelContextProtocol
 from arcade_core.schema import (
-    ToolCallOutput,
     ToolContext,
 )
 
 from arcade_mcp_server.types import (
+    AudioContent,
+    CallToolParams,
+    CallToolRequest,
+    CallToolResult,
     ClientCapabilities,
+    CreateMessageResult,
     ElicitResult,
+    ImageContent,
+    JSONRPCError,
     LoggingLevel,
     ModelHint,
     ModelPreferences,
@@ -439,7 +446,7 @@ class Progress(_ContextComponent):
         if session is None:
             return
         progress_token = None
-        if hasattr(session, "_request_meta"):
+        if hasattr(session, "_request_meta") and session._request_meta is not None:
             progress_token = getattr(session._request_meta, "progressToken", None)
         if progress_token is None:
             return
@@ -492,31 +499,24 @@ class Tools(_ContextComponent):
         tools = await self._ctx.server._tool_manager.list_tools()
         return cast(list[Any], tools)
 
-    async def call_raw(self, name: str, params: dict[str, Any]) -> ToolCallOutput:
-        tool = await self._ctx.server._tool_manager.get_tool(name)
-        tool_context = await self._ctx.server._create_tool_context(tool, self._ctx._session)
-        # Attach to current model context for the duration of this call
-        self._ctx.set_tool_context(tool_context)
-        func = tool.tool
-        if asyncio.iscoroutinefunction(func):
-
-            async def async_func(**kw: Any) -> Any:
-                return await func(**kw)
-
-        else:
-
-            async def async_func(**kw: Any) -> Any:
-                return func(**kw)
-
-        result = await self._ctx.server.executor.run(
-            func=async_func,
-            definition=tool.definition,
-            input_model=tool.input_model,
-            output_model=tool.output_model,
-            context=self._ctx,
-            **params,
+    async def call_raw(self, name: str, params: dict[str, Any]) -> CallToolResult:
+        internal_id = f"internal-{uuid.uuid4()}"
+        request = CallToolRequest(
+            id=internal_id,
+            params=CallToolParams(name=name, arguments=params),
         )
-        return cast(ToolCallOutput, result)
+
+        response = await self._ctx.server._handle_call_tool(request, self._ctx._session)
+
+        if isinstance(response, JSONRPCError):
+            error_message = response.error.get("message", "Unknown error")
+            return CallToolResult(
+                content=[TextContent(type="text", text=error_message)],
+                structuredContent={"error": error_message},
+                isError=True,
+            )
+
+        return cast(CallToolResult, response.result)
 
 
 class Prompts(_ContextComponent):
@@ -543,7 +543,7 @@ class Sampling(_ContextComponent):
         temperature: float | None = None,
         max_tokens: int | None = None,
         model_preferences: ModelPreferences | str | list[str] | None = None,
-    ) -> Any:
+    ) -> TextContent | ImageContent | AudioContent | CreateMessageResult:
         if self._ctx._session is None:
             raise ValueError("Session not available")
 
@@ -580,7 +580,7 @@ class Sampling(_ContextComponent):
             model_preferences=parsed_prefs,
         )
 
-        return result.content if hasattr(result, "content") else result
+        return result.content if hasattr(result, "content") else result  # type: ignore[no-any-return]
 
 
 class UI(_ContextComponent):
