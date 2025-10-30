@@ -6,7 +6,7 @@ requires-python = ">=3.10"
 dependencies = [
     "arcade-math>=1.0.5,<1.1.0",
     "local_filesystem>=0.1.0,<1.0.0",
-    "arcade-mcp-server>=1.5.0,<2.0.0",
+    "arcade-mcp-server>=1.6.0,<2.0.0",
     "httpx>=0.28.0,<1.0.0",
 ]
 
