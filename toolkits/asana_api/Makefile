@@ -52,4 +52,3 @@ check: ## Run code quality tools.
 	fi
 	@echo "🚀 Static type checking: Running mypy"
 	@uv run --no-sources mypy --config-file=pyproject.toml
-    
