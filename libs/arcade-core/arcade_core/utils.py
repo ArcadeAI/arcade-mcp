@@ -29,6 +29,13 @@ def pascal_to_snake_case(name: str) -> str:
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
 
 
+def space_to_snake_case(name: str) -> str:
+    """
+    Converts a space delimited name to snake_case.
+    """
+    return name.replace(" ", "_")
+
+
 def snake_to_pascal_case(name: str) -> str:
     """
     Converts a snake_case name to PascalCase.

@@ -1,0 +1,104 @@
+{
+  "name": "CreateResearchRequest",
+  "fully_qualified_name": "ExaApi.CreateResearchRequest@0.1.0",
+  "description": "Create a new research request.\n\nUse this tool to initiate a new research request when you need to gather specific information or data.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "research_request_details",
+        "required": true,
+        "description": "JSON object containing details of the research request including parameters and criteria.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ResearchController_createResearch'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/research/v1",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "research_request_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": [\n          \"object\"\n        ],\n        \"properties\": {\n          \"model\": {\n            \"default\": \"exa-research\",\n            \"type\": [\n              \"string\"\n            ],\n            \"enum\": [\n              \"exa-research\",\n              \"exa-research-pro\"\n            ]\n          },\n          \"instructions\": {\n            \"type\": [\n              \"string\"\n            ],\n            \"maxLength\": 4096,\n            \"description\": \"Instructions for what research should be conducted\"\n          },\n          \"outputSchema\": {\n            \"type\": [\n              \"object\"\n            ],\n            \"additionalProperties\": {}\n          }\n        },\n        \"required\": [\n          \"instructions\"\n        ],\n        \"examples\": [\n          {\n            \"model\": \"exa-research\",\n            \"instructions\": \"What species of ant are similar to honeypot ants?\"\n          }\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

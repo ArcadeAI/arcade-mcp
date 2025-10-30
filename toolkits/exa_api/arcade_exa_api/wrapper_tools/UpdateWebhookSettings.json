@@ -1,0 +1,137 @@
+{
+  "name": "UpdateWebhookSettings",
+  "fully_qualified_name": "ExaApi.UpdateWebhookSettings@0.1.0",
+  "description": "Update a webhook's settings for events, URL, and metadata.\n\nUse this tool to modify a webhook's configuration, including the events it tracks, the URL for notifications, and any custom metadata. Changes are applied immediately, and the webhook's status remains the same.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_id",
+        "required": true,
+        "description": "The unique identifier of the webhook to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the webhook"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "webhook_update_request_body",
+        "required": true,
+        "description": "JSON object containing webhook updates, such as events list, new URL, and metadata.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'webhooks-update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/webhooks/{id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "webhook_id",
+        "description": "The id of the webhook",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the webhook"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "webhook_update_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": [\n          \"object\"\n        ],\n        \"properties\": {\n          \"events\": {\n            \"type\": [\n              \"array\"\n            ],\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"webset.created\",\n                \"webset.deleted\",\n                \"webset.paused\",\n                \"webset.idle\",\n                \"webset.search.created\",\n                \"webset.search.canceled\",\n                \"webset.search.completed\",\n                \"webset.search.updated\",\n                \"import.created\",\n                \"import.completed\",\n                \"webset.item.created\",\n                \"webset.item.enriched\",\n                \"monitor.created\",\n                \"monitor.updated\",\n                \"monitor.deleted\",\n                \"monitor.run.created\",\n                \"monitor.run.completed\",\n                \"webset.export.created\",\n                \"webset.export.completed\"\n              ]\n            },\n            \"minItems\": 1,\n            \"maxItems\": 19,\n            \"description\": \"The events to trigger the webhook\"\n          },\n          \"url\": {\n            \"type\": [\n              \"string\"\n            ],\n            \"format\": \"uri\",\n            \"description\": \"The URL to send the webhook to\"\n          },\n          \"metadata\": {\n            \"description\": \"Set of key-value pairs you want to associate with this object.\",\n            \"type\": [\n              \"object\"\n            ],\n            \"additionalProperties\": {\n              \"type\": [\n                \"string\"\n              ],\n              \"maxLength\": 1000\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "name": "CreateWebhookForNotifications",
+  "fully_qualified_name": "ExaApi.CreateWebhookForNotifications@0.1.0",
+  "description": "Create webhooks to receive event notifications.\n\nThis tool allows you to set up webhooks for receiving notifications about specific events in your Websets. Upon creation, you'll specify the events to monitor and the destination URL for the notifications. The webhook activates immediately, and you'll receive a secret key for signature verification, visible only once at this point.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_configuration",
+        "required": true,
+        "description": "A JSON object detailing the events to monitor and the destination URL for notifications.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'webhooks-create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/webhooks",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "webhook_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": [\n          \"object\"\n        ],\n        \"properties\": {\n          \"events\": {\n            \"type\": [\n              \"array\"\n            ],\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"webset.created\",\n                \"webset.deleted\",\n                \"webset.paused\",\n                \"webset.idle\",\n                \"webset.search.created\",\n                \"webset.search.canceled\",\n                \"webset.search.completed\",\n                \"webset.search.updated\",\n                \"import.created\",\n                \"import.completed\",\n                \"webset.item.created\",\n                \"webset.item.enriched\",\n                \"monitor.created\",\n                \"monitor.updated\",\n                \"monitor.deleted\",\n                \"monitor.run.created\",\n                \"monitor.run.completed\",\n                \"webset.export.created\",\n                \"webset.export.completed\"\n              ]\n            },\n            \"minItems\": 1,\n            \"maxItems\": 19,\n            \"description\": \"The events to trigger the webhook\"\n          },\n          \"url\": {\n            \"type\": [\n              \"string\"\n            ],\n            \"format\": \"uri\",\n            \"description\": \"The URL to send the webhook to\"\n          },\n          \"metadata\": {\n            \"description\": \"Set of key-value pairs you want to associate with this object.\",\n            \"type\": [\n              \"object\"\n            ],\n            \"additionalProperties\": {\n              \"type\": [\n                \"string\"\n              ],\n              \"maxLength\": 1000\n            }\n          }\n        },\n        \"required\": [\n          \"events\",\n          \"url\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

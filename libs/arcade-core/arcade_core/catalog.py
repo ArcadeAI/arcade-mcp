@@ -58,6 +58,7 @@ from arcade_core.utils import (
     is_string_literal,
     is_union,
     snake_to_pascal_case,
+    space_to_snake_case,
 )
 
 logger = logging.getLogger(__name__)
@@ -418,7 +419,7 @@ class ToolCatalog(BaseModel):
         metadata_requirement = create_metadata_requirement(tool, auth_requirement)
 
         toolkit_definition = ToolkitDefinition(
-            name=snake_to_pascal_case(toolkit_name),
+            name=snake_to_pascal_case(space_to_snake_case(toolkit_name)),
             description=toolkit_desc,
             version=toolkit_version,
         )

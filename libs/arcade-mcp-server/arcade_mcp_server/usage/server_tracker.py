@@ -14,7 +14,10 @@ from arcade_core.usage.constants import (
 
 from arcade_mcp_server.usage.constants import (
     EVENT_MCP_SERVER_STARTED,
+    EVENT_MCP_TOOL_CALLED,
+    PROP_FAILURE_REASON,
     PROP_HOST,
+    PROP_IS_EXECUTION_SUCCESS,
     PROP_MCP_SERVER_VERSION,
     PROP_PORT,
     PROP_TOOL_COUNT,
@@ -106,4 +109,34 @@ class ServerTracker:
         is_anon = self.user_id == self.identity.anon_id
         self.usage_service.capture(
             EVENT_MCP_SERVER_STARTED, self.user_id, properties=properties, is_anon=is_anon
+        )
+
+    def track_tool_call(
+        self,
+        success: bool,
+        failure_reason: str | None = None,
+    ) -> None:
+        """Track MCP tool call event.
+
+        Args:
+            success: Whether the tool call succeeded (True) or failed (False)
+            reason: The reason for the failure (if any)
+        """
+        if not is_tracking_enabled():
+            return
+
+        properties: dict[str, str | int | float | bool | None] = {
+            PROP_IS_EXECUTION_SUCCESS: success,
+            PROP_FAILURE_REASON: failure_reason if not success else None,
+            PROP_MCP_SERVER_VERSION: self.mcp_server_version,
+            PROP_RUNTIME_LANGUAGE: "python",
+            PROP_RUNTIME_VERSION: self.runtime_version,
+            PROP_OS_TYPE: platform.system(),
+            PROP_OS_RELEASE: platform.release(),
+            PROP_DEVICE_TIMESTAMP: time.monotonic(),
+        }
+
+        is_anon = self.user_id == self.identity.anon_id
+        self.usage_service.capture(
+            EVENT_MCP_TOOL_CALLED, self.user_id, properties=properties, is_anon=is_anon
         )

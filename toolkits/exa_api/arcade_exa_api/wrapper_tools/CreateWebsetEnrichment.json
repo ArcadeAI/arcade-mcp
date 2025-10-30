@@ -1,0 +1,137 @@
+{
+  "name": "CreateWebsetEnrichment",
+  "fully_qualified_name": "ExaApi.CreateWebsetEnrichment@0.1.0",
+  "description": "Create an enrichment for a specified webset.\n\nThis tool is used to create an enrichment for a given webset. It should be called when there is a need to enhance a webset with additional data or features.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webset_identifier",
+        "required": true,
+        "description": "The ID or external ID of the webset to enrich.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id or externalId of the Webset"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webset"
+      },
+      {
+        "name": "enrichment_details",
+        "required": true,
+        "description": "A JSON object containing the details required to create the enrichment for the webset.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'websets-enrichments-create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/websets/{webset}/enrichments",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "webset",
+        "tool_parameter_name": "webset_identifier",
+        "description": "The id or externalId of the Webset",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id or externalId of the Webset"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "enrichment_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": [\n          \"object\"\n        ],\n        \"properties\": {\n          \"description\": {\n            \"type\": [\n              \"string\"\n            ],\n            \"minLength\": 1,\n            \"maxLength\": 5000,\n            \"description\": \"Provide a description of the enrichment task you want to perform to each Webset Item.\"\n          },\n          \"format\": {\n            \"type\": [\n              \"string\"\n            ],\n            \"enum\": [\n              \"text\",\n              \"date\",\n              \"number\",\n              \"options\",\n              \"email\",\n              \"phone\",\n              \"url\"\n            ],\n            \"description\": \"Format of the enrichment response.\\n\\nWe automatically select the best format based on the description. If you want to explicitly specify the format, you can do so here.\"\n          },\n          \"options\": {\n            \"type\": [\n              \"array\"\n            ],\n            \"items\": {\n              \"type\": [\n                \"object\"\n              ],\n              \"properties\": {\n                \"label\": {\n                  \"type\": [\n                    \"string\"\n                  ],\n                  \"description\": \"The label of the option\"\n                }\n              },\n              \"required\": [\n                \"label\"\n              ]\n            },\n            \"minItems\": 1,\n            \"maxItems\": 150,\n            \"description\": \"When the format is options, the different options for the enrichment agent to choose from.\"\n          },\n          \"metadata\": {\n            \"description\": \"Set of key-value pairs you want to associate with this object.\",\n            \"type\": [\n              \"object\"\n            ],\n            \"additionalProperties\": {\n              \"type\": [\n                \"string\"\n              ],\n              \"maxLength\": 1000\n            }\n          }\n        },\n        \"required\": [\n          \"description\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

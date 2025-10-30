@@ -6,6 +6,7 @@ arcade-calendly-api
 arcade-clickup-api
 arcade-cursor-agents-api
 arcade-datadog-api
+arcade-exa-api
 arcade-figma-api
 arcade-freshservice-api
 arcade-linkedin

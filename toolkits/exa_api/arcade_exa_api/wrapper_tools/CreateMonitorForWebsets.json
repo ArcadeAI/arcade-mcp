@@ -1,0 +1,104 @@
+{
+  "name": "CreateMonitorForWebsets",
+  "fully_qualified_name": "ExaApi.CreateMonitorForWebsets@0.1.0",
+  "description": "Create a scheduled monitor to update Websets with fresh data.\n\nUse this tool to set up a new monitor that automatically updates Websets. It enables execution of 'search' and 'refresh' operations based on your defined schedule, using cron expressions and timezone settings, to keep your Websets current without manual intervention.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "monitor_configuration",
+        "required": true,
+        "description": "JSON object describing the configuration for the new monitor, including schedule, search and refresh operations.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'monitors-create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/monitors",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "monitor_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": [\n          \"object\"\n        ],\n        \"properties\": {\n          \"websetId\": {\n            \"type\": [\n              \"string\"\n            ],\n            \"description\": \"The id of the Webset\"\n          },\n          \"cadence\": {\n            \"type\": [\n              \"object\"\n            ],\n            \"properties\": {\n              \"cron\": {\n                \"description\": \"Cron expression for monitor cadence (must be a valid Unix cron with 5 fields). The schedule must trigger at most once per day.\",\n                \"type\": [\n                  \"string\"\n                ]\n              },\n              \"timezone\": {\n                \"description\": \"IANA timezone (e.g., \\\"America/New_York\\\")\",\n                \"default\": \"Etc/UTC\",\n                \"type\": [\n                  \"string\"\n                ]\n              }\n            },\n            \"required\": [\n              \"cron\"\n            ],\n            \"description\": \"How often the monitor will run\"\n          },\n          \"behavior\": {\n            \"type\": [\n              \"object\"\n            ],\n            \"properties\": {\n              \"type\": {\n                \"type\": \"string\",\n                \"const\": \"search\",\n                \"default\": \"search\"\n              },\n              \"config\": {\n                \"type\": [\n                  \"object\"\n                ],\n                \"properties\": {\n                  \"query\": {\n                    \"type\": [\n                      \"string\"\n                    ],\n                    \"minLength\": 2,\n                    \"maxLength\": 10000,\n                    \"description\": \"The query to search for. By default, the query from the last search is used.\"\n                  },\n                  \"criteria\": {\n                    \"type\": [\n                      \"array\"\n                    ],\n                    \"items\": {\n                      \"type\": [\n                        \"object\"\n                      ],\n                      \"properties\": {\n                        \"description\": {\n                          \"type\": [\n                            \"string\"\n                          ],\n                          \"minLength\": 2,\n                          \"maxLength\": 1000\n                        }\n                      },\n                      \"required\": [\n                        \"description\"\n                      ]\n                    },\n                    \"maxItems\": 5,\n                    \"description\": \"The criteria to search for. By default, the criteria from the last search is used.\"\n                  },\n                  \"entity\": {\n                    \"oneOf\": [\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"company\",\n                            \"default\": \"company\"\n                          }\n                        },\n                        \"required\": [\n                          \"type\"\n                        ],\n                        \"title\": \"Company\"\n                      },\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"person\",\n                            \"default\": \"person\"\n                          }\n                        },\n                        \"required\": [\n                          \"type\"\n                        ],\n                        \"title\": \"Person\"\n                      },\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"article\",\n                            \"default\": \"article\"\n                          }\n                        },\n                        \"required\": [\n                          \"type\"\n                        ],\n                        \"title\": \"Article\"\n                      },\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"research_paper\",\n                            \"default\": \"research_paper\"\n                          }\n                        },\n                        \"required\": [\n                          \"type\"\n                        ],\n                        \"title\": \"Research Paper\"\n                      },\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"custom\",\n                            \"default\": \"custom\"\n                          },\n                          \"description\": {\n                            \"type\": [\n                              \"string\"\n                            ],\n                            \"minLength\": 2,\n                            \"maxLength\": 200\n                          }\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"description\"\n                        ],\n                        \"title\": \"Custom\"\n                      }\n                    ]\n                  },\n                  \"count\": {\n                    \"type\": [\n                      \"number\"\n                    ],\n                    \"exclusiveMinimum\": 0,\n                    \"description\": \"The maximum number of results to find\"\n                  },\n                  \"behavior\": {\n                    \"default\": \"append\",\n                    \"type\": [\n                      \"string\"\n                    ],\n                    \"enum\": [\n                      \"override\",\n                      \"append\"\n                    ],\n                    \"description\": \"The behaviour of the Search when it is added to a Webset.\"\n                  }\n                },\n                \"required\": [\n                  \"count\"\n                ],\n                \"description\": \"Specify the search parameters for the Monitor.\\n\\nBy default, the search parameters (query, entity and criteria) from the last search are used when no parameters are provided.\"\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"config\"\n            ],\n            \"description\": \"Behavior to perform when monitor runs\"\n          },\n          \"metadata\": {\n            \"type\": [\n              \"object\"\n            ],\n            \"additionalProperties\": {\n              \"type\": [\n                \"string\"\n              ]\n            }\n          }\n        },\n        \"required\": [\n          \"websetId\",\n          \"cadence\",\n          \"behavior\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

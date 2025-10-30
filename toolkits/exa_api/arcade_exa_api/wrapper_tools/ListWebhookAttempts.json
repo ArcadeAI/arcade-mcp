@@ -1,0 +1,276 @@
+{
+  "name": "ListWebhookAttempts",
+  "fully_qualified_name": "ExaApi.ListWebhookAttempts@0.1.0",
+  "description": "Retrieve and list all webhook attempt records.\n\nThis tool retrieves all attempts made by a specific webhook, ordered in descending order. It is useful for monitoring webhook activity and diagnosing issues.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_id",
+        "required": true,
+        "description": "The unique identifier for the webhook to retrieve attempt records for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the webhook"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A string used to paginate through the webhook attempt results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to paginate through the results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "results_limit",
+        "required": false,
+        "description": "Specify the maximum number of webhook attempt records to return.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "event_type_filter",
+        "required": false,
+        "description": "Filter webhook attempts by specifying the type of event, such as 'webset.created' or 'monitor.run.completed'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "webset.created",
+            "webset.deleted",
+            "webset.paused",
+            "webset.idle",
+            "webset.search.created",
+            "webset.search.canceled",
+            "webset.search.completed",
+            "webset.search.updated",
+            "import.created",
+            "import.completed",
+            "webset.item.created",
+            "webset.item.enriched",
+            "monitor.created",
+            "monitor.updated",
+            "monitor.deleted",
+            "monitor.run.created",
+            "monitor.run.completed",
+            "webset.export.created",
+            "webset.export.completed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of event to filter by"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "eventType"
+      },
+      {
+        "name": "filter_by_successful_attempts",
+        "required": false,
+        "description": "Use 'true' to filter for successful webhook attempts and 'false' for unsuccessful ones.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter attempts by their success status"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "successful"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'webhooks-attempts-list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/webhooks/{id}/attempts",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "The cursor to paginate through the results",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to paginate through the results"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_limit",
+        "description": "The number of results to return",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 25,
+        "documentation_urls": []
+      },
+      {
+        "name": "eventType",
+        "tool_parameter_name": "event_type_filter",
+        "description": "The type of event to filter by",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "webset.created",
+            "webset.deleted",
+            "webset.paused",
+            "webset.idle",
+            "webset.search.created",
+            "webset.search.canceled",
+            "webset.search.completed",
+            "webset.search.updated",
+            "import.created",
+            "import.completed",
+            "webset.item.created",
+            "webset.item.enriched",
+            "monitor.created",
+            "monitor.updated",
+            "monitor.deleted",
+            "monitor.run.created",
+            "monitor.run.completed",
+            "webset.export.created",
+            "webset.export.completed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of event to filter by"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "successful",
+        "tool_parameter_name": "filter_by_successful_attempts",
+        "description": "Filter attempts by their success status",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter attempts by their success status"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "webhook_id",
+        "description": "The ID of the webhook",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the webhook"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

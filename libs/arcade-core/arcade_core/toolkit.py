@@ -361,8 +361,6 @@ def get_package_directory(package_name: str) -> str:
 
 
 class Validate:
-    warn = True
-
     @classmethod
     def path(cls, path: str | Path) -> bool:
         """
@@ -376,11 +374,6 @@ class Validate:
         all_parts = set(posix_path.parts) | set(windows_path.parts)
 
         for part in all_parts:
-            if (part == "venv" or part.startswith(".")) and cls.warn:
-                print(
-                    f"⚠️ Your package may contain a venv directory or hidden files. We suggest moving these out of the toolkit directory to avoid deployment issues: {path}"
-                )
-                cls.warn = False
             if part in {"dist", "build", "__pycache__", "coverage.xml"}:
                 return False
             if part.endswith(".lock"):

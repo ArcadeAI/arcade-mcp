@@ -1,0 +1,170 @@
+{
+  "name": "GenerateAnswerSummary",
+  "fully_qualified_name": "ExaApi.GenerateAnswerSummary@0.1.0",
+  "description": "Retrieve direct answers or detailed summaries with citations.\n\nUse this tool to perform a search based on a query. It generates either a direct answer or a detailed summary with citations, depending on the nature of the query.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "search_query",
+        "required": true,
+        "description": "The question or query to be answered or summarized.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The question or query to answer."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query"
+      },
+      {
+        "name": "enable_streaming_response",
+        "required": false,
+        "description": "Return the response as a server-sent events (SSE) stream if set to true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, the response is returned as a server-sent events (SSS) stream."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "stream"
+      },
+      {
+        "name": "include_full_text",
+        "required": false,
+        "description": "If true, the response includes full text content in the search results.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, the response includes full text content in the search results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "text"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'answer'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/answer",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "query",
+        "tool_parameter_name": "search_query",
+        "description": "The question or query to answer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The question or query to answer."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "stream",
+        "tool_parameter_name": "enable_streaming_response",
+        "description": "If true, the response is returned as a server-sent events (SSS) stream.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, the response is returned as a server-sent events (SSS) stream."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "text",
+        "tool_parameter_name": "include_full_text",
+        "description": "If true, the response includes full text content in the search results",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, the response includes full text content in the search results"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"query\"\n        ],\n        \"properties\": {\n          \"query\": {\n            \"type\": \"string\",\n            \"description\": \"The question or query to answer.\",\n            \"example\": \"What is the latest valuation of SpaceX?\",\n            \"minLength\": 1\n          },\n          \"stream\": {\n            \"type\": \"boolean\",\n            \"default\": false,\n            \"description\": \"If true, the response is returned as a server-sent events (SSS) stream.\"\n          },\n          \"text\": {\n            \"type\": \"boolean\",\n            \"default\": false,\n            \"description\": \"If true, the response includes full text content in the search results\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

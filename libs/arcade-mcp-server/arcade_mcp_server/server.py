@@ -74,6 +74,7 @@ from arcade_mcp_server.types import (
     TextResourceContents,
     UnsubscribeRequest,
 )
+from arcade_mcp_server.usage import ServerTracker
 
 logger = logging.getLogger("arcade.mcp")
 
@@ -206,6 +207,9 @@ class MCPServer:
         # Session management
         self._sessions: dict[str, ServerSession] = {}
         self._sessions_lock = asyncio.Lock()
+
+        # Usage tracking
+        self._tracker = ServerTracker()
 
         # Handler registration
         self._handlers = self._register_handlers()
@@ -454,6 +458,12 @@ class MCPServer:
 
         # Create context and apply middleware
         try:
+            # Store the request's meta in the session
+            if session:
+                params = message.get("params", {})
+                meta = params.get("_meta")
+                session.set_request_meta(meta)
+
             # Create request context
             context = (
                 await session.create_request_context()
@@ -494,6 +504,7 @@ class MCPServer:
                 set_current_model_context(None, token)
                 if session:
                     await session.cleanup_request_context(context)
+                    session.clear_request_meta()
 
         except Exception:
             logger.exception("Error handling message")
@@ -659,26 +670,49 @@ class MCPServer:
             # Create tool context
             tool_context = await self._create_tool_context(tool, session)
 
+            # Check restrictions for unauthenticated HTTP transport
+            if transport_restriction_response := self._check_transport_restrictions(
+                tool, tool_context, message, tool_name, session
+            ):
+                self._tracker.track_tool_call(False, "transport restriction")
+                return transport_restriction_response
+
             # Handle authorization and secrets requirements if required
             if missing_requirements_response := await self._check_tool_requirements(
                 tool, tool_context, message, tool_name, session
             ):
+                self._tracker.track_tool_call(False, "missing requirements")
                 return missing_requirements_response
 
             # Attach tool_context to current model context for this request
             mctx = get_current_model_context()
+            saved_tool_context: ToolContext | None = None
+
             if mctx is not None:
+                # Save the current tool context so we can restore it after the call
+                # This prevents context leakage from callee back to caller in the case of tool chaining.
+                saved_tool_context = ToolContext(
+                    authorization=mctx.authorization,
+                    secrets=mctx.secrets,
+                    metadata=mctx.metadata,
+                    user_id=mctx.user_id,
+                )
                 mctx.set_tool_context(tool_context)
 
-            # Execute tool
-            result = await ToolExecutor.run(
-                func=tool.tool,
-                definition=tool.definition,
-                input_model=tool.input_model,
-                output_model=tool.output_model,
-                context=mctx if mctx is not None else tool_context,
-                **input_params,
-            )
+            try:
+                # Execute tool
+                result = await ToolExecutor.run(
+                    func=tool.tool,
+                    definition=tool.definition,
+                    input_model=tool.input_model,
+                    output_model=tool.output_model,
+                    context=mctx if mctx is not None else tool_context,
+                    **input_params,
+                )
+            finally:
+                # Restore the original tool context to prevent context leakage to parent tools in the case of tool chaining.
+                if mctx is not None and saved_tool_context is not None:
+                    mctx.set_tool_context(saved_tool_context)
 
             # Convert result
             if result.value is not None:
@@ -687,6 +721,7 @@ class MCPServer:
                 # structuredContent should be the raw result value as a JSON object
                 structured_content = convert_content_to_structured_content(result.value)
 
+                self._tracker.track_tool_call(True)
                 return JSONRPCResponse(
                     id=message.id,
                     result=CallToolResult(
@@ -702,6 +737,7 @@ class MCPServer:
                 # structuredContent should be the error as a JSON object
                 structured_content = convert_content_to_structured_content({"error": str(error)})
 
+                self._tracker.track_tool_call(False, "error during tool execution")
                 return JSONRPCResponse(
                     id=message.id,
                     result=CallToolResult(
@@ -718,6 +754,7 @@ class MCPServer:
             # structuredContent should be the error as a JSON object
             structured_content = convert_content_to_structured_content({"error": error_message})
 
+            self._tracker.track_tool_call(False, "unknown tool")
             return JSONRPCResponse(
                 id=message.id,
                 result=CallToolResult(
@@ -728,6 +765,7 @@ class MCPServer:
             )
         except Exception:
             logger.exception("Error calling tool")
+            self._tracker.track_tool_call(False, "internal error calling tool")
             return JSONRPCError(
                 id=message.id,
                 error={"code": -32603, "message": "Internal error calling tool"},
@@ -748,7 +786,7 @@ class MCPServer:
             ),
         )
 
-    async def _check_tool_requirements(
+    def _check_transport_restrictions(
         self,
         tool: MaterializedTool,
         tool_context: ToolContext,
@@ -756,7 +794,7 @@ class MCPServer:
         tool_name: str,
         session: ServerSession | None = None,
     ) -> JSONRPCResponse[CallToolResult] | None:
-        """Check tool requirements before executing the tool"""
+        """Check transport restrictions for tools requiring auth or secrets"""
         # Check transport restrictions for tools requiring auth or secrets
         if session and session.init_options:
             transport_type = session.init_options.get("transport_type")
@@ -777,7 +815,17 @@ class MCPServer:
                         ),
                     }
                     return self._create_error_response(message, tool_response)
+        return None
 
+    async def _check_tool_requirements(
+        self,
+        tool: MaterializedTool,
+        tool_context: ToolContext,
+        message: CallToolRequest,
+        tool_name: str,
+        session: ServerSession | None = None,
+    ) -> JSONRPCResponse[CallToolResult] | None:
+        """Check tool requirements before executing the tool"""
         # Check authorization
         if tool.definition.requirements and tool.definition.requirements.authorization:
             # First check if Arcade API key is configured

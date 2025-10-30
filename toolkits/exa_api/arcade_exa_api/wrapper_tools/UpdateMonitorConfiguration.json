@@ -1,0 +1,137 @@
+{
+  "name": "UpdateMonitorConfiguration",
+  "fully_qualified_name": "ExaApi.UpdateMonitorConfiguration@0.1.0",
+  "description": "Update the configuration of a monitor.\n\nUse this tool to update the settings of an existing monitor. Provide the monitor ID and new configuration details to modify its setup.",
+  "toolkit": {
+    "name": "ArcadeExaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "monitor_id",
+        "required": true,
+        "description": "The unique identifier for the monitor to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Monitor"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "monitor_configuration_details",
+        "required": true,
+        "description": "A JSON object containing the new configuration settings for the monitor.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'monitors-update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "EXA_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the exa API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.exa.ai/websets/v0/monitors/{id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "monitor_id",
+        "description": "The id of the Monitor",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Monitor"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "monitor_configuration_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "EXA_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": [\n          \"object\"\n        ],\n        \"properties\": {\n          \"status\": {\n            \"type\": [\n              \"string\"\n            ],\n            \"enum\": [\n              \"enabled\",\n              \"disabled\"\n            ],\n            \"description\": \"The status of the monitor.\"\n          },\n          \"metadata\": {\n            \"type\": [\n              \"object\"\n            ],\n            \"additionalProperties\": {\n              \"type\": [\n                \"string\"\n              ]\n            }\n          },\n          \"cadence\": {\n            \"type\": [\n              \"object\"\n            ],\n            \"properties\": {\n              \"cron\": {\n                \"description\": \"Cron expression for monitor cadence (must be a valid Unix cron with 5 fields). The schedule must trigger at most once per day.\",\n                \"type\": [\n                  \"string\"\n                ]\n              },\n              \"timezone\": {\n                \"description\": \"IANA timezone (e.g., \\\"America/New_York\\\")\",\n                \"default\": \"Etc/UTC\",\n                \"type\": [\n                  \"string\"\n                ]\n              }\n            },\n            \"required\": [\n              \"cron\"\n            ]\n          },\n          \"behavior\": {\n            \"type\": [\n              \"object\"\n            ],\n            \"properties\": {\n              \"type\": {\n                \"type\": \"string\",\n                \"const\": \"search\",\n                \"default\": \"search\"\n              },\n              \"config\": {\n                \"type\": [\n                  \"object\"\n                ],\n                \"properties\": {\n                  \"query\": {\n                    \"type\": [\n                      \"string\"\n                    ],\n                    \"minLength\": 2,\n                    \"maxLength\": 10000,\n                    \"description\": \"The query to search for. By default, the query from the last search is used.\"\n                  },\n                  \"criteria\": {\n                    \"type\": [\n                      \"array\"\n                    ],\n                    \"items\": {\n                      \"type\": [\n                        \"object\"\n                      ],\n                      \"properties\": {\n                        \"description\": {\n                          \"type\": [\n                            \"string\"\n                          ],\n                          \"minLength\": 2,\n                          \"maxLength\": 1000\n                        }\n                      },\n                      \"required\": [\n                        \"description\"\n                      ]\n                    },\n                    \"maxItems\": 5,\n                    \"description\": \"The criteria to search for. By default, the criteria from the last search is used.\"\n                  },\n                  \"entity\": {\n                    \"oneOf\": [\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"company\",\n                            \"default\": \"company\"\n                          }\n                        },\n                        \"required\": [\n                          \"type\"\n                        ],\n                        \"title\": \"Company\"\n                      },\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"person\",\n                            \"default\": \"person\"\n                          }\n                        },\n                        \"required\": [\n                          \"type\"\n                        ],\n                        \"title\": \"Person\"\n                      },\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"article\",\n                            \"default\": \"article\"\n                          }\n                        },\n                        \"required\": [\n                          \"type\"\n                        ],\n                        \"title\": \"Article\"\n                      },\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"research_paper\",\n                            \"default\": \"research_paper\"\n                          }\n                        },\n                        \"required\": [\n                          \"type\"\n                        ],\n                        \"title\": \"Research Paper\"\n                      },\n                      {\n                        \"type\": [\n                          \"object\"\n                        ],\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"const\": \"custom\",\n                            \"default\": \"custom\"\n                          },\n                          \"description\": {\n                            \"type\": [\n                              \"string\"\n                            ],\n                            \"minLength\": 2,\n                            \"maxLength\": 200\n                          }\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"description\"\n                        ],\n                        \"title\": \"Custom\"\n                      }\n                    ]\n                  },\n                  \"count\": {\n                    \"type\": [\n                      \"number\"\n                    ],\n                    \"exclusiveMinimum\": 0,\n                    \"description\": \"The maximum number of results to find\"\n                  },\n                  \"behavior\": {\n                    \"default\": \"append\",\n                    \"type\": [\n                      \"string\"\n                    ],\n                    \"enum\": [\n                      \"override\",\n                      \"append\"\n                    ],\n                    \"description\": \"The behaviour of the Search when it is added to a Webset.\"\n                  }\n                },\n                \"required\": [\n                  \"count\"\n                ],\n                \"description\": \"Specify the search parameters for the Monitor.\\n\\nBy default, the search parameters (query, entity and criteria) from the last search are used when no parameters are provided.\"\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"config\"\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
