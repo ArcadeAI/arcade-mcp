@@ -1,0 +1,274 @@
+{
+  "name": "GetMarketingEventParticipationBreakdown",
+  "fully_qualified_name": "HubspotMarketingApi.GetMarketingEventParticipationBreakdown@0.1.0",
+  "description": "Retrieve the participation breakdown for a marketing event.\n\nThis tool fetches the participation breakdown for a specified marketing event, filtered by externalAccountId and externalEventId. It provides detailed insights on event participation metrics.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "external_account_id",
+        "required": true,
+        "description": "The ID associated with the marketing event's account in the external application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The accountId that is associated with this marketing event in the external event application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "externalAccountId"
+      },
+      {
+        "name": "external_event_id",
+        "required": true,
+        "description": "The ID of the marketing event in the external event application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the marketing event in the external event application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "externalEventId"
+      },
+      {
+        "name": "contact_identifier",
+        "required": false,
+        "description": "The unique identifier for the contact, such as an email or internal ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the Contact. It may be email or internal id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contactIdentifier"
+      },
+      {
+        "name": "participation_state_filter",
+        "required": false,
+        "description": "The participation state to filter results. Possible values: REGISTERED, CANCELLED, ATTENDED, NO_SHOW.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The participation state value. It may be REGISTERED, CANCELLED, ATTENDED, NO_SHOW"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "response_size_limit",
+        "required": false,
+        "description": "Maximum number of participations to retrieve. Default is 10, maximum is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The limit for response size. The default value is 10, the max number is 100"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "The cursor indicating the position of the last retrieved item, used for pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor indicating the position of the last retrieved item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/marketing/v3/marketing-events/participations/{externalAccountId}/{externalEventId}/breakdown_getParticipationsBreakdownByExternalEventId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.marketing_events.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/marketing-events/participations/{externalAccountId}/{externalEventId}/breakdown",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "contactIdentifier",
+        "tool_parameter_name": "contact_identifier",
+        "description": "The identifier of the Contact. It may be email or internal id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the Contact. It may be email or internal id."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "participation_state_filter",
+        "description": "The participation state value. It may be REGISTERED, CANCELLED, ATTENDED, NO_SHOW",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The participation state value. It may be REGISTERED, CANCELLED, ATTENDED, NO_SHOW"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "response_size_limit",
+        "description": "The limit for response size. The default value is 10, the max number is 100",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The limit for response size. The default value is 10, the max number is 100"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "The cursor indicating the position of the last retrieved item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor indicating the position of the last retrieved item."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "externalAccountId",
+        "tool_parameter_name": "external_account_id",
+        "description": "The accountId that is associated with this marketing event in the external event application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The accountId that is associated with this marketing event in the external event application."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "externalEventId",
+        "tool_parameter_name": "external_event_id",
+        "description": "The id of the marketing event in the external event application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the marketing event in the external event application."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

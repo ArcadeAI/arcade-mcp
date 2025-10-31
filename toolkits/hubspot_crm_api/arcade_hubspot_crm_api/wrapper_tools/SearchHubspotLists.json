@@ -1,0 +1,307 @@
+{
+  "name": "SearchHubspotLists",
+  "fully_qualified_name": "HubspotCrmApi.SearchHubspotLists@0.1.0",
+  "description": "Search HubSpot CRM lists by name or page through all lists.\n\nThis tool allows searching for specific lists within the HubSpot CRM by list name. Alternatively, you can page through all lists by providing an empty query. It's useful for retrieving specific list data or browsing all available lists.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_list_ids",
+        "required": false,
+        "description": "An array of list IDs to filter search results. If not provided or empty, no filter is applied.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `listIds` that will be used to filter results by `listId`. If values are provided, then the response will only include results that have a `listId` in this array.\n\nIf no value is provided, or if an empty list is provided, then the results will not be filtered by `listId`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "listIds"
+      },
+      {
+        "name": "start_offset",
+        "required": false,
+        "description": "The starting point for pagination of list results. Defaults to `0` if not provided.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Value used to paginate through lists. The `offset` provided in the response can be used in the next request to fetch the next page of results. Defaults to `0` if no offset is provided."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "search_query",
+        "required": false,
+        "description": "The term to search for lists by name. Returns all lists if empty.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `query` that will be used to search for lists by list name. If no `query` is provided, then the results will include all lists."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query"
+      },
+      {
+        "name": "number_of_lists_to_return",
+        "required": false,
+        "description": "The number of lists to include in the response. Defaults to 20 if not provided, with a maximum of 500.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of lists to include in the response. Defaults to `20` if no value is provided. The max `count` is `500`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "filter_by_processing_types",
+        "required": false,
+        "description": "List of processing types to filter results. Valid values: 'MANUAL', 'SNAPSHOT', 'DYNAMIC'. If omitted, no filtering by processing type is applied.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `processingTypes` that will be used to filter results by `processingType`. If values are provided, then the response will only include results that have a `processingType` in this array.\n\nIf no value is provided, or if an empty list is provided, then results will not be filtered by `processingType`.\n\nValid `processingTypes` are: `MANUAL`, `SNAPSHOT`, or `DYNAMIC`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "processingTypes"
+      },
+      {
+        "name": "include_additional_list_properties",
+        "required": false,
+        "description": "Specify additional list properties to include in the response. Defaults fetch standard properties like `hs_list_size` and others.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The property names of any additional list properties to include in the response. Properties that do not exist or that are empty for a particular list are not included in the response.\n\nBy default, all requests will fetch the following properties for each list: `hs_list_size`, `hs_last_record_added_at`, `hs_last_record_removed_at`, `hs_folder_name`, and `hs_list_reference_count`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "additionalProperties"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specify the order in which the lists should be sorted. Acceptable values could be 'asc' for ascending or 'desc' for descending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/crm/v3/lists/search_doSearch'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.lists.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/lists/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "listIds",
+        "tool_parameter_name": "filter_by_list_ids",
+        "description": "The `listIds` that will be used to filter results by `listId`. If values are provided, then the response will only include results that have a `listId` in this array.\n\nIf no value is provided, or if an empty list is provided, then the results will not be filtered by `listId`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `listIds` that will be used to filter results by `listId`. If values are provided, then the response will only include results that have a `listId` in this array.\n\nIf no value is provided, or if an empty list is provided, then the results will not be filtered by `listId`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "start_offset",
+        "description": "Value used to paginate through lists. The `offset` provided in the response can be used in the next request to fetch the next page of results. Defaults to `0` if no offset is provided.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Value used to paginate through lists. The `offset` provided in the response can be used in the next request to fetch the next page of results. Defaults to `0` if no offset is provided."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query",
+        "tool_parameter_name": "search_query",
+        "description": "The `query` that will be used to search for lists by list name. If no `query` is provided, then the results will include all lists.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `query` that will be used to search for lists by list name. If no `query` is provided, then the results will include all lists."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "number_of_lists_to_return",
+        "description": "The number of lists to include in the response. Defaults to `20` if no value is provided. The max `count` is `500`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of lists to include in the response. Defaults to `20` if no value is provided. The max `count` is `500`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "processingTypes",
+        "tool_parameter_name": "filter_by_processing_types",
+        "description": "The `processingTypes` that will be used to filter results by `processingType`. If values are provided, then the response will only include results that have a `processingType` in this array.\n\nIf no value is provided, or if an empty list is provided, then results will not be filtered by `processingType`.\n\nValid `processingTypes` are: `MANUAL`, `SNAPSHOT`, or `DYNAMIC`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `processingTypes` that will be used to filter results by `processingType`. If values are provided, then the response will only include results that have a `processingType` in this array.\n\nIf no value is provided, or if an empty list is provided, then results will not be filtered by `processingType`.\n\nValid `processingTypes` are: `MANUAL`, `SNAPSHOT`, or `DYNAMIC`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "additionalProperties",
+        "tool_parameter_name": "include_additional_list_properties",
+        "description": "The property names of any additional list properties to include in the response. Properties that do not exist or that are empty for a particular list are not included in the response.\n\nBy default, all requests will fetch the following properties for each list: `hs_list_size`, `hs_last_record_added_at`, `hs_last_record_removed_at`, `hs_folder_name`, and `hs_list_reference_count`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The property names of any additional list properties to include in the response. Properties that do not exist or that are empty for a particular list are not included in the response.\n\nBy default, all requests will fetch the following properties for each list: `hs_list_size`, `hs_last_record_added_at`, `hs_last_record_removed_at`, `hs_folder_name`, and `hs_list_reference_count`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_order",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The IDs of the records to add and/or remove from the list.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"listIds\": {\n            \"type\": \"array\",\n            \"description\": \"The `listIds` that will be used to filter results by `listId`. If values are provided, then the response will only include results that have a `listId` in this array.\\n\\nIf no value is provided, or if an empty list is provided, then the results will not be filtered by `listId`.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"offset\": {\n            \"type\": \"integer\",\n            \"description\": \"Value used to paginate through lists. The `offset` provided in the response can be used in the next request to fetch the next page of results. Defaults to `0` if no offset is provided.\",\n            \"format\": \"int32\"\n          },\n          \"query\": {\n            \"type\": \"string\",\n            \"description\": \"The `query` that will be used to search for lists by list name. If no `query` is provided, then the results will include all lists.\"\n          },\n          \"count\": {\n            \"type\": \"integer\",\n            \"description\": \"The number of lists to include in the response. Defaults to `20` if no value is provided. The max `count` is `500`.\",\n            \"format\": \"int32\"\n          },\n          \"processingTypes\": {\n            \"type\": \"array\",\n            \"description\": \"The `processingTypes` that will be used to filter results by `processingType`. If values are provided, then the response will only include results that have a `processingType` in this array.\\n\\nIf no value is provided, or if an empty list is provided, then results will not be filtered by `processingType`.\\n\\nValid `processingTypes` are: `MANUAL`, `SNAPSHOT`, or `DYNAMIC`.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"additionalProperties\": {\n            \"type\": \"array\",\n            \"description\": \"The property names of any additional list properties to include in the response. Properties that do not exist or that are empty for a particular list are not included in the response.\\n\\nBy default, all requests will fetch the following properties for each list: `hs_list_size`, `hs_last_record_added_at`, `hs_last_record_removed_at`, `hs_folder_name`, and `hs_list_reference_count`.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"sort\": {\n            \"type\": \"string\"\n          }\n        },\n        \"description\": \"The request object used for searching through lists.\",\n        \"example\": {\n          \"additionalProperties\": [\n            \"hs_list_size_week_delta\"\n          ],\n          \"count\": 100,\n          \"offset\": 0,\n          \"query\": \"Test\"\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

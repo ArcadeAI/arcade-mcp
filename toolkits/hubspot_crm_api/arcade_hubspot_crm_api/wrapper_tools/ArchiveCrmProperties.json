@@ -1,0 +1,198 @@
+{
+  "name": "ArchiveCrmProperties",
+  "fully_qualified_name": "HubspotCrmApi.ArchiveCrmProperties@0.1.0",
+  "description": "Archive a list of properties in HubSpot CRM.\n\nUse this tool to archive a provided list of properties within a specified object type in HubSpot CRM. It returns a confirmation of successful archiving, regardless of the properties' initial state.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "crm_object_type",
+        "required": true,
+        "description": "Specify the type of CRM object (e.g., 'contacts', 'companies') for which the properties should be archived.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      },
+      {
+        "name": "properties_list_to_archive",
+        "required": true,
+        "description": "A JSON array of properties to archive, each with a 'name' field specifying the property name.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the property to read or modify."
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/crm/v3/properties/{objectType}/batch/archive'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.schemas.carts.write",
+          "crm.schemas.invoices.write",
+          "tickets.sensitive.v2",
+          "crm.schemas.contacts.write",
+          "crm.schemas.services.write",
+          "e-commerce",
+          "crm.objects.orders.write",
+          "crm.schemas.deals.write",
+          "tickets.highly_sensitive.v2",
+          "tickets",
+          "crm.objects.carts.write",
+          "crm.schemas.courses.write",
+          "crm.schemas.custom.write",
+          "crm.schemas.commercepayments.write",
+          "crm.objects.users.write",
+          "crm.schemas.companies.write",
+          "crm.schemas.orders.write",
+          "crm.schemas.appointments.write",
+          "crm.pipelines.orders.write",
+          "crm.schemas.subscriptions.write",
+          "crm.schemas.listings.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/properties/{objectType}/batch/archive",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "objectType",
+        "tool_parameter_name": "crm_object_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "properties_list_to_archive",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the property to read or modify."
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"inputs\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"inputs\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"required\": [\n                \"name\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"The name of the property to read or modify.\"\n                }\n              },\n              \"example\": {\n                \"name\": \"my_custom_property\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

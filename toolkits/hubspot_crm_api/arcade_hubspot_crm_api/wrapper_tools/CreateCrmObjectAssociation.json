@@ -1,0 +1,208 @@
+{
+  "name": "CreateCrmObjectAssociation",
+  "fully_qualified_name": "HubspotCrmApi.CreateCrmObjectAssociation@0.1.0",
+  "description": "Create an association between HubSpot CRM objects.\n\nThis tool creates an association between specified HubSpot CRM objects. Use it when you need to link different CRM objects (like contacts and companies) within the HubSpot platform.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "crm_object_type_schema",
+        "required": true,
+        "description": "Fully qualified name or object type ID of your CRM object schema to create the association.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fully qualified name or object type ID of your schema."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      },
+      {
+        "name": "primary_object_type_id",
+        "required": true,
+        "description": "ID of the primary object type to link from in the CRM system.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the primary object type to link from."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fromObjectTypeId"
+      },
+      {
+        "name": "target_object_type_id",
+        "required": true,
+        "description": "ID of the target object type to link to in the CRM association.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the target object type to link to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "toObjectTypeId"
+      },
+      {
+        "name": "association_name",
+        "required": false,
+        "description": "A unique name for the association between CRM objects. This helps identify the link.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique name for this association."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/crm-object-schemas/v3/schemas/{objectType}/associations_createAssociation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.schemas.custom.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm-object-schemas/v3/schemas/{objectType}/associations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "objectType",
+        "tool_parameter_name": "crm_object_type_schema",
+        "description": "Fully qualified name or object type ID of your schema.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fully qualified name or object type ID of your schema."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fromObjectTypeId",
+        "tool_parameter_name": "primary_object_type_id",
+        "description": "ID of the primary object type to link from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the primary object type to link from."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "association_name",
+        "description": "A unique name for this association.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique name for this association."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "toObjectTypeId",
+        "tool_parameter_name": "target_object_type_id",
+        "description": "ID of the target object type to link to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the target object type to link to."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Attributes that define the association.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"fromObjectTypeId\",\n          \"toObjectTypeId\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"fromObjectTypeId\": {\n            \"type\": \"string\",\n            \"description\": \"ID of the primary object type to link from.\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"A unique name for this association.\"\n          },\n          \"toObjectTypeId\": {\n            \"type\": \"string\",\n            \"description\": \"ID of the target object type to link to.\"\n          }\n        },\n        \"description\": \"Defines an association between two object types.\",\n        \"example\": {\n          \"fromObjectTypeId\": \"2-123456\",\n          \"toObjectTypeId\": \"contact\",\n          \"name\": \"my_object_to_contact\"\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

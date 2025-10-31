@@ -1,0 +1,536 @@
+{
+  "name": "CreateHubspotCrmProperty",
+  "fully_qualified_name": "HubspotCrmApi.CreateHubspotCrmProperty@0.1.0",
+  "description": "Create a new property for a specified object type in HubSpot CRM.\n\nThis tool creates and returns a new property for the specified object type in HubSpot CRM. It should be used when you need to add a custom property to an object such as a contact, company, or deal in HubSpot.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "object_type",
+        "required": true,
+        "description": "Specify the object type to which the new property will be added, such as contact, company, or deal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      },
+      {
+        "name": "new_property_request",
+        "required": true,
+        "description": "A JSON object defining attributes for the new HubSpot CRM property, including type, label, options, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "hidden": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If true, the option will not be shown in forms, bots, or meeting scheduling pages. Supported for contact, company, ticket, and custom object enumeration properties."
+            },
+            "displayOrder": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Properties are displayed in order starting with the lowest positive integer value. Values of -1 will cause the property to be displayed after any positive values."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A description of the property that will be shown as help text in HubSpot."
+            },
+            "label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A human-readable property label that will be shown in HubSpot."
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "bool",
+                "date",
+                "datetime",
+                "enumeration",
+                "number",
+                "phone_number",
+                "string"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The data type of the property."
+            },
+            "formField": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether or not the property can be used in a HubSpot form."
+            },
+            "dataSensitivity": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "non_sensitive",
+                "sensitive",
+                "highly_sensitive"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "groupName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the property group the property belongs to."
+            },
+            "referencedObjectType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Should be set to 'OWNER' when 'externalOptions' is true, which causes the property to dynamically pull option values from the current HubSpot users."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The internal property name, which must be used when referencing the property via the API."
+            },
+            "options": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "hidden": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If true, the option will not be shown in forms, bots, or meeting scheduling pages. Supported for contact, company, ticket, and custom object enumeration properties."
+                },
+                "displayOrder": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Options are shown in order starting with the lowest positive integer value. Values of -1 will cause the option to be displayed after any positive values."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A description of the option."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A human-readable option label that will be shown in HubSpot."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The internal value of the option, which must be used when setting the property value through the API."
+                }
+              },
+              "description": "A list of valid options for the property. This field is required for enumerated properties."
+            },
+            "calculationFormula": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Represents a formula that is used to compute a calculated property."
+            },
+            "hasUniqueValue": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether or not the property's value must be unique. Once set, this can't be changed."
+            },
+            "fieldType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "booleancheckbox",
+                "calculation_equation",
+                "checkbox",
+                "date",
+                "file",
+                "html",
+                "number",
+                "phonenumber",
+                "radio",
+                "select",
+                "text",
+                "textarea"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls how the property appears in HubSpot."
+            },
+            "externalOptions": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Applicable only for 'enumeration' type properties.  Should be set to true in conjunction with a 'referencedObjectType' of 'OWNER'.  Otherwise false."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/crm/v3/properties/{objectType}'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.schemas.carts.write",
+          "crm.schemas.invoices.write",
+          "tickets.sensitive.v2",
+          "crm.schemas.contacts.write",
+          "crm.schemas.services.write",
+          "e-commerce",
+          "crm.objects.orders.write",
+          "crm.schemas.deals.write",
+          "tickets.highly_sensitive.v2",
+          "tickets",
+          "crm.objects.carts.write",
+          "crm.schemas.courses.write",
+          "crm.schemas.custom.write",
+          "crm.schemas.commercepayments.write",
+          "crm.objects.users.write",
+          "crm.schemas.companies.write",
+          "crm.schemas.orders.write",
+          "crm.schemas.appointments.write",
+          "crm.pipelines.orders.write",
+          "crm.schemas.subscriptions.write",
+          "crm.schemas.listings.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/properties/{objectType}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "objectType",
+        "tool_parameter_name": "object_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_property_request",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "hidden": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If true, the option will not be shown in forms, bots, or meeting scheduling pages. Supported for contact, company, ticket, and custom object enumeration properties."
+            },
+            "displayOrder": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Properties are displayed in order starting with the lowest positive integer value. Values of -1 will cause the property to be displayed after any positive values."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A description of the property that will be shown as help text in HubSpot."
+            },
+            "label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A human-readable property label that will be shown in HubSpot."
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "bool",
+                "date",
+                "datetime",
+                "enumeration",
+                "number",
+                "phone_number",
+                "string"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The data type of the property."
+            },
+            "formField": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether or not the property can be used in a HubSpot form."
+            },
+            "dataSensitivity": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "non_sensitive",
+                "sensitive",
+                "highly_sensitive"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "groupName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the property group the property belongs to."
+            },
+            "referencedObjectType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Should be set to 'OWNER' when 'externalOptions' is true, which causes the property to dynamically pull option values from the current HubSpot users."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The internal property name, which must be used when referencing the property via the API."
+            },
+            "options": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "hidden": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If true, the option will not be shown in forms, bots, or meeting scheduling pages. Supported for contact, company, ticket, and custom object enumeration properties."
+                },
+                "displayOrder": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Options are shown in order starting with the lowest positive integer value. Values of -1 will cause the option to be displayed after any positive values."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A description of the option."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A human-readable option label that will be shown in HubSpot."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The internal value of the option, which must be used when setting the property value through the API."
+                }
+              },
+              "description": "A list of valid options for the property. This field is required for enumerated properties."
+            },
+            "calculationFormula": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Represents a formula that is used to compute a calculated property."
+            },
+            "hasUniqueValue": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether or not the property's value must be unique. Once set, this can't be changed."
+            },
+            "fieldType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "booleancheckbox",
+                "calculation_equation",
+                "checkbox",
+                "date",
+                "file",
+                "html",
+                "number",
+                "phonenumber",
+                "radio",
+                "select",
+                "text",
+                "textarea"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls how the property appears in HubSpot."
+            },
+            "externalOptions": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Applicable only for 'enumeration' type properties.  Should be set to true in conjunction with a 'referencedObjectType' of 'OWNER'.  Otherwise false."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"fieldType\",\n          \"groupName\",\n          \"label\",\n          \"name\",\n          \"type\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"hidden\": {\n            \"type\": \"boolean\",\n            \"description\": \"If true, the option will not be shown in forms, bots, or meeting scheduling pages. Supported for contact, company, ticket, and custom object enumeration properties.\"\n          },\n          \"displayOrder\": {\n            \"type\": \"integer\",\n            \"description\": \"Properties are displayed in order starting with the lowest positive integer value. Values of -1 will cause the property to be displayed after any positive values.\",\n            \"format\": \"int32\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"A description of the property that will be shown as help text in HubSpot.\"\n          },\n          \"label\": {\n            \"type\": \"string\",\n            \"description\": \"A human-readable property label that will be shown in HubSpot.\"\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"description\": \"The data type of the property.\",\n            \"enum\": [\n              \"bool\",\n              \"date\",\n              \"datetime\",\n              \"enumeration\",\n              \"number\",\n              \"phone_number\",\n              \"string\"\n            ]\n          },\n          \"formField\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether or not the property can be used in a HubSpot form.\"\n          },\n          \"dataSensitivity\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"non_sensitive\",\n              \"sensitive\",\n              \"highly_sensitive\"\n            ]\n          },\n          \"groupName\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the property group the property belongs to.\"\n          },\n          \"referencedObjectType\": {\n            \"type\": \"string\",\n            \"description\": \"Should be set to 'OWNER' when 'externalOptions' is true, which causes the property to dynamically pull option values from the current HubSpot users.\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The internal property name, which must be used when referencing the property via the API.\"\n          },\n          \"options\": {\n            \"type\": \"array\",\n            \"description\": \"A list of valid options for the property. This field is required for enumerated properties.\",\n            \"items\": {\n              \"required\": [\n                \"hidden\",\n                \"label\",\n                \"value\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"hidden\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"If true, the option will not be shown in forms, bots, or meeting scheduling pages. Supported for contact, company, ticket, and custom object enumeration properties.\"\n                },\n                \"displayOrder\": {\n                  \"type\": \"integer\",\n                  \"description\": \"Options are shown in order starting with the lowest positive integer value. Values of -1 will cause the option to be displayed after any positive values.\",\n                  \"format\": \"int32\"\n                },\n                \"description\": {\n                  \"type\": \"string\",\n                  \"description\": \"A description of the option.\"\n                },\n                \"label\": {\n                  \"type\": \"string\",\n                  \"description\": \"A human-readable option label that will be shown in HubSpot.\"\n                },\n                \"value\": {\n                  \"type\": \"string\",\n                  \"description\": \"The internal value of the option, which must be used when setting the property value through the API.\"\n                }\n              },\n              \"example\": {\n                \"description\": \"Choice number one\",\n                \"displayOrder\": 1,\n                \"hidden\": false,\n                \"label\": \"Option A\",\n                \"value\": \"A\"\n              }\n            }\n          },\n          \"calculationFormula\": {\n            \"type\": \"string\",\n            \"description\": \"Represents a formula that is used to compute a calculated property.\"\n          },\n          \"hasUniqueValue\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether or not the property's value must be unique. Once set, this can't be changed.\"\n          },\n          \"fieldType\": {\n            \"type\": \"string\",\n            \"description\": \"Controls how the property appears in HubSpot.\",\n            \"enum\": [\n              \"booleancheckbox\",\n              \"calculation_equation\",\n              \"checkbox\",\n              \"date\",\n              \"file\",\n              \"html\",\n              \"number\",\n              \"phonenumber\",\n              \"radio\",\n              \"select\",\n              \"text\",\n              \"textarea\"\n            ]\n          },\n          \"externalOptions\": {\n            \"type\": \"boolean\",\n            \"description\": \"Applicable only for 'enumeration' type properties.  Should be set to true in conjunction with a 'referencedObjectType' of 'OWNER'.  Otherwise false.\"\n          }\n        },\n        \"example\": {\n          \"displayOrder\": 2,\n          \"fieldType\": \"select\",\n          \"formField\": true,\n          \"groupName\": \"contactinformation\",\n          \"hasUniqueValue\": false,\n          \"hidden\": false,\n          \"label\": \"My Contact Property\",\n          \"name\": \"my_contact_property\",\n          \"options\": [\n            {\n              \"description\": \"Choice number one\",\n              \"displayOrder\": 1,\n              \"hidden\": false,\n              \"label\": \"Option A\",\n              \"value\": \"A\"\n            },\n            {\n              \"description\": \"Choice number two\",\n              \"displayOrder\": 2,\n              \"hidden\": false,\n              \"label\": \"Option B\",\n              \"value\": \"B\"\n            }\n          ],\n          \"type\": \"enumeration\"\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

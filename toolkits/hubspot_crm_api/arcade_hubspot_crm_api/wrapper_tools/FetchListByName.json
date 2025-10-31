@@ -1,0 +1,175 @@
+{
+  "name": "FetchListByName",
+  "fully_qualified_name": "HubspotCrmApi.FetchListByName@0.1.0",
+  "description": "Fetch details of a list by its name and object type.\n\nUse this tool to obtain the information of a specific list in HubSpot CRM by providing the list name and object type ID.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_name",
+        "required": true,
+        "description": "The name of the list to fetch. This is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the list to fetch. This is **not** case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "listName"
+      },
+      {
+        "name": "object_type_id",
+        "required": true,
+        "description": "The object type ID for the list. Example: `0-1` for `CONTACT`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The object type ID of the object types stored by the list to fetch. For example, `0-1` for a `CONTACT` list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectTypeId"
+      },
+      {
+        "name": "include_filters",
+        "required": false,
+        "description": "Set to true to include filter branch definitions in the response. By default, filters are not included.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A flag indicating whether or not the response object list definition should include a filter branch definition. By default, object list definitions will not have their filter branch definitions included in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "includeFilters"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/crm/v3/lists/object-type-id/{objectTypeId}/name/{listName}_getByName'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.lists.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/lists/object-type-id/{objectTypeId}/name/{listName}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "includeFilters",
+        "tool_parameter_name": "include_filters",
+        "description": "A flag indicating whether or not the response object list definition should include a filter branch definition. By default, object list definitions will not have their filter branch definitions included in the response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A flag indicating whether or not the response object list definition should include a filter branch definition. By default, object list definitions will not have their filter branch definitions included in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "listName",
+        "tool_parameter_name": "list_name",
+        "description": "The name of the list to fetch. This is **not** case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the list to fetch. This is **not** case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "objectTypeId",
+        "tool_parameter_name": "object_type_id",
+        "description": "The object type ID of the object types stored by the list to fetch. For example, `0-1` for a `CONTACT` list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The object type ID of the object types stored by the list to fetch. For example, `0-1` for a `CONTACT` list."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

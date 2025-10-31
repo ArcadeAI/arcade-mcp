@@ -1,0 +1,226 @@
+{
+  "name": "FetchHubspotObjectRecords",
+  "fully_qualified_name": "HubspotCrmApi.FetchHubspotObjectRecords@0.1.0",
+  "description": "Retrieve HubSpot CRM records by ID or custom property.\n\nUse this tool to retrieve HubSpot CRM records by specifying record IDs or by using a custom unique value property with the `idProperty` parameter.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "record_retrieval_body",
+        "required": true,
+        "description": "JSON object for specifying the IDs or custom properties to retrieve records. Include properties, propertiesWithHistory, idProperty (if using custom unique value), and inputs to specify the required records.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "propertiesWithHistory": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key-value pairs for setting properties for the new object and their histories."
+            },
+            "idProperty": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "When using a custom unique value property to retrieve records, the name of the property. Do not include this parameter if retrieving by record ID."
+            },
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "properties": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key-value pairs for setting properties for the new object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "return_archived_only",
+        "required": false,
+        "description": "Indicate if only archived records should be returned when retrieving HubSpot CRM data.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only results that have been archived."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/crm/v3/objects/0-162/batch/read'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.services.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/objects/0-162/batch/read",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "archived",
+        "tool_parameter_name": "return_archived_only",
+        "description": "Whether to return only results that have been archived.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only results that have been archived."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "record_retrieval_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "propertiesWithHistory": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key-value pairs for setting properties for the new object and their histories."
+            },
+            "idProperty": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "When using a custom unique value property to retrieve records, the name of the property. Do not include this parameter if retrieving by record ID."
+            },
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "properties": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key-value pairs for setting properties for the new object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"inputs\",\n          \"properties\",\n          \"propertiesWithHistory\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"propertiesWithHistory\": {\n            \"type\": \"array\",\n            \"description\": \"Key-value pairs for setting properties for the new object and their histories.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"idProperty\": {\n            \"type\": \"string\",\n            \"description\": \"When using a custom unique value property to retrieve records, the name of the property. Do not include this parameter if retrieving by record ID.\"\n          },\n          \"inputs\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"required\": [\n                \"id\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\"\n                }\n              }\n            }\n          },\n          \"properties\": {\n            \"type\": \"array\",\n            \"description\": \"Key-value pairs for setting properties for the new object.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        },\n        \"description\": \"Specifies the input for reading a batch of CRM objects, including arrays of object IDs, requested property names (with optional history), and an optional unique identifying property.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

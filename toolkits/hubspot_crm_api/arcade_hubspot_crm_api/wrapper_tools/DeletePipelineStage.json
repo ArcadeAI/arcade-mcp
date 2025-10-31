@@ -1,0 +1,195 @@
+{
+  "name": "DeletePipelineStage",
+  "fully_qualified_name": "HubspotCrmApi.DeletePipelineStage@0.1.0",
+  "description": "Deletes a pipeline stage from HubSpot CRM.\n\nUse to remove a specific stage from a pipeline in HubSpot CRM by specifying the object type, pipeline ID, and stage ID.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "object_type",
+        "required": true,
+        "description": "Specify the type of CRM object (e.g., deals, tickets) for which the pipeline stage is being deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      },
+      {
+        "name": "pipeline_id",
+        "required": true,
+        "description": "The unique ID of the pipeline containing the stage to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pipelineId"
+      },
+      {
+        "name": "stage_identifier",
+        "required": true,
+        "description": "The unique identifier of the pipeline stage to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "stageId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'delete-/crm/v3/pipelines/{objectType}/{pipelineId}/stages/{stageId}_archive'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.schemas.carts.write",
+          "crm.schemas.invoices.write",
+          "tickets.sensitive.v2",
+          "crm.schemas.contacts.write",
+          "crm.schemas.services.write",
+          "e-commerce",
+          "crm.objects.orders.write",
+          "crm.schemas.deals.write",
+          "tickets.highly_sensitive.v2",
+          "tickets",
+          "crm.objects.carts.write",
+          "crm.schemas.courses.write",
+          "crm.schemas.custom.write",
+          "crm.schemas.commercepayments.write",
+          "crm.objects.users.write",
+          "crm.schemas.companies.write",
+          "crm.schemas.orders.write",
+          "crm.schemas.appointments.write",
+          "crm.pipelines.orders.write",
+          "crm.schemas.subscriptions.write",
+          "crm.schemas.listings.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/pipelines/{objectType}/{pipelineId}/stages/{stageId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "objectType",
+        "tool_parameter_name": "object_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "pipelineId",
+        "tool_parameter_name": "pipeline_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "stageId",
+        "tool_parameter_name": "stage_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
