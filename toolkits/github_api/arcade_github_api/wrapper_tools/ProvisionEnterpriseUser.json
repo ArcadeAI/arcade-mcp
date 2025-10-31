@@ -1,0 +1,459 @@
+{
+  "name": "ProvisionEnterpriseUser",
+  "fully_qualified_name": "GithubApi.ProvisionEnterpriseUser@0.1.0",
+  "description": "Create a new SCIM enterprise user identity.\n\nThis tool creates an external identity for a new SCIM enterprise user. It's used for provisioning users in enterprises using SCIM before they can sign in through SAML. When converting an existing enterprise to use SCIM, the SCIM `userName` is utilized to match new users to existing enterprise users.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_provisioning_data",
+        "required": true,
+        "description": "A JSON object containing details for the SCIM user, including active status, name, emails, externalId, roles, schemas, and userName.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the user active in the IdP."
+            },
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A human-readable name for the user."
+            },
+            "emails": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "primary": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether this email address is the primary address."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of email address."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email address."
+                }
+              },
+              "description": "The emails for the user."
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the resource as defined by the provisioning client."
+            },
+            "name": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "familyName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The family name of the user."
+                },
+                "formatted": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The full name, including all middle names, titles, and suffixes as appropriate, formatted for display."
+                },
+                "givenName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The given name of the user."
+                },
+                "middleName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The middle name(s) of the user."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "roles": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "display": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "primary": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Is the role a primary role for the user."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "User",
+                    "user",
+                    "27d9891d-2c17-4f45-a262-781a0e55c80a",
+                    "Restricted User",
+                    "restricted_user",
+                    "1ebc4a02-e56c-43a6-92a5-02ee09b90824",
+                    "Enterprise Owner",
+                    "enterprise_owner",
+                    "981df190-8801-4618-a08a-d91f6206c954",
+                    "ba4987ab-a1c3-412a-b58c-360fc407cb10",
+                    "Billing Manager",
+                    "billing_manager",
+                    "0e338b8c-cc7f-498a-928d-ea3470d7e7e3",
+                    "e6be2762-e4ad-4108-b72d-1bbe884a0f91"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The role value representing a user role in GitHub."
+                }
+              },
+              "description": "The roles assigned to the user."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URIs that are used to indicate the namespaces of the SCIM schemas."
+            },
+            "userName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The username for the user."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/provision-enterprise-user'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/scim/v2/Users",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "user_provisioning_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the user active in the IdP."
+            },
+            "displayName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A human-readable name for the user."
+            },
+            "emails": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "primary": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether this email address is the primary address."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of email address."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email address."
+                }
+              },
+              "description": "The emails for the user."
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the resource as defined by the provisioning client."
+            },
+            "name": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "familyName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The family name of the user."
+                },
+                "formatted": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The full name, including all middle names, titles, and suffixes as appropriate, formatted for display."
+                },
+                "givenName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The given name of the user."
+                },
+                "middleName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The middle name(s) of the user."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "roles": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "display": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "primary": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Is the role a primary role for the user."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "User",
+                    "user",
+                    "27d9891d-2c17-4f45-a262-781a0e55c80a",
+                    "Restricted User",
+                    "restricted_user",
+                    "1ebc4a02-e56c-43a6-92a5-02ee09b90824",
+                    "Enterprise Owner",
+                    "enterprise_owner",
+                    "981df190-8801-4618-a08a-d91f6206c954",
+                    "ba4987ab-a1c3-412a-b58c-360fc407cb10",
+                    "Billing Manager",
+                    "billing_manager",
+                    "0e338b8c-cc7f-498a-928d-ea3470d7e7e3",
+                    "e6be2762-e4ad-4108-b72d-1bbe884a0f91"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The role value representing a user role in GitHub."
+                }
+              },
+              "description": "The roles assigned to the user."
+            },
+            "schemas": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URIs that are used to indicate the namespaces of the SCIM schemas."
+            },
+            "userName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The username for the user."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"enterpriseOwner\": {\n          \"$ref\": \"#/components/examples/in-user-owner\"\n        },\n        \"user\": {\n          \"$ref\": \"#/components/examples/in-user\"\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"active\": {\n            \"description\": \"Whether the user active in the IdP.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"displayName\": {\n            \"description\": \"A human-readable name for the user.\",\n            \"example\": \"Mona Lisa\",\n            \"type\": \"string\"\n          },\n          \"emails\": {\n            \"description\": \"The emails for the user.\",\n            \"items\": {\n              \"properties\": {\n                \"primary\": {\n                  \"description\": \"Whether this email address is the primary address.\",\n                  \"example\": true,\n                  \"type\": \"boolean\"\n                },\n                \"type\": {\n                  \"description\": \"The type of email address.\",\n                  \"example\": \"work\",\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"description\": \"The email address.\",\n                  \"example\": \"mlisa@example.com\",\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"value\",\n                \"type\",\n                \"primary\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"externalId\": {\n            \"description\": \"A unique identifier for the resource as defined by the provisioning client.\",\n            \"example\": \"E012345\",\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"properties\": {\n              \"familyName\": {\n                \"description\": \"The family name of the user.\",\n                \"example\": \"Octocat\",\n                \"type\": \"string\"\n              },\n              \"formatted\": {\n                \"description\": \"The full name, including all middle names, titles, and suffixes as appropriate, formatted for display.\",\n                \"example\": \"Ms. Mona Lisa Octocat\",\n                \"type\": \"string\"\n              },\n              \"givenName\": {\n                \"description\": \"The given name of the user.\",\n                \"example\": \"Mona\",\n                \"type\": \"string\"\n              },\n              \"middleName\": {\n                \"description\": \"The middle name(s) of the user.\",\n                \"example\": \"Lisa\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"familyName\",\n              \"givenName\"\n            ],\n            \"type\": \"object\"\n          },\n          \"roles\": {\n            \"description\": \"The roles assigned to the user.\",\n            \"items\": {\n              \"properties\": {\n                \"display\": {\n                  \"type\": \"string\"\n                },\n                \"primary\": {\n                  \"description\": \"Is the role a primary role for the user.\",\n                  \"example\": false,\n                  \"type\": \"boolean\"\n                },\n                \"type\": {\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"description\": \"The role value representing a user role in GitHub.\",\n                  \"enum\": [\n                    \"User\",\n                    \"user\",\n                    \"27d9891d-2c17-4f45-a262-781a0e55c80a\",\n                    \"Restricted User\",\n                    \"restricted_user\",\n                    \"1ebc4a02-e56c-43a6-92a5-02ee09b90824\",\n                    \"Enterprise Owner\",\n                    \"enterprise_owner\",\n                    \"981df190-8801-4618-a08a-d91f6206c954\",\n                    \"ba4987ab-a1c3-412a-b58c-360fc407cb10\",\n                    \"Billing Manager\",\n                    \"billing_manager\",\n                    \"0e338b8c-cc7f-498a-928d-ea3470d7e7e3\",\n                    \"e6be2762-e4ad-4108-b72d-1bbe884a0f91\"\n                  ],\n                  \"example\": \"user\",\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"value\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"schemas\": {\n            \"description\": \"The URIs that are used to indicate the namespaces of the SCIM schemas.\",\n            \"example\": [\n              \"urn:ietf:params:scim:schemas:core:2.0:User\"\n            ],\n            \"items\": {\n              \"enum\": [\n                \"urn:ietf:params:scim:schemas:core:2.0:User\"\n              ],\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"userName\": {\n            \"description\": \"The username for the user.\",\n            \"example\": \"E012345\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"schemas\",\n          \"externalId\",\n          \"userName\",\n          \"active\",\n          \"displayName\",\n          \"emails\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

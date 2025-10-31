@@ -1,0 +1,372 @@
+{
+  "name": "RetrieveCrmObject",
+  "fully_qualified_name": "HubspotCrmApi.RetrieveCrmObject@0.1.0",
+  "description": "Fetch CRM object details by ID or unique property.\n\nUse this tool to retrieve details of a CRM object by specifying the object type and ID. You can control the properties returned using query parameters.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "object_type",
+        "required": true,
+        "description": "Specifies the type of CRM object to retrieve, such as \"contacts\", \"companies\", or \"deals\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      },
+      {
+        "name": "object_id",
+        "required": true,
+        "description": "The ID of the CRM object to retrieve. This can be the internal object ID or a unique property value specified by the id_property.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectId"
+      },
+      {
+        "name": "properties_list",
+        "required": false,
+        "description": "An array of property names to be returned in the response. If any specified properties are not present, they will be ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of the properties to be returned in the response. If any of the specified properties are not present on the requested object(s), they will be ignored."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "properties"
+      },
+      {
+        "name": "properties_with_history",
+        "required": false,
+        "description": "List properties to be returned with their historical values. If a property doesn't exist, it'll be ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of the properties to be returned along with their history of previous values. If any of the specified properties are not present on the requested object(s), they will be ignored."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "propertiesWithHistory"
+      },
+      {
+        "name": "associated_object_types",
+        "required": false,
+        "description": "Comma-separated list of object types to retrieve associated IDs for. Missing associations are ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of object types to retrieve associated IDs for. If any of the specified associations do not exist, they will be ignored."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "associations"
+      },
+      {
+        "name": "unique_property_name",
+        "required": false,
+        "description": "Specify the name of a property with unique values for this object to identify it instead of the default ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of a property whose values are unique for this object"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idProperty"
+      },
+      {
+        "name": "return_only_archived_results",
+        "required": false,
+        "description": "Set to true to return only archived results.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only results that have been archived."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/crm/objects/v3/{objectType}/{objectId}'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.carts.read",
+          "crm.objects.services.write",
+          "tickets.sensitive.v2",
+          "crm.objects.contacts.write",
+          "crm.objects.courses.read",
+          "crm.objects.goals.write",
+          "crm.objects.custom.read",
+          "crm.objects.deals.read",
+          "crm.objects.custom.write",
+          "crm.objects.commercepayments.read",
+          "crm.objects.contacts.highly_sensitive.read.v2",
+          "crm.objects.leads.read",
+          "crm.objects.contacts.sensitive.write.v2",
+          "crm.objects.partner-services.write",
+          "e-commerce",
+          "crm.objects.products.read",
+          "crm.objects.custom.sensitive.write.v2",
+          "crm.objects.orders.write",
+          "crm.objects.subscriptions.write",
+          "tickets.highly_sensitive.v2",
+          "crm.objects.deals.highly_sensitive.read.v2",
+          "crm.objects.companies.write",
+          "crm.objects.partner-services.read",
+          "tickets",
+          "crm.objects.quotes.read",
+          "oauth",
+          "crm.objects.contacts.highly_sensitive.write.v2",
+          "crm.objects.companies.read",
+          "crm.objects.custom.highly_sensitive.read.v2",
+          "crm.objects.carts.write",
+          "crm.objects.quotes.write",
+          "crm.objects.companies.highly_sensitive.read.v2",
+          "crm.objects.users.write",
+          "crm.objects.companies.highly_sensitive.write.v2",
+          "crm.objects.users.read",
+          "crm.objects.contacts.read",
+          "crm.objects.appointments.write",
+          "crm.objects.partner-clients.write",
+          "crm.objects.line_items.write",
+          "crm.objects.deals.highly_sensitive.write.v2",
+          "crm.objects.deals.write",
+          "crm.objects.services.read",
+          "crm.objects.custom.sensitive.read.v2",
+          "crm.objects.companies.sensitive.write.v2",
+          "crm.objects.appointments.read",
+          "crm.objects.invoices.read",
+          "crm.objects.partner-clients.read",
+          "crm.objects.courses.write",
+          "crm.objects.custom.highly_sensitive.write.v2",
+          "crm.objects.listings.read",
+          "crm.objects.listings.write",
+          "crm.objects.subscriptions.read",
+          "crm.objects.appointments.sensitive.write.v2",
+          "crm.objects.invoices.write",
+          "crm.objects.line_items.read",
+          "crm.objects.companies.sensitive.read.v2",
+          "crm.objects.appointments.sensitive.read.v2",
+          "crm.objects.commercepayments.write",
+          "crm.objects.leads.write",
+          "crm.objects.deals.sensitive.read.v2",
+          "crm.objects.goals.read",
+          "crm.objects.orders.read",
+          "crm.objects.contacts.sensitive.read.v2",
+          "media_bridge.read",
+          "crm.objects.deals.sensitive.write.v2",
+          "crm.objects.products.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/objects/v3/{objectType}/{objectId}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "properties",
+        "tool_parameter_name": "properties_list",
+        "description": "A comma separated list of the properties to be returned in the response. If any of the specified properties are not present on the requested object(s), they will be ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of the properties to be returned in the response. If any of the specified properties are not present on the requested object(s), they will be ignored."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "propertiesWithHistory",
+        "tool_parameter_name": "properties_with_history",
+        "description": "A comma separated list of the properties to be returned along with their history of previous values. If any of the specified properties are not present on the requested object(s), they will be ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of the properties to be returned along with their history of previous values. If any of the specified properties are not present on the requested object(s), they will be ignored."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "associations",
+        "tool_parameter_name": "associated_object_types",
+        "description": "A comma separated list of object types to retrieve associated IDs for. If any of the specified associations do not exist, they will be ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of object types to retrieve associated IDs for. If any of the specified associations do not exist, they will be ignored."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "archived",
+        "tool_parameter_name": "return_only_archived_results",
+        "description": "Whether to return only results that have been archived.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only results that have been archived."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idProperty",
+        "tool_parameter_name": "unique_property_name",
+        "description": "The name of a property whose values are unique for this object",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of a property whose values are unique for this object"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "objectType",
+        "tool_parameter_name": "object_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "objectId",
+        "tool_parameter_name": "object_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

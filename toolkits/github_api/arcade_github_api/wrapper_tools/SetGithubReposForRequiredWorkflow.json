@@ -1,0 +1,183 @@
+{
+  "name": "SetGithubReposForRequiredWorkflow",
+  "fully_qualified_name": "GithubApi.SetGithubReposForRequiredWorkflow@0.1.0",
+  "description": "Set repositories for a GitHub required workflow.\n\nThis tool sets the repositories associated with a GitHub required workflow. Use it when you need to configure or update which repositories are subject to a required workflow. Authentication with an access token and the `admin:org` scope is required.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The GitHub organization name. Input is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "required_workflow_identifier",
+        "required": true,
+        "description": "The unique identifier for the required workflow you want to set for the repositories.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the required workflow."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "required_workflow_id"
+      },
+      {
+        "name": "repository_ids_for_required_workflow",
+        "required": true,
+        "description": "An array of repository IDs for which the workflow is required. Provide each repository's ID as an integer.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the repositories for which the workflow should be required."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "selected_repository_ids"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'actions/set-selected-repos-to-required-workflow'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}/actions/required_workflows/{required_workflow_id}/repositories",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "required_workflow_id",
+        "tool_parameter_name": "required_workflow_identifier",
+        "description": "The unique identifier of the required workflow.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the required workflow."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "selected_repository_ids",
+        "tool_parameter_name": "repository_ids_for_required_workflow",
+        "description": "The IDs of the repositories for which the workflow should be required.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the repositories for which the workflow should be required."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"selected_repository_ids\": [\n              32,\n              91\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"selected_repository_ids\": {\n            \"description\": \"The IDs of the repositories for which the workflow should be required.\",\n            \"items\": {\n              \"description\": \"Unique identifier of the repository.\",\n              \"type\": \"integer\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"selected_repository_ids\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

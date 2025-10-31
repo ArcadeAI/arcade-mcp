@@ -1,0 +1,414 @@
+{
+  "name": "UpdatePullRequestReviewProtection",
+  "fully_qualified_name": "GithubApi.UpdatePullRequestReviewProtection@0.1.0",
+  "description": "Update pull request review protection settings for a branch.\n\nThis tool allows updating the pull request review enforcement settings on a protected branch, requiring admin or owner permissions. It applies to branches in both public and private repositories with enabled branch protection settings.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner_name",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository. This value is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "branch_name",
+        "required": true,
+        "description": "The name of the branch to update. It must not contain wildcard characters. For wildcard support, use the GraphQL API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch. Cannot contain wildcard characters. To use wildcard characters in branch names, use [the GraphQL API](https://docs.github.com/enterprise-server@3.8/graphql)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "branch"
+      },
+      {
+        "name": "pr_review_protection_settings",
+        "required": false,
+        "description": "JSON object defining bypass allowances, dismissal restrictions, and review requirements for pull request review protection.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "bypass_pull_request_allowances": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "apps": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of app `slug`s allowed to bypass pull request requirements."
+                },
+                "teams": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of team `slug`s allowed to bypass pull request requirements."
+                },
+                "users": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of user `login`s allowed to bypass pull request requirements."
+                }
+              },
+              "inner_properties": null,
+              "description": "Allow specific users, teams, or apps to bypass pull request requirements."
+            },
+            "dismiss_stale_reviews": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to `true` if you want to automatically dismiss approving reviews when someone pushes a new commit."
+            },
+            "dismissal_restrictions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "apps": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of app `slug`s with dismissal access"
+                },
+                "teams": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of team `slug`s with dismissal access"
+                },
+                "users": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of user `login`s with dismissal access"
+                }
+              },
+              "inner_properties": null,
+              "description": "Specify which users, teams, and apps can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories."
+            },
+            "require_code_owner_reviews": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Blocks merging pull requests until [code owners](https://docs.github.com/enterprise-server@3.8/articles/about-code-owners/) have reviewed."
+            },
+            "require_last_push_approval": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the most recent push must be approved by someone other than the person who pushed it. Default: `false`"
+            },
+            "required_approving_review_count": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the number of reviewers required to approve pull requests. Use a number between 1 and 6 or 0 to not require reviewers."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/update-pull-request-review-protection'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/branches/{branch}/protection/required_pull_request_reviews",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner_name",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "branch",
+        "tool_parameter_name": "branch_name",
+        "description": "The name of the branch. Cannot contain wildcard characters. To use wildcard characters in branch names, use [the GraphQL API](https://docs.github.com/enterprise-server@3.8/graphql).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch. Cannot contain wildcard characters. To use wildcard characters in branch names, use [the GraphQL API](https://docs.github.com/enterprise-server@3.8/graphql)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "pr_review_protection_settings",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "bypass_pull_request_allowances": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "apps": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of app `slug`s allowed to bypass pull request requirements."
+                },
+                "teams": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of team `slug`s allowed to bypass pull request requirements."
+                },
+                "users": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of user `login`s allowed to bypass pull request requirements."
+                }
+              },
+              "inner_properties": null,
+              "description": "Allow specific users, teams, or apps to bypass pull request requirements."
+            },
+            "dismiss_stale_reviews": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Set to `true` if you want to automatically dismiss approving reviews when someone pushes a new commit."
+            },
+            "dismissal_restrictions": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "apps": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of app `slug`s with dismissal access"
+                },
+                "teams": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of team `slug`s with dismissal access"
+                },
+                "users": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of user `login`s with dismissal access"
+                }
+              },
+              "inner_properties": null,
+              "description": "Specify which users, teams, and apps can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories."
+            },
+            "require_code_owner_reviews": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Blocks merging pull requests until [code owners](https://docs.github.com/enterprise-server@3.8/articles/about-code-owners/) have reviewed."
+            },
+            "require_last_push_approval": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the most recent push must be approved by someone other than the person who pushed it. Default: `false`"
+            },
+            "required_approving_review_count": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the number of reviewers required to approve pull requests. Use a number between 1 and 6 or 0 to not require reviewers."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"bypass_pull_request_allowances\": {\n              \"apps\": [\n                \"octoapp\"\n              ],\n              \"teams\": [\n                \"justice-league\"\n              ],\n              \"users\": [\n                \"octocat\"\n              ]\n            },\n            \"dismiss_stale_reviews\": true,\n            \"dismissal_restrictions\": {\n              \"apps\": [\n                \"octoapp\"\n              ],\n              \"teams\": [\n                \"justice-league\"\n              ],\n              \"users\": [\n                \"octocat\"\n              ]\n            },\n            \"require_code_owner_reviews\": true,\n            \"require_last_push_approval\": true,\n            \"required_approving_review_count\": 2\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"bypass_pull_request_allowances\": {\n            \"description\": \"Allow specific users, teams, or apps to bypass pull request requirements.\",\n            \"properties\": {\n              \"apps\": {\n                \"description\": \"The list of app `slug`s allowed to bypass pull request requirements.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              },\n              \"teams\": {\n                \"description\": \"The list of team `slug`s allowed to bypass pull request requirements.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              },\n              \"users\": {\n                \"description\": \"The list of user `login`s allowed to bypass pull request requirements.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"dismiss_stale_reviews\": {\n            \"description\": \"Set to `true` if you want to automatically dismiss approving reviews when someone pushes a new commit.\",\n            \"type\": \"boolean\"\n          },\n          \"dismissal_restrictions\": {\n            \"description\": \"Specify which users, teams, and apps can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories.\",\n            \"properties\": {\n              \"apps\": {\n                \"description\": \"The list of app `slug`s with dismissal access\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              },\n              \"teams\": {\n                \"description\": \"The list of team `slug`s with dismissal access\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              },\n              \"users\": {\n                \"description\": \"The list of user `login`s with dismissal access\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"require_code_owner_reviews\": {\n            \"description\": \"Blocks merging pull requests until [code owners](https://docs.github.com/enterprise-server@3.8/articles/about-code-owners/) have reviewed.\",\n            \"type\": \"boolean\"\n          },\n          \"require_last_push_approval\": {\n            \"default\": false,\n            \"description\": \"Whether the most recent push must be approved by someone other than the person who pushed it. Default: `false`\",\n            \"type\": \"boolean\"\n          },\n          \"required_approving_review_count\": {\n            \"description\": \"Specifies the number of reviewers required to approve pull requests. Use a number between 1 and 6 or 0 to not require reviewers.\",\n            \"type\": \"integer\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

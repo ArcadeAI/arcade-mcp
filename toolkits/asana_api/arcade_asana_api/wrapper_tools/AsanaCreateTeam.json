@@ -1,0 +1,189 @@
+{
+  "name": "AsanaCreateTeam",
+  "fully_qualified_name": "AsanaApi.AsanaCreateTeam@0.1.0",
+  "description": "Create a team in your current Asana workspace.\n\nThis tool is used to create a new team within the specified Asana workspace. It should be called when you need to organize a group of projects or tasks under a new team entity.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_data",
+        "required": true,
+        "description": "JSON object containing the details of the team to create in Asana.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The team to create."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "Comma-separated list of optional properties to include in the response, enhancing the returned team's details.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "pretty_output_enabled",
+        "required": false,
+        "description": "Set to true to receive pretty, human-readable output with line breaks and indentation. Use for debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/teams",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "pretty_output_enabled",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "team_data",
+        "description": "The team to create.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The team to create."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The team to create.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"allOf\": [\n              {\n                \"description\": \"<p><strong style={{ color: \\\"#4573D2\\\" }}>Full object requires scope: </strong><code>teams:read</code></p>\\n\\nA *team* is used to group related projects and people together within an organization. Each project in an organization is associated with a team.\",\n                \"type\": \"object\",\n                \"properties\": {\n                  \"gid\": {\n                    \"description\": \"Globally unique identifier of the resource, as a string.\",\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"example\": \"12345\",\n                    \"x-insert-after\": false\n                  },\n                  \"resource_type\": {\n                    \"description\": \"The base type of this resource.\",\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"example\": \"team\",\n                    \"x-insert-after\": \"gid\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the team.\",\n                    \"type\": \"string\",\n                    \"example\": \"Marketing\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"The description of the team.\\n\",\n                    \"type\": \"string\",\n                    \"example\": \"All developers should be members of this team.\"\n                  },\n                  \"html_description\": {\n                    \"description\": \"The description of the team with formatting as HTML.\\n\",\n                    \"type\": \"string\",\n                    \"example\": \"<body><em>All</em> developers should be members of this team.</body>\"\n                  },\n                  \"organization\": {\n                    \"type\": \"string\",\n                    \"description\": \"The organization/workspace the team belongs to. This must be the same organization you are in and cannot be changed once set.\\n\",\n                    \"example\": \"123456789\"\n                  },\n                  \"visibility\": {\n                    \"description\": \"The visibility of the team to users in the same organization\\n\",\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"secret\",\n                      \"request_to_join\",\n                      \"public\"\n                    ]\n                  },\n                  \"edit_team_name_or_description_access_level\": {\n                    \"description\": \"Controls who can edit team name and description\\n\",\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"all_team_members\",\n                      \"only_team_admins\"\n                    ]\n                  },\n                  \"edit_team_visibility_or_trash_team_access_level\": {\n                    \"description\": \"Controls who can edit team visibility and trash teams\\n\",\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"all_team_members\",\n                      \"only_team_admins\"\n                    ]\n                  },\n                  \"member_invite_management_access_level\": {\n                    \"description\": \"Controls who can accept or deny member invites for a given team\\n\",\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"all_team_members\",\n                      \"only_team_admins\"\n                    ]\n                  },\n                  \"guest_invite_management_access_level\": {\n                    \"description\": \"Controls who can accept or deny guest invites for a given team\\n\",\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"all_team_members\",\n                      \"only_team_admins\"\n                    ]\n                  },\n                  \"join_request_management_access_level\": {\n                    \"description\": \"Controls who can accept or deny join team requests for a Membership by Request team. This field can only be updated when the team's `visibility` field is `request_to_join`.\\n\",\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"all_team_members\",\n                      \"only_team_admins\"\n                    ]\n                  },\n                  \"team_member_removal_access_level\": {\n                    \"description\": \"Controls who can remove team members\\n\",\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"all_team_members\",\n                      \"only_team_admins\"\n                    ]\n                  },\n                  \"team_content_management_access_level\": {\n                    \"description\": \"Controls who can create and share content with the team\\n\",\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"no_restriction\",\n                      \"only_team_admins\"\n                    ]\n                  },\n                  \"endorsed\": {\n                    \"description\": \"Whether the team has been endorsed\\n\",\n                    \"type\": \"boolean\",\n                    \"example\": false\n                  }\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

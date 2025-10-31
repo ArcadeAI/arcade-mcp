@@ -1,0 +1,288 @@
+{
+  "name": "ApproveOrRejectPendingDeployments",
+  "fully_qualified_name": "GithubApi.ApproveOrRejectPendingDeployments@0.1.0",
+  "description": "Approve or reject pending deployments for a workflow run.\n\nThis tool approves or rejects pending deployments that are awaiting a required reviewer's decision. It requires access to repository contents and deployments, and authentication using a token with `repo` scope.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository. This value is not case-sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "workflow_run_id",
+        "required": true,
+        "description": "The unique identifier of the workflow run to be approved or rejected.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the workflow run."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "run_id"
+      },
+      {
+        "name": "deployment_review_comment",
+        "required": true,
+        "description": "A comment to accompany the approval or rejection of the deployment review.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comment to accompany the deployment review"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "comment"
+      },
+      {
+        "name": "environment_ids",
+        "required": true,
+        "description": "List of environment IDs to approve or reject. Each ID must be an integer.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The list of environment ids to approve or reject"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "environment_ids"
+      },
+      {
+        "name": "deployment_review_state",
+        "required": true,
+        "description": "Specify 'approved' to approve or 'rejected' to reject deployments to the environments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "approved",
+            "rejected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to approve or reject deployment to the specified environments."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'actions/review-pending-deployments-for-run'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/actions/runs/{run_id}/pending_deployments",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "run_id",
+        "tool_parameter_name": "workflow_run_id",
+        "description": "The unique identifier of the workflow run.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the workflow run."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "comment",
+        "tool_parameter_name": "deployment_review_comment",
+        "description": "A comment to accompany the deployment review",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comment to accompany the deployment review"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "environment_ids",
+        "tool_parameter_name": "environment_ids",
+        "description": "The list of environment ids to approve or reject",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The list of environment ids to approve or reject"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "deployment_review_state",
+        "description": "Whether to approve or reject deployment to the specified environments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "approved",
+            "rejected"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to approve or reject deployment to the specified environments."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"comment\": \"Ship it!\",\n            \"environment_ids\": [\n              161171787\n            ],\n            \"state\": \"approved\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"comment\": {\n            \"description\": \"A comment to accompany the deployment review\",\n            \"example\": \"Ship it!\",\n            \"type\": \"string\"\n          },\n          \"environment_ids\": {\n            \"description\": \"The list of environment ids to approve or reject\",\n            \"example\": [\n              161171787,\n              161171795\n            ],\n            \"items\": {\n              \"example\": 161171787,\n              \"type\": \"integer\"\n            },\n            \"type\": \"array\"\n          },\n          \"state\": {\n            \"description\": \"Whether to approve or reject deployment to the specified environments.\",\n            \"enum\": [\n              \"approved\",\n              \"rejected\"\n            ],\n            \"example\": \"approved\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"environment_ids\",\n          \"state\",\n          \"comment\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,348 @@
+{
+  "name": "UpdateGithubProfile",
+  "fully_qualified_name": "GithubApi.UpdateGithubProfile@0.1.0",
+  "description": "Update your authenticated GitHub user profile.\n\nUse this tool to update the profile information of your authenticated GitHub account. Note that if your email is private and included in the update, it will remain hidden according to your privacy settings.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "new_user_biography",
+        "required": false,
+        "description": "The new short biography of the user for the GitHub profile update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new short biography of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "bio"
+      },
+      {
+        "name": "new_blog_url",
+        "required": false,
+        "description": "The new blog URL to update on your GitHub profile.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new blog URL of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "blog"
+      },
+      {
+        "name": "new_company_name",
+        "required": false,
+        "description": "The new company name to update on the GitHub profile.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new company of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "company"
+      },
+      {
+        "name": "public_visible_email_address",
+        "required": false,
+        "description": "The email address you want to be publicly visible on your GitHub profile. If your privacy settings hide your email, it will remain hidden.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The publicly visible email address of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "new_location",
+        "required": false,
+        "description": "The location to update in the user\u2019s GitHub profile.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new location of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location"
+      },
+      {
+        "name": "new_user_name",
+        "required": false,
+        "description": "The new name to update on the user's GitHub profile.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new name of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "new_twitter_username",
+        "required": false,
+        "description": "The new Twitter username for the user to update in their GitHub profile.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new Twitter username of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "twitter_username"
+      },
+      {
+        "name": "is_hireable",
+        "required": false,
+        "description": "Set to true if the user is available for hire, false otherwise.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new hiring availability of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "hireable"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'users/update-authenticated'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/user",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "bio",
+        "tool_parameter_name": "new_user_biography",
+        "description": "The new short biography of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new short biography of the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "blog",
+        "tool_parameter_name": "new_blog_url",
+        "description": "The new blog URL of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new blog URL of the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "company",
+        "tool_parameter_name": "new_company_name",
+        "description": "The new company of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new company of the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "public_visible_email_address",
+        "description": "The publicly visible email address of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The publicly visible email address of the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "hireable",
+        "tool_parameter_name": "is_hireable",
+        "description": "The new hiring availability of the user.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new hiring availability of the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location",
+        "tool_parameter_name": "new_location",
+        "description": "The new location of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new location of the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "new_user_name",
+        "description": "The new name of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new name of the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "twitter_username",
+        "tool_parameter_name": "new_twitter_username",
+        "description": "The new Twitter username of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new Twitter username of the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"summary\": \"Example of updating blog and name\",\n          \"value\": {\n            \"blog\": \"https://github.com/blog\",\n            \"name\": \"monalisa octocat\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"bio\": {\n            \"description\": \"The new short biography of the user.\",\n            \"type\": \"string\"\n          },\n          \"blog\": {\n            \"description\": \"The new blog URL of the user.\",\n            \"example\": \"blog.example.com\",\n            \"type\": \"string\"\n          },\n          \"company\": {\n            \"description\": \"The new company of the user.\",\n            \"example\": \"Acme corporation\",\n            \"type\": \"string\"\n          },\n          \"email\": {\n            \"description\": \"The publicly visible email address of the user.\",\n            \"example\": \"omar@example.com\",\n            \"type\": \"string\"\n          },\n          \"hireable\": {\n            \"description\": \"The new hiring availability of the user.\",\n            \"type\": \"boolean\"\n          },\n          \"location\": {\n            \"description\": \"The new location of the user.\",\n            \"example\": \"Berlin, Germany\",\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"The new name of the user.\",\n            \"example\": \"Omar Jahandar\",\n            \"type\": \"string\"\n          },\n          \"twitter_username\": {\n            \"description\": \"The new Twitter username of the user.\",\n            \"example\": \"therealomarj\",\n            \"nullable\": true,\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

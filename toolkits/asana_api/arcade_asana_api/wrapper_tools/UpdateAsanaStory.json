@@ -1,0 +1,382 @@
+{
+  "name": "UpdateAsanaStory",
+  "fully_qualified_name": "AsanaApi.UpdateAsanaStory@0.1.0",
+  "description": "Update an Asana story's details.\n\nUse this tool to update the text of a comment story or pin/unpin comment and attachment stories in Asana. Only one of `text` or `html_text` can be updated at a time. Requires 'stories:write' permission.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "story_global_id",
+        "required": true,
+        "description": "Globally unique identifier for the Asana story to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the story."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "story_gid"
+      },
+      {
+        "name": "asana_comment_story_update_data",
+        "required": true,
+        "description": "JSON object containing details of the comment story to be updated, including `gid`, `resource_type`, and either `text` or `html_text`.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "gid": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Globally unique identifier of the resource, as a string."
+                },
+                "resource_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The base type of this resource."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time at which this resource was created."
+                },
+                "resource_subtype": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The subtype of this resource. Different subtypes retain many of the same fields and behavior, but may render differently in Asana or represent resources with different semantic meaning."
+                },
+                "text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The plain text of the comment to add. Cannot be used with html_text."
+                },
+                "html_text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "[Opt In](/docs/inputoutput-options). HTML formatted text for a comment. This will not include the name of the creator."
+                },
+                "is_pinned": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Conditional*. Whether the story should be pinned on the resource."
+                },
+                "sticker_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "green_checkmark",
+                    "people_dancing",
+                    "dancing_unicorn",
+                    "heart",
+                    "party_popper",
+                    "people_waving_flags",
+                    "splashing_narwhal",
+                    "trophy",
+                    "yeti_riding_unicorn",
+                    "celebrating_people",
+                    "determined_climbers",
+                    "phoenix_spreading_love"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the sticker in this story. `null` if there is no sticker."
+                }
+              },
+              "inner_properties": null,
+              "description": "A story represents an activity associated with an object in the Asana system."
+            }
+          },
+          "inner_properties": null,
+          "description": "The comment story to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "Comma-separated list of optional properties to include in the response. Defaults to excluding some properties.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Set to true for a readable, formatted response. Use for debugging as it increases response size and time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateStory'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "stories:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/stories/{story_gid}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "story_gid",
+        "tool_parameter_name": "story_global_id",
+        "description": "Globally unique identifier for the story.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the story."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "asana_comment_story_update_data",
+        "description": "The comment story to update.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "gid": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Globally unique identifier of the resource, as a string."
+                },
+                "resource_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The base type of this resource."
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time at which this resource was created."
+                },
+                "resource_subtype": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The subtype of this resource. Different subtypes retain many of the same fields and behavior, but may render differently in Asana or represent resources with different semantic meaning."
+                },
+                "text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The plain text of the comment to add. Cannot be used with html_text."
+                },
+                "html_text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "[Opt In](/docs/inputoutput-options). HTML formatted text for a comment. This will not include the name of the creator."
+                },
+                "is_pinned": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "*Conditional*. Whether the story should be pinned on the resource."
+                },
+                "sticker_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "green_checkmark",
+                    "people_dancing",
+                    "dancing_unicorn",
+                    "heart",
+                    "party_popper",
+                    "people_waving_flags",
+                    "splashing_narwhal",
+                    "trophy",
+                    "yeti_riding_unicorn",
+                    "celebrating_people",
+                    "determined_climbers",
+                    "phoenix_spreading_love"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the sticker in this story. `null` if there is no sticker."
+                }
+              },
+              "inner_properties": null,
+              "description": "A story represents an activity associated with an object in the Asana system."
+            }
+          },
+          "inner_properties": null,
+          "description": "The comment story to update."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The comment story to update.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"A story represents an activity associated with an object in the Asana system.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"gid\": {\n                \"description\": \"Globally unique identifier of the resource, as a string.\",\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"example\": \"12345\",\n                \"x-insert-after\": false\n              },\n              \"resource_type\": {\n                \"description\": \"The base type of this resource.\",\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"example\": \"story\",\n                \"x-insert-after\": \"gid\"\n              },\n              \"created_at\": {\n                \"description\": \"The time at which this resource was created.\",\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"readOnly\": true,\n                \"example\": \"2012-02-22T02:06:58.147Z\"\n              },\n              \"resource_subtype\": {\n                \"description\": \"The subtype of this resource. Different subtypes retain many of the same fields and behavior, but may render differently in Asana or represent resources with different semantic meaning.\",\n                \"type\": \"string\",\n                \"readOnly\": true,\n                \"example\": \"comment_added\"\n              },\n              \"text\": {\n                \"description\": \"The plain text of the comment to add. Cannot be used with html_text.\",\n                \"type\": \"string\",\n                \"example\": \"This is a comment.\"\n              },\n              \"html_text\": {\n                \"description\": \"[Opt In](/docs/inputoutput-options). HTML formatted text for a comment. This will not include the name of the creator.\",\n                \"type\": \"string\",\n                \"example\": \"<body>This is a comment.</body>\"\n              },\n              \"is_pinned\": {\n                \"description\": \"*Conditional*. Whether the story should be pinned on the resource.\",\n                \"type\": \"boolean\",\n                \"example\": false\n              },\n              \"sticker_name\": {\n                \"description\": \"The name of the sticker in this story. `null` if there is no sticker.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"green_checkmark\",\n                  \"people_dancing\",\n                  \"dancing_unicorn\",\n                  \"heart\",\n                  \"party_popper\",\n                  \"people_waving_flags\",\n                  \"splashing_narwhal\",\n                  \"trophy\",\n                  \"yeti_riding_unicorn\",\n                  \"celebrating_people\",\n                  \"determined_climbers\",\n                  \"phoenix_spreading_love\"\n                ],\n                \"example\": \"dancing_unicorn\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,329 @@
+{
+  "name": "CreateGithubDeployment",
+  "fully_qualified_name": "GithubApi.CreateGithubDeployment@0.1.0",
+  "description": "Create a GitHub deployment for a specified repository ref.\n\nUse this tool to create deployments for a specific branch, tag, or SHA in a GitHub repository. Configure parameters like environment, auto-merge, and required contexts. Suitable for deploying to production, staging, or testing environments.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. This input is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository to deploy. Not case-sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "deployment_configuration",
+        "required": true,
+        "description": "JSON configuration for deployment, including parameters like `auto_merge`, `environment`, and `ref`. It supports options like `description`, `payload`, and context checks with `required_contexts`.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "auto_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Attempts to automatically merge the default branch into the requested ref, if it's behind the default branch."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Short description of the deployment."
+            },
+            "environment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name for the target deployment environment (e.g., `production`, `staging`, `qa`)."
+            },
+            "payload": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "production_environment": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies if the given environment is one that end-users directly interact with. Default: `true` when `environment` is `production` and `false` otherwise."
+            },
+            "ref": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ref to deploy. This can be a branch, tag, or SHA."
+            },
+            "required_contexts": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The [status](https://docs.github.com/enterprise-server@3.8/rest/commits/statuses) contexts to verify against commit status checks. If you omit this parameter, GitHub verifies all unique contexts before creating a deployment. To bypass checking entirely, pass an empty array. Defaults to all unique contexts."
+            },
+            "task": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies a task to execute (e.g., `deploy` or `deploy:migrations`)."
+            },
+            "transient_environment": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies if the given environment is specific to the deployment and will no longer exist at some point in the future. Default: `false`"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/create-deployment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/deployments",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "deployment_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "auto_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Attempts to automatically merge the default branch into the requested ref, if it's behind the default branch."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Short description of the deployment."
+            },
+            "environment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name for the target deployment environment (e.g., `production`, `staging`, `qa`)."
+            },
+            "payload": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "production_environment": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies if the given environment is one that end-users directly interact with. Default: `true` when `environment` is `production` and `false` otherwise."
+            },
+            "ref": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ref to deploy. This can be a branch, tag, or SHA."
+            },
+            "required_contexts": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The [status](https://docs.github.com/enterprise-server@3.8/rest/commits/statuses) contexts to verify against commit status checks. If you omit this parameter, GitHub verifies all unique contexts before creating a deployment. To bypass checking entirely, pass an empty array. Defaults to all unique contexts."
+            },
+            "task": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies a task to execute (e.g., `deploy` or `deploy:migrations`)."
+            },
+            "transient_environment": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies if the given environment is specific to the deployment and will no longer exist at some point in the future. Default: `false`"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"advanced-example\": {\n          \"summary\": \"Advanced example\",\n          \"value\": {\n            \"auto_merge\": false,\n            \"description\": \"Deploy request from hubot\",\n            \"payload\": \"{ \\\"deploy\\\": \\\"migrate\\\" }\",\n            \"ref\": \"topic-branch\",\n            \"required_contexts\": [\n              \"ci/janky\",\n              \"security/brakeman\"\n            ]\n          }\n        },\n        \"simple-example\": {\n          \"summary\": \"Simple example\",\n          \"value\": {\n            \"description\": \"Deploy request from hubot\",\n            \"payload\": \"{ \\\"deploy\\\": \\\"migrate\\\" }\",\n            \"ref\": \"topic-branch\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"auto_merge\": {\n            \"default\": true,\n            \"description\": \"Attempts to automatically merge the default branch into the requested ref, if it's behind the default branch.\",\n            \"type\": \"boolean\"\n          },\n          \"description\": {\n            \"default\": \"\",\n            \"description\": \"Short description of the deployment.\",\n            \"nullable\": true,\n            \"type\": \"string\"\n          },\n          \"environment\": {\n            \"default\": \"production\",\n            \"description\": \"Name for the target deployment environment (e.g., `production`, `staging`, `qa`).\",\n            \"type\": \"string\"\n          },\n          \"payload\": {\n            \"oneOf\": [\n              {\n                \"additionalProperties\": true,\n                \"type\": \"object\"\n              },\n              {\n                \"default\": \"\",\n                \"description\": \"JSON payload with extra information about the deployment.\",\n                \"type\": \"string\"\n              }\n            ]\n          },\n          \"production_environment\": {\n            \"description\": \"Specifies if the given environment is one that end-users directly interact with. Default: `true` when `environment` is `production` and `false` otherwise.\",\n            \"type\": \"boolean\"\n          },\n          \"ref\": {\n            \"description\": \"The ref to deploy. This can be a branch, tag, or SHA.\",\n            \"type\": \"string\"\n          },\n          \"required_contexts\": {\n            \"description\": \"The [status](https://docs.github.com/enterprise-server@3.8/rest/commits/statuses) contexts to verify against commit status checks. If you omit this parameter, GitHub verifies all unique contexts before creating a deployment. To bypass checking entirely, pass an empty array. Defaults to all unique contexts.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"task\": {\n            \"default\": \"deploy\",\n            \"description\": \"Specifies a task to execute (e.g., `deploy` or `deploy:migrations`).\",\n            \"type\": \"string\"\n          },\n          \"transient_environment\": {\n            \"default\": false,\n            \"description\": \"Specifies if the given environment is specific to the deployment and will no longer exist at some point in the future. Default: `false`\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"required\": [\n          \"ref\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

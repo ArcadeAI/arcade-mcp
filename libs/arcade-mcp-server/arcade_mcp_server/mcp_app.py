@@ -244,7 +244,7 @@ class MCPApp:
 
     def add_tools_from_module(self, module: ModuleType) -> None:
         """Add all the tools in a module to the catalog."""
-        self._catalog.add_module(module)
+        self._catalog.add_module(module, self._toolkit_name)
 
     def tool(
         self,

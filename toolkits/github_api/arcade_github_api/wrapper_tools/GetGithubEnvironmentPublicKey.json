@@ -1,0 +1,150 @@
+{
+  "name": "GetGithubEnvironmentPublicKey",
+  "fully_qualified_name": "GithubApi.GetGithubEnvironmentPublicKey@0.1.0",
+  "description": "Fetch the public key for a GitHub environment.\n\nThis tool retrieves the public key needed to encrypt environment secrets for a specified GitHub repository and environment. Use it when you need to secure secrets before creating or updating them. Requires appropriate access permissions.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_id",
+        "required": true,
+        "description": "The unique identifier of the GitHub repository. It must be an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the repository."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repository_id"
+      },
+      {
+        "name": "environment_name",
+        "required": true,
+        "description": "The name of the GitHub environment for which to retrieve the public key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the environment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "environment_name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'actions/get-environment-public-key'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repositories/{repository_id}/environments/{environment_name}/secrets/public-key",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "repository_id",
+        "tool_parameter_name": "repository_id",
+        "description": "The unique identifier of the repository.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the repository."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "environment_name",
+        "tool_parameter_name": "environment_name",
+        "description": "The name of the environment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the environment."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

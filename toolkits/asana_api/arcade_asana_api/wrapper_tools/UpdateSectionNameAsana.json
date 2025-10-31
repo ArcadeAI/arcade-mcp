@@ -1,0 +1,270 @@
+{
+  "name": "UpdateSectionNameAsana",
+  "fully_qualified_name": "AsanaApi.UpdateSectionNameAsana@0.1.0",
+  "description": "Update the name of a specific section in Asana.\n\nUse this tool to update the name of an existing section in an Asana project. It specifically changes the `name` field of a section without affecting other fields. Ideal for modifying section titles while preserving other data.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "section_global_identifier",
+        "required": true,
+        "description": "The globally unique identifier for the section to be updated in Asana.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The globally unique identifier for the section."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "section_gid"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "Comma-separated list of properties to include in the response. Allows inclusion of optional fields excluded by default.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "section_name",
+        "required": false,
+        "description": "The new name for the section. It cannot be an empty string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The text to be displayed as the section name. This cannot be an empty string."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.name"
+      },
+      {
+        "name": "section_insert_before_id",
+        "required": false,
+        "description": "The ID of an existing section in the project before which the updated section should be inserted. Cannot be provided with section_insert_after_id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An existing section within this project before which the added section should be inserted. Cannot be provided together with insert_after."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_before"
+      },
+      {
+        "name": "insert_after_section_id",
+        "required": false,
+        "description": "Identifier of an existing section after which the updated section should be inserted. Cannot be used with `insert_before_section_id`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An existing section within this project after which the added section should be inserted. Cannot be provided together with insert_before."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_after"
+      },
+      {
+        "name": "pretty_output",
+        "required": false,
+        "description": "Set to true for a readable, pretty formatted response with line breaks and indentation. Recommended for debugging as it increases response size.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateSection'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/sections/{section_gid}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "section_gid",
+        "tool_parameter_name": "section_global_identifier",
+        "description": "The globally unique identifier for the section.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The globally unique identifier for the section."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.name",
+        "tool_parameter_name": "section_name",
+        "description": "The text to be displayed as the section name. This cannot be an empty string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The text to be displayed as the section name. This cannot be an empty string."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_before",
+        "tool_parameter_name": "section_insert_before_id",
+        "description": "An existing section within this project before which the added section should be inserted. Cannot be provided together with insert_after.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An existing section within this project before which the added section should be inserted. Cannot be provided together with insert_after."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_after",
+        "tool_parameter_name": "insert_after_section_id",
+        "description": "An existing section within this project after which the added section should be inserted. Cannot be provided together with insert_before.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An existing section within this project after which the added section should be inserted. Cannot be provided together with insert_before."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The section to create.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The text to be displayed as the section name. This cannot be an empty string.\",\n                \"type\": \"string\",\n                \"example\": \"Next Actions\"\n              },\n              \"insert_before\": {\n                \"description\": \"An existing section within this project before which the added section should be inserted. Cannot be provided together with insert_after.\",\n                \"type\": \"string\",\n                \"example\": \"86420\"\n              },\n              \"insert_after\": {\n                \"description\": \"An existing section within this project after which the added section should be inserted. Cannot be provided together with insert_before.\",\n                \"type\": \"string\",\n                \"example\": \"987654\"\n              }\n            },\n            \"required\": [\n              \"name\"\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

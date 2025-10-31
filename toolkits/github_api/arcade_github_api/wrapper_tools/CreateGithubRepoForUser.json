@@ -1,0 +1,515 @@
+{
+  "name": "CreateGithubRepoForUser",
+  "fully_qualified_name": "GithubApi.CreateGithubRepoForUser@0.1.0",
+  "description": "Create a new GitHub repository for the authenticated user.\n\nThis tool creates a new repository for the authenticated user. It requires appropriate OAuth scopes: `public_repo` or `repo` for public repositories, and `repo` for private repositories.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_creation_details",
+        "required": true,
+        "description": "JSON object with details like name, description, privacy settings, and other configurations for the new repository.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "allow_auto_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow Auto-merge to be used on pull requests."
+            },
+            "allow_merge_commit": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow merge commits for pull requests."
+            },
+            "allow_rebase_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow rebase merges for pull requests."
+            },
+            "allow_squash_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow squash merges for pull requests."
+            },
+            "auto_init": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the repository is initialized with a minimal README."
+            },
+            "delete_branch_on_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to delete head branches when pull requests are merged"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A short description of the repository."
+            },
+            "gitignore_template": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired language or platform to apply to the .gitignore."
+            },
+            "has_discussions": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether discussions are enabled."
+            },
+            "has_downloads": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether downloads are enabled."
+            },
+            "has_issues": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether issues are enabled."
+            },
+            "has_projects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether projects are enabled."
+            },
+            "has_wiki": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the wiki is enabled."
+            },
+            "homepage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A URL with more information about the repository."
+            },
+            "is_template": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether this repository acts as a template that can be used to generate new repositories."
+            },
+            "license_template": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The license keyword of the open source license for this repository."
+            },
+            "merge_commit_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_BODY",
+                "PR_TITLE",
+                "BLANK"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a merge commit message.\n\n- `PR_TITLE` - default to the pull request's title.\n- `PR_BODY` - default to the pull request's body.\n- `BLANK` - default to a blank commit message."
+            },
+            "merge_commit_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_TITLE",
+                "MERGE_MESSAGE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a merge commit title.\n\n- `PR_TITLE` - default to the pull request's title.\n- `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name)."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the repository."
+            },
+            "private": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the repository is private."
+            },
+            "squash_merge_commit_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_BODY",
+                "COMMIT_MESSAGES",
+                "BLANK"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a squash merge commit message:\n\n- `PR_BODY` - default to the pull request's body.\n- `COMMIT_MESSAGES` - default to the branch's commit messages.\n- `BLANK` - default to a blank commit message."
+            },
+            "squash_merge_commit_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_TITLE",
+                "COMMIT_OR_PR_TITLE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a squash merge commit title:\n\n- `PR_TITLE` - default to the pull request's title.\n- `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit)."
+            },
+            "team_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The id of the team that will be granted access to this repository. This is only valid when creating a repository in an organization."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/create-for-authenticated-user'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/user/repos",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "repository_creation_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "allow_auto_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow Auto-merge to be used on pull requests."
+            },
+            "allow_merge_commit": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow merge commits for pull requests."
+            },
+            "allow_rebase_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow rebase merges for pull requests."
+            },
+            "allow_squash_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to allow squash merges for pull requests."
+            },
+            "auto_init": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the repository is initialized with a minimal README."
+            },
+            "delete_branch_on_merge": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to delete head branches when pull requests are merged"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A short description of the repository."
+            },
+            "gitignore_template": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired language or platform to apply to the .gitignore."
+            },
+            "has_discussions": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether discussions are enabled."
+            },
+            "has_downloads": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether downloads are enabled."
+            },
+            "has_issues": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether issues are enabled."
+            },
+            "has_projects": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether projects are enabled."
+            },
+            "has_wiki": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the wiki is enabled."
+            },
+            "homepage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A URL with more information about the repository."
+            },
+            "is_template": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether this repository acts as a template that can be used to generate new repositories."
+            },
+            "license_template": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The license keyword of the open source license for this repository."
+            },
+            "merge_commit_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_BODY",
+                "PR_TITLE",
+                "BLANK"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a merge commit message.\n\n- `PR_TITLE` - default to the pull request's title.\n- `PR_BODY` - default to the pull request's body.\n- `BLANK` - default to a blank commit message."
+            },
+            "merge_commit_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_TITLE",
+                "MERGE_MESSAGE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a merge commit title.\n\n- `PR_TITLE` - default to the pull request's title.\n- `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name)."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the repository."
+            },
+            "private": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the repository is private."
+            },
+            "squash_merge_commit_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_BODY",
+                "COMMIT_MESSAGES",
+                "BLANK"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a squash merge commit message:\n\n- `PR_BODY` - default to the pull request's body.\n- `COMMIT_MESSAGES` - default to the branch's commit messages.\n- `BLANK` - default to a blank commit message."
+            },
+            "squash_merge_commit_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PR_TITLE",
+                "COMMIT_OR_PR_TITLE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The default value for a squash merge commit title:\n\n- `PR_TITLE` - default to the pull request's title.\n- `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit)."
+            },
+            "team_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The id of the team that will be granted access to this repository. This is only valid when creating a repository in an organization."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"description\": \"This is your first repo!\",\n            \"homepage\": \"https://github.com\",\n            \"is_template\": true,\n            \"name\": \"Hello-World\",\n            \"private\": false\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"allow_auto_merge\": {\n            \"default\": false,\n            \"description\": \"Whether to allow Auto-merge to be used on pull requests.\",\n            \"example\": false,\n            \"type\": \"boolean\"\n          },\n          \"allow_merge_commit\": {\n            \"default\": true,\n            \"description\": \"Whether to allow merge commits for pull requests.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"allow_rebase_merge\": {\n            \"default\": true,\n            \"description\": \"Whether to allow rebase merges for pull requests.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"allow_squash_merge\": {\n            \"default\": true,\n            \"description\": \"Whether to allow squash merges for pull requests.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"auto_init\": {\n            \"default\": false,\n            \"description\": \"Whether the repository is initialized with a minimal README.\",\n            \"type\": \"boolean\"\n          },\n          \"delete_branch_on_merge\": {\n            \"default\": false,\n            \"description\": \"Whether to delete head branches when pull requests are merged\",\n            \"example\": false,\n            \"type\": \"boolean\"\n          },\n          \"description\": {\n            \"description\": \"A short description of the repository.\",\n            \"type\": \"string\"\n          },\n          \"gitignore_template\": {\n            \"description\": \"The desired language or platform to apply to the .gitignore.\",\n            \"example\": \"Haskell\",\n            \"type\": \"string\"\n          },\n          \"has_discussions\": {\n            \"default\": false,\n            \"description\": \"Whether discussions are enabled.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"has_downloads\": {\n            \"default\": true,\n            \"description\": \"Whether downloads are enabled.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"has_issues\": {\n            \"default\": true,\n            \"description\": \"Whether issues are enabled.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"has_projects\": {\n            \"default\": true,\n            \"description\": \"Whether projects are enabled.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"has_wiki\": {\n            \"default\": true,\n            \"description\": \"Whether the wiki is enabled.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"homepage\": {\n            \"description\": \"A URL with more information about the repository.\",\n            \"type\": \"string\"\n          },\n          \"is_template\": {\n            \"default\": false,\n            \"description\": \"Whether this repository acts as a template that can be used to generate new repositories.\",\n            \"example\": true,\n            \"type\": \"boolean\"\n          },\n          \"license_template\": {\n            \"description\": \"The license keyword of the open source license for this repository.\",\n            \"example\": \"mit\",\n            \"type\": \"string\"\n          },\n          \"merge_commit_message\": {\n            \"description\": \"The default value for a merge commit message.\\n\\n- `PR_TITLE` - default to the pull request's title.\\n- `PR_BODY` - default to the pull request's body.\\n- `BLANK` - default to a blank commit message.\",\n            \"enum\": [\n              \"PR_BODY\",\n              \"PR_TITLE\",\n              \"BLANK\"\n            ],\n            \"type\": \"string\"\n          },\n          \"merge_commit_title\": {\n            \"description\": \"The default value for a merge commit title.\\n\\n- `PR_TITLE` - default to the pull request's title.\\n- `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).\",\n            \"enum\": [\n              \"PR_TITLE\",\n              \"MERGE_MESSAGE\"\n            ],\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"The name of the repository.\",\n            \"example\": \"Team Environment\",\n            \"type\": \"string\"\n          },\n          \"private\": {\n            \"default\": false,\n            \"description\": \"Whether the repository is private.\",\n            \"type\": \"boolean\"\n          },\n          \"squash_merge_commit_message\": {\n            \"description\": \"The default value for a squash merge commit message:\\n\\n- `PR_BODY` - default to the pull request's body.\\n- `COMMIT_MESSAGES` - default to the branch's commit messages.\\n- `BLANK` - default to a blank commit message.\",\n            \"enum\": [\n              \"PR_BODY\",\n              \"COMMIT_MESSAGES\",\n              \"BLANK\"\n            ],\n            \"type\": \"string\"\n          },\n          \"squash_merge_commit_title\": {\n            \"description\": \"The default value for a squash merge commit title:\\n\\n- `PR_TITLE` - default to the pull request's title.\\n- `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit).\",\n            \"enum\": [\n              \"PR_TITLE\",\n              \"COMMIT_OR_PR_TITLE\"\n            ],\n            \"type\": \"string\"\n          },\n          \"team_id\": {\n            \"description\": \"The id of the team that will be granted access to this repository. This is only valid when creating a repository in an organization.\",\n            \"type\": \"integer\"\n          }\n        },\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

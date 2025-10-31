@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_pagerduty_api"
-version = "2.0.0"
+version = "2.0.1"
 description = "Tools that enable LLMs to interact directly with the Pagerduty API."
 requires-python = ">=3.10"
 dependencies = [

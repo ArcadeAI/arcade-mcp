@@ -1,0 +1,105 @@
+{
+  "name": "InitiateGraphExport",
+  "fully_qualified_name": "AsanaApi.InitiateGraphExport@0.1.0",
+  "description": "Initiate a graph export job for Asana objects.\n\nInitiates a graph export job for a specified Asana goal, team, portfolio, or project. The export is processed asynchronously. Use the jobs endpoint to monitor progress. Caching occurs for exports exceeding 1,000 tasks, lasting 4 hours.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "parent_object_id",
+        "required": false,
+        "description": "Globally unique ID of the Asana parent object: goal, project, portfolio, or team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique ID of the parent object: goal, project, portfolio, or team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.parent"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createGraphExport'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/exports/graph",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.parent",
+        "tool_parameter_name": "parent_object_id",
+        "description": "Globally unique ID of the parent object: goal, project, portfolio, or team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique ID of the parent object: goal, project, portfolio, or team."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"A JSON payload specifying the parent object to export.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"description\": \"A *graph_export* request starts a job to export data starting from a parent object.\",\n            \"properties\": {\n              \"parent\": {\n                \"description\": \"Globally unique ID of the parent object: goal, project, portfolio, or team.\",\n                \"type\": \"string\",\n                \"example\": \"181636\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

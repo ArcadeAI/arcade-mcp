@@ -1,0 +1,241 @@
+{
+  "name": "AddTaskToSection",
+  "fully_qualified_name": "AsanaApi.AddTaskToSection@0.1.0",
+  "description": "Add a task to a specified section in Asana.\n\nUse this tool to add a task to a specific, existing section in an Asana project. The task will be positioned at the top unless specified otherwise, and will be removed from other sections in the project. It cannot be used to add separators.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "section_global_identifier",
+        "required": true,
+        "description": "The globally unique identifier for the section where the task will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The globally unique identifier for the section."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "section_gid"
+      },
+      {
+        "name": "task_description",
+        "required": false,
+        "description": "The name or description of the task to be added to the specified section.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The task to add to this section."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.task"
+      },
+      {
+        "name": "insert_task_before",
+        "required": false,
+        "description": "The ID of an existing task in the section to insert the new task before. Cannot be used with insert_task_after.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An existing task within this section before which the added task should be inserted. Cannot be provided together with insert_after."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_before"
+      },
+      {
+        "name": "insert_after_task_id",
+        "required": false,
+        "description": "Specify the task ID after which the new task should be inserted within the section. Cannot be used with insert_before.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An existing task within this section after which the added task should be inserted. Cannot be provided together with insert_before."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_after"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Enable pretty formatting for the API response, with line breaks and indentation for readability. Use mainly for debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'addTaskForSection'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "tasks:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/sections/{section_gid}/addTask",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "section_gid",
+        "tool_parameter_name": "section_global_identifier",
+        "description": "The globally unique identifier for the section.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The globally unique identifier for the section."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.task",
+        "tool_parameter_name": "task_description",
+        "description": "The task to add to this section.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The task to add to this section."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_before",
+        "tool_parameter_name": "insert_task_before",
+        "description": "An existing task within this section before which the added task should be inserted. Cannot be provided together with insert_after.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An existing task within this section before which the added task should be inserted. Cannot be provided together with insert_after."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_after",
+        "tool_parameter_name": "insert_after_task_id",
+        "description": "An existing task within this section after which the added task should be inserted. Cannot be provided together with insert_before.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An existing task within this section after which the added task should be inserted. Cannot be provided together with insert_before."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The task and optionally the insert location.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"task\": {\n                \"description\": \"The task to add to this section.\",\n                \"type\": \"string\",\n                \"example\": \"123456\"\n              },\n              \"insert_before\": {\n                \"description\": \"An existing task within this section before which the added task should be inserted. Cannot be provided together with insert_after.\",\n                \"type\": \"string\",\n                \"example\": \"86420\"\n              },\n              \"insert_after\": {\n                \"description\": \"An existing task within this section after which the added task should be inserted. Cannot be provided together with insert_before.\",\n                \"type\": \"string\",\n                \"example\": \"987654\"\n              }\n            },\n            \"required\": [\n              \"task\"\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

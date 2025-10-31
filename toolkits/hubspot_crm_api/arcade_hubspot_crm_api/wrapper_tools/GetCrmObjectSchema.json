@@ -1,0 +1,112 @@
+{
+  "name": "GetCrmObjectSchema",
+  "fully_qualified_name": "HubspotCrmApi.GetCrmObjectSchema@0.1.0",
+  "description": "Retrieve a CRM object schema by its type.\n\nUse this tool to get detailed information about a specific CRM object schema by providing the object type. This helps in understanding the structure and properties of the CRM object within HubSpot.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "object_type",
+        "required": true,
+        "description": "The fully qualified name or object type ID of the CRM schema to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fully qualified name or object type ID of your schema."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/crm-object-schemas/v3/schemas/{objectType}_getById'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.custom.highly_sensitive.read.v2",
+          "crm.objects.custom.sensitive.read.v2",
+          "crm.schemas.custom.read",
+          "crm.objects.custom.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm-object-schemas/v3/schemas/{objectType}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "objectType",
+        "tool_parameter_name": "object_type",
+        "description": "Fully qualified name or object type ID of your schema.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fully qualified name or object type ID of your schema."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

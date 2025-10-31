@@ -1,0 +1,414 @@
+{
+  "name": "CreateGithubPullRequest",
+  "fully_qualified_name": "GithubApi.CreateGithubPullRequest@0.1.0",
+  "description": "Create a draft pull request on GitHub repositories.\n\nUse this tool to create a draft pull request on a specified GitHub repository. Requires write access to the head or source branch. Suitable for users with appropriate permissions on public, private or organization-owned repositories.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the GitHub repository. Case-insensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository for the pull request. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "target_branch",
+        "required": true,
+        "description": "The branch name where changes are to be merged. Must be an existing branch in the current repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch you want the changes pulled into. This should be an existing branch on the current repository. You cannot submit a pull request to one repository that requests a merge to a base of another repository."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "base"
+      },
+      {
+        "name": "source_branch",
+        "required": true,
+        "description": "The name of the branch where your changes are implemented. Use `username:branch` format for cross-repository cases.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch where your changes are implemented. For cross-repository pull requests in the same network, namespace `head` with a user like this: `username:branch`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "head"
+      },
+      {
+        "name": "pull_request_content",
+        "required": false,
+        "description": "The descriptive content or message for the pull request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The contents of the pull request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body"
+      },
+      {
+        "name": "source_repository_name",
+        "required": false,
+        "description": "Name of the repository where changes in the pull request were made. Required for cross-repository pull requests within the same organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository where the changes in the pull request were made. This field is required for cross-repository pull requests if both repositories are owned by the same organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "head_repo"
+      },
+      {
+        "name": "issue_number_for_conversion",
+        "required": false,
+        "description": "Specify the issue number in the repository to convert into a pull request. Required unless a title is provided.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An issue in the repository to convert to a pull request. The issue title, body, and comments will become the title, body, and comments on the new pull request. Required unless `title` is specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "issue"
+      },
+      {
+        "name": "pull_request_title",
+        "required": false,
+        "description": "The title of the new pull request. This is required unless an `issue` is specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of the new pull request. Required unless `issue` is specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "title"
+      },
+      {
+        "name": "is_draft",
+        "required": false,
+        "description": "Set to true to create the pull request as a draft. See GitHub documentation for more on draft pull requests.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the pull request is a draft. See \"[Draft Pull Requests](https://docs.github.com/enterprise-server@3.8/articles/about-pull-requests#draft-pull-requests)\" in the GitHub Help documentation to learn more."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "draft"
+      },
+      {
+        "name": "maintainers_can_modify",
+        "required": false,
+        "description": "Indicates if maintainers can modify the pull request. Set to true to allow modifications.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether [maintainers can modify](https://docs.github.com/enterprise-server@3.8/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) the pull request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "maintainer_can_modify"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'pulls/create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/pulls",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "base",
+        "tool_parameter_name": "target_branch",
+        "description": "The name of the branch you want the changes pulled into. This should be an existing branch on the current repository. You cannot submit a pull request to one repository that requests a merge to a base of another repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch you want the changes pulled into. This should be an existing branch on the current repository. You cannot submit a pull request to one repository that requests a merge to a base of another repository."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body",
+        "tool_parameter_name": "pull_request_content",
+        "description": "The contents of the pull request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The contents of the pull request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "draft",
+        "tool_parameter_name": "is_draft",
+        "description": "Indicates whether the pull request is a draft. See \"[Draft Pull Requests](https://docs.github.com/enterprise-server@3.8/articles/about-pull-requests#draft-pull-requests)\" in the GitHub Help documentation to learn more.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the pull request is a draft. See \"[Draft Pull Requests](https://docs.github.com/enterprise-server@3.8/articles/about-pull-requests#draft-pull-requests)\" in the GitHub Help documentation to learn more."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "head",
+        "tool_parameter_name": "source_branch",
+        "description": "The name of the branch where your changes are implemented. For cross-repository pull requests in the same network, namespace `head` with a user like this: `username:branch`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the branch where your changes are implemented. For cross-repository pull requests in the same network, namespace `head` with a user like this: `username:branch`."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "head_repo",
+        "tool_parameter_name": "source_repository_name",
+        "description": "The name of the repository where the changes in the pull request were made. This field is required for cross-repository pull requests if both repositories are owned by the same organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository where the changes in the pull request were made. This field is required for cross-repository pull requests if both repositories are owned by the same organization."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "issue",
+        "tool_parameter_name": "issue_number_for_conversion",
+        "description": "An issue in the repository to convert to a pull request. The issue title, body, and comments will become the title, body, and comments on the new pull request. Required unless `title` is specified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An issue in the repository to convert to a pull request. The issue title, body, and comments will become the title, body, and comments on the new pull request. Required unless `title` is specified."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "maintainer_can_modify",
+        "tool_parameter_name": "maintainers_can_modify",
+        "description": "Indicates whether [maintainers can modify](https://docs.github.com/enterprise-server@3.8/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) the pull request.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether [maintainers can modify](https://docs.github.com/enterprise-server@3.8/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) the pull request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "title",
+        "tool_parameter_name": "pull_request_title",
+        "description": "The title of the new pull request. Required unless `issue` is specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of the new pull request. Required unless `issue` is specified."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"base\": \"master\",\n            \"body\": \"Please pull these awesome changes in!\",\n            \"head\": \"octocat:new-feature\",\n            \"title\": \"Amazing new feature\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"base\": {\n            \"description\": \"The name of the branch you want the changes pulled into. This should be an existing branch on the current repository. You cannot submit a pull request to one repository that requests a merge to a base of another repository.\",\n            \"type\": \"string\"\n          },\n          \"body\": {\n            \"description\": \"The contents of the pull request.\",\n            \"type\": \"string\"\n          },\n          \"draft\": {\n            \"description\": \"Indicates whether the pull request is a draft. See \\\"[Draft Pull Requests](https://docs.github.com/enterprise-server@3.8/articles/about-pull-requests#draft-pull-requests)\\\" in the GitHub Help documentation to learn more.\",\n            \"type\": \"boolean\"\n          },\n          \"head\": {\n            \"description\": \"The name of the branch where your changes are implemented. For cross-repository pull requests in the same network, namespace `head` with a user like this: `username:branch`.\",\n            \"type\": \"string\"\n          },\n          \"head_repo\": {\n            \"description\": \"The name of the repository where the changes in the pull request were made. This field is required for cross-repository pull requests if both repositories are owned by the same organization.\",\n            \"example\": \"octo-org/octo-repo\",\n            \"format\": \"repo.nwo\",\n            \"type\": \"string\"\n          },\n          \"issue\": {\n            \"description\": \"An issue in the repository to convert to a pull request. The issue title, body, and comments will become the title, body, and comments on the new pull request. Required unless `title` is specified.\",\n            \"example\": 1,\n            \"type\": \"integer\"\n          },\n          \"maintainer_can_modify\": {\n            \"description\": \"Indicates whether [maintainers can modify](https://docs.github.com/enterprise-server@3.8/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) the pull request.\",\n            \"type\": \"boolean\"\n          },\n          \"title\": {\n            \"description\": \"The title of the new pull request. Required unless `issue` is specified.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"head\",\n          \"base\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

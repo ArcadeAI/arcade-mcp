@@ -1,0 +1,270 @@
+{
+  "name": "CreateTimeTrackingEntry",
+  "fully_qualified_name": "AsanaApi.CreateTimeTrackingEntry@0.1.0",
+  "description": "Create a time tracking entry on a task.\n\nUse this tool to log time against a specific task in Asana. It returns the information of the newly created time tracking entry, helping to keep task hours updated.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_id",
+        "required": true,
+        "description": "The unique identifier for the task to operate on.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The task to operate on."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_gid"
+      },
+      {
+        "name": "include_optional_properties",
+        "required": false,
+        "description": "A list of optional property names to include in the response. This should be used to specify which additional fields you want to include in the return data format when creating a time tracking entry.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "duration_minutes_tracked",
+        "required": false,
+        "description": "Time in minutes tracked by the entry. Must be greater than 0.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Time in minutes tracked by the entry. Must be greater than 0"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.duration_minutes"
+      },
+      {
+        "name": "entry_logged_date",
+        "required": false,
+        "description": "Optional. The date the time entry is logged. Defaults to today if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "*Optional*. The day that this entry is logged on. Defaults to today if not specified"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.entered_on"
+      },
+      {
+        "name": "project_gid_attribution",
+        "required": false,
+        "description": "Optional. The GID of the project to which the tracked time is attributed. If not provided, no project attribution is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "*Optional*. The gid of the project which the time is attributable to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributable_to"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Set to true to receive formatted, human-readable JSON responses. Useful for debugging as it may slow down the response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createTimeTrackingEntry'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/tasks/{task_gid}/time_tracking_entries",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_properties",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_gid",
+        "tool_parameter_name": "task_id",
+        "description": "The task to operate on.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The task to operate on."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.duration_minutes",
+        "tool_parameter_name": "duration_minutes_tracked",
+        "description": "Time in minutes tracked by the entry. Must be greater than 0",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Time in minutes tracked by the entry. Must be greater than 0"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.entered_on",
+        "tool_parameter_name": "entry_logged_date",
+        "description": "*Optional*. The day that this entry is logged on. Defaults to today if not specified",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "*Optional*. The day that this entry is logged on. Defaults to today if not specified"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributable_to",
+        "tool_parameter_name": "project_gid_attribution",
+        "description": "*Optional*. The gid of the project which the time is attributable to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "*Optional*. The gid of the project which the time is attributable to."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Information about the time tracking entry.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"duration_minutes\": {\n                \"description\": \"Time in minutes tracked by the entry. Must be greater than 0\",\n                \"type\": \"integer\",\n                \"example\": 12\n              },\n              \"entered_on\": {\n                \"description\": \"*Optional*. The day that this entry is logged on. Defaults to today if not specified\",\n                \"type\": \"string\",\n                \"format\": \"date\",\n                \"example\": \"2023-03-19\"\n              },\n              \"attributable_to\": {\n                \"type\": \"string\",\n                \"description\": \"*Optional*. The gid of the project which the time is attributable to.\",\n                \"example\": \"987654\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

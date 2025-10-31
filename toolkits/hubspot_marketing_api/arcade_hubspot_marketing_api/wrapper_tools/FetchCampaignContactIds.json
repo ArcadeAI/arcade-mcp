@@ -1,0 +1,274 @@
+{
+  "name": "FetchCampaignContactIds",
+  "fully_qualified_name": "HubspotMarketingApi.FetchCampaignContactIds@0.1.0",
+  "description": "Fetch contact IDs for a specific campaign and contact type.\n\nUse this tool to obtain the contact IDs associated with a particular marketing campaign and specified contact type in HubSpot. It is useful for analyzing campaign reach and engagement with specific contact demographics.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "campaign_identifier",
+        "required": true,
+        "description": "Unique identifier for the campaign formatted as a UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the campaign, formatted as a UUID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "campaignGuid"
+      },
+      {
+        "name": "contact_type_filter",
+        "required": true,
+        "description": "Specifies the type of metric for filtering contacts. Options: contactFirstTouch, contactLastTouch, influencedContacts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of metric to filter the influenced contacts. Allowed values: contactFirstTouch, contactLastTouch, influencedContacts"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contactType"
+      },
+      {
+        "name": "start_date",
+        "required": false,
+        "description": "The start date for the report data in YYYY-MM-DD format. Default is 2006-01-01.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date for the report data, formatted as YYYY-MM-DD.\nDefault value: 2006-01-01"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "startDate"
+      },
+      {
+        "name": "report_end_date",
+        "required": false,
+        "description": "The end date for the report data in YYYY-MM-DD format. Defaults to the current date if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for the report data, formatted as YYYY-MM-DD.\nDefault value: Current date"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "endDate"
+      },
+      {
+        "name": "contact_fetch_limit",
+        "required": false,
+        "description": "Specify the maximum number of contact IDs to retrieve, with a default of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit for the number of contacts to fetch\nDefault: 100"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A string cursor for pagination to start results after the given point. Example: NTI1Cg%3D%3D",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for pagination. If provided, the results will start after the given cursor.\nExample: NTI1Cg%3D%3D"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/marketing/v3/campaigns/{campaignGuid}/reports/contacts/{contactType}'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "marketing.campaigns.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/campaigns/{campaignGuid}/reports/contacts/{contactType}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "startDate",
+        "tool_parameter_name": "start_date",
+        "description": "The start date for the report data, formatted as YYYY-MM-DD.\nDefault value: 2006-01-01",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date for the report data, formatted as YYYY-MM-DD.\nDefault value: 2006-01-01"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "endDate",
+        "tool_parameter_name": "report_end_date",
+        "description": "End date for the report data, formatted as YYYY-MM-DD.\nDefault value: Current date",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for the report data, formatted as YYYY-MM-DD.\nDefault value: Current date"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "contact_fetch_limit",
+        "description": "Limit for the number of contacts to fetch\nDefault: 100",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit for the number of contacts to fetch\nDefault: 100"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A cursor for pagination. If provided, the results will start after the given cursor.\nExample: NTI1Cg%3D%3D",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for pagination. If provided, the results will start after the given cursor.\nExample: NTI1Cg%3D%3D"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "campaignGuid",
+        "tool_parameter_name": "campaign_identifier",
+        "description": "Unique identifier for the campaign, formatted as a UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the campaign, formatted as a UUID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "contactType",
+        "tool_parameter_name": "contact_type_filter",
+        "description": "The type of metric to filter the influenced contacts. Allowed values: contactFirstTouch, contactLastTouch, influencedContacts",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of metric to filter the influenced contacts. Allowed values: contactFirstTouch, contactLastTouch, influencedContacts"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "name": "UpdatePreReceiveHookEnforcement",
+  "fully_qualified_name": "GithubApi.UpdatePreReceiveHookEnforcement@0.1.0",
+  "description": "Update pre-receive hook enforcement for a GitHub organization.\n\nThis tool updates the enforcement settings and downstream configuration for pre-receive hooks at the organization level on GitHub. Call this tool to modify enforcement and downstream configuration for a specific pre-receive hook within an organization.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_name",
+        "required": true,
+        "description": "The name of the GitHub organization. It's not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org"
+      },
+      {
+        "name": "pre_receive_hook_id",
+        "required": true,
+        "description": "The unique identifier of the pre-receive hook to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the pre-receive hook."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pre_receive_hook_id"
+      },
+      {
+        "name": "enforcement_state",
+        "required": false,
+        "description": "Specify the state of enforcement for the hook on this repository. Possible values may include 'enabled', 'disabled', etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of enforcement for the hook on this repository."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enforcement"
+      },
+      {
+        "name": "allow_downstream_configuration",
+        "required": false,
+        "description": "Boolean indicating whether repositories can override the enforcement settings of the pre-receive hook.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether repositories can override enforcement."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "allow_downstream_configuration"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-admin/update-pre-receive-hook-enforcement-for-org'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/orgs/{org}/pre-receive-hooks/{pre_receive_hook_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org",
+        "tool_parameter_name": "organization_name",
+        "description": "The organization name. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "pre_receive_hook_id",
+        "tool_parameter_name": "pre_receive_hook_id",
+        "description": "The unique identifier of the pre-receive hook.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the pre-receive hook."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "allow_downstream_configuration",
+        "tool_parameter_name": "allow_downstream_configuration",
+        "description": "Whether repositories can override enforcement.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether repositories can override enforcement."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "enforcement",
+        "tool_parameter_name": "enforcement_state",
+        "description": "The state of enforcement for the hook on this repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of enforcement for the hook on this repository."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"allow_downstream_configuration\": false,\n            \"enforcement\": \"enabled\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"allow_downstream_configuration\": {\n            \"description\": \"Whether repositories can override enforcement.\",\n            \"type\": \"boolean\"\n          },\n          \"enforcement\": {\n            \"description\": \"The state of enforcement for the hook on this repository.\",\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

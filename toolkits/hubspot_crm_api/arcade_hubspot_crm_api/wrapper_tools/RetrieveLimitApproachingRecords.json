@@ -1,0 +1,138 @@
+{
+  "name": "RetrieveLimitApproachingRecords",
+  "fully_qualified_name": "HubspotCrmApi.RetrieveLimitApproachingRecords@0.1.0",
+  "description": "Retrieve objects nearing or at HubSpot CRM association limits.\n\nThis tool is called to get objects from HubSpot CRM that have records close to or at their association limits. It helps in monitoring and managing association constraints.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": []
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/crm/v3/limits/associations/records/from'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.carts.read",
+          "crm.objects.services.write",
+          "tickets.sensitive.v2",
+          "crm.objects.contacts.write",
+          "crm.objects.courses.read",
+          "crm.objects.goals.write",
+          "crm.objects.custom.read",
+          "crm.objects.deals.read",
+          "crm.objects.custom.write",
+          "crm.objects.commercepayments.read",
+          "crm.objects.contacts.highly_sensitive.read.v2",
+          "crm.objects.leads.read",
+          "crm.objects.contacts.sensitive.write.v2",
+          "crm.objects.partner-services.write",
+          "e-commerce",
+          "crm.objects.products.read",
+          "crm.objects.custom.sensitive.write.v2",
+          "crm.objects.orders.write",
+          "crm.objects.subscriptions.write",
+          "tickets.highly_sensitive.v2",
+          "crm.objects.deals.highly_sensitive.read.v2",
+          "crm.objects.companies.write",
+          "crm.objects.partner-services.read",
+          "tickets",
+          "crm.objects.quotes.read",
+          "crm.objects.contacts.highly_sensitive.write.v2",
+          "crm.objects.companies.read",
+          "crm.objects.custom.highly_sensitive.read.v2",
+          "crm.objects.carts.write",
+          "crm.objects.quotes.write",
+          "crm.objects.companies.highly_sensitive.read.v2",
+          "crm.objects.users.write",
+          "crm.objects.companies.highly_sensitive.write.v2",
+          "crm.objects.users.read",
+          "crm.objects.contacts.read",
+          "crm.objects.appointments.write",
+          "crm.objects.partner-clients.write",
+          "crm.objects.line_items.write",
+          "crm.objects.deals.highly_sensitive.write.v2",
+          "crm.objects.deals.write",
+          "crm.objects.services.read",
+          "crm.objects.custom.sensitive.read.v2",
+          "crm.objects.companies.sensitive.write.v2",
+          "crm.objects.appointments.read",
+          "crm.objects.invoices.read",
+          "crm.objects.partner-clients.read",
+          "crm.objects.courses.write",
+          "crm.objects.custom.highly_sensitive.write.v2",
+          "crm.objects.listings.read",
+          "crm.objects.listings.write",
+          "crm.objects.subscriptions.read",
+          "crm.objects.appointments.sensitive.write.v2",
+          "crm.objects.invoices.write",
+          "crm.objects.line_items.read",
+          "crm.objects.companies.sensitive.read.v2",
+          "crm.objects.appointments.sensitive.read.v2",
+          "crm.objects.commercepayments.write",
+          "crm.objects.leads.write",
+          "crm.objects.deals.sensitive.read.v2",
+          "crm.objects.goals.read",
+          "crm.objects.orders.read",
+          "crm.objects.contacts.sensitive.read.v2",
+          "media_bridge.read",
+          "crm.objects.deals.sensitive.write.v2",
+          "crm.objects.products.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/limits/associations/records/from",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

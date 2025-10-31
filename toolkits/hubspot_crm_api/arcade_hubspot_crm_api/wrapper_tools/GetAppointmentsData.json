@@ -1,0 +1,372 @@
+{
+  "name": "GetAppointmentsData",
+  "fully_qualified_name": "HubspotCrmApi.GetAppointmentsData@0.1.0",
+  "description": "Retrieve a page of appointments from HubSpot CRM.\n\nFetches appointment details using the specified properties to control the data returned. Useful for accessing and managing CRM appointment information.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "appointment_object_type",
+        "required": true,
+        "description": "The type of HubSpot object to be queried, specifically for appointments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      },
+      {
+        "name": "results_limit",
+        "required": false,
+        "description": "Specify the maximum number of results to display per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to display per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "paging_cursor_token",
+        "required": false,
+        "description": "Token indicating the last successfully read resource to continue pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The paging cursor token of the last successfully read resource will be returned as the `paging.next.after` JSON property of a paged response containing more results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "appointment_properties_to_return",
+        "required": false,
+        "description": "A list of property names to include in the response. Properties not present on the requested objects are ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of the properties to be returned in the response. If any of the specified properties are not present on the requested object(s), they will be ignored."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "properties"
+      },
+      {
+        "name": "properties_with_history",
+        "required": false,
+        "description": "List properties to return with their history of values. Reduces max results per request.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of the properties to be returned along with their history of previous values. If any of the specified properties are not present on the requested object(s), they will be ignored. Usage of this parameter will reduce the maximum number of appointments that can be read by a single request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "propertiesWithHistory"
+      },
+      {
+        "name": "retrieve_associated_object_types",
+        "required": false,
+        "description": "A list of object types to retrieve associated IDs for. If specified associations don't exist, they will be ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of object types to retrieve associated IDs for. If any of the specified associations do not exist, they will be ignored."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "associations"
+      },
+      {
+        "name": "only_archived_results",
+        "required": false,
+        "description": "Set to true to return only results that have been archived.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only results that have been archived."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/crm/objects/v3/{objectType}'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.carts.read",
+          "crm.objects.services.write",
+          "tickets.sensitive.v2",
+          "crm.objects.contacts.write",
+          "crm.objects.courses.read",
+          "crm.objects.goals.write",
+          "crm.objects.custom.read",
+          "crm.objects.deals.read",
+          "crm.objects.custom.write",
+          "crm.objects.commercepayments.read",
+          "crm.objects.contacts.highly_sensitive.read.v2",
+          "crm.objects.leads.read",
+          "crm.objects.contacts.sensitive.write.v2",
+          "crm.objects.partner-services.write",
+          "e-commerce",
+          "crm.objects.products.read",
+          "crm.objects.custom.sensitive.write.v2",
+          "crm.objects.orders.write",
+          "crm.objects.subscriptions.write",
+          "tickets.highly_sensitive.v2",
+          "crm.objects.deals.highly_sensitive.read.v2",
+          "crm.objects.companies.write",
+          "crm.objects.partner-services.read",
+          "tickets",
+          "crm.objects.quotes.read",
+          "oauth",
+          "crm.objects.contacts.highly_sensitive.write.v2",
+          "crm.objects.companies.read",
+          "crm.objects.custom.highly_sensitive.read.v2",
+          "crm.objects.carts.write",
+          "crm.objects.quotes.write",
+          "crm.objects.companies.highly_sensitive.read.v2",
+          "crm.objects.users.write",
+          "crm.objects.companies.highly_sensitive.write.v2",
+          "crm.objects.users.read",
+          "crm.objects.contacts.read",
+          "crm.objects.appointments.write",
+          "crm.objects.partner-clients.write",
+          "crm.objects.line_items.write",
+          "crm.objects.deals.highly_sensitive.write.v2",
+          "crm.objects.deals.write",
+          "crm.objects.services.read",
+          "crm.objects.custom.sensitive.read.v2",
+          "crm.objects.companies.sensitive.write.v2",
+          "crm.objects.appointments.read",
+          "crm.objects.invoices.read",
+          "crm.objects.partner-clients.read",
+          "crm.objects.courses.write",
+          "crm.objects.custom.highly_sensitive.write.v2",
+          "crm.objects.listings.read",
+          "crm.objects.listings.write",
+          "crm.objects.subscriptions.read",
+          "crm.objects.appointments.sensitive.write.v2",
+          "crm.objects.invoices.write",
+          "crm.objects.line_items.read",
+          "crm.objects.companies.sensitive.read.v2",
+          "crm.objects.appointments.sensitive.read.v2",
+          "crm.objects.commercepayments.write",
+          "crm.objects.leads.write",
+          "crm.objects.deals.sensitive.read.v2",
+          "crm.objects.goals.read",
+          "crm.objects.orders.read",
+          "crm.objects.contacts.sensitive.read.v2",
+          "media_bridge.read",
+          "crm.objects.deals.sensitive.write.v2",
+          "crm.objects.products.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/objects/v3/{objectType}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_limit",
+        "description": "The maximum number of results to display per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to display per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "paging_cursor_token",
+        "description": "The paging cursor token of the last successfully read resource will be returned as the `paging.next.after` JSON property of a paged response containing more results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The paging cursor token of the last successfully read resource will be returned as the `paging.next.after` JSON property of a paged response containing more results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "properties",
+        "tool_parameter_name": "appointment_properties_to_return",
+        "description": "A comma separated list of the properties to be returned in the response. If any of the specified properties are not present on the requested object(s), they will be ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of the properties to be returned in the response. If any of the specified properties are not present on the requested object(s), they will be ignored."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "propertiesWithHistory",
+        "tool_parameter_name": "properties_with_history",
+        "description": "A comma separated list of the properties to be returned along with their history of previous values. If any of the specified properties are not present on the requested object(s), they will be ignored. Usage of this parameter will reduce the maximum number of appointments that can be read by a single request.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of the properties to be returned along with their history of previous values. If any of the specified properties are not present on the requested object(s), they will be ignored. Usage of this parameter will reduce the maximum number of appointments that can be read by a single request."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "associations",
+        "tool_parameter_name": "retrieve_associated_object_types",
+        "description": "A comma separated list of object types to retrieve associated IDs for. If any of the specified associations do not exist, they will be ignored.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of object types to retrieve associated IDs for. If any of the specified associations do not exist, they will be ignored."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "archived",
+        "tool_parameter_name": "only_archived_results",
+        "description": "Whether to return only results that have been archived.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only results that have been archived."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "objectType",
+        "tool_parameter_name": "appointment_object_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

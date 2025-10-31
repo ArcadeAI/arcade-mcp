@@ -1,0 +1,150 @@
+{
+  "name": "CreateGithubProjectCard",
+  "fully_qualified_name": "GithubApi.CreateGithubProjectCard@0.1.0",
+  "description": "Create a project card in a specified GitHub column.\n\nUse this tool to create a new project card in a specified column within a GitHub project. It helps organize tasks or notes in a project on GitHub.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "column_identifier",
+        "required": true,
+        "description": "The unique identifier of the GitHub project column where the card will be added.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the column."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "column_id"
+      },
+      {
+        "name": "project_card_details",
+        "required": true,
+        "description": "Details for the new GitHub project card as a JSON object. Include fields like 'note' for card content or 'content_id' and 'content_type' for linking issues or pull requests.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'projects/create-card'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/projects/columns/{column_id}/cards",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "column_id",
+        "tool_parameter_name": "column_identifier",
+        "description": "The unique identifier of the column.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the column."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "project_card_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"summary\": \"Create a new card\",\n          \"value\": {\n            \"note\": \"Add payload for delete Project column\"\n          }\n        }\n      },\n      \"schema\": {\n        \"oneOf\": [\n          {\n            \"properties\": {\n              \"note\": {\n                \"description\": \"The project card's note\",\n                \"example\": \"Update all gems\",\n                \"nullable\": true,\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"note\"\n            ],\n            \"type\": \"object\"\n          },\n          {\n            \"properties\": {\n              \"content_id\": {\n                \"description\": \"The unique identifier of the content associated with the card\",\n                \"example\": 42,\n                \"type\": \"integer\"\n              },\n              \"content_type\": {\n                \"description\": \"The piece of content associated with the card\",\n                \"example\": \"PullRequest\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"content_id\",\n              \"content_type\"\n            ],\n            \"type\": \"object\"\n          }\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

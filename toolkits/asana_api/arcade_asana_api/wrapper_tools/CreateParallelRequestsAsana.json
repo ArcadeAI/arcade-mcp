@@ -1,0 +1,337 @@
+{
+  "name": "CreateParallelRequestsAsana",
+  "fully_qualified_name": "AsanaApi.CreateParallelRequestsAsana@0.1.0",
+  "description": "Execute multiple requests to Asana's API simultaneously.\n\nUse this tool to make parallel requests to Asana's API efficiently, allowing multiple operations to be executed at once.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "batch_request_data",
+        "required": true,
+        "description": "JSON object containing multiple requests to be sent in parallel. Include actions with endpoints, methods, and associated data.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "actions": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "relative_path": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The path of the desired endpoint relative to the API\u2019s base URL. Query parameters are not accepted here; put them in `data` instead."
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "get",
+                        "post",
+                        "put",
+                        "delete",
+                        "patch",
+                        "head"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The HTTP method you wish to emulate for the action."
+                    },
+                    "data": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "For `GET` requests, this should be a map of query parameters you would have normally passed in the URL. Options and pagination are not accepted here; put them in `options` instead. For `POST`, `PATCH`, and `PUT` methods, this should be the content you would have normally put in the data field of the body."
+                    },
+                    "options": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "limit": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Pagination limit for the request."
+                        },
+                        "offset": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Pagination offset for the request."
+                        },
+                        "fields": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The fields to retrieve in the request."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Pagination (`limit` and `offset`) and output options (`fields` or `expand`) for the action. \u201cPretty\u201d JSON output is not an available option on individual actions; if you want pretty output, specify that option on the parent request."
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "A request object for use in a batch request."
+            }
+          },
+          "inner_properties": null,
+          "description": "The requests to batch together via the Batch API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_optional_fields",
+        "required": false,
+        "description": "A list of optional properties to include in the response. Provide as an array of strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Enable pretty output format with line breaks and indentation. Useful for debugging but may increase response size and time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createBatchRequest'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/batch",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_fields",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "batch_request_data",
+        "description": "The requests to batch together via the Batch API.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "actions": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "relative_path": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The path of the desired endpoint relative to the API\u2019s base URL. Query parameters are not accepted here; put them in `data` instead."
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "get",
+                        "post",
+                        "put",
+                        "delete",
+                        "patch",
+                        "head"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The HTTP method you wish to emulate for the action."
+                    },
+                    "data": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "For `GET` requests, this should be a map of query parameters you would have normally passed in the URL. Options and pagination are not accepted here; put them in `options` instead. For `POST`, `PATCH`, and `PUT` methods, this should be the content you would have normally put in the data field of the body."
+                    },
+                    "options": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "limit": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Pagination limit for the request."
+                        },
+                        "offset": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Pagination offset for the request."
+                        },
+                        "fields": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The fields to retrieve in the request."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Pagination (`limit` and `offset`) and output options (`fields` or `expand`) for the action. \u201cPretty\u201d JSON output is not an available option on individual actions; if you want pretty output, specify that option on the parent request."
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "A request object for use in a batch request."
+            }
+          },
+          "inner_properties": null,
+          "description": "The requests to batch together via the Batch API."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The requests to batch together via the Batch API.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"A request object for use in a batch request.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"actions\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"description\": \"An action object for use in a batch request.\",\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"relative_path\": {\n                      \"description\": \"The path of the desired endpoint relative to the API\\u2019s base URL. Query parameters are not accepted here; put them in `data` instead.\",\n                      \"type\": \"string\",\n                      \"example\": \"/tasks/123\"\n                    },\n                    \"method\": {\n                      \"description\": \"The HTTP method you wish to emulate for the action.\",\n                      \"type\": \"string\",\n                      \"enum\": [\n                        \"get\",\n                        \"post\",\n                        \"put\",\n                        \"delete\",\n                        \"patch\",\n                        \"head\"\n                      ],\n                      \"example\": \"get\"\n                    },\n                    \"data\": {\n                      \"description\": \"For `GET` requests, this should be a map of query parameters you would have normally passed in the URL. Options and pagination are not accepted here; put them in `options` instead. For `POST`, `PATCH`, and `PUT` methods, this should be the content you would have normally put in the data field of the body.\",\n                      \"type\": \"object\",\n                      \"example\": {\n                        \"assignee\": \"me\",\n                        \"workspace\": \"1337\"\n                      }\n                    },\n                    \"options\": {\n                      \"description\": \"Pagination (`limit` and `offset`) and output options (`fields` or `expand`) for the action. \\u201cPretty\\u201d JSON output is not an available option on individual actions; if you want pretty output, specify that option on the parent request.\",\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"limit\": {\n                          \"description\": \"Pagination limit for the request.\",\n                          \"type\": \"integer\",\n                          \"example\": 50\n                        },\n                        \"offset\": {\n                          \"description\": \"Pagination offset for the request.\",\n                          \"type\": \"integer\",\n                          \"example\": \"eyJ0eXAiOJiKV1iQLCJhbGciOiJIUzI1NiJ9\"\n                        },\n                        \"fields\": {\n                          \"description\": \"The fields to retrieve in the request.\",\n                          \"type\": \"array\",\n                          \"items\": {\n                            \"type\": \"string\"\n                          },\n                          \"example\": [\n                            \"name\",\n                            \"gid\",\n                            \"notes\",\n                            \"completed\"\n                          ]\n                        }\n                      },\n                      \"example\": {\n                        \"limit\": 3,\n                        \"fields\": [\n                          \"name\",\n                          \"notes\",\n                          \"completed\"\n                        ]\n                      }\n                    }\n                  },\n                  \"required\": [\n                    \"relative_path\",\n                    \"method\"\n                  ]\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

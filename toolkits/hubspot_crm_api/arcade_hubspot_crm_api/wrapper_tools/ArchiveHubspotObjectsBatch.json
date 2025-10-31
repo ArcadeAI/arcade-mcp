@@ -1,0 +1,243 @@
+{
+  "name": "ArchiveHubspotObjectsBatch",
+  "fully_qualified_name": "HubspotCrmApi.ArchiveHubspotObjectsBatch@0.1.0",
+  "description": "Archive a batch of HubSpot CRM objects by ID.\n\nUse this tool to archive multiple objects in HubSpot CRM by specifying their IDs and object type, such as 'contacts' or 'companies'.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "hubspot_object_type",
+        "required": true,
+        "description": "Specifies the type of HubSpot CRM objects to archive (e.g., 'contacts', 'companies').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      },
+      {
+        "name": "batch_object_ids",
+        "required": true,
+        "description": "A JSON array of objects with 'id' fields to specify which HubSpot CRM objects to archive. Each entry should contain an 'id' key with the object ID as a string.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/crm/v3/objects/{objectType}/batch/archive_archive'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.carts.read",
+          "crm.objects.services.write",
+          "tickets.sensitive.v2",
+          "crm.objects.contacts.write",
+          "crm.objects.courses.read",
+          "crm.objects.goals.write",
+          "crm.objects.custom.read",
+          "crm.objects.deals.read",
+          "crm.objects.custom.write",
+          "crm.objects.commercepayments.read",
+          "crm.objects.contacts.highly_sensitive.read.v2",
+          "crm.objects.leads.read",
+          "crm.objects.contacts.sensitive.write.v2",
+          "crm.objects.partner-services.write",
+          "e-commerce",
+          "crm.objects.products.read",
+          "crm.objects.custom.sensitive.write.v2",
+          "crm.objects.orders.write",
+          "crm.objects.subscriptions.write",
+          "tickets.highly_sensitive.v2",
+          "crm.objects.deals.highly_sensitive.read.v2",
+          "crm.objects.companies.write",
+          "crm.objects.partner-services.read",
+          "tickets",
+          "crm.objects.quotes.read",
+          "oauth",
+          "crm.objects.contacts.highly_sensitive.write.v2",
+          "crm.objects.companies.read",
+          "crm.objects.custom.highly_sensitive.read.v2",
+          "crm.objects.carts.write",
+          "crm.objects.quotes.write",
+          "crm.objects.companies.highly_sensitive.read.v2",
+          "crm.objects.users.write",
+          "crm.objects.companies.highly_sensitive.write.v2",
+          "crm.objects.users.read",
+          "crm.objects.contacts.read",
+          "crm.objects.appointments.write",
+          "crm.objects.partner-clients.write",
+          "crm.objects.line_items.write",
+          "crm.objects.deals.highly_sensitive.write.v2",
+          "crm.objects.deals.write",
+          "crm.objects.services.read",
+          "crm.objects.custom.sensitive.read.v2",
+          "crm.objects.companies.sensitive.write.v2",
+          "crm.objects.appointments.read",
+          "crm.objects.invoices.read",
+          "crm.objects.partner-clients.read",
+          "crm.objects.courses.write",
+          "crm.objects.custom.highly_sensitive.write.v2",
+          "crm.objects.listings.read",
+          "crm.objects.listings.write",
+          "crm.objects.subscriptions.read",
+          "crm.objects.appointments.sensitive.write.v2",
+          "crm.objects.invoices.write",
+          "crm.objects.line_items.read",
+          "crm.objects.companies.sensitive.read.v2",
+          "crm.objects.appointments.sensitive.read.v2",
+          "crm.objects.commercepayments.write",
+          "crm.objects.leads.write",
+          "crm.objects.deals.sensitive.read.v2",
+          "crm.objects.goals.read",
+          "crm.objects.orders.read",
+          "crm.objects.contacts.sensitive.read.v2",
+          "media_bridge.read",
+          "crm.objects.deals.sensitive.write.v2",
+          "crm.objects.products.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/objects/{objectType}/batch/archive",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "objectType",
+        "tool_parameter_name": "hubspot_object_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "batch_object_ids",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"inputs\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"inputs\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"required\": [\n                \"id\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

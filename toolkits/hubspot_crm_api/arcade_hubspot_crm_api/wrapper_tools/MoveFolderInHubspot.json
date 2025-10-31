@@ -1,0 +1,144 @@
+{
+  "name": "MoveFolderInHubspot",
+  "fully_qualified_name": "HubspotCrmApi.MoveFolderInHubspot@0.1.0",
+  "description": "Move a folder to a new parent in HubSpot CRM.\n\nThis tool moves a folder to a new parent location in HubSpot CRM, updating the folder's parent ID to the specified new ID. Use this when you need to reorganize folder structures within the CRM.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "folder_id_to_move",
+        "required": true,
+        "description": "The ID of the folder you want to move to a new location in HubSpot CRM.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the folder to move"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folderId"
+      },
+      {
+        "name": "target_parent_folder_id",
+        "required": true,
+        "description": "The ID of the target parent folder to which the current folder will be moved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID for the target parent folder."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "newParentFolderId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-/crm/v3/lists/folders/{folderId}/move/{newParentFolderId}_move'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.lists.write",
+          "cms.membership.access_groups.write",
+          "crm.lists.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/lists/folders/{folderId}/move/{newParentFolderId}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "folderId",
+        "tool_parameter_name": "folder_id_to_move",
+        "description": "The ID of the folder to move",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the folder to move"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "newParentFolderId",
+        "tool_parameter_name": "target_parent_folder_id",
+        "description": "The ID for the target parent folder.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID for the target parent folder."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

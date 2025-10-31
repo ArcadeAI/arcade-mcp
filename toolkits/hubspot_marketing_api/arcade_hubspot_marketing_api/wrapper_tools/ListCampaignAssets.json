@@ -1,0 +1,274 @@
+{
+  "name": "ListCampaignAssets",
+  "fully_qualified_name": "HubspotMarketingApi.ListCampaignAssets@0.1.0",
+  "description": "Retrieve all assets of a specified type for a campaign.\n\nThis tool lists all assets of a particular type within a specified marketing campaign. It can also fetch asset metrics if start and end dates are provided, allowing for detailed analysis of campaign performance.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "campaign_identifier",
+        "required": true,
+        "description": "Unique identifier for the campaign in UUID format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the campaign, formatted as a UUID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "campaignGuid"
+      },
+      {
+        "name": "asset_type",
+        "required": true,
+        "description": "The type of asset to fetch for the campaign, e.g., 'email', 'webpage'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of asset to fetch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assetType"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A cursor for pagination. If provided, results start after this cursor. Example: NTI1Cg%3D%3D",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for pagination. If provided, the results will start after the given cursor.\nExample: NTI1Cg%3D%3D"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "maximum_results_limit",
+        "required": false,
+        "description": "The maximum number of asset results to return. Default is 10.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return.\nDefault: 10"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "metrics_start_date",
+        "required": false,
+        "description": "Start date to fetch asset metrics, formatted as YYYY-MM-DD. Used to fetch metrics for a specified period. If not provided, no metrics will be fetched.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date to fetch asset metrics, formatted as YYYY-MM-DD. This date is used to fetch the metrics associated with the assets for a specified period.\nIf not provided, no asset metrics will be fetched.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "startDate"
+      },
+      {
+        "name": "end_date_for_asset_metrics",
+        "required": false,
+        "description": "End date to fetch asset metrics, formatted as YYYY-MM-DD. Used for fetching metrics of assets within a specified period. Optional parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date to fetch asset metrics, formatted as YYYY-MM-DD. This date is used to fetch the metrics associated with the assets for a specified period.\nIf not provided, no asset metrics will be fetched."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "endDate"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/marketing/v3/campaigns/{campaignGuid}/assets/{assetType}'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "marketing.campaigns.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/campaigns/{campaignGuid}/assets/{assetType}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A cursor for pagination. If provided, the results will start after the given cursor.\nExample: NTI1Cg%3D%3D",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for pagination. If provided, the results will start after the given cursor.\nExample: NTI1Cg%3D%3D"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_results_limit",
+        "description": "The maximum number of results to return.\nDefault: 10",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return.\nDefault: 10"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "startDate",
+        "tool_parameter_name": "metrics_start_date",
+        "description": "Start date to fetch asset metrics, formatted as YYYY-MM-DD. This date is used to fetch the metrics associated with the assets for a specified period.\nIf not provided, no asset metrics will be fetched.\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date to fetch asset metrics, formatted as YYYY-MM-DD. This date is used to fetch the metrics associated with the assets for a specified period.\nIf not provided, no asset metrics will be fetched.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "endDate",
+        "tool_parameter_name": "end_date_for_asset_metrics",
+        "description": "End date to fetch asset metrics, formatted as YYYY-MM-DD. This date is used to fetch the metrics associated with the assets for a specified period.\nIf not provided, no asset metrics will be fetched.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date to fetch asset metrics, formatted as YYYY-MM-DD. This date is used to fetch the metrics associated with the assets for a specified period.\nIf not provided, no asset metrics will be fetched."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "campaignGuid",
+        "tool_parameter_name": "campaign_identifier",
+        "description": "Unique identifier for the campaign, formatted as a UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the campaign, formatted as a UUID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assetType",
+        "tool_parameter_name": "asset_type",
+        "description": "The type of asset to fetch.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of asset to fetch."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

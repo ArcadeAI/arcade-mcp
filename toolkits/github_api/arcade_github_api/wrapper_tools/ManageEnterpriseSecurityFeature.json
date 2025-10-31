@@ -1,0 +1,197 @@
+{
+  "name": "ManageEnterpriseSecurityFeature",
+  "fully_qualified_name": "GithubApi.ManageEnterpriseSecurityFeature@0.1.0",
+  "description": "Enable or disable a security feature for an enterprise.\n\nUse this tool to enable or disable a specified security feature across all repositories within an enterprise. Requires administrative access and an access token with the `admin:enterprise` scope.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_identifier",
+        "required": true,
+        "description": "The slug version of the enterprise name or the enterprise ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterprise"
+      },
+      {
+        "name": "security_feature",
+        "required": true,
+        "description": "Specify the security feature to enable or disable. Options: 'advanced_security', 'secret_scanning', 'secret_scanning_push_protection'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "advanced_security",
+            "secret_scanning",
+            "secret_scanning_push_protection"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The security feature to enable or disable."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "security_product"
+      },
+      {
+        "name": "set_enablement_status",
+        "required": true,
+        "description": "Specify 'enable_all' to activate or 'disable_all' to deactivate the security feature for all repositories in the enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "enable_all",
+            "disable_all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The action to take.\n\n`enable_all` means to enable the specified security feature for all repositories in the enterprise.\n`disable_all` means to disable the specified security feature for all repositories in the enterprise."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enablement"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'secret-scanning/post-security-product-enablement-for-enterprise'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/enterprises/{enterprise}/{security_product}/{enablement}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterprise",
+        "tool_parameter_name": "enterprise_identifier",
+        "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug version of the enterprise name. You can also substitute this value with the enterprise id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "security_product",
+        "tool_parameter_name": "security_feature",
+        "description": "The security feature to enable or disable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "advanced_security",
+            "secret_scanning",
+            "secret_scanning_push_protection"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The security feature to enable or disable."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "enablement",
+        "tool_parameter_name": "set_enablement_status",
+        "description": "The action to take.\n\n`enable_all` means to enable the specified security feature for all repositories in the enterprise.\n`disable_all` means to disable the specified security feature for all repositories in the enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "enable_all",
+            "disable_all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The action to take.\n\n`enable_all` means to enable the specified security feature for all repositories in the enterprise.\n`disable_all` means to disable the specified security feature for all repositories in the enterprise."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

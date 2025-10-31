@@ -1,0 +1,724 @@
+{
+  "name": "UpdateCheckRunStatus",
+  "fully_qualified_name": "GithubApi.UpdateCheckRunStatus@0.1.0",
+  "description": "Update a check run for a specific commit in a repository.\n\nThis tool updates a check run for a specific commit within a repository. It is useful when you need to modify the status or details of check runs created by a GitHub App. Ensure the app has the 'checks:write' permission to perform this action.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. This is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the repository to update the check run. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "check_run_identifier",
+        "required": true,
+        "description": "The unique identifier of the check run to update. This should be an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the check run."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "check_run_id"
+      },
+      {
+        "name": "check_run_request_body",
+        "required": true,
+        "description": "The JSON body to update the check run. It includes actions, completion details, status, conclusions, and more. Use ISO 8601 format for timestamps and adhere to size limits for strings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "actions": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A short explanation of what this action would do. The maximum size is 40 characters."
+                },
+                "identifier": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A reference for the action on the integrator's system. The maximum size is 20 characters."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The text to be displayed on a button in the web UI. The maximum size is 20 characters."
+                }
+              },
+              "description": "Possible further actions the integrator can perform, which a user may trigger. Each action includes a `label`, `identifier` and `description`. A maximum of three actions are accepted. See the [`actions` object](https://docs.github.com/enterprise-server@3.8/rest/reference/checks#actions-object) description. To learn more about check runs and requested actions, see \"[Check runs and requested actions](https://docs.github.com/enterprise-server@3.8/rest/reference/checks#check-runs-and-requested-actions).\""
+            },
+            "completed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time the check completed. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+            },
+            "conclusion": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "action_required",
+                "cancelled",
+                "failure",
+                "neutral",
+                "success",
+                "skipped",
+                "stale",
+                "timed_out"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "**Required if you provide `completed_at` or a `status` of `completed`**. The final conclusion of the check. \n**Note:** Providing `conclusion` will automatically set the `status` parameter to `completed`. You cannot change a check run conclusion to `stale`, only GitHub can set this."
+            },
+            "details_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL of the integrator's site that has the full details of the check."
+            },
+            "external_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A reference for the run on the integrator's system."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the check. For example, \"code-coverage\"."
+            },
+            "output": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "annotations": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "annotation_level": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "notice",
+                        "warning",
+                        "failure"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The level of the annotation."
+                    },
+                    "end_column": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The end column of the annotation. Annotations only support `start_column` and `end_column` on the same line. Omit this parameter if `start_line` and `end_line` have different values."
+                    },
+                    "end_line": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The end line of the annotation."
+                    },
+                    "message": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A short description of the feedback for these lines of code. The maximum size is 64 KB."
+                    },
+                    "path": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The path of the file to add an annotation to. For example, `assets/css/main.css`."
+                    },
+                    "raw_details": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Details about this annotation. The maximum size is 64 KB."
+                    },
+                    "start_column": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The start column of the annotation. Annotations only support `start_column` and `end_column` on the same line. Omit this parameter if `start_line` and `end_line` have different values. Column numbers start at 1."
+                    },
+                    "start_line": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The start line of the annotation. Line numbers start at 1."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title that represents the annotation. The maximum size is 255 characters."
+                    }
+                  },
+                  "description": "Adds information from your analysis to specific lines of code. Annotations are visible in GitHub's pull request UI. Annotations are visible in GitHub's pull request UI. The Checks API limits the number of annotations to a maximum of 50 per API request. To create more than 50 annotations, you have to make multiple requests to the [Update a check run](https://docs.github.com/enterprise-server@3.8/rest/reference/checks#update-a-check-run) endpoint. Each time you update the check run, annotations are appended to the list of annotations that already exist for the check run. For details about annotations in the UI, see \"[About status checks](https://docs.github.com/enterprise-server@3.8/articles/about-status-checks#checks)\"."
+                },
+                "images": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "alt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The alternative text for the image."
+                    },
+                    "caption": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A short image description."
+                    },
+                    "image_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The full URL of the image."
+                    }
+                  },
+                  "description": "Adds images to the output displayed in the GitHub pull request UI."
+                },
+                "summary": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Can contain Markdown."
+                },
+                "text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Can contain Markdown."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "**Required**."
+                }
+              },
+              "inner_properties": null,
+              "description": "Check runs can accept a variety of data in the `output` object, including a `title` and `summary` and can optionally provide descriptive details about the run."
+            },
+            "started_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "queued",
+                "in_progress",
+                "completed"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The current status."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'checks/update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/check-runs/{check_run_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "check_run_id",
+        "tool_parameter_name": "check_run_identifier",
+        "description": "The unique identifier of the check run.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the check run."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "check_run_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "actions": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A short explanation of what this action would do. The maximum size is 40 characters."
+                },
+                "identifier": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A reference for the action on the integrator's system. The maximum size is 20 characters."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The text to be displayed on a button in the web UI. The maximum size is 20 characters."
+                }
+              },
+              "description": "Possible further actions the integrator can perform, which a user may trigger. Each action includes a `label`, `identifier` and `description`. A maximum of three actions are accepted. See the [`actions` object](https://docs.github.com/enterprise-server@3.8/rest/reference/checks#actions-object) description. To learn more about check runs and requested actions, see \"[Check runs and requested actions](https://docs.github.com/enterprise-server@3.8/rest/reference/checks#check-runs-and-requested-actions).\""
+            },
+            "completed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time the check completed. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+            },
+            "conclusion": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "action_required",
+                "cancelled",
+                "failure",
+                "neutral",
+                "success",
+                "skipped",
+                "stale",
+                "timed_out"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "**Required if you provide `completed_at` or a `status` of `completed`**. The final conclusion of the check. \n**Note:** Providing `conclusion` will automatically set the `status` parameter to `completed`. You cannot change a check run conclusion to `stale`, only GitHub can set this."
+            },
+            "details_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL of the integrator's site that has the full details of the check."
+            },
+            "external_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A reference for the run on the integrator's system."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the check. For example, \"code-coverage\"."
+            },
+            "output": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "annotations": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "annotation_level": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "notice",
+                        "warning",
+                        "failure"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The level of the annotation."
+                    },
+                    "end_column": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The end column of the annotation. Annotations only support `start_column` and `end_column` on the same line. Omit this parameter if `start_line` and `end_line` have different values."
+                    },
+                    "end_line": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The end line of the annotation."
+                    },
+                    "message": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A short description of the feedback for these lines of code. The maximum size is 64 KB."
+                    },
+                    "path": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The path of the file to add an annotation to. For example, `assets/css/main.css`."
+                    },
+                    "raw_details": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Details about this annotation. The maximum size is 64 KB."
+                    },
+                    "start_column": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The start column of the annotation. Annotations only support `start_column` and `end_column` on the same line. Omit this parameter if `start_line` and `end_line` have different values. Column numbers start at 1."
+                    },
+                    "start_line": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The start line of the annotation. Line numbers start at 1."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title that represents the annotation. The maximum size is 255 characters."
+                    }
+                  },
+                  "description": "Adds information from your analysis to specific lines of code. Annotations are visible in GitHub's pull request UI. Annotations are visible in GitHub's pull request UI. The Checks API limits the number of annotations to a maximum of 50 per API request. To create more than 50 annotations, you have to make multiple requests to the [Update a check run](https://docs.github.com/enterprise-server@3.8/rest/reference/checks#update-a-check-run) endpoint. Each time you update the check run, annotations are appended to the list of annotations that already exist for the check run. For details about annotations in the UI, see \"[About status checks](https://docs.github.com/enterprise-server@3.8/articles/about-status-checks#checks)\"."
+                },
+                "images": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "alt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The alternative text for the image."
+                    },
+                    "caption": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A short image description."
+                    },
+                    "image_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The full URL of the image."
+                    }
+                  },
+                  "description": "Adds images to the output displayed in the GitHub pull request UI."
+                },
+                "summary": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Can contain Markdown."
+                },
+                "text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Can contain Markdown."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "**Required**."
+                }
+              },
+              "inner_properties": null,
+              "description": "Check runs can accept a variety of data in the `output` object, including a `title` and `summary` and can optionally provide descriptive details about the run."
+            },
+            "started_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "queued",
+                "in_progress",
+                "completed"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The current status."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"completed_at\": \"2018-05-04T01:14:52+00:00\",\n            \"conclusion\": \"success\",\n            \"name\": \"mighty_readme\",\n            \"output\": {\n              \"annotations\": [\n                {\n                  \"annotation_level\": \"warning\",\n                  \"end_line\": 2,\n                  \"message\": \"Check your spelling for 'banaas'.\",\n                  \"path\": \"README.md\",\n                  \"raw_details\": \"Do you mean 'bananas' or 'banana'?\",\n                  \"start_line\": 2,\n                  \"title\": \"Spell Checker\"\n                },\n                {\n                  \"annotation_level\": \"warning\",\n                  \"end_line\": 4,\n                  \"message\": \"Check your spelling for 'aples'\",\n                  \"path\": \"README.md\",\n                  \"raw_details\": \"Do you mean 'apples' or 'Naples'\",\n                  \"start_line\": 4,\n                  \"title\": \"Spell Checker\"\n                }\n              ],\n              \"images\": [\n                {\n                  \"alt\": \"Super bananas\",\n                  \"image_url\": \"http://example.com/images/42\"\n                }\n              ],\n              \"summary\": \"There are 0 failures, 2 warnings, and 1 notices.\",\n              \"text\": \"You may have some misspelled words on lines 2 and 4. You also may want to add a section in your README about how to install your app.\",\n              \"title\": \"Mighty Readme report\"\n            },\n            \"started_at\": \"2018-05-04T01:14:52+00:00\",\n            \"status\": \"completed\"\n          }\n        }\n      },\n      \"schema\": {\n        \"anyOf\": [\n          {\n            \"additionalProperties\": true,\n            \"properties\": {\n              \"status\": {\n                \"enum\": [\n                  \"completed\"\n                ]\n              }\n            },\n            \"required\": [\n              \"conclusion\"\n            ]\n          },\n          {\n            \"additionalProperties\": true,\n            \"properties\": {\n              \"status\": {\n                \"enum\": [\n                  \"queued\",\n                  \"in_progress\"\n                ]\n              }\n            }\n          }\n        ],\n        \"properties\": {\n          \"actions\": {\n            \"description\": \"Possible further actions the integrator can perform, which a user may trigger. Each action includes a `label`, `identifier` and `description`. A maximum of three actions are accepted. See the [`actions` object](https://docs.github.com/enterprise-server@3.8/rest/reference/checks#actions-object) description. To learn more about check runs and requested actions, see \\\"[Check runs and requested actions](https://docs.github.com/enterprise-server@3.8/rest/reference/checks#check-runs-and-requested-actions).\\\"\",\n            \"items\": {\n              \"properties\": {\n                \"description\": {\n                  \"description\": \"A short explanation of what this action would do. The maximum size is 40 characters.\",\n                  \"maxLength\": 40,\n                  \"type\": \"string\"\n                },\n                \"identifier\": {\n                  \"description\": \"A reference for the action on the integrator's system. The maximum size is 20 characters.\",\n                  \"maxLength\": 20,\n                  \"type\": \"string\"\n                },\n                \"label\": {\n                  \"description\": \"The text to be displayed on a button in the web UI. The maximum size is 20 characters.\",\n                  \"maxLength\": 20,\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"label\",\n                \"description\",\n                \"identifier\"\n              ],\n              \"type\": \"object\"\n            },\n            \"maxItems\": 3,\n            \"type\": \"array\"\n          },\n          \"completed_at\": {\n            \"description\": \"The time the check completed. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.\",\n            \"format\": \"date-time\",\n            \"type\": \"string\"\n          },\n          \"conclusion\": {\n            \"description\": \"**Required if you provide `completed_at` or a `status` of `completed`**. The final conclusion of the check. \\n**Note:** Providing `conclusion` will automatically set the `status` parameter to `completed`. You cannot change a check run conclusion to `stale`, only GitHub can set this.\",\n            \"enum\": [\n              \"action_required\",\n              \"cancelled\",\n              \"failure\",\n              \"neutral\",\n              \"success\",\n              \"skipped\",\n              \"stale\",\n              \"timed_out\"\n            ],\n            \"type\": \"string\"\n          },\n          \"details_url\": {\n            \"description\": \"The URL of the integrator's site that has the full details of the check.\",\n            \"type\": \"string\"\n          },\n          \"external_id\": {\n            \"description\": \"A reference for the run on the integrator's system.\",\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"The name of the check. For example, \\\"code-coverage\\\".\",\n            \"type\": \"string\"\n          },\n          \"output\": {\n            \"description\": \"Check runs can accept a variety of data in the `output` object, including a `title` and `summary` and can optionally provide descriptive details about the run.\",\n            \"properties\": {\n              \"annotations\": {\n                \"description\": \"Adds information from your analysis to specific lines of code. Annotations are visible in GitHub's pull request UI. Annotations are visible in GitHub's pull request UI. The Checks API limits the number of annotations to a maximum of 50 per API request. To create more than 50 annotations, you have to make multiple requests to the [Update a check run](https://docs.github.com/enterprise-server@3.8/rest/reference/checks#update-a-check-run) endpoint. Each time you update the check run, annotations are appended to the list of annotations that already exist for the check run. For details about annotations in the UI, see \\\"[About status checks](https://docs.github.com/enterprise-server@3.8/articles/about-status-checks#checks)\\\".\",\n                \"items\": {\n                  \"properties\": {\n                    \"annotation_level\": {\n                      \"description\": \"The level of the annotation.\",\n                      \"enum\": [\n                        \"notice\",\n                        \"warning\",\n                        \"failure\"\n                      ],\n                      \"type\": \"string\"\n                    },\n                    \"end_column\": {\n                      \"description\": \"The end column of the annotation. Annotations only support `start_column` and `end_column` on the same line. Omit this parameter if `start_line` and `end_line` have different values.\",\n                      \"type\": \"integer\"\n                    },\n                    \"end_line\": {\n                      \"description\": \"The end line of the annotation.\",\n                      \"type\": \"integer\"\n                    },\n                    \"message\": {\n                      \"description\": \"A short description of the feedback for these lines of code. The maximum size is 64 KB.\",\n                      \"type\": \"string\"\n                    },\n                    \"path\": {\n                      \"description\": \"The path of the file to add an annotation to. For example, `assets/css/main.css`.\",\n                      \"type\": \"string\"\n                    },\n                    \"raw_details\": {\n                      \"description\": \"Details about this annotation. The maximum size is 64 KB.\",\n                      \"type\": \"string\"\n                    },\n                    \"start_column\": {\n                      \"description\": \"The start column of the annotation. Annotations only support `start_column` and `end_column` on the same line. Omit this parameter if `start_line` and `end_line` have different values. Column numbers start at 1.\",\n                      \"type\": \"integer\"\n                    },\n                    \"start_line\": {\n                      \"description\": \"The start line of the annotation. Line numbers start at 1.\",\n                      \"type\": \"integer\"\n                    },\n                    \"title\": {\n                      \"description\": \"The title that represents the annotation. The maximum size is 255 characters.\",\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"path\",\n                    \"start_line\",\n                    \"end_line\",\n                    \"annotation_level\",\n                    \"message\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"maxItems\": 50,\n                \"type\": \"array\"\n              },\n              \"images\": {\n                \"description\": \"Adds images to the output displayed in the GitHub pull request UI.\",\n                \"items\": {\n                  \"properties\": {\n                    \"alt\": {\n                      \"description\": \"The alternative text for the image.\",\n                      \"type\": \"string\"\n                    },\n                    \"caption\": {\n                      \"description\": \"A short image description.\",\n                      \"type\": \"string\"\n                    },\n                    \"image_url\": {\n                      \"description\": \"The full URL of the image.\",\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"alt\",\n                    \"image_url\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"type\": \"array\"\n              },\n              \"summary\": {\n                \"description\": \"Can contain Markdown.\",\n                \"maxLength\": 65535,\n                \"type\": \"string\"\n              },\n              \"text\": {\n                \"description\": \"Can contain Markdown.\",\n                \"maxLength\": 65535,\n                \"type\": \"string\"\n              },\n              \"title\": {\n                \"description\": \"**Required**.\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"summary\"\n            ],\n            \"type\": \"object\"\n          },\n          \"started_at\": {\n            \"description\": \"This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.\",\n            \"format\": \"date-time\",\n            \"type\": \"string\"\n          },\n          \"status\": {\n            \"description\": \"The current status.\",\n            \"enum\": [\n              \"queued\",\n              \"in_progress\",\n              \"completed\"\n            ],\n            \"type\": \"string\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

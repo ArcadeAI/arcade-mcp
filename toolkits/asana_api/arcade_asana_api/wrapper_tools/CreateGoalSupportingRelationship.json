@@ -1,0 +1,303 @@
+{
+  "name": "CreateGoalSupportingRelationship",
+  "fully_qualified_name": "AsanaApi.CreateGoalSupportingRelationship@0.1.0",
+  "description": "Add a supporting resource to a specific goal in Asana.\n\nUse this tool to create a relationship between a goal and a supporting resource in Asana by specifying the goal ID. This tool is useful when you need to associate additional resources with an existing goal.",
+  "toolkit": {
+    "name": "AsanaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "goal_global_identifier",
+        "required": true,
+        "description": "Globally unique identifier for the goal to which a supporting resource will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the goal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "goal_gid"
+      },
+      {
+        "name": "include_optional_fields",
+        "required": false,
+        "description": "Comma-separated list of optional resource properties to include in the response.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_fields"
+      },
+      {
+        "name": "supporting_resource_id",
+        "required": false,
+        "description": "The GID of the supporting resource to add to the parent goal. It must be the GID of a goal, project, task, or portfolio.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The gid of the supporting resource to add to the parent goal. Must be the gid of a goal, project, task, or portfolio."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.supporting_resource"
+      },
+      {
+        "name": "insert_subgoal_before_id",
+        "required": false,
+        "description": "The ID of an existing subgoal. The new subgoal will be placed before this subgoal. Cannot be used with `insert_after_subgoal_id`. Only for adding subgoals.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An id of a subgoal of this parent goal. The new subgoal will be added before the one specified here. `insert_before` and `insert_after` parameters cannot both be specified. Currently only supported when adding a subgoal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_before"
+      },
+      {
+        "name": "insert_after_subgoal_id",
+        "required": false,
+        "description": "ID of the subgoal to insert the new subgoal after. Cannot use with `insert_before`. Only for subgoal addition.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An id of a subgoal of this parent goal. The new subgoal will be added after the one specified here. `insert_before` and `insert_after` parameters cannot both be specified. Currently only supported when adding a subgoal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.insert_after"
+      },
+      {
+        "name": "supporting_goal_contribution_weight",
+        "required": false,
+        "description": "A number between 0 and 1 indicating the supporting goal's contribution to the parent goal's progress. Defaults to 0.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines how much the supporting goal\u2019s progress contributes to the parent goal\u2019s overall progress. When used with automatically calculated [Goal Metrics](/reference/creategoalmetric) (such as `progress_source = subgoal_progress`), this value must be greater than 0 for the subgoal to count toward the parent goal\u2019s progress.\nAccepts a number between 0 and 1 (inclusive). Defaults to `0`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.contribution_weight"
+      },
+      {
+        "name": "enable_pretty_output",
+        "required": false,
+        "description": "Enable to receive the response in a formatted and indented manner for easier readability. Recommended for debugging purposes as it increases response time and size.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "opt_pretty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'addSupportingRelationship'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-asana",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the asana API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://app.asana.com/api/1.0/goals/{goal_gid}/addSupportingRelationship",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "opt_pretty",
+        "tool_parameter_name": "enable_pretty_output",
+        "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provides \u201cpretty\u201d output.\nProvides the response in a \u201cpretty\u201d format. In the case of JSON this means doing proper line breaking and indentation to make it readable. This will take extra time and increase the response size so it is advisable only to use this during debugging."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "opt_fields",
+        "tool_parameter_name": "include_optional_fields",
+        "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This endpoint returns a resource which excludes some properties by default. To include those optional properties, set this query parameter to a comma-separated list of the properties you wish to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "goal_gid",
+        "tool_parameter_name": "goal_global_identifier",
+        "description": "Globally unique identifier for the goal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Globally unique identifier for the goal."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.supporting_resource",
+        "tool_parameter_name": "supporting_resource_id",
+        "description": "The gid of the supporting resource to add to the parent goal. Must be the gid of a goal, project, task, or portfolio.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The gid of the supporting resource to add to the parent goal. Must be the gid of a goal, project, task, or portfolio."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_before",
+        "tool_parameter_name": "insert_subgoal_before_id",
+        "description": "An id of a subgoal of this parent goal. The new subgoal will be added before the one specified here. `insert_before` and `insert_after` parameters cannot both be specified. Currently only supported when adding a subgoal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An id of a subgoal of this parent goal. The new subgoal will be added before the one specified here. `insert_before` and `insert_after` parameters cannot both be specified. Currently only supported when adding a subgoal."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.insert_after",
+        "tool_parameter_name": "insert_after_subgoal_id",
+        "description": "An id of a subgoal of this parent goal. The new subgoal will be added after the one specified here. `insert_before` and `insert_after` parameters cannot both be specified. Currently only supported when adding a subgoal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An id of a subgoal of this parent goal. The new subgoal will be added after the one specified here. `insert_before` and `insert_after` parameters cannot both be specified. Currently only supported when adding a subgoal."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.contribution_weight",
+        "tool_parameter_name": "supporting_goal_contribution_weight",
+        "description": "Defines how much the supporting goal\u2019s progress contributes to the parent goal\u2019s overall progress. When used with automatically calculated [Goal Metrics](/reference/creategoalmetric) (such as `progress_source = subgoal_progress`), this value must be greater than 0 for the subgoal to count toward the parent goal\u2019s progress.\nAccepts a number between 0 and 1 (inclusive). Defaults to `0`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines how much the supporting goal\u2019s progress contributes to the parent goal\u2019s overall progress. When used with automatically calculated [Goal Metrics](/reference/creategoalmetric) (such as `progress_source = subgoal_progress`), this value must be greater than 0 for the subgoal to count toward the parent goal\u2019s progress.\nAccepts a number between 0 and 1 (inclusive). Defaults to `0`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The supporting resource to be added to the goal\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"data\": {\n            \"type\": \"object\",\n            \"required\": [\n              \"supporting_resource\"\n            ],\n            \"properties\": {\n              \"supporting_resource\": {\n                \"description\": \"The gid of the supporting resource to add to the parent goal. Must be the gid of a goal, project, task, or portfolio.\",\n                \"type\": \"string\",\n                \"example\": \"12345\"\n              },\n              \"insert_before\": {\n                \"description\": \"An id of a subgoal of this parent goal. The new subgoal will be added before the one specified here. `insert_before` and `insert_after` parameters cannot both be specified. Currently only supported when adding a subgoal.\",\n                \"type\": \"string\",\n                \"example\": \"1331\"\n              },\n              \"insert_after\": {\n                \"description\": \"An id of a subgoal of this parent goal. The new subgoal will be added after the one specified here. `insert_before` and `insert_after` parameters cannot both be specified. Currently only supported when adding a subgoal.\",\n                \"type\": \"string\",\n                \"example\": \"1331\"\n              },\n              \"contribution_weight\": {\n                \"description\": \"Defines how much the supporting goal\\u2019s progress contributes to the parent goal\\u2019s overall progress. When used with automatically calculated [Goal Metrics](/reference/creategoalmetric) (such as `progress_source = subgoal_progress`), this value must be greater than 0 for the subgoal to count toward the parent goal\\u2019s progress.\\nAccepts a number between 0 and 1 (inclusive). Defaults to `0`.\",\n                \"type\": \"number\",\n                \"example\": 0\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

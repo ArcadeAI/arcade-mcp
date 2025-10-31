@@ -1,0 +1,396 @@
+{
+  "name": "UpdateGithubRepoWebhook",
+  "fully_qualified_name": "GithubApi.UpdateGithubRepoWebhook@0.1.0",
+  "description": "Update a webhook for a GitHub repository.\n\nThis tool updates an existing webhook configured in a GitHub repository. It requires specifying the owner, repository, and hook ID. It is useful for changing webhook configurations or updating secrets.",
+  "toolkit": {
+    "name": "ArcadeGithubApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "repository_owner",
+        "required": true,
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner"
+      },
+      {
+        "name": "repository_name",
+        "required": true,
+        "description": "The name of the GitHub repository to update. It is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "webhook_unique_identifier",
+        "required": true,
+        "description": "The unique identifier of the webhook to be updated. It must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the hook."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "hook_id"
+      },
+      {
+        "name": "webhook_configuration",
+        "required": true,
+        "description": "A JSON object containing settings for the webhook, including active status, config details, and events to add or remove.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines if notifications are sent when the webhook is triggered. Set to `true` to send notifications."
+            },
+            "add_events": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines a list of events to be added to the list of events that the Hook triggers for."
+            },
+            "config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "content_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+                },
+                "insecure_ssl": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "room": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "secret": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value for [delivery signature headers](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers)."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL to which the payloads will be delivered."
+                }
+              },
+              "inner_properties": null,
+              "description": "Key/value pairs to provide settings for this webhook. [These are defined below](https://docs.github.com/enterprise-server@3.8/rest/reference/repos#create-hook-config-params)."
+            },
+            "events": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines what [events](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads) the hook is triggered for. This replaces the entire array of events."
+            },
+            "remove_events": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines a list of events to be removed from the list of events that the Hook triggers for."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'repos/update-webhook'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-github",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": [
+      {
+        "key": "GIT_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the GitHub API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{git_server_url}/api/v3/repos/{owner}/{repo}/hooks/{hook_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "owner",
+        "tool_parameter_name": "repository_owner",
+        "description": "The account owner of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The account owner of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "repository_name",
+        "description": "The name of the repository. The name is not case sensitive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the repository. The name is not case sensitive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "hook_id",
+        "tool_parameter_name": "webhook_unique_identifier",
+        "description": "The unique identifier of the hook.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the hook."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "webhook_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines if notifications are sent when the webhook is triggered. Set to `true` to send notifications."
+            },
+            "add_events": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines a list of events to be added to the list of events that the Hook triggers for."
+            },
+            "config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "content_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+                },
+                "insecure_ssl": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "room": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "secret": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value for [delivery signature headers](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers)."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL to which the payloads will be delivered."
+                }
+              },
+              "inner_properties": null,
+              "description": "Key/value pairs to provide settings for this webhook. [These are defined below](https://docs.github.com/enterprise-server@3.8/rest/reference/repos#create-hook-config-params)."
+            },
+            "events": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines what [events](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads) the hook is triggered for. This replaces the entire array of events."
+            },
+            "remove_events": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines a list of events to be removed from the list of events that the Hook triggers for."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "GIT_SERVER_URL",
+        "parameter_name": "git_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"default\": {\n          \"value\": {\n            \"active\": true,\n            \"add_events\": [\n              \"pull_request\"\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"active\": {\n            \"default\": true,\n            \"description\": \"Determines if notifications are sent when the webhook is triggered. Set to `true` to send notifications.\",\n            \"type\": \"boolean\"\n          },\n          \"add_events\": {\n            \"description\": \"Determines a list of events to be added to the list of events that the Hook triggers for.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"config\": {\n            \"description\": \"Key/value pairs to provide settings for this webhook. [These are defined below](https://docs.github.com/enterprise-server@3.8/rest/reference/repos#create-hook-config-params).\",\n            \"properties\": {\n              \"address\": {\n                \"example\": \"\\\"bar@example.com\\\"\",\n                \"type\": \"string\"\n              },\n              \"content_type\": {\n                \"description\": \"The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`.\",\n                \"example\": \"\\\"json\\\"\",\n                \"type\": \"string\"\n              },\n              \"insecure_ssl\": {\n                \"oneOf\": [\n                  {\n                    \"description\": \"Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**\",\n                    \"example\": \"\\\"0\\\"\",\n                    \"type\": \"string\"\n                  },\n                  {\n                    \"type\": \"number\"\n                  }\n                ]\n              },\n              \"room\": {\n                \"example\": \"\\\"The Serious Room\\\"\",\n                \"type\": \"string\"\n              },\n              \"secret\": {\n                \"description\": \"If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value for [delivery signature headers](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads/#delivery-headers).\",\n                \"example\": \"\\\"********\\\"\",\n                \"type\": \"string\"\n              },\n              \"url\": {\n                \"description\": \"The URL to which the payloads will be delivered.\",\n                \"example\": \"https://example.com/webhook\",\n                \"format\": \"uri\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"url\"\n            ],\n            \"type\": \"object\"\n          },\n          \"events\": {\n            \"default\": [\n              \"push\"\n            ],\n            \"description\": \"Determines what [events](https://docs.github.com/enterprise-server@3.8/webhooks/event-payloads) the hook is triggered for. This replaces the entire array of events.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          },\n          \"remove_events\": {\n            \"description\": \"Determines a list of events to be removed from the list of events that the Hook triggers for.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
