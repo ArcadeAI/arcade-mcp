@@ -172,9 +172,17 @@ async def _monitor_deployment_with_logs(
     api_key: str,
     server_name: str,
     debug: bool = False,
+    is_update: bool = False,
 ) -> tuple[Literal["running", "failed"], list[str]]:
     """
     Monitor deployment with live status and streaming logs display.
+
+    Args:
+        engine_url: The base URL of the Arcade Engine
+        api_key: The API key for authentication
+        server_name: The name of the server to monitor
+        debug: Whether to show debug information
+        is_update: If True, wait for status to be 'updating' before streaming logs or 'failed' before exiting
 
     Returns:
         Tuple of (final status, list of all logs collected)
@@ -193,6 +201,13 @@ async def _monitor_deployment_with_logs(
     status_task = asyncio.create_task(
         _poll_deployment_status(engine_url, api_key, server_name, state, debug)
     )
+
+    # Don't stream logs until the deployment is 'updating' or 'failed' otherwise we will get logs from the previous deployment
+    if is_update:
+        while state["status"] not in ["updating", "failed"]:
+            await asyncio.sleep(1)
+
+    # Start log streaming task
     logs_task = asyncio.create_task(
         _stream_deployment_logs_to_deque(engine_url, api_key, server_name, log_deque, state, debug)
     )
@@ -794,6 +809,7 @@ def deploy_server_logic(
         raise ValueError(f"Failed to create package archive: {e}") from e
 
     # Step 7: Send deployment request to engine
+    is_update = False
     try:
         toolkit_bundle = ToolkitBundle(
             name=server_name,
@@ -805,6 +821,7 @@ def deploy_server_logic(
         deployment_toolkits = DeploymentToolkits(bundles=[toolkit_bundle])
 
         if server_already_exists(engine_url, config.api.key, server_name):
+            is_update = True
             update_request = UpdateDeploymentRequest(
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
@@ -822,7 +839,7 @@ def deploy_server_logic(
 
     # Step 8: Monitor deployment with live status and logs
     final_status, all_logs = asyncio.run(
-        _monitor_deployment_with_logs(engine_url, config.api.key, server_name, debug)
+        _monitor_deployment_with_logs(engine_url, config.api.key, server_name, debug, is_update)
     )
 
     if final_status == "running":
