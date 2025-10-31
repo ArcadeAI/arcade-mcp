@@ -283,7 +283,6 @@ class ToolCatalog(BaseModel):
                     module = import_module(module_name)
                     tool_func = getattr(module, tool_name)
                     self.add_tool(tool_func, toolkit, module)
-
                 except ToolDefinitionError as e:
                     raise e.with_context(tool_name) from e
                 except ToolkitLoadError as e:
