@@ -1,0 +1,137 @@
+{
+  "name": "RetrieveAuthServerKey",
+  "fully_qualified_name": "OktaApi.RetrieveAuthServerKey@0.1.0",
+  "description": "Retrieve specific Authorization Server Key details.\n\nUsed to fetch details of a specified Authorization Server Key using the `keyId`. This is helpful when verifying or utilizing specific keys in the Okta system.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "authorization_server_id",
+        "required": true,
+        "description": "The unique identifier of the Authorization Server whose key details are to be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "authServerId"
+      },
+      {
+        "name": "certificate_key_id",
+        "required": true,
+        "description": "The unique identifier (`id`) of the certificate key to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the certificate key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "keyId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getAuthorizationServerKey'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.authorizationServers.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/authorizationServers/{authServerId}/credentials/keys/{keyId}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "authServerId",
+        "tool_parameter_name": "authorization_server_id",
+        "description": "`id` of the Authorization Server",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "keyId",
+        "tool_parameter_name": "certificate_key_id",
+        "description": "`id` of the certificate key",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the certificate key"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
