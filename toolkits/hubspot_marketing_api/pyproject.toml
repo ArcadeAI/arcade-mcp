@@ -34,6 +34,11 @@ dev = [
 [project.entry-points.arcade_toolkits]
 toolkit_name = "arcade_hubspot_marketing_api"
 
+# Use local path sources for arcade libs when working locally
+[tool.uv.sources]
+arcade-mcp = { path = "../../", editable = true }
+arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
+arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 [tool.mypy]
 files = [ "arcade_hubspot_marketing_api/**/*.py",]
 python_version = "3.10"

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "arcade_hubspot_crm_api"
 version = "0.1.0"
-description = "Tools that enable LLMs to interact directly with the hubspot_crm API."
+description = "Tools that enable LLMs to interact directly with the Hubspot CRM API."
 requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>=3.0.0,<4.0.0",
