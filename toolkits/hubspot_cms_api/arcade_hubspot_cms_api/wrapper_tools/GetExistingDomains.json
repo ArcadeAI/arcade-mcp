@@ -1,0 +1,410 @@
+{
+  "name": "GetExistingDomains",
+  "fully_qualified_name": "HubspotCmsApi.GetExistingDomains@0.1.0",
+  "description": "Retrieve all existing domains in the CMS.\n\nFetches a list of all domains that have been created in the CMS, with optional filters by creation or update date.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "created_at_date_filter",
+        "required": false,
+        "description": "Specify a date to return only domains created on this exact date. Format: YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains created at this date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdAt"
+      },
+      {
+        "name": "get_domains_created_after_date",
+        "required": false,
+        "description": "Only return domains created after the specified date (in YYYY-MM-DD format).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains created after this date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdAfter"
+      },
+      {
+        "name": "created_before_date",
+        "required": false,
+        "description": "Filter to return only domains created before the specified date. Format: YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains created before this date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdBefore"
+      },
+      {
+        "name": "filter_by_update_date",
+        "required": false,
+        "description": "Only return domains updated on this specific date. Use 'YYYY-MM-DD' format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains updated at this date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updatedAt"
+      },
+      {
+        "name": "filter_domains_updated_after",
+        "required": false,
+        "description": "Return domains updated after this specified date. Use ISO 8601 format (YYYY-MM-DD).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains updated after this date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updatedAfter"
+      },
+      {
+        "name": "filter_updated_before_date",
+        "required": false,
+        "description": "Return only domains updated before this date in ISO 8601 format (e.g., '2023-10-05T00:00:00Z').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains updated before this date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updatedBefore"
+      },
+      {
+        "name": "sort_criteria",
+        "required": false,
+        "description": "Defines the order of the domain results. Provide an array of strings specifying fields to sort by, such as ['createdAt', 'updatedAt'].",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "paging_cursor_token",
+        "required": false,
+        "description": "The paging cursor token of the last successfully read resource, used for paginated results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The paging cursor token of the last successfully read resource will be returned as the `paging.next.after` JSON property of a paged response containing more results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "maximum_results_per_page",
+        "required": false,
+        "description": "Specifies the maximum number of domain results to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "return_archived",
+        "required": false,
+        "description": "Return only archived domains if true. Return unarchived if false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only results that have been archived."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/cms/v3/domains/_getPage'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "cms.knowledge_base.settings.read",
+          "cms.domains.read",
+          "cms.knowledge_base.settings.write",
+          "content",
+          "cms.domains.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/domains/",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "createdAt",
+        "tool_parameter_name": "created_at_date_filter",
+        "description": "Only return domains created at this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains created at this date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "createdAfter",
+        "tool_parameter_name": "get_domains_created_after_date",
+        "description": "Only return domains created after this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains created after this date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "createdBefore",
+        "tool_parameter_name": "created_before_date",
+        "description": "Only return domains created before this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains created before this date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updatedAt",
+        "tool_parameter_name": "filter_by_update_date",
+        "description": "Only return domains updated at this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains updated at this date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updatedAfter",
+        "tool_parameter_name": "filter_domains_updated_after",
+        "description": "Only return domains updated after this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains updated after this date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updatedBefore",
+        "tool_parameter_name": "filter_updated_before_date",
+        "description": "Only return domains updated before this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return domains updated before this date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_criteria",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "paging_cursor_token",
+        "description": "The paging cursor token of the last successfully read resource will be returned as the `paging.next.after` JSON property of a paged response containing more results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The paging cursor token of the last successfully read resource will be returned as the `paging.next.after` JSON property of a paged response containing more results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_results_per_page",
+        "description": "Maximum number of results per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "archived",
+        "tool_parameter_name": "return_archived",
+        "description": "Whether to return only results that have been archived.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return only results that have been archived."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

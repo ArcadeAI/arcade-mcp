@@ -1,0 +1,307 @@
+{
+  "name": "FetchHubdbTableRows",
+  "fully_qualified_name": "HubspotCmsApi.FetchHubdbTableRows@0.1.0",
+  "description": "Fetch rows from a HubDB table using filters and sorting.\n\nUse this tool to fetch rows from a specific HubDB table. You can apply filters and sorting by using query parameters, allowing retrieval of customized data sets. No authentication is needed if the table allows public access.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "table_identifier",
+        "required": true,
+        "description": "The ID or name of the HubDB table to query for fetching row data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the table to query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tableIdOrName"
+      },
+      {
+        "name": "sort_columns",
+        "required": false,
+        "description": "List of column names to sort the results by. Each entry is a string representing a column. Prefix with '-' for descending order.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the column names to sort the results by. See the above description for more details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "pagination_cursor_token",
+        "required": false,
+        "description": "Cursor token to fetch the next set of results. Obtainable from the `paging.next.after` of a paged response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor token value to get the next set of results. You can get this from the `paging.next.after` JSON property of a paged response containing more results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "maximum_results_limit",
+        "required": false,
+        "description": "Specifies the maximum number of results to return. The default value is 1000, which can be adjusted to retrieve fewer entries.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return. Default is `1000`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "requested_columns",
+        "required": false,
+        "description": "Specify column names to retrieve only the required columns' data, excluding others.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the column names to get results containing only the required columns instead of all column details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "properties"
+      },
+      {
+        "name": "row_offset",
+        "required": false,
+        "description": "The starting point for fetching a subset of rows, useful for pagination. It's similar to specifying which row to start fetching from.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "include_archived_rows",
+        "required": false,
+        "description": "Set to true to include archived rows in the results; false to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/cms/v3/hubdb/tables/{tableIdOrName}/rows_getTableRows'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "hubdb"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/hubdb/tables/{tableIdOrName}/rows",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_columns",
+        "description": "Specifies the column names to sort the results by. See the above description for more details.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the column names to sort the results by. See the above description for more details."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor_token",
+        "description": "The cursor token value to get the next set of results. You can get this from the `paging.next.after` JSON property of a paged response containing more results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor token value to get the next set of results. You can get this from the `paging.next.after` JSON property of a paged response containing more results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_results_limit",
+        "description": "The maximum number of results to return. Default is `1000`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return. Default is `1000`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "properties",
+        "tool_parameter_name": "requested_columns",
+        "description": "Specify the column names to get results containing only the required columns instead of all column details.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the column names to get results containing only the required columns instead of all column details."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "row_offset",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "archived",
+        "tool_parameter_name": "include_archived_rows",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tableIdOrName",
+        "tool_parameter_name": "table_identifier",
+        "description": "The ID or name of the table to query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the table to query."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

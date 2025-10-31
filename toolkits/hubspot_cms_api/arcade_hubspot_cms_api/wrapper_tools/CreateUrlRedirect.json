@@ -1,0 +1,406 @@
+{
+  "name": "CreateUrlRedirect",
+  "fully_qualified_name": "HubspotCmsApi.CreateUrlRedirect@0.1.0",
+  "description": "Creates and configures a new URL redirect in HubSpot CMS.\n\nUse this tool to create and set up a new URL redirect within the HubSpot CMS. Ideal for managing website redirects effectively.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "redirect_style",
+        "required": true,
+        "description": "Integer indicating the style of the redirect. Defines the behavior and type of the redirect, such as permanent (301) or temporary (302).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "redirectStyle"
+      },
+      {
+        "name": "route_prefix",
+        "required": true,
+        "description": "Defines the prefix for the URL route to be redirected. Provide the specific path without the domain, e.g., '/example-path'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "routePrefix"
+      },
+      {
+        "name": "redirect_destination_url",
+        "required": true,
+        "description": "The target URL to which the redirect will point. This should be a valid and complete URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "destination"
+      },
+      {
+        "name": "redirect_precedence",
+        "required": false,
+        "description": "An integer indicating the priority of the redirect if multiple rules match. Higher numbers take precedence.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "precedence"
+      },
+      {
+        "name": "ignore_trailing_slash",
+        "required": false,
+        "description": "Set to true to ignore trailing slashes, allowing flexibility in URL matches.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "isTrailingSlashOptional"
+      },
+      {
+        "name": "match_query_string",
+        "required": false,
+        "description": "Indicates whether the redirect should match the query string. Set to true to match, false to ignore.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "isMatchQueryString"
+      },
+      {
+        "name": "match_full_url",
+        "required": false,
+        "description": "Set to true to match the entire URL exactly. False applies partial matching.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "isMatchFullUrl"
+      },
+      {
+        "name": "enable_protocol_agnostic",
+        "required": false,
+        "description": "Set to true to ignore the protocol (HTTP/HTTPS) when matching URLs. Enables protocol-agnostic redirects.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "isProtocolAgnostic"
+      },
+      {
+        "name": "apply_only_after_not_found",
+        "required": false,
+        "description": "Applies the redirect only after a 404 Not Found response if true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "isOnlyAfterNotFound"
+      },
+      {
+        "name": "enable_pattern_matching",
+        "required": false,
+        "description": "Set to true to enable URL pattern matching for the redirect. False matches exact URLs only.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "isPattern"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/url-redirects/_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/url-redirects/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "isTrailingSlashOptional",
+        "tool_parameter_name": "ignore_trailing_slash",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "isMatchQueryString",
+        "tool_parameter_name": "match_query_string",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "redirectStyle",
+        "tool_parameter_name": "redirect_style",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "routePrefix",
+        "tool_parameter_name": "route_prefix",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "isMatchFullUrl",
+        "tool_parameter_name": "match_full_url",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "isProtocolAgnostic",
+        "tool_parameter_name": "enable_protocol_agnostic",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "destination",
+        "tool_parameter_name": "redirect_destination_url",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "isOnlyAfterNotFound",
+        "tool_parameter_name": "apply_only_after_not_found",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "isPattern",
+        "tool_parameter_name": "enable_pattern_matching",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "precedence",
+        "tool_parameter_name": "redirect_precedence",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"destination\",\n          \"redirectStyle\",\n          \"routePrefix\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"isTrailingSlashOptional\": {\n            \"type\": \"boolean\"\n          },\n          \"isMatchQueryString\": {\n            \"type\": \"boolean\"\n          },\n          \"redirectStyle\": {\n            \"type\": \"integer\",\n            \"format\": \"int32\"\n          },\n          \"routePrefix\": {\n            \"type\": \"string\"\n          },\n          \"isMatchFullUrl\": {\n            \"type\": \"boolean\"\n          },\n          \"isProtocolAgnostic\": {\n            \"type\": \"boolean\"\n          },\n          \"destination\": {\n            \"type\": \"string\"\n          },\n          \"isOnlyAfterNotFound\": {\n            \"type\": \"boolean\"\n          },\n          \"isPattern\": {\n            \"type\": \"boolean\"\n          },\n          \"precedence\": {\n            \"type\": \"integer\",\n            \"format\": \"int32\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

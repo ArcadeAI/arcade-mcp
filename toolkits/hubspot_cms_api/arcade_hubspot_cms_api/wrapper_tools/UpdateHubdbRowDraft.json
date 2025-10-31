@@ -1,0 +1,257 @@
+{
+  "name": "UpdateHubdbRowDraft",
+  "fully_qualified_name": "HubspotCmsApi.UpdateHubdbRowDraft@0.1.0",
+  "description": "Update specific fields in a HubDB table's draft row.\n\nThis tool updates specific fields in a HubDB table's draft row. It should be called when you need to modify only certain columns of a row in the draft version of a HubDB table. You don't have to specify all fields, only those you intend to update.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "table_identifier",
+        "required": true,
+        "description": "The ID or name of the HubDB table to update the draft row in.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the table"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tableIdOrName"
+      },
+      {
+        "name": "row_id",
+        "required": true,
+        "description": "The unique ID of the row to be updated in the draft table.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the row"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rowId"
+      },
+      {
+        "name": "draft_row_update_data",
+        "required": true,
+        "description": "JSON object specifying key-value pairs for columns to update in the draft table row. Includes keys like `path`, `childTableId`, `values`, `name`, and `displayIndex`.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "path": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the value for `hs_path` column, which will be used as slug in the dynamic pages"
+            },
+            "childTableId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the value for the column child table id"
+            },
+            "values": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of key value pairs with the column name and column value"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the value for `hs_name` column, which will be used as title in the dynamic pages"
+            },
+            "displayIndex": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patch-/cms/v3/hubdb/tables/{tableIdOrName}/rows/{rowId}/draft_updateDraftTableRow'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "hubdb"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/hubdb/tables/{tableIdOrName}/rows/{rowId}/draft",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "tableIdOrName",
+        "tool_parameter_name": "table_identifier",
+        "description": "The ID or name of the table",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the table"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "rowId",
+        "tool_parameter_name": "row_id",
+        "description": "The ID of the row",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the row"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "draft_row_update_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "path": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the value for `hs_path` column, which will be used as slug in the dynamic pages"
+            },
+            "childTableId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the value for the column child table id"
+            },
+            "values": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of key value pairs with the column name and column value"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the value for `hs_name` column, which will be used as title in the dynamic pages"
+            },
+            "displayIndex": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"values\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"path\": {\n            \"type\": \"string\",\n            \"description\": \"Specifies the value for `hs_path` column, which will be used as slug in the dynamic pages\"\n          },\n          \"childTableId\": {\n            \"type\": \"integer\",\n            \"description\": \"Specifies the value for the column child table id\",\n            \"format\": \"int64\"\n          },\n          \"values\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"description\": \"Schema reference broken: #/components/schemas/Variant\",\n              \"additionalProperties\": true,\n              \"x-moar-broken-reference\": \"#/components/schemas/Variant\"\n            },\n            \"description\": \"List of key value pairs with the column name and column value\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Specifies the value for `hs_name` column, which will be used as title in the dynamic pages\"\n          },\n          \"displayIndex\": {\n            \"type\": \"integer\",\n            \"format\": \"int32\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

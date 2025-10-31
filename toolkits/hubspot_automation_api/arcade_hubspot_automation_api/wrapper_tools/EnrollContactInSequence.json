@@ -1,0 +1,208 @@
+{
+  "name": "EnrollContactInSequence",
+  "fully_qualified_name": "HubspotAutomationApi.EnrollContactInSequence@0.1.0",
+  "description": "Enroll a contact into a sequence with user ID and details.\n\nThis tool enrolls a specified contact into an automation sequence using the provided user ID and sequence details, facilitating automated follow-up actions.",
+  "toolkit": {
+    "name": "ArcadeHubspotAutomationApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "contact_id",
+        "required": true,
+        "description": "The unique identifier of the contact to be enrolled in the sequence.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contactId"
+      },
+      {
+        "name": "sender_email",
+        "required": true,
+        "description": "The email address of the sender enrolling the contact. This should be a valid email associated with the sender's HubSpot user account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "senderEmail"
+      },
+      {
+        "name": "sequence_identifier",
+        "required": true,
+        "description": "The unique identifier of the sequence to enroll the contact into. It should be a valid string matching the sequence available in the system.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sequenceId"
+      },
+      {
+        "name": "sender_alias_address",
+        "required": false,
+        "description": "Email alias for the sender addressing the sequence. This is used instead of the default email address.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "senderAliasAddress"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/automation/v4/sequences/enrollments'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "automation.sequences.enrollments.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_automation API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/automation/v4/sequences/enrollments",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "contactId",
+        "tool_parameter_name": "contact_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "senderEmail",
+        "tool_parameter_name": "sender_email",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sequenceId",
+        "tool_parameter_name": "sequence_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "senderAliasAddress",
+        "tool_parameter_name": "sender_alias_address",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"contactId\",\n          \"senderEmail\",\n          \"sequenceId\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"contactId\": {\n            \"type\": \"string\"\n          },\n          \"senderEmail\": {\n            \"type\": \"string\"\n          },\n          \"sequenceId\": {\n            \"type\": \"string\"\n          },\n          \"senderAliasAddress\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

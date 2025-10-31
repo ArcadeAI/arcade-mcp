@@ -1,0 +1,142 @@
+{
+  "name": "ScheduleBlogPost",
+  "fully_qualified_name": "HubspotCmsApi.ScheduleBlogPost@0.1.0",
+  "description": "Schedule a blog post for future publication.\n\nThis tool is used to schedule a HubSpot CMS blog post to be published at a specific time. It should be called when you want to set a future publication date for a blog post.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "scheduled_publish_date",
+        "required": true,
+        "description": "The date and time when the blog post should be published, formatted as a string (e.g., '2023-12-31T23:59:59').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date the object should transition from scheduled to published."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "publishDate"
+      },
+      {
+        "name": "blog_post_id",
+        "required": true,
+        "description": "The ID of the blog post to be scheduled for future publication.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the object to be scheduled."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/blogs/posts/schedule_schedule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/blogs/posts/schedule",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "publishDate",
+        "tool_parameter_name": "scheduled_publish_date",
+        "description": "The date the object should transition from scheduled to published.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date the object should transition from scheduled to published."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "blog_post_id",
+        "description": "The ID of the object to be scheduled.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the object to be scheduled."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The JSON representation of the ContentScheduleRequestVNext object.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"id\",\n          \"publishDate\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"publishDate\": {\n            \"type\": \"string\",\n            \"description\": \"The date the object should transition from scheduled to published.\",\n            \"format\": \"date-time\"\n          },\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the object to be scheduled.\"\n          }\n        },\n        \"description\": \"Request body object for scheduling the publish of content\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
