@@ -255,11 +255,17 @@ class ToolCatalog(BaseModel):
             output_model=output_model,
         )
 
-    def add_module(self, module: ModuleType) -> None:
+    def add_module(self, module: ModuleType, name: str | None = None) -> None:
         """
         Add all the tools in a module to the catalog.
+
+        Args:
+            module: The module to add.
+            name: Optionally override the name of the toolkit with this parameter
         """
         toolkit = Toolkit.from_module(module)
+        if name:
+            toolkit.name = name
         self.add_toolkit(toolkit)
 
     def add_toolkit(self, toolkit: Toolkit) -> None:
