@@ -14,12 +14,16 @@ arcade-github-api
 arcade-linkedin
 arcade-math
 arcade-miro-api
-arcade-pylon-api
+arcade-pagerduty-api
 arcade-posthog-api
+arcade-pylon-api
 arcade-slack-api
 arcade-stripe-api
 arcade-squareup-api
 arcade-ticktick-api
+arcade-trello-api
+arcade-vercel-api
+arcade-weaviate-api
 arcade-xero-api
 arcade-zendesk
 arcade-zoho-books-api
