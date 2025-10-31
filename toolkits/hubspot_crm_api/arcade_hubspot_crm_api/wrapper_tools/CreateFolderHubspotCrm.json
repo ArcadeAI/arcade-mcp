@@ -1,0 +1,144 @@
+{
+  "name": "CreateFolderHubspotCrm",
+  "fully_qualified_name": "HubspotCrmApi.CreateFolderHubspotCrm@0.1.0",
+  "description": "Creates a folder in HubSpot CRM with specified details.\n\nUse this tool to create a new folder in HubSpot CRM by providing the necessary information for the folder you want to create.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "folder_name",
+        "required": true,
+        "description": "The name of the folder to be created in HubSpot CRM.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the folder to be created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "parent_folder_id",
+        "required": false,
+        "description": "The ID of the folder where the new folder will be created. Defaults to root folder (ID: 0) if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The folder this should be created in, if not specified will be created in the root folder 0."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parentFolderId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/crm/v3/lists/folders_create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.lists.write",
+          "cms.membership.access_groups.write",
+          "crm.lists.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/lists/folders",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "parentFolderId",
+        "tool_parameter_name": "parent_folder_id",
+        "description": "The folder this should be created in, if not specified will be created in the root folder 0.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The folder this should be created in, if not specified will be created in the root folder 0."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "folder_name",
+        "description": "The name of the folder to be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the folder to be created."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"parentFolderId\": {\n            \"type\": \"string\",\n            \"description\": \"The folder this should be created in, if not specified will be created in the root folder 0.\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the folder to be created.\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

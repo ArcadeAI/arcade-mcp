@@ -1,0 +1,109 @@
+{
+  "name": "GetSmtpTokenById",
+  "fully_qualified_name": "HubspotMarketingApi.GetSmtpTokenById@0.1.0",
+  "description": "Retrieve details of an SMTP token using its ID.\n\nThis tool is used to query a specific SMTP token by its ID within the HubSpot Marketing platform. Call this tool when you need to access detailed information about a particular SMTP transactional token.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "smtp_token_id",
+        "required": true,
+        "description": "The unique identifier of the SMTP token to be queried.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Identifier generated when a token is created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tokenId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/marketing/v3/transactional/smtp-tokens/{tokenId}_getTokenById'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "transactional-email"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/transactional/smtp-tokens/{tokenId}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "tokenId",
+        "tool_parameter_name": "smtp_token_id",
+        "description": "Identifier generated when a token is created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Identifier generated when a token is created."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

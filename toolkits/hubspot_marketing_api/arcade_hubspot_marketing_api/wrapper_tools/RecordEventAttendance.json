@@ -1,0 +1,243 @@
+{
+  "name": "RecordEventAttendance",
+  "fully_qualified_name": "HubspotMarketingApi.RecordEventAttendance@0.1.0",
+  "description": "Record participation of HubSpot contacts in a marketing event.\n\nUse this tool to record the attendance of multiple HubSpot contacts at a marketing event using their HubSpot contact IDs. This also adds a timeline event to each contact's record. The tool is applicable for the \"attend\" state with optional properties like \"joinedAt\" and \"leftAt\".",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "marketing_event_id",
+        "required": true,
+        "description": "The internal ID of the marketing event in HubSpot for which attendance is being recorded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The internal id of the marketing event in HubSpot"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectId"
+      },
+      {
+        "name": "attendance_state",
+        "required": true,
+        "description": "Specifies the attendance state of the contact: 'register', 'attend', or 'cancel'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The attendance state value. It may be 'register', 'attend' or 'cancel'"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscriberState"
+      },
+      {
+        "name": "contact_participation_details",
+        "required": true,
+        "description": "A list of contact details, including ID, properties, and interaction time, for recording event attendance.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "vid": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "properties": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "interactionDateTime": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp in milliseconds at which the contact subscribed to the event."
+                }
+              },
+              "description": "List of HubSpot contacts to subscribe to the marketing event"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/marketing/v3/marketing-events/{objectId}/attendance/{subscriberState}/create_recordByContactId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.marketing_events.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/marketing-events/{objectId}/attendance/{subscriberState}/create",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "objectId",
+        "tool_parameter_name": "marketing_event_id",
+        "description": "The internal id of the marketing event in HubSpot",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The internal id of the marketing event in HubSpot"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscriberState",
+        "tool_parameter_name": "attendance_state",
+        "description": "The attendance state value. It may be 'register', 'attend' or 'cancel'",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The attendance state value. It may be 'register', 'attend' or 'cancel'"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "contact_participation_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "vid": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "properties": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "interactionDateTime": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp in milliseconds at which the contact subscribed to the event."
+                }
+              },
+              "description": "List of HubSpot contacts to subscribe to the marketing event"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"inputs\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"inputs\": {\n            \"type\": \"array\",\n            \"description\": \"List of HubSpot contacts to subscribe to the marketing event\",\n            \"items\": {\n              \"required\": [\n                \"interactionDateTime\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"vid\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int32\"\n                },\n                \"properties\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {\n                    \"type\": \"string\"\n                  }\n                },\n                \"interactionDateTime\": {\n                  \"type\": \"integer\",\n                  \"description\": \"Timestamp in milliseconds at which the contact subscribed to the event.\",\n                  \"format\": \"int64\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

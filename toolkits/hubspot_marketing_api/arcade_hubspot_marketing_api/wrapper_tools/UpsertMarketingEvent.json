@@ -1,0 +1,850 @@
+{
+  "name": "UpsertMarketingEvent",
+  "fully_qualified_name": "HubspotMarketingApi.UpsertMarketingEvent@0.1.0",
+  "description": "Upsert a marketing event in HubSpot.\n\nUpserts a marketing event using the provided external event ID. If an event with that ID exists, it updates the event; otherwise, it creates a new one.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "external_event_id",
+        "required": true,
+        "description": "The ID of the marketing event in the external application. Used to upsert the event in HubSpot.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the marketing event in the external event application"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "externalEventId"
+      },
+      {
+        "name": "marketing_event_details",
+        "required": true,
+        "description": "Details of the marketing event, including start/end times, organizer, and custom properties. JSON format expected.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "startDateTime": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The start date and time of the marketing event."
+            },
+            "customProperties": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "sourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the property source indicating where it was created."
+                },
+                "selectedByUser": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the value was selected by a user."
+                },
+                "sourceLabel": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A human-readable label."
+                },
+                "sourceUpstreamDeployable": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "source": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "UNKNOWN",
+                    "IMPORT",
+                    "API",
+                    "FORM",
+                    "ANALYTICS",
+                    "MIGRATION",
+                    "SALESFORCE",
+                    "INTEGRATION",
+                    "CONTACTS_WEB",
+                    "WAL_INCREMENTAL",
+                    "TASK",
+                    "EMAIL",
+                    "WORKFLOWS",
+                    "CALCULATED",
+                    "SOCIAL",
+                    "BATCH_UPDATE",
+                    "SIGNALS",
+                    "BIDEN",
+                    "DEFAULT",
+                    "COMPANIES",
+                    "DEALS",
+                    "ASSISTS",
+                    "PRESENTATIONS",
+                    "TALLY",
+                    "SIDEKICK",
+                    "CRM_UI",
+                    "MERGE_CONTACTS",
+                    "PORTAL_USER_ASSOCIATOR",
+                    "INTEGRATIONS_PLATFORM",
+                    "BCC_TO_CRM",
+                    "FORWARD_TO_CRM",
+                    "ENGAGEMENTS",
+                    "SALES",
+                    "HEISENBERG",
+                    "LEADIN",
+                    "GMAIL_INTEGRATION",
+                    "ACADEMY",
+                    "SALES_MESSAGES",
+                    "AVATARS_SERVICE",
+                    "MERGE_COMPANIES",
+                    "SEQUENCES",
+                    "COMPANY_FAMILIES",
+                    "MOBILE_IOS",
+                    "MOBILE_ANDROID",
+                    "CONTACTS",
+                    "ASSOCIATIONS",
+                    "EXTENSION",
+                    "SUCCESS",
+                    "BOT",
+                    "INTEGRATIONS_SYNC",
+                    "AUTOMATION_PLATFORM",
+                    "CONVERSATIONS",
+                    "EMAIL_INTEGRATION",
+                    "CONTENT_MEMBERSHIP",
+                    "QUOTES",
+                    "BET_ASSIGNMENT",
+                    "QUOTAS",
+                    "BET_CRM_CONNECTOR",
+                    "MEETINGS",
+                    "MERGE_OBJECTS",
+                    "RECYCLING_BIN",
+                    "ADS",
+                    "AI_GROUP",
+                    "COMMUNICATOR",
+                    "SETTINGS",
+                    "PROPERTY_SETTINGS",
+                    "PIPELINE_SETTINGS",
+                    "COMPANY_INSIGHTS",
+                    "BEHAVIORAL_EVENTS",
+                    "PAYMENTS",
+                    "GOALS",
+                    "PORTAL_OBJECT_SYNC",
+                    "APPROVALS",
+                    "FILE_MANAGER",
+                    "MARKETPLACE",
+                    "INTERNAL_PROCESSING",
+                    "FORECASTING",
+                    "SLACK_INTEGRATION",
+                    "CRM_UI_BULK_ACTION",
+                    "WORKFLOW_CONTACT_DELETE_ACTION",
+                    "ACCEPTANCE_TEST",
+                    "PLAYBOOKS",
+                    "CHATSPOT",
+                    "FLYWHEEL_PRODUCT_DATA_SYNC",
+                    "HELP_DESK",
+                    "BILLING",
+                    "DATA_ENRICHMENT",
+                    "AUTOMATION_JOURNEY",
+                    "MICROAPPS",
+                    "INTENT",
+                    "PROSPECTING_AGENT",
+                    "CENTRAL_EXCHANGE_RATES",
+                    "HELP_DESK_AI",
+                    "CONVERSATIONAL_ENRICHMENT",
+                    "CRM_PROCESSES_PLATFORM",
+                    "CLONE_OBJECTS",
+                    "MARKET_SOURCING",
+                    "DATASET",
+                    "PROPERTY_RESTORE"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The origin of the property value, such as \"IMPORT\" or \"API\"."
+                },
+                "updatedByUserId": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the user who updated the property."
+                },
+                "persistenceTimestamp": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "sourceMetadata": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Source metadata encoded as a base64 string. For example: `ZXhhbXBsZSBzdHJpbmc=`"
+                },
+                "dataSensitivity": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "standard",
+                    "high"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The sensitivity level of the property, such as \"non_sensitive\", \"sensitive\", and \"highly_sensitive\"."
+                },
+                "sourceVid": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique identifier associated with the source."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unit of measurement or context for the value."
+                },
+                "requestId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique ID associated with this request."
+                },
+                "isEncrypted": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the property value is encrypted."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of custom property"
+                },
+                "useTimestampAsPersistenceTimestamp": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Custom property value"
+                },
+                "selectedByUserTimestamp": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp when the value was selected by a user, if applicable."
+                },
+                "timestamp": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When the value was set, as a 64-bit integer."
+                },
+                "isLargeValue": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "A list of PropertyValues. These can be whatever kind of property names and values you want. However, they must already exist on the HubSpot account's definition of the MarketingEvent Object. If they don't they will be filtered out and not set.\nIn order to do this you'll need to create a new PropertyGroup on the HubSpot account's MarketingEvent object for your specific app and create the Custom Property you want to track on that HubSpot account. Do not create any new default properties on the MarketingEvent object as that will apply to all HubSpot accounts.\n"
+            },
+            "externalAccountId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The accountId that is associated with this marketing event in the external event application."
+            },
+            "eventCancelled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates if the marketing event has been cancelled.  Defaults to `false`"
+            },
+            "eventOrganizer": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the organizer of the marketing event."
+            },
+            "eventUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A URL in the external event application where the marketing event can be managed."
+            },
+            "externalEventId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The id of the marketing event in the external event application."
+            },
+            "eventDescription": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of the marketing event."
+            },
+            "eventName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the marketing event."
+            },
+            "eventType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Describes what type of event this is.  For example: `WEBINAR`, `CONFERENCE`, `WORKSHOP`"
+            },
+            "eventCompleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "endDateTime": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The end date and time of the marketing event."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-/marketing/v3/marketing-events/events/{externalEventId}_upsert'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.marketing_events.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/marketing-events/events/{externalEventId}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "externalEventId",
+        "tool_parameter_name": "external_event_id",
+        "description": "The id of the marketing event in the external event application",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the marketing event in the external event application"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "marketing_event_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "startDateTime": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The start date and time of the marketing event."
+            },
+            "customProperties": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "sourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the property source indicating where it was created."
+                },
+                "selectedByUser": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the value was selected by a user."
+                },
+                "sourceLabel": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A human-readable label."
+                },
+                "sourceUpstreamDeployable": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "source": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "UNKNOWN",
+                    "IMPORT",
+                    "API",
+                    "FORM",
+                    "ANALYTICS",
+                    "MIGRATION",
+                    "SALESFORCE",
+                    "INTEGRATION",
+                    "CONTACTS_WEB",
+                    "WAL_INCREMENTAL",
+                    "TASK",
+                    "EMAIL",
+                    "WORKFLOWS",
+                    "CALCULATED",
+                    "SOCIAL",
+                    "BATCH_UPDATE",
+                    "SIGNALS",
+                    "BIDEN",
+                    "DEFAULT",
+                    "COMPANIES",
+                    "DEALS",
+                    "ASSISTS",
+                    "PRESENTATIONS",
+                    "TALLY",
+                    "SIDEKICK",
+                    "CRM_UI",
+                    "MERGE_CONTACTS",
+                    "PORTAL_USER_ASSOCIATOR",
+                    "INTEGRATIONS_PLATFORM",
+                    "BCC_TO_CRM",
+                    "FORWARD_TO_CRM",
+                    "ENGAGEMENTS",
+                    "SALES",
+                    "HEISENBERG",
+                    "LEADIN",
+                    "GMAIL_INTEGRATION",
+                    "ACADEMY",
+                    "SALES_MESSAGES",
+                    "AVATARS_SERVICE",
+                    "MERGE_COMPANIES",
+                    "SEQUENCES",
+                    "COMPANY_FAMILIES",
+                    "MOBILE_IOS",
+                    "MOBILE_ANDROID",
+                    "CONTACTS",
+                    "ASSOCIATIONS",
+                    "EXTENSION",
+                    "SUCCESS",
+                    "BOT",
+                    "INTEGRATIONS_SYNC",
+                    "AUTOMATION_PLATFORM",
+                    "CONVERSATIONS",
+                    "EMAIL_INTEGRATION",
+                    "CONTENT_MEMBERSHIP",
+                    "QUOTES",
+                    "BET_ASSIGNMENT",
+                    "QUOTAS",
+                    "BET_CRM_CONNECTOR",
+                    "MEETINGS",
+                    "MERGE_OBJECTS",
+                    "RECYCLING_BIN",
+                    "ADS",
+                    "AI_GROUP",
+                    "COMMUNICATOR",
+                    "SETTINGS",
+                    "PROPERTY_SETTINGS",
+                    "PIPELINE_SETTINGS",
+                    "COMPANY_INSIGHTS",
+                    "BEHAVIORAL_EVENTS",
+                    "PAYMENTS",
+                    "GOALS",
+                    "PORTAL_OBJECT_SYNC",
+                    "APPROVALS",
+                    "FILE_MANAGER",
+                    "MARKETPLACE",
+                    "INTERNAL_PROCESSING",
+                    "FORECASTING",
+                    "SLACK_INTEGRATION",
+                    "CRM_UI_BULK_ACTION",
+                    "WORKFLOW_CONTACT_DELETE_ACTION",
+                    "ACCEPTANCE_TEST",
+                    "PLAYBOOKS",
+                    "CHATSPOT",
+                    "FLYWHEEL_PRODUCT_DATA_SYNC",
+                    "HELP_DESK",
+                    "BILLING",
+                    "DATA_ENRICHMENT",
+                    "AUTOMATION_JOURNEY",
+                    "MICROAPPS",
+                    "INTENT",
+                    "PROSPECTING_AGENT",
+                    "CENTRAL_EXCHANGE_RATES",
+                    "HELP_DESK_AI",
+                    "CONVERSATIONAL_ENRICHMENT",
+                    "CRM_PROCESSES_PLATFORM",
+                    "CLONE_OBJECTS",
+                    "MARKET_SOURCING",
+                    "DATASET",
+                    "PROPERTY_RESTORE"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The origin of the property value, such as \"IMPORT\" or \"API\"."
+                },
+                "updatedByUserId": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the user who updated the property."
+                },
+                "persistenceTimestamp": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "sourceMetadata": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Source metadata encoded as a base64 string. For example: `ZXhhbXBsZSBzdHJpbmc=`"
+                },
+                "dataSensitivity": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "standard",
+                    "high"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The sensitivity level of the property, such as \"non_sensitive\", \"sensitive\", and \"highly_sensitive\"."
+                },
+                "sourceVid": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique identifier associated with the source."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unit of measurement or context for the value."
+                },
+                "requestId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique ID associated with this request."
+                },
+                "isEncrypted": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the property value is encrypted."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of custom property"
+                },
+                "useTimestampAsPersistenceTimestamp": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Custom property value"
+                },
+                "selectedByUserTimestamp": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp when the value was selected by a user, if applicable."
+                },
+                "timestamp": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "When the value was set, as a 64-bit integer."
+                },
+                "isLargeValue": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "A list of PropertyValues. These can be whatever kind of property names and values you want. However, they must already exist on the HubSpot account's definition of the MarketingEvent Object. If they don't they will be filtered out and not set.\nIn order to do this you'll need to create a new PropertyGroup on the HubSpot account's MarketingEvent object for your specific app and create the Custom Property you want to track on that HubSpot account. Do not create any new default properties on the MarketingEvent object as that will apply to all HubSpot accounts.\n"
+            },
+            "externalAccountId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The accountId that is associated with this marketing event in the external event application."
+            },
+            "eventCancelled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates if the marketing event has been cancelled.  Defaults to `false`"
+            },
+            "eventOrganizer": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the organizer of the marketing event."
+            },
+            "eventUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A URL in the external event application where the marketing event can be managed."
+            },
+            "externalEventId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The id of the marketing event in the external event application."
+            },
+            "eventDescription": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of the marketing event."
+            },
+            "eventName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the marketing event."
+            },
+            "eventType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Describes what type of event this is.  For example: `WEBINAR`, `CONFERENCE`, `WORKSHOP`"
+            },
+            "eventCompleted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "endDateTime": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The end date and time of the marketing event."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"eventName\",\n          \"eventOrganizer\",\n          \"externalAccountId\",\n          \"externalEventId\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"startDateTime\": {\n            \"type\": \"string\",\n            \"description\": \"The start date and time of the marketing event.\",\n            \"format\": \"date-time\"\n          },\n          \"customProperties\": {\n            \"type\": \"array\",\n            \"description\": \"A list of PropertyValues. These can be whatever kind of property names and values you want. However, they must already exist on the HubSpot account's definition of the MarketingEvent Object. If they don't they will be filtered out and not set.\\nIn order to do this you'll need to create a new PropertyGroup on the HubSpot account's MarketingEvent object for your specific app and create the Custom Property you want to track on that HubSpot account. Do not create any new default properties on the MarketingEvent object as that will apply to all HubSpot accounts.\\n\",\n            \"items\": {\n              \"required\": [\n                \"name\",\n                \"sourceUpstreamDeployable\",\n                \"value\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"sourceId\": {\n                  \"type\": \"string\",\n                  \"description\": \"The ID of the property source indicating where it was created.\",\n                  \"example\": \"\"\n                },\n                \"selectedByUser\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Whether the value was selected by a user.\",\n                  \"example\": false\n                },\n                \"sourceLabel\": {\n                  \"type\": \"string\",\n                  \"description\": \"A human-readable label.\",\n                  \"example\": \"\"\n                },\n                \"sourceUpstreamDeployable\": {\n                  \"type\": \"string\"\n                },\n                \"source\": {\n                  \"type\": \"string\",\n                  \"description\": \"The origin of the property value, such as \\\"IMPORT\\\" or \\\"API\\\".\",\n                  \"example\": \"\",\n                  \"enum\": [\n                    \"UNKNOWN\",\n                    \"IMPORT\",\n                    \"API\",\n                    \"FORM\",\n                    \"ANALYTICS\",\n                    \"MIGRATION\",\n                    \"SALESFORCE\",\n                    \"INTEGRATION\",\n                    \"CONTACTS_WEB\",\n                    \"WAL_INCREMENTAL\",\n                    \"TASK\",\n                    \"EMAIL\",\n                    \"WORKFLOWS\",\n                    \"CALCULATED\",\n                    \"SOCIAL\",\n                    \"BATCH_UPDATE\",\n                    \"SIGNALS\",\n                    \"BIDEN\",\n                    \"DEFAULT\",\n                    \"COMPANIES\",\n                    \"DEALS\",\n                    \"ASSISTS\",\n                    \"PRESENTATIONS\",\n                    \"TALLY\",\n                    \"SIDEKICK\",\n                    \"CRM_UI\",\n                    \"MERGE_CONTACTS\",\n                    \"PORTAL_USER_ASSOCIATOR\",\n                    \"INTEGRATIONS_PLATFORM\",\n                    \"BCC_TO_CRM\",\n                    \"FORWARD_TO_CRM\",\n                    \"ENGAGEMENTS\",\n                    \"SALES\",\n                    \"HEISENBERG\",\n                    \"LEADIN\",\n                    \"GMAIL_INTEGRATION\",\n                    \"ACADEMY\",\n                    \"SALES_MESSAGES\",\n                    \"AVATARS_SERVICE\",\n                    \"MERGE_COMPANIES\",\n                    \"SEQUENCES\",\n                    \"COMPANY_FAMILIES\",\n                    \"MOBILE_IOS\",\n                    \"MOBILE_ANDROID\",\n                    \"CONTACTS\",\n                    \"ASSOCIATIONS\",\n                    \"EXTENSION\",\n                    \"SUCCESS\",\n                    \"BOT\",\n                    \"INTEGRATIONS_SYNC\",\n                    \"AUTOMATION_PLATFORM\",\n                    \"CONVERSATIONS\",\n                    \"EMAIL_INTEGRATION\",\n                    \"CONTENT_MEMBERSHIP\",\n                    \"QUOTES\",\n                    \"BET_ASSIGNMENT\",\n                    \"QUOTAS\",\n                    \"BET_CRM_CONNECTOR\",\n                    \"MEETINGS\",\n                    \"MERGE_OBJECTS\",\n                    \"RECYCLING_BIN\",\n                    \"ADS\",\n                    \"AI_GROUP\",\n                    \"COMMUNICATOR\",\n                    \"SETTINGS\",\n                    \"PROPERTY_SETTINGS\",\n                    \"PIPELINE_SETTINGS\",\n                    \"COMPANY_INSIGHTS\",\n                    \"BEHAVIORAL_EVENTS\",\n                    \"PAYMENTS\",\n                    \"GOALS\",\n                    \"PORTAL_OBJECT_SYNC\",\n                    \"APPROVALS\",\n                    \"FILE_MANAGER\",\n                    \"MARKETPLACE\",\n                    \"INTERNAL_PROCESSING\",\n                    \"FORECASTING\",\n                    \"SLACK_INTEGRATION\",\n                    \"CRM_UI_BULK_ACTION\",\n                    \"WORKFLOW_CONTACT_DELETE_ACTION\",\n                    \"ACCEPTANCE_TEST\",\n                    \"PLAYBOOKS\",\n                    \"CHATSPOT\",\n                    \"FLYWHEEL_PRODUCT_DATA_SYNC\",\n                    \"HELP_DESK\",\n                    \"BILLING\",\n                    \"DATA_ENRICHMENT\",\n                    \"AUTOMATION_JOURNEY\",\n                    \"MICROAPPS\",\n                    \"INTENT\",\n                    \"PROSPECTING_AGENT\",\n                    \"CENTRAL_EXCHANGE_RATES\",\n                    \"HELP_DESK_AI\",\n                    \"CONVERSATIONAL_ENRICHMENT\",\n                    \"CRM_PROCESSES_PLATFORM\",\n                    \"CLONE_OBJECTS\",\n                    \"MARKET_SOURCING\",\n                    \"DATASET\",\n                    \"PROPERTY_RESTORE\"\n                  ]\n                },\n                \"updatedByUserId\": {\n                  \"type\": \"integer\",\n                  \"description\": \"The ID of the user who updated the property.\",\n                  \"format\": \"int32\"\n                },\n                \"persistenceTimestamp\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"sourceMetadata\": {\n                  \"type\": \"string\",\n                  \"description\": \"Source metadata encoded as a base64 string. For example: `ZXhhbXBsZSBzdHJpbmc=`\",\n                  \"example\": \"\"\n                },\n                \"dataSensitivity\": {\n                  \"type\": \"string\",\n                  \"description\": \"The sensitivity level of the property, such as \\\"non_sensitive\\\", \\\"sensitive\\\", and \\\"highly_sensitive\\\".\",\n                  \"example\": \"\",\n                  \"enum\": [\n                    \"none\",\n                    \"standard\",\n                    \"high\"\n                  ]\n                },\n                \"sourceVid\": {\n                  \"type\": \"array\",\n                  \"description\": \"The unique identifier associated with the source.\",\n                  \"example\": \"\",\n                  \"items\": {\n                    \"type\": \"integer\",\n                    \"format\": \"int64\"\n                  }\n                },\n                \"unit\": {\n                  \"type\": \"string\",\n                  \"description\": \"The unit of measurement or context for the value.\",\n                  \"example\": \"\"\n                },\n                \"requestId\": {\n                  \"type\": \"string\",\n                  \"description\": \"A unique ID associated with this request.\",\n                  \"example\": \"\"\n                },\n                \"isEncrypted\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Whether the property value is encrypted.\",\n                  \"example\": false\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"Name of custom property\",\n                  \"example\": \"\"\n                },\n                \"useTimestampAsPersistenceTimestamp\": {\n                  \"type\": \"boolean\"\n                },\n                \"value\": {\n                  \"type\": \"string\",\n                  \"description\": \"Custom property value\",\n                  \"example\": \"\"\n                },\n                \"selectedByUserTimestamp\": {\n                  \"type\": \"integer\",\n                  \"description\": \"The timestamp when the value was selected by a user, if applicable.\",\n                  \"format\": \"int64\"\n                },\n                \"timestamp\": {\n                  \"type\": \"integer\",\n                  \"description\": \"When the value was set, as a 64-bit integer.\",\n                  \"format\": \"int64\"\n                },\n                \"isLargeValue\": {\n                  \"type\": \"boolean\"\n                }\n              },\n              \"description\": \"Represents a single custom property of a marketing event, storing its name, value, metadata (like source, timestamp, and sensitivity), and related audit information for tracking changes.\"\n            }\n          },\n          \"externalAccountId\": {\n            \"type\": \"string\",\n            \"description\": \"The accountId that is associated with this marketing event in the external event application.\"\n          },\n          \"eventCancelled\": {\n            \"type\": \"boolean\",\n            \"description\": \"Indicates if the marketing event has been cancelled.  Defaults to `false`\"\n          },\n          \"eventOrganizer\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the organizer of the marketing event.\"\n          },\n          \"eventUrl\": {\n            \"type\": \"string\",\n            \"description\": \"A URL in the external event application where the marketing event can be managed.\"\n          },\n          \"externalEventId\": {\n            \"type\": \"string\",\n            \"description\": \"The id of the marketing event in the external event application.\"\n          },\n          \"eventDescription\": {\n            \"type\": \"string\",\n            \"description\": \"The description of the marketing event.\"\n          },\n          \"eventName\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the marketing event.\"\n          },\n          \"eventType\": {\n            \"type\": \"string\",\n            \"description\": \"Describes what type of event this is.  For example: `WEBINAR`, `CONFERENCE`, `WORKSHOP`\"\n          },\n          \"eventCompleted\": {\n            \"type\": \"boolean\"\n          },\n          \"endDateTime\": {\n            \"type\": \"string\",\n            \"description\": \"The end date and time of the marketing event.\",\n            \"format\": \"date-time\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

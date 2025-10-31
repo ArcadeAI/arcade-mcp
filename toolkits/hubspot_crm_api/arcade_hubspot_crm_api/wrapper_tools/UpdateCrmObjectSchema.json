@@ -1,0 +1,406 @@
+{
+  "name": "UpdateCrmObjectSchema",
+  "fully_qualified_name": "HubspotCrmApi.UpdateCrmObjectSchema@0.1.0",
+  "description": "Update a CRM object's schema in HubSpot.\n\nThis tool updates the schema of a specified CRM object type in HubSpot. Call this tool when you need to modify the structure or attributes of an existing CRM object schema.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "object_type_identifier",
+        "required": true,
+        "description": "Fully qualified name or object type ID of your CRM schema for updates.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fully qualified name or object type ID of your schema."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      },
+      {
+        "name": "secondary_display_properties",
+        "required": false,
+        "description": "Names of secondary properties displayed on the HubSpot record page for this object type.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The names of secondary properties for this object. These will be displayed as secondary on the HubSpot record page for this object type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "secondaryDisplayProperties"
+      },
+      {
+        "name": "required_properties",
+        "required": false,
+        "description": "List of property names that must be provided when creating an object of this type in HubSpot.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The names of properties that should be **required** when creating an object of this type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requiredProperties"
+      },
+      {
+        "name": "searchable_properties",
+        "required": false,
+        "description": "List of property names to be indexed for HubSpot's product search, enhancing searchability of the CRM object type.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Names of properties that will be indexed for this object type in by HubSpot's product search."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "searchableProperties"
+      },
+      {
+        "name": "primary_display_property",
+        "required": false,
+        "description": "The primary property's name for this object, displayed prominently on the HubSpot record page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the primary property for this object. This will be displayed as primary on the HubSpot record page for this object type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "primaryDisplayProperty"
+      },
+      {
+        "name": "object_description",
+        "required": false,
+        "description": "A description for the CRM object schema, providing details about its purpose or usage in HubSpot.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "plural_labels",
+        "required": false,
+        "description": "Specify the word representing multiple instances of the object type. This value is permanent and cannot be changed after setting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The word for multiple objects. (There\u2019s no way to change this later.)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "labels.plural"
+      },
+      {
+        "name": "object_singular_name",
+        "required": false,
+        "description": "The word representing a single object. This cannot be changed later.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The word for one object. (There\u2019s no way to change this later.)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "labels.singular"
+      },
+      {
+        "name": "clear_description",
+        "required": false,
+        "description": "Set to true to clear the description field for the object type schema.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "clearDescription"
+      },
+      {
+        "name": "restorable",
+        "required": false,
+        "description": "Indicates if the object can be restored after deletion. Accepts a boolean value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "restorable"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patch-/crm-object-schemas/v3/schemas/{objectType}_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.schemas.custom.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm-object-schemas/v3/schemas/{objectType}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "objectType",
+        "tool_parameter_name": "object_type_identifier",
+        "description": "Fully qualified name or object type ID of your schema.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fully qualified name or object type ID of your schema."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "secondaryDisplayProperties",
+        "tool_parameter_name": "secondary_display_properties",
+        "description": "The names of secondary properties for this object. These will be displayed as secondary on the HubSpot record page for this object type.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The names of secondary properties for this object. These will be displayed as secondary on the HubSpot record page for this object type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requiredProperties",
+        "tool_parameter_name": "required_properties",
+        "description": "The names of properties that should be **required** when creating an object of this type.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The names of properties that should be **required** when creating an object of this type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "searchableProperties",
+        "tool_parameter_name": "searchable_properties",
+        "description": "Names of properties that will be indexed for this object type in by HubSpot's product search.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Names of properties that will be indexed for this object type in by HubSpot's product search."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "clearDescription",
+        "tool_parameter_name": "clear_description",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "primaryDisplayProperty",
+        "tool_parameter_name": "primary_display_property",
+        "description": "The name of the primary property for this object. This will be displayed as primary on the HubSpot record page for this object type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the primary property for this object. This will be displayed as primary on the HubSpot record page for this object type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "object_description",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "restorable",
+        "tool_parameter_name": "restorable",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "labels.plural",
+        "tool_parameter_name": "plural_labels",
+        "description": "The word for multiple objects. (There\u2019s no way to change this later.)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The word for multiple objects. (There\u2019s no way to change this later.)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "labels.singular",
+        "tool_parameter_name": "object_singular_name",
+        "description": "The word for one object. (There\u2019s no way to change this later.)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The word for one object. (There\u2019s no way to change this later.)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Attributes to update in your schema.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"secondaryDisplayProperties\": {\n            \"type\": \"array\",\n            \"description\": \"The names of secondary properties for this object. These will be displayed as secondary on the HubSpot record page for this object type.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"requiredProperties\": {\n            \"type\": \"array\",\n            \"description\": \"The names of properties that should be **required** when creating an object of this type.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"searchableProperties\": {\n            \"type\": \"array\",\n            \"description\": \"Names of properties that will be indexed for this object type in by HubSpot's product search.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"clearDescription\": {\n            \"type\": \"boolean\"\n          },\n          \"primaryDisplayProperty\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the primary property for this object. This will be displayed as primary on the HubSpot record page for this object type.\"\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"restorable\": {\n            \"type\": \"boolean\"\n          },\n          \"labels\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"plural\": {\n                \"type\": \"string\",\n                \"description\": \"The word for multiple objects. (There\\u2019s no way to change this later.)\"\n              },\n              \"singular\": {\n                \"type\": \"string\",\n                \"description\": \"The word for one object. (There\\u2019s no way to change this later.)\"\n              }\n            },\n            \"description\": \"Singular and plural labels for the object. Used in CRM display.\",\n            \"example\": {\n              \"singular\": \"My object\",\n              \"plural\": \"My objects\"\n            }\n          }\n        },\n        \"description\": \"Defines attributes to update on an object type.\",\n        \"example\": {\n          \"primaryDisplayProperty\": \"my_object_property\",\n          \"requiredProperties\": [\n            \"my_object_property\"\n          ],\n          \"searchableProperties\": [\n            \"my_object_property\"\n          ]\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

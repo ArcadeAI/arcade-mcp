@@ -1,0 +1,193 @@
+{
+  "name": "UpdateFeeDetails",
+  "fully_qualified_name": "HubspotCrmApi.UpdateFeeDetails@0.1.0",
+  "description": "Update specific details of a fee in the CRM.\n\nThis tool performs a partial update of a fee record identified by its internal ID or another unique property. Use it to overwrite existing property values or clear them by passing an empty string. Be aware that read-only or non-existent properties will cause an error.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "fee_identifier",
+        "required": true,
+        "description": "The ID or unique property value that identifies the fee object to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "feeId"
+      },
+      {
+        "name": "fee_properties_to_update",
+        "required": true,
+        "description": "JSON object containing key-value pairs to update fee properties. Read-only or non-existent properties will cause an error.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "properties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs representing the properties of the object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "unique_property_name",
+        "required": false,
+        "description": "Specify the unique property name to identify the object instead of the default ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of a property whose values are unique for this object"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idProperty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patch-/crm/v3/objects/fees/{feeId}'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.line_items.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/objects/fees/{feeId}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "idProperty",
+        "tool_parameter_name": "unique_property_name",
+        "description": "The name of a property whose values are unique for this object",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of a property whose values are unique for this object"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "feeId",
+        "tool_parameter_name": "fee_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "fee_properties_to_update",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "properties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs representing the properties of the object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"properties\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"properties\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Key value pairs representing the properties of the object.\"\n          }\n        },\n        \"description\": \"Represents the input required to create or update a CRM object, containing an object with property names and their corresponding values.\",\n        \"example\": {\n          \"properties\": {\n            \"property_checkbox\": \"false\",\n            \"property_date\": \"1572480000000\",\n            \"property_dropdown\": \"choice_b\",\n            \"property_multiple_checkboxes\": \"chocolate;strawberry\",\n            \"property_number\": \"17\",\n            \"property_radio\": \"option_1\",\n            \"property_string\": \"value\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

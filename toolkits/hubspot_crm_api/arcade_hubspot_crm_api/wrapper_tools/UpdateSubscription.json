@@ -1,0 +1,258 @@
+{
+  "name": "UpdateSubscription",
+  "fully_qualified_name": "HubspotCrmApi.UpdateSubscription@0.1.0",
+  "description": "Update subscription details using provided property values.\n\nUse this tool to perform a partial update of a subscription object in HubSpot CRM. Identify the object by its internal ID or a unique property value using the `idProperty` query parameter. Overwrite properties by providing new values; clear them by passing an empty string. Errors occur for read-only or non-existent properties.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "required": true,
+        "description": "The identifier for the subscription to update, typically the internal object ID. Specify this to target the right subscription.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscriptionId"
+      },
+      {
+        "name": "subscription_properties",
+        "required": true,
+        "description": "JSON object with key-value pairs representing properties to update for the subscription. Clear properties with an empty string.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "properties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs representing the properties of the object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "unique_property_name",
+        "required": false,
+        "description": "The name of a unique property to identify the subscription object for updating.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of a property whose values are unique for this object"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idProperty"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patch-/crm/v3/objects/subscriptions/{subscriptionId}'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.carts.read",
+          "crm.objects.services.write",
+          "tickets.sensitive.v2",
+          "crm.objects.contacts.write",
+          "crm.objects.courses.read",
+          "crm.objects.goals.write",
+          "crm.objects.custom.read",
+          "crm.objects.deals.read",
+          "crm.objects.custom.write",
+          "crm.objects.commercepayments.read",
+          "crm.objects.contacts.highly_sensitive.read.v2",
+          "crm.objects.leads.read",
+          "crm.objects.contacts.sensitive.write.v2",
+          "crm.objects.partner-services.write",
+          "e-commerce",
+          "crm.objects.products.read",
+          "crm.objects.custom.sensitive.write.v2",
+          "crm.objects.orders.write",
+          "crm.objects.subscriptions.write",
+          "tickets.highly_sensitive.v2",
+          "crm.objects.deals.highly_sensitive.read.v2",
+          "crm.objects.companies.write",
+          "crm.objects.partner-services.read",
+          "tickets",
+          "crm.objects.quotes.read",
+          "oauth",
+          "crm.objects.contacts.highly_sensitive.write.v2",
+          "crm.objects.companies.read",
+          "crm.objects.custom.highly_sensitive.read.v2",
+          "crm.objects.carts.write",
+          "crm.objects.quotes.write",
+          "crm.objects.companies.highly_sensitive.read.v2",
+          "crm.objects.users.write",
+          "crm.objects.companies.highly_sensitive.write.v2",
+          "crm.objects.users.read",
+          "crm.objects.contacts.read",
+          "crm.objects.appointments.write",
+          "crm.objects.partner-clients.write",
+          "crm.objects.line_items.write",
+          "crm.objects.deals.highly_sensitive.write.v2",
+          "crm.objects.deals.write",
+          "crm.objects.services.read",
+          "crm.objects.custom.sensitive.read.v2",
+          "crm.objects.companies.sensitive.write.v2",
+          "crm.objects.appointments.read",
+          "crm.objects.invoices.read",
+          "crm.objects.partner-clients.read",
+          "crm.objects.courses.write",
+          "crm.objects.custom.highly_sensitive.write.v2",
+          "crm.objects.listings.read",
+          "crm.objects.listings.write",
+          "crm.objects.subscriptions.read",
+          "crm.objects.appointments.sensitive.write.v2",
+          "crm.objects.invoices.write",
+          "crm.objects.line_items.read",
+          "crm.objects.companies.sensitive.read.v2",
+          "crm.objects.appointments.sensitive.read.v2",
+          "crm.objects.commercepayments.write",
+          "crm.objects.leads.write",
+          "crm.objects.deals.sensitive.read.v2",
+          "crm.objects.goals.read",
+          "crm.objects.orders.read",
+          "crm.objects.contacts.sensitive.read.v2",
+          "media_bridge.read",
+          "crm.objects.deals.sensitive.write.v2",
+          "crm.objects.products.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/objects/subscriptions/{subscriptionId}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "idProperty",
+        "tool_parameter_name": "unique_property_name",
+        "description": "The name of a property whose values are unique for this object",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of a property whose values are unique for this object"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscriptionId",
+        "tool_parameter_name": "subscription_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "subscription_properties",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "properties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs representing the properties of the object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"properties\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"properties\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Key value pairs representing the properties of the object.\"\n          }\n        },\n        \"description\": \"Represents the input required to create or update a CRM object, containing an object with property names and their corresponding values.\",\n        \"example\": {\n          \"properties\": {\n            \"property_checkbox\": \"false\",\n            \"property_date\": \"1572480000000\",\n            \"property_dropdown\": \"choice_b\",\n            \"property_multiple_checkboxes\": \"chocolate;strawberry\",\n            \"property_number\": \"17\",\n            \"property_radio\": \"option_1\",\n            \"property_string\": \"value\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,208 @@
+{
+  "name": "GetCampaignRevenueReport",
+  "fully_qualified_name": "HubspotMarketingApi.GetCampaignRevenueReport@0.1.0",
+  "description": "Fetch revenue attribution report for a specific campaign.\n\nThis tool retrieves the revenue attribution report data for a specified marketing campaign using its unique campaign GUID.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "campaign_unique_identifier",
+        "required": true,
+        "description": "Unique identifier for the campaign, formatted as a UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the campaign, formatted as a UUID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "campaignGuid"
+      },
+      {
+        "name": "attribution_model",
+        "required": false,
+        "description": "The revenue attribution model to be used. Allowed values: LINEAR, FIRST_INTERACTION, LAST_INTERACTION, FULL_PATH, U_SHAPED, W_SHAPED, TIME_DECAY, J_SHAPED, INVERSE_J_SHAPED. Defaults to LINEAR.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allowed values: LINEAR, FIRST_INTERACTION, LAST_INTERACTION, FULL_PATH, U_SHAPED, W_SHAPED, TIME_DECAY, J_SHAPED, INVERSE_J_SHAPED\nDefault value: LINEAR"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attributionModel"
+      },
+      {
+        "name": "report_start_date",
+        "required": false,
+        "description": "The start date for the report data in the format YYYY-MM-DD. Default is 2006-01-01.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date for the report data, formatted as YYYY-MM-DD.\nDefault value: 2006-01-01"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "startDate"
+      },
+      {
+        "name": "report_end_date",
+        "required": false,
+        "description": "End date for the report data in YYYY-MM-DD format. Defaults to the current date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for the report data, formatted as YYYY-MM-DD.\nDefault value: Current date"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "endDate"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/marketing/v3/campaigns/{campaignGuid}/reports/revenue'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "marketing.campaigns.revenue.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/campaigns/{campaignGuid}/reports/revenue",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "attributionModel",
+        "tool_parameter_name": "attribution_model",
+        "description": "Allowed values: LINEAR, FIRST_INTERACTION, LAST_INTERACTION, FULL_PATH, U_SHAPED, W_SHAPED, TIME_DECAY, J_SHAPED, INVERSE_J_SHAPED\nDefault value: LINEAR",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allowed values: LINEAR, FIRST_INTERACTION, LAST_INTERACTION, FULL_PATH, U_SHAPED, W_SHAPED, TIME_DECAY, J_SHAPED, INVERSE_J_SHAPED\nDefault value: LINEAR"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "startDate",
+        "tool_parameter_name": "report_start_date",
+        "description": "The start date for the report data, formatted as YYYY-MM-DD.\nDefault value: 2006-01-01",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date for the report data, formatted as YYYY-MM-DD.\nDefault value: 2006-01-01"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "endDate",
+        "tool_parameter_name": "report_end_date",
+        "description": "End date for the report data, formatted as YYYY-MM-DD.\nDefault value: Current date",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date for the report data, formatted as YYYY-MM-DD.\nDefault value: Current date"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "campaignGuid",
+        "tool_parameter_name": "campaign_unique_identifier",
+        "description": "Unique identifier for the campaign, formatted as a UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the campaign, formatted as a UUID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

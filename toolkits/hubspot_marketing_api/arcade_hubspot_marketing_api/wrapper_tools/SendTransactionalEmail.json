@@ -1,0 +1,273 @@
+{
+  "name": "SendTransactionalEmail",
+  "fully_qualified_name": "HubspotMarketingApi.SendTransactionalEmail@0.1.0",
+  "description": "Send a transactional email asynchronously.\n\nUse this tool to send a transactional email asynchronously and obtain the status of the email send with a statusId, which can be queried further using the Email Send Status API.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "email_request_details",
+        "required": true,
+        "description": "A JSON object detailing the email to send, including custom properties, email ID, message content, and contact properties.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customProperties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The customProperties field is a map of property values. Each property value contains a name and value property. Each property will be visible in the template under {{ custom.NAME }}.\nNote: Custom properties do not currently support arrays. To provide a listing in an email, one workaround is to build an HTML list (either with tables or ul) and specify it as a custom property."
+            },
+            "emailId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The content ID for the transactional email, which can be found in email tool UI."
+            },
+            "message": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "cc": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List of email addresses to send as Cc."
+                },
+                "sendId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID for a particular send. No more than one email will be sent per sendId."
+                },
+                "bcc": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List of email addresses to send as Bcc."
+                },
+                "replyTo": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List of Reply-To header values for the email."
+                },
+                "from": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The From header for the email."
+                },
+                "to": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The recipient of the email."
+                }
+              },
+              "inner_properties": null,
+              "description": "A JSON object containing anything you want to override."
+            },
+            "contactProperties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The contactProperties field is a map of contact property values. Each contact property value contains a name and value property. Each property will get set on the contact record and will be visible in the template under {{ contact.NAME }}. Use these properties when you want to set a contact property while you\u2019re sending the email. For example, when sending a reciept you may want to set a last_paid_date property, as the sending of the receipt will have information about the last payment."
+            }
+          },
+          "inner_properties": null,
+          "description": "A request object describing the email to send."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/marketing/v3/transactional/single-email/send_sendEmail'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "transactional-email"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/transactional/single-email/send",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "email_request_details",
+        "description": "A request object describing the email to send.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customProperties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The customProperties field is a map of property values. Each property value contains a name and value property. Each property will be visible in the template under {{ custom.NAME }}.\nNote: Custom properties do not currently support arrays. To provide a listing in an email, one workaround is to build an HTML list (either with tables or ul) and specify it as a custom property."
+            },
+            "emailId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The content ID for the transactional email, which can be found in email tool UI."
+            },
+            "message": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "cc": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List of email addresses to send as Cc."
+                },
+                "sendId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID for a particular send. No more than one email will be sent per sendId."
+                },
+                "bcc": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List of email addresses to send as Bcc."
+                },
+                "replyTo": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "List of Reply-To header values for the email."
+                },
+                "from": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The From header for the email."
+                },
+                "to": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The recipient of the email."
+                }
+              },
+              "inner_properties": null,
+              "description": "A JSON object containing anything you want to override."
+            },
+            "contactProperties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The contactProperties field is a map of contact property values. Each contact property value contains a name and value property. Each property will get set on the contact record and will be visible in the template under {{ contact.NAME }}. Use these properties when you want to set a contact property while you\u2019re sending the email. For example, when sending a reciept you may want to set a last_paid_date property, as the sending of the receipt will have information about the last payment."
+            }
+          },
+          "inner_properties": null,
+          "description": "A request object describing the email to send."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"A request object describing the email to send.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"emailId\",\n          \"message\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"customProperties\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"properties\": {}\n            },\n            \"description\": \"The customProperties field is a map of property values. Each property value contains a name and value property. Each property will be visible in the template under {{ custom.NAME }}.\\nNote: Custom properties do not currently support arrays. To provide a listing in an email, one workaround is to build an HTML list (either with tables or ul) and specify it as a custom property.\"\n          },\n          \"emailId\": {\n            \"type\": \"integer\",\n            \"description\": \"The content ID for the transactional email, which can be found in email tool UI.\",\n            \"format\": \"int32\"\n          },\n          \"message\": {\n            \"required\": [\n              \"to\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"cc\": {\n                \"type\": \"array\",\n                \"description\": \"List of email addresses to send as Cc.\",\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"sendId\": {\n                \"type\": \"string\",\n                \"description\": \"ID for a particular send. No more than one email will be sent per sendId.\"\n              },\n              \"bcc\": {\n                \"type\": \"array\",\n                \"description\": \"List of email addresses to send as Bcc.\",\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"replyTo\": {\n                \"type\": \"array\",\n                \"description\": \"List of Reply-To header values for the email.\",\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"from\": {\n                \"type\": \"string\",\n                \"description\": \"The From header for the email.\"\n              },\n              \"to\": {\n                \"type\": \"string\",\n                \"description\": \"The recipient of the email.\"\n              }\n            },\n            \"description\": \"A JSON object containing anything you want to override.\"\n          },\n          \"contactProperties\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The contactProperties field is a map of contact property values. Each contact property value contains a name and value property. Each property will get set on the contact record and will be visible in the template under {{ contact.NAME }}. Use these properties when you want to set a contact property while you\\u2019re sending the email. For example, when sending a reciept you may want to set a last_paid_date property, as the sending of the receipt will have information about the last payment.\"\n          }\n        },\n        \"description\": \"A request to send a single transactional email asynchronously.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

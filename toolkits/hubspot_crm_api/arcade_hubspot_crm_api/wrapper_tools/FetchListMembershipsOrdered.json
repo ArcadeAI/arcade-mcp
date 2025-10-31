@@ -1,0 +1,208 @@
+{
+  "name": "FetchListMembershipsOrdered",
+  "fully_qualified_name": "HubspotCrmApi.FetchListMembershipsOrdered@0.1.0",
+  "description": "Fetch list memberships ordered by addition date.\n\nFetch the memberships of a HubSpot CRM list, ordered by the date they were added. Useful for retrieving member records in an ascending order based on addition time, or in descending order if a 'before' offset is used.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_id",
+        "required": true,
+        "description": "The unique ILS ID of the list to retrieve memberships from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The **ILS ID** of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "listId"
+      },
+      {
+        "name": "after_paging_offset_token",
+        "required": false,
+        "description": "The token for the page that comes after the previously requested records, sorted in ascending order. Takes precedence over 'before'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The paging offset token for the page that comes `after` the previously requested records.\n\nIf provided, then the records in the response will be the records following the offset, sorted in *ascending* order. Takes precedence over the `before` offset."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "before_offset_token",
+        "required": false,
+        "description": "The paging offset token to retrieve records preceding the specified page, sorted in descending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The paging offset token for the page that comes `before` the previously requested records.\n\nIf provided, then the records in the response will be the records preceding the offset, sorted in *descending* order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "before"
+      },
+      {
+        "name": "record_limit",
+        "required": false,
+        "description": "Specify the number of records to return, with a maximum limit of 250.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to return in the response. The maximum `limit` is 250."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/crm/v3/lists/{listId}/memberships/join-order_getPageOrderedByAddedToListDate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.lists.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/lists/{listId}/memberships/join-order",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "after",
+        "tool_parameter_name": "after_paging_offset_token",
+        "description": "The paging offset token for the page that comes `after` the previously requested records.\n\nIf provided, then the records in the response will be the records following the offset, sorted in *ascending* order. Takes precedence over the `before` offset.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The paging offset token for the page that comes `after` the previously requested records.\n\nIf provided, then the records in the response will be the records following the offset, sorted in *ascending* order. Takes precedence over the `before` offset."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "before",
+        "tool_parameter_name": "before_offset_token",
+        "description": "The paging offset token for the page that comes `before` the previously requested records.\n\nIf provided, then the records in the response will be the records preceding the offset, sorted in *descending* order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The paging offset token for the page that comes `before` the previously requested records.\n\nIf provided, then the records in the response will be the records preceding the offset, sorted in *descending* order."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "record_limit",
+        "description": "The number of records to return in the response. The maximum `limit` is 250.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to return in the response. The maximum `limit` is 250."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 100,
+        "documentation_urls": []
+      },
+      {
+        "name": "listId",
+        "tool_parameter_name": "list_id",
+        "description": "The **ILS ID** of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The **ILS ID** of the list."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

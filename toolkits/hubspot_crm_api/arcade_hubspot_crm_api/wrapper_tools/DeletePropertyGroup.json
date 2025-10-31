@@ -1,0 +1,162 @@
+{
+  "name": "DeletePropertyGroup",
+  "fully_qualified_name": "HubspotCrmApi.DeletePropertyGroup@0.1.0",
+  "description": "Delete a property group and move it to recycling bin.\n\nUse this tool to move a specified property group to the recycling bin in HubSpot CRM. Ideal when a property group is no longer needed and should be removed.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "crm_object_type",
+        "required": true,
+        "description": "Specify the type of CRM object, such as 'contacts', 'companies', etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectType"
+      },
+      {
+        "name": "property_group_name",
+        "required": true,
+        "description": "The name of the property group to delete. This identifies which group to move to the recycling bin in HubSpot CRM.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "groupName"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'delete-/crm/v3/properties/{objectType}/groups/{groupName}'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.schemas.carts.write",
+          "crm.schemas.invoices.write",
+          "tickets.sensitive.v2",
+          "crm.schemas.contacts.write",
+          "crm.schemas.services.write",
+          "e-commerce",
+          "crm.objects.orders.write",
+          "crm.schemas.deals.write",
+          "tickets.highly_sensitive.v2",
+          "tickets",
+          "crm.objects.carts.write",
+          "crm.schemas.courses.write",
+          "crm.schemas.custom.write",
+          "crm.schemas.commercepayments.write",
+          "crm.objects.users.write",
+          "crm.schemas.companies.write",
+          "crm.schemas.orders.write",
+          "crm.schemas.appointments.write",
+          "crm.pipelines.orders.write",
+          "crm.schemas.subscriptions.write",
+          "crm.schemas.listings.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/properties/{objectType}/groups/{groupName}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "objectType",
+        "tool_parameter_name": "crm_object_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "groupName",
+        "tool_parameter_name": "property_group_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
