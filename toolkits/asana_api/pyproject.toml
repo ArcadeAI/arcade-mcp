@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_asana_api"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tools that enable LLMs to interact directly with the Asana API."
 requires-python = ">=3.10"
 dependencies = [
