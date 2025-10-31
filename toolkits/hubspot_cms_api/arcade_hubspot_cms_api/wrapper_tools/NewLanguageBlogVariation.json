@@ -1,0 +1,142 @@
+{
+  "name": "NewLanguageBlogVariation",
+  "fully_qualified_name": "HubspotCmsApi.NewLanguageBlogVariation@0.1.0",
+  "description": "Create a new language variation from an existing blog post.\n\nUse this tool to generate a new language version of an existing blog post on HubSpot CMS. It's useful for expanding the reach of content to different language audiences.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "blog_post_id",
+        "required": true,
+        "description": "The ID of the blog post you want to clone into a new language variation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of blog post to clone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "target_language",
+        "required": false,
+        "description": "The language code for the target language of the new blog post variation (e.g., 'fr' for French).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Target language of new variant."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "language"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/blogs/posts/multi-language/create-language-variation_createLangVariation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/blogs/posts/multi-language/create-language-variation",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "language",
+        "tool_parameter_name": "target_language",
+        "description": "Target language of new variant.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Target language of new variant."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "blog_post_id",
+        "description": "ID of blog post to clone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of blog post to clone."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The JSON representation of the BlogPostLanguageCloneRequestVNext object.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"language\": {\n            \"type\": \"string\",\n            \"description\": \"Target language of new variant.\"\n          },\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"ID of blog post to clone.\"\n          }\n        },\n        \"description\": \"Request body object for creating new blog post language variant.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

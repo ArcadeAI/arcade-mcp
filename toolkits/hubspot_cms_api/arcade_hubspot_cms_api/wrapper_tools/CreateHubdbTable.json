@@ -1,0 +1,741 @@
+{
+  "name": "CreateHubdbTable",
+  "fully_qualified_name": "HubspotCmsApi.CreateHubdbTable@0.1.0",
+  "description": "Create a new draft HubDB table with a unique name and label.\n\nThis tool creates a new draft HubDB table using a provided JSON schema. It requires that the table name and label be unique within each account.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "table_schema",
+        "required": true,
+        "description": "A JSON schema defining the new HubDB table, including columns, options, and metadata. Ensure the table name and label are unique.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dynamicMetaTags": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the key value pairs of the [metadata fields](https://developers.hubspot.com/docs/cms/guides/dynamic-pages/hubdb#dynamic-pages) with the associated column IDs."
+            },
+            "allowPublicApiAccess": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether the table can be read by public without authorization"
+            },
+            "useForPages": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether the table can be used for creation of dynamic pages"
+            },
+            "columns": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "foreignTableId": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of another table to which the column refers/points to."
+                },
+                "maxNumberOfCharacters": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the column"
+                },
+                "options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "createdByUserId": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the user who created the option."
+                    },
+                    "createdAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the option was created, in ISO 8601 format."
+                    },
+                    "updatedBy": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "firstName": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "lastName": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "email": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "createdBy": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "firstName": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "lastName": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "email": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An internal name assigned to the option, distinct from the label."
+                    },
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The unique ID of the option."
+                    },
+                    "label": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A user-friendly label that identifies the option."
+                    },
+                    "updatedByUserId": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the user who last updated the option."
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates the category or data type of the option (e.g., string, number)."
+                    },
+                    "order": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "updatedAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the option was last updated, in ISO 8601 format."
+                    }
+                  },
+                  "description": "Options to choose for select and multi-select columns"
+                },
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Column Id"
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the column"
+                },
+                "maxNumberOfOptions": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "NULL",
+                    "TEXT",
+                    "NUMBER",
+                    "URL",
+                    "IMAGE",
+                    "SELECT",
+                    "MULTISELECT",
+                    "BOOLEAN",
+                    "LOCATION",
+                    "DATE",
+                    "DATETIME",
+                    "CURRENCY",
+                    "RICHTEXT",
+                    "FOREIGN_ID",
+                    "VIDEO",
+                    "CTA",
+                    "FILE",
+                    "JSON",
+                    "COMPOSITE",
+                    "CODE",
+                    "HUBSPOT_VIDEO",
+                    "EMBED"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the column"
+                },
+                "foreignColumnId": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the column from another table to which the column refers/points to."
+                }
+              },
+              "description": "List of columns in the table"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the table"
+            },
+            "enableChildTablePages": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies creation of multi-level dynamic pages using child tables"
+            },
+            "label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Label of the table"
+            },
+            "allowChildTables": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether child tables can be created"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/hubdb/tables_createTable'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "hubdb"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/hubdb/tables",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "table_schema",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dynamicMetaTags": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies the key value pairs of the [metadata fields](https://developers.hubspot.com/docs/cms/guides/dynamic-pages/hubdb#dynamic-pages) with the associated column IDs."
+            },
+            "allowPublicApiAccess": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether the table can be read by public without authorization"
+            },
+            "useForPages": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether the table can be used for creation of dynamic pages"
+            },
+            "columns": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "foreignTableId": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of another table to which the column refers/points to."
+                },
+                "maxNumberOfCharacters": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the column"
+                },
+                "options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "createdByUserId": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the user who created the option."
+                    },
+                    "createdAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the option was created, in ISO 8601 format."
+                    },
+                    "updatedBy": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "firstName": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "lastName": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "email": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "createdBy": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "firstName": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "lastName": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "email": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An internal name assigned to the option, distinct from the label."
+                    },
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The unique ID of the option."
+                    },
+                    "label": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A user-friendly label that identifies the option."
+                    },
+                    "updatedByUserId": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the user who last updated the option."
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates the category or data type of the option (e.g., string, number)."
+                    },
+                    "order": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "updatedAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the option was last updated, in ISO 8601 format."
+                    }
+                  },
+                  "description": "Options to choose for select and multi-select columns"
+                },
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Column Id"
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the column"
+                },
+                "maxNumberOfOptions": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "NULL",
+                    "TEXT",
+                    "NUMBER",
+                    "URL",
+                    "IMAGE",
+                    "SELECT",
+                    "MULTISELECT",
+                    "BOOLEAN",
+                    "LOCATION",
+                    "DATE",
+                    "DATETIME",
+                    "CURRENCY",
+                    "RICHTEXT",
+                    "FOREIGN_ID",
+                    "VIDEO",
+                    "CTA",
+                    "FILE",
+                    "JSON",
+                    "COMPOSITE",
+                    "CODE",
+                    "HUBSPOT_VIDEO",
+                    "EMBED"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the column"
+                },
+                "foreignColumnId": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The id of the column from another table to which the column refers/points to."
+                }
+              },
+              "description": "List of columns in the table"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the table"
+            },
+            "enableChildTablePages": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies creation of multi-level dynamic pages using child tables"
+            },
+            "label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Label of the table"
+            },
+            "allowChildTables": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether child tables can be created"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"label\",\n          \"name\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"dynamicMetaTags\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"integer\",\n              \"format\": \"int32\"\n            },\n            \"description\": \"Specifies the key value pairs of the [metadata fields](https://developers.hubspot.com/docs/cms/guides/dynamic-pages/hubdb#dynamic-pages) with the associated column IDs.\"\n          },\n          \"allowPublicApiAccess\": {\n            \"type\": \"boolean\",\n            \"description\": \"Specifies whether the table can be read by public without authorization\"\n          },\n          \"useForPages\": {\n            \"type\": \"boolean\",\n            \"description\": \"Specifies whether the table can be used for creation of dynamic pages\"\n          },\n          \"columns\": {\n            \"type\": \"array\",\n            \"description\": \"List of columns in the table\",\n            \"items\": {\n              \"required\": [\n                \"id\",\n                \"label\",\n                \"name\",\n                \"options\",\n                \"type\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"foreignTableId\": {\n                  \"type\": \"integer\",\n                  \"description\": \"The id of another table to which the column refers/points to.\",\n                  \"format\": \"int64\"\n                },\n                \"maxNumberOfCharacters\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int32\"\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"Name of the column\"\n                },\n                \"options\": {\n                  \"type\": \"array\",\n                  \"description\": \"Options to choose for select and multi-select columns\",\n                  \"items\": {\n                    \"required\": [\n                      \"createdAt\",\n                      \"id\",\n                      \"name\",\n                      \"order\",\n                      \"type\",\n                      \"updatedAt\"\n                    ],\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"createdByUserId\": {\n                        \"type\": \"integer\",\n                        \"description\": \"The ID of the user who created the option.\",\n                        \"format\": \"int32\"\n                      },\n                      \"createdAt\": {\n                        \"type\": \"string\",\n                        \"description\": \"The timestamp when the option was created, in ISO 8601 format.\",\n                        \"format\": \"date-time\"\n                      },\n                      \"updatedBy\": {\n                        \"required\": [\n                          \"email\",\n                          \"firstName\",\n                          \"id\",\n                          \"lastName\"\n                        ],\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"firstName\": {\n                            \"type\": \"string\"\n                          },\n                          \"lastName\": {\n                            \"type\": \"string\"\n                          },\n                          \"id\": {\n                            \"type\": \"string\"\n                          },\n                          \"email\": {\n                            \"type\": \"string\"\n                          }\n                        }\n                      },\n                      \"createdBy\": {\n                        \"required\": [\n                          \"email\",\n                          \"firstName\",\n                          \"id\",\n                          \"lastName\"\n                        ],\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"firstName\": {\n                            \"type\": \"string\"\n                          },\n                          \"lastName\": {\n                            \"type\": \"string\"\n                          },\n                          \"id\": {\n                            \"type\": \"string\"\n                          },\n                          \"email\": {\n                            \"type\": \"string\"\n                          }\n                        }\n                      },\n                      \"name\": {\n                        \"type\": \"string\",\n                        \"description\": \"An internal name assigned to the option, distinct from the label.\",\n                        \"example\": \"\"\n                      },\n                      \"id\": {\n                        \"type\": \"string\",\n                        \"description\": \"The unique ID of the option.\",\n                        \"example\": \"\"\n                      },\n                      \"label\": {\n                        \"type\": \"string\",\n                        \"description\": \"A user-friendly label that identifies the option.\",\n                        \"example\": \"\"\n                      },\n                      \"updatedByUserId\": {\n                        \"type\": \"integer\",\n                        \"description\": \"The ID of the user who last updated the option.\",\n                        \"format\": \"int32\"\n                      },\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"description\": \"Indicates the category or data type of the option (e.g., string, number).\",\n                        \"example\": \"\"\n                      },\n                      \"order\": {\n                        \"type\": \"integer\",\n                        \"format\": \"int32\"\n                      },\n                      \"updatedAt\": {\n                        \"type\": \"string\",\n                        \"description\": \"The timestamp when the option was last updated, in ISO 8601 format.\",\n                        \"format\": \"date-time\"\n                      }\n                    },\n                    \"description\": \"A HubSpot property option\"\n                  }\n                },\n                \"id\": {\n                  \"type\": \"integer\",\n                  \"description\": \"Column Id\",\n                  \"format\": \"int32\"\n                },\n                \"label\": {\n                  \"type\": \"string\",\n                  \"description\": \"Label of the column\"\n                },\n                \"maxNumberOfOptions\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int32\"\n                },\n                \"type\": {\n                  \"type\": \"string\",\n                  \"description\": \"Type of the column\",\n                  \"enum\": [\n                    \"NULL\",\n                    \"TEXT\",\n                    \"NUMBER\",\n                    \"URL\",\n                    \"IMAGE\",\n                    \"SELECT\",\n                    \"MULTISELECT\",\n                    \"BOOLEAN\",\n                    \"LOCATION\",\n                    \"DATE\",\n                    \"DATETIME\",\n                    \"CURRENCY\",\n                    \"RICHTEXT\",\n                    \"FOREIGN_ID\",\n                    \"VIDEO\",\n                    \"CTA\",\n                    \"FILE\",\n                    \"JSON\",\n                    \"COMPOSITE\",\n                    \"CODE\",\n                    \"HUBSPOT_VIDEO\",\n                    \"EMBED\"\n                  ]\n                },\n                \"foreignColumnId\": {\n                  \"type\": \"integer\",\n                  \"description\": \"The id of the column from another table to which the column refers/points to.\",\n                  \"format\": \"int32\"\n                }\n              }\n            }\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the table\"\n          },\n          \"enableChildTablePages\": {\n            \"type\": \"boolean\",\n            \"description\": \"Specifies creation of multi-level dynamic pages using child tables\"\n          },\n          \"label\": {\n            \"type\": \"string\",\n            \"description\": \"Label of the table\"\n          },\n          \"allowChildTables\": {\n            \"type\": \"boolean\",\n            \"description\": \"Specifies whether child tables can be created\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

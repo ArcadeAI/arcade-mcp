@@ -1,0 +1,175 @@
+{
+  "name": "GetDraftTableRowById",
+  "fully_qualified_name": "HubspotCmsApi.GetDraftTableRowById@0.1.0",
+  "description": "Retrieve a single draft row by ID from a HubDB table.\n\nThis tool fetches a specific row's draft version from a HubDB table using the row ID. It should be called when a user needs to access draft data for a specific table row by ID or name.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "table_identifier",
+        "required": true,
+        "description": "The ID or name of the HubDB table to fetch the draft row from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the table"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tableIdOrName"
+      },
+      {
+        "name": "row_id",
+        "required": true,
+        "description": "The ID of the row in the table's draft version to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the row"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rowId"
+      },
+      {
+        "name": "include_archived",
+        "required": false,
+        "description": "Set to true to include archived rows in the search result. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/cms/v3/hubdb/tables/{tableIdOrName}/rows/{rowId}/draft_getDraftTableRowById'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "hubdb"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/hubdb/tables/{tableIdOrName}/rows/{rowId}/draft",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "archived",
+        "tool_parameter_name": "include_archived",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tableIdOrName",
+        "tool_parameter_name": "table_identifier",
+        "description": "The ID or name of the table",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the table"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "rowId",
+        "tool_parameter_name": "row_id",
+        "description": "The ID of the row",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the row"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

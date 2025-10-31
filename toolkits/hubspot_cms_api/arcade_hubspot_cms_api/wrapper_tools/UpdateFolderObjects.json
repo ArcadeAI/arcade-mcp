@@ -1,0 +1,142 @@
+{
+  "name": "UpdateFolderObjects",
+  "fully_qualified_name": "HubspotCmsApi.UpdateFolderObjects@0.1.0",
+  "description": "Update specified folder objects in HubSpot CMS.\n\nUse this tool to update the folder objects identified in the request body within the HubSpot CMS platform. Useful for batch modifications of landing page folder metadata.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "folder_identifiers",
+        "required": true,
+        "description": "An array of strings identifying folder objects to update in HubSpot CMS.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Strings to input."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "inputs"
+      },
+      {
+        "name": "include_archived_folders",
+        "required": false,
+        "description": "Indicate whether to include archived folders in the results. Defaults to `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether to return deleted Folders. Defaults to `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/pages/landing-pages/folders/batch/read_readFolders'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/pages/landing-pages/folders/batch/read",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "archived",
+        "tool_parameter_name": "include_archived_folders",
+        "description": "Specifies whether to return deleted Folders. Defaults to `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether to return deleted Folders. Defaults to `false`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "inputs",
+        "tool_parameter_name": "folder_identifiers",
+        "description": "Strings to input.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Strings to input."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The JSON array of Folder ids.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"inputs\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"inputs\": {\n            \"type\": \"array\",\n            \"description\": \"Strings to input.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        },\n        \"description\": \"Wrapper for providing an array of strings as inputs.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

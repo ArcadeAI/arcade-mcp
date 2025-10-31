@@ -1,0 +1,241 @@
+{
+  "name": "CloneHubdbTable",
+  "fully_qualified_name": "HubspotCmsApi.CloneHubdbTable@0.1.0",
+  "description": "Clone an existing HubDB table as a draft.\n\nUse this tool to create a draft clone of an existing HubDB table. The new table's name and label can be specified.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "source_table_id_or_name",
+        "required": true,
+        "description": "The ID or name of the HubDB table to clone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the table to clone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tableIdOrName"
+      },
+      {
+        "name": "is_hubspot_defined",
+        "required": true,
+        "description": "Indicate if the table is defined by HubSpot. This is a boolean value where true means the table is HubSpot-defined.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "isHubspotDefined"
+      },
+      {
+        "name": "copy_rows",
+        "required": true,
+        "description": "Boolean indicating whether to copy the rows during the cloning process.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether to copy the rows during clone"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "copyRows"
+      },
+      {
+        "name": "new_table_name",
+        "required": false,
+        "description": "The desired new name for the cloned HubDB table draft.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new name for the cloned table"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "newName"
+      },
+      {
+        "name": "new_table_label",
+        "required": false,
+        "description": "The label for the new cloned table. Specify a descriptive label for identification.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new label for the cloned table"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "newLabel"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/hubdb/tables/{tableIdOrName}/draft/clone_cloneDraftTable'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "hubdb"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/hubdb/tables/{tableIdOrName}/draft/clone",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "tableIdOrName",
+        "tool_parameter_name": "source_table_id_or_name",
+        "description": "The ID or name of the table to clone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the table to clone."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "newName",
+        "tool_parameter_name": "new_table_name",
+        "description": "The new name for the cloned table",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new name for the cloned table"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "isHubspotDefined",
+        "tool_parameter_name": "is_hubspot_defined",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "newLabel",
+        "tool_parameter_name": "new_table_label",
+        "description": "The new label for the cloned table",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new label for the cloned table"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "copyRows",
+        "tool_parameter_name": "copy_rows",
+        "description": "Specifies whether to copy the rows during clone",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether to copy the rows during clone"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"copyRows\",\n          \"isHubspotDefined\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"newName\": {\n            \"type\": \"string\",\n            \"description\": \"The new name for the cloned table\"\n          },\n          \"isHubspotDefined\": {\n            \"type\": \"boolean\"\n          },\n          \"newLabel\": {\n            \"type\": \"string\",\n            \"description\": \"The new label for the cloned table\"\n          },\n          \"copyRows\": {\n            \"type\": \"boolean\",\n            \"description\": \"Specifies whether to copy the rows during clone\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

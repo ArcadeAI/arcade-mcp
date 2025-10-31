@@ -1,0 +1,413 @@
+{
+  "name": "CreateAttentionSpanEvent",
+  "fully_qualified_name": "HubspotCmsApi.CreateAttentionSpanEvent@0.1.0",
+  "description": "Log viewer's attention span details for media events.\n\nThis tool creates an event recording viewer attention span details for media, which helps in tracking engagement and interaction levels.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "attention_span_event_data",
+        "required": true,
+        "description": "JSON object containing media URL, contact ID, raw data, derived values, external ID, media type, session details, page details, occurrence timestamp, contact UTK, encoding, media bridge ID, and media name.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "mediaUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "contactId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "rawDataString": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "rawDataMap": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "derivedValues": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "totalSecondsPlayed": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "totalPercentPlayed": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "mediaType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "VIDEO",
+                "AUDIO",
+                "DOCUMENT",
+                "OTHER",
+                "IMAGE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "sessionId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "pageId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "pageName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "occurredTimestamp": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "contactUtk": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "pageUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_hsenc": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "mediaBridgeId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "mediaName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/media-bridge/v1/events/attention-span'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "media_bridge.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/media-bridge/v1/events/attention-span",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "attention_span_event_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "mediaUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "contactId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "rawDataString": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "rawDataMap": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "derivedValues": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "totalSecondsPlayed": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "totalPercentPlayed": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "mediaType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "VIDEO",
+                "AUDIO",
+                "DOCUMENT",
+                "OTHER",
+                "IMAGE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "sessionId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "pageId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "pageName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "occurredTimestamp": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "contactUtk": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "pageUrl": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "_hsenc": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "mediaBridgeId": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "mediaName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"mediaType\",\n          \"occurredTimestamp\",\n          \"rawDataMap\",\n          \"sessionId\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"mediaUrl\": {\n            \"type\": \"string\"\n          },\n          \"contactId\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"rawDataString\": {\n            \"type\": \"string\"\n          },\n          \"rawDataMap\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"integer\",\n              \"format\": \"int32\"\n            }\n          },\n          \"derivedValues\": {\n            \"required\": [\n              \"totalPercentPlayed\",\n              \"totalSecondsPlayed\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"totalSecondsPlayed\": {\n                \"type\": \"integer\",\n                \"format\": \"int32\"\n              },\n              \"totalPercentPlayed\": {\n                \"type\": \"number\"\n              }\n            }\n          },\n          \"externalId\": {\n            \"type\": \"string\"\n          },\n          \"mediaType\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"VIDEO\",\n              \"AUDIO\",\n              \"DOCUMENT\",\n              \"OTHER\",\n              \"IMAGE\"\n            ]\n          },\n          \"sessionId\": {\n            \"type\": \"string\"\n          },\n          \"pageId\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"pageName\": {\n            \"type\": \"string\"\n          },\n          \"occurredTimestamp\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"contactUtk\": {\n            \"type\": \"string\"\n          },\n          \"pageUrl\": {\n            \"type\": \"string\"\n          },\n          \"_hsenc\": {\n            \"type\": \"string\"\n          },\n          \"mediaBridgeId\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"mediaName\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
