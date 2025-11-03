@@ -110,14 +110,18 @@ class MCPApp:
         # Public handle to the MCPServer (set by caller for runtime ops)
         self.server: MCPServer | None = None
 
-        self._mcp_settings = MCPSettings(
-            server=ServerSettings(
-                name=self._name,
-                version=self.version,
-                title=self.title,
-                instructions=self.instructions,
-            )
-        )
+        server_settings_kwargs = {
+            "name": self._name,
+            "version": self.version,
+            "title": self.title,
+        }
+        if self.instructions:
+            server_settings_kwargs["instructions"] = self.instructions
+
+        self._mcp_settings = MCPSettings(server=ServerSettings(**server_settings_kwargs))
+
+        # Store the actual instructions that ended up in ServerSettings
+        self.instructions = self._mcp_settings.server.instructions
 
         self._load_env()
         if not logger._core.handlers:  # type: ignore[attr-defined]
@@ -249,7 +253,9 @@ class MCPApp:
 
     def add_tools_from_module(self, module: ModuleType) -> None:
         """Add all the tools in a module to the catalog."""
-        self._catalog.add_module(module, self._toolkit_name)
+        self._catalog.add_module(
+            module, self._toolkit_name, version=self.version, description=self.instructions
+        )
 
     def tool(
         self,

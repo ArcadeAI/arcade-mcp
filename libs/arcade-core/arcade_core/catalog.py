@@ -266,22 +266,37 @@ class ToolCatalog(BaseModel):
             output_model=output_model,
         )
 
-    def add_module(self, module: ModuleType, name: str | None = None) -> None:
+    def add_module(
+        self,
+        module: ModuleType,
+        name: str | None = None,
+        version: str | None = None,
+        description: str | None = None,
+    ) -> None:
         """
         Add all the tools in a module to the catalog.
 
         Args:
             module: The module to add.
             name: Optionally override the name of the toolkit with this parameter
+            version: Optionally override the version of the toolkit with this parameter
+            description: Optionally override the description of the toolkit with this parameter
         """
         toolkit = Toolkit.from_module(module)
         if name:
             toolkit.name = name
-        self.add_toolkit(toolkit)
+        self.add_toolkit(toolkit, version=version, description=description)
 
-    def add_toolkit(self, toolkit: Toolkit) -> None:
+    def add_toolkit(
+        self, toolkit: Toolkit, version: str | None = None, description: str | None = None
+    ) -> None:
         """
         Add the tools from a loaded toolkit to the catalog.
+
+        Args:
+            toolkit: The toolkit to add.
+            version: Optionally override the version of the toolkit with this parameter
+            description: Optionally override the description of the toolkit with this parameter
         """
 
         if str(toolkit).lower() in self._disabled_toolkits:
@@ -293,7 +308,13 @@ class ToolCatalog(BaseModel):
                 try:
                     module = import_module(module_name)
                     tool_func = getattr(module, tool_name)
-                    self.add_tool(tool_func, toolkit, module)
+                    self.add_tool(
+                        tool_func,
+                        toolkit,
+                        module,
+                        toolkit_version=version,
+                        toolkit_description=description,
+                    )
                 except ToolDefinitionError as e:
                     raise e.with_context(tool_name) from e
                 except ToolkitLoadError as e:
