@@ -1,0 +1,239 @@
+{
+  "name": "UpdateInterestGroupName",
+  "fully_qualified_name": "MailchimpTransactionApi.UpdateInterestGroupName@0.1.0",
+  "description": "Update group names in a specific interest category.\n\nUse this tool to update the names of interest groups within a specified category on a Mailchimp list. This is helpful for managing and organizing subscriber interests.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_unique_id",
+        "required": true,
+        "description": "The unique ID for the list to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID for the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_id"
+      },
+      {
+        "name": "interest_category_id",
+        "required": true,
+        "description": "The unique ID for the interest category to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID for the interest category."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "interest_category_id"
+      },
+      {
+        "name": "specific_interest_id",
+        "required": true,
+        "description": "The unique ID for the specific interest group name within the category.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The specific interest or 'group name'."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "interest_id"
+      },
+      {
+        "name": "interest_group_name",
+        "required": true,
+        "description": "The new name for the interest group, displayed publicly on subscription forms.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the interest. This can be shown publicly on a subscription form."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "interest_display_order",
+        "required": false,
+        "description": "The numerical order in which the interest should appear in a list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The display order for interests."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "display_order"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patchListsIdInterestCategoriesIdInterestsId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/lists/{list_id}/interest-categories/{interest_category_id}/interests/{interest_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "list_id",
+        "tool_parameter_name": "list_unique_id",
+        "description": "The unique ID for the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID for the list."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "interest_category_id",
+        "tool_parameter_name": "interest_category_id",
+        "description": "The unique ID for the interest category.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID for the interest category."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "interest_id",
+        "tool_parameter_name": "specific_interest_id",
+        "description": "The specific interest or 'group name'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The specific interest or 'group name'."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "interest_group_name",
+        "description": "The name of the interest. This can be shown publicly on a subscription form.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the interest. This can be shown publicly on a subscription form."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "display_order",
+        "tool_parameter_name": "interest_display_order",
+        "description": "The display order for interests.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The display order for interests."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"Interest\",\n        \"description\": \"Assign subscribers to interests to group them together. Interests are referred to as 'group names' in the Mailchimp application.\",\n        \"required\": [\n          \"name\"\n        ],\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"title\": \"Interest Name\",\n            \"description\": \"The name of the interest. This can be shown publicly on a subscription form.\"\n          },\n          \"display_order\": {\n            \"type\": \"integer\",\n            \"title\": \"Display Order\",\n            \"description\": \"The display order for interests.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

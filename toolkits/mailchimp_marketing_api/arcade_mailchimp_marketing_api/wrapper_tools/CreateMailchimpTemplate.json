@@ -1,0 +1,173 @@
+{
+  "name": "CreateMailchimpTemplate",
+  "fully_qualified_name": "MailchimpTransactionApi.CreateMailchimpTemplate@0.1.0",
+  "description": "Create a new Classic template in Mailchimp.\n\nThis tool is used to create a new Classic template in a Mailchimp account. It should be called when a user wants to add a new email template for marketing purposes.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "template_name",
+        "required": true,
+        "description": "The name assigned to the new template. It should be descriptive for easy identification.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "template_html_content",
+        "required": true,
+        "description": "The raw HTML content for the template, supporting Mailchimp Template Language.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The raw HTML for the template. We  support the Mailchimp [Template Language](https://mailchimp.com/help/getting-started-with-mailchimps-template-language/) in any HTML code passed via the API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "html"
+      },
+      {
+        "name": "template_folder_id",
+        "required": false,
+        "description": "The ID of the folder where the template will be stored. Ensure the folder exists in the Mailchimp account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the folder the template is currently in."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folder_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postTemplates'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/templates",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "template_name",
+        "description": "The name of the template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the template."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "folder_id",
+        "tool_parameter_name": "template_folder_id",
+        "description": "The id of the folder the template is currently in.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the folder the template is currently in."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "html",
+        "tool_parameter_name": "template_html_content",
+        "description": "The raw HTML for the template. We  support the Mailchimp [Template Language](https://mailchimp.com/help/getting-started-with-mailchimps-template-language/) in any HTML code passed via the API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The raw HTML for the template. We  support the Mailchimp [Template Language](https://mailchimp.com/help/getting-started-with-mailchimps-template-language/) in any HTML code passed via the API."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"Template Instance\",\n        \"description\": \"Information about a specific template.\",\n        \"required\": [\n          \"name\",\n          \"html\"\n        ],\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"title\": \"Template Name\",\n            \"description\": \"The name of the template.\",\n            \"example\": \"Freddie's Jokes\"\n          },\n          \"folder_id\": {\n            \"type\": \"string\",\n            \"title\": \"Folder ID\",\n            \"description\": \"The id of the folder the template is currently in.\",\n            \"example\": \"a4b830b\"\n          },\n          \"html\": {\n            \"type\": \"string\",\n            \"title\": \"Template HTML\",\n            \"description\": \"The raw HTML for the template. We  support the Mailchimp [Template Language](https://mailchimp.com/help/getting-started-with-mailchimps-template-language/) in any HTML code passed via the API.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

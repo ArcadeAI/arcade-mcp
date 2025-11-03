@@ -1,0 +1,173 @@
+{
+  "name": "UpdateBatchWebhook",
+  "fully_qualified_name": "MailchimpTransactionApi.UpdateBatchWebhook@0.1.0",
+  "description": "Update a batch webhook on Mailchimp.\n\nUse this tool to update a webhook that triggers when a batch request in Mailchimp completes. This is useful for managing notifications and automated responses to batch operations.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "batch_webhook_unique_id",
+        "required": true,
+        "description": "The unique identifier for the batch webhook to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the batch webhook."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "batch_webhook_id"
+      },
+      {
+        "name": "webhook_url",
+        "required": false,
+        "description": "A valid URL to send webhook notifications when a batch request completes in Mailchimp.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A valid URL for the Webhook."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "url"
+      },
+      {
+        "name": "enable_webhook",
+        "required": false,
+        "description": "Enable or disable webhook requests (true for enable, false for disable).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the webhook receives requests or not."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patchBatchWebhooks'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/batch-webhooks/{batch_webhook_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "batch_webhook_id",
+        "tool_parameter_name": "batch_webhook_unique_id",
+        "description": "The unique id for the batch webhook.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the batch webhook."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "url",
+        "tool_parameter_name": "webhook_url",
+        "description": "A valid URL for the Webhook.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A valid URL for the Webhook."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "enabled",
+        "tool_parameter_name": "enable_webhook",
+        "description": "Whether the webhook receives requests or not.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the webhook receives requests or not."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"Batch Webhook\",\n        \"description\": \"Update an existing Batch Webook.\",\n        \"properties\": {\n          \"url\": {\n            \"type\": \"string\",\n            \"title\": \"URL\",\n            \"description\": \"A valid URL for the Webhook.\",\n            \"example\": \"http://yourdomain.com/webhook\"\n          },\n          \"enabled\": {\n            \"type\": \"boolean\",\n            \"title\": \"Enabled\",\n            \"description\": \"Whether the webhook receives requests or not.\",\n            \"example\": true\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

@@ -1,0 +1,565 @@
+{
+  "name": "UpdateCart",
+  "fully_qualified_name": "MailchimpTransactionApi.UpdateCart@0.1.0",
+  "description": "Update a specific cart in an e-commerce store.\n\nThis tool updates a specified cart within a given e-commerce store using the Mailchimp Marketing API. Use it to modify cart details like items, quantities, or any other attributes available. Ideal for scenarios involving cart adjustments before customer checkout.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "store_id",
+        "required": true,
+        "description": "The unique identifier for the store where the cart is located.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "store_id"
+      },
+      {
+        "name": "cart_identifier",
+        "required": true,
+        "description": "The unique identifier for the cart. Used to specify which cart to update in the e-commerce store.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the cart."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cart_id"
+      },
+      {
+        "name": "cart_update_details",
+        "required": true,
+        "description": "JSON object containing the cart details to update including customer info, campaign ID, checkout URL, currency code, order total, tax total, and line items.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "opt_in_status": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's opt-in status. This value will never overwrite the opt-in status of a pre-existing Mailchimp list member, but will apply to list members that are added through the e-commerce API endpoints. Customers who don't opt in to your Mailchimp list [will be added as `Transactional` members](https://mailchimp.com/developer/marketing/docs/e-commerce/#customers)."
+                },
+                "company": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's company."
+                },
+                "first_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's first name."
+                },
+                "last_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's last name."
+                },
+                "address": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "address1": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The mailing address of the customer."
+                    },
+                    "address2": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An additional field for the customer's mailing address."
+                    },
+                    "city": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The city the customer is located in."
+                    },
+                    "province": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's state name or normalized province."
+                    },
+                    "province_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The two-letter code for the customer's province or state."
+                    },
+                    "postal_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's postal or zip code."
+                    },
+                    "country": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's country."
+                    },
+                    "country_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The two-letter code for the customer's country."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The customer's address."
+                }
+              },
+              "inner_properties": null,
+              "description": "Information about a specific customer. Orders for existing customers should include only the `id` parameter in the `customer` object body."
+            },
+            "campaign_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A string that uniquely identifies the campaign associated with a cart."
+            },
+            "checkout_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL for the cart. This parameter is required for [Abandoned Cart](https://mailchimp.com/help/create-an-abandoned-cart-email/) automations."
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The three-letter ISO 4217 code for the currency that the cart uses."
+            },
+            "order_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order total for the cart."
+            },
+            "tax_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The total tax for the cart."
+            },
+            "lines": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "product_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product associated with the cart line item."
+                },
+                "product_variant_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product variant associated with the cart line item."
+                },
+                "quantity": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The quantity of a cart line item."
+                },
+                "price": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The price of a cart line item."
+                }
+              },
+              "description": "An array of the cart's line items."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patchEcommerceStoresIdCartsId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/ecommerce/stores/{store_id}/carts/{cart_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "store_id",
+        "tool_parameter_name": "store_id",
+        "description": "The store id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cart_id",
+        "tool_parameter_name": "cart_identifier",
+        "description": "The id for the cart.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the cart."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "cart_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "opt_in_status": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's opt-in status. This value will never overwrite the opt-in status of a pre-existing Mailchimp list member, but will apply to list members that are added through the e-commerce API endpoints. Customers who don't opt in to your Mailchimp list [will be added as `Transactional` members](https://mailchimp.com/developer/marketing/docs/e-commerce/#customers)."
+                },
+                "company": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's company."
+                },
+                "first_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's first name."
+                },
+                "last_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's last name."
+                },
+                "address": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "address1": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The mailing address of the customer."
+                    },
+                    "address2": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An additional field for the customer's mailing address."
+                    },
+                    "city": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The city the customer is located in."
+                    },
+                    "province": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's state name or normalized province."
+                    },
+                    "province_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The two-letter code for the customer's province or state."
+                    },
+                    "postal_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's postal or zip code."
+                    },
+                    "country": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's country."
+                    },
+                    "country_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The two-letter code for the customer's country."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The customer's address."
+                }
+              },
+              "inner_properties": null,
+              "description": "Information about a specific customer. Orders for existing customers should include only the `id` parameter in the `customer` object body."
+            },
+            "campaign_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A string that uniquely identifies the campaign associated with a cart."
+            },
+            "checkout_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL for the cart. This parameter is required for [Abandoned Cart](https://mailchimp.com/help/create-an-abandoned-cart-email/) automations."
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The three-letter ISO 4217 code for the currency that the cart uses."
+            },
+            "order_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order total for the cart."
+            },
+            "tax_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The total tax for the cart."
+            },
+            "lines": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "product_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product associated with the cart line item."
+                },
+                "product_variant_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product variant associated with the cart line item."
+                },
+                "quantity": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The quantity of a cart line item."
+                },
+                "price": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The price of a cart line item."
+                }
+              },
+              "description": "An array of the cart's line items."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"E-commerce Cart\",\n        \"description\": \"Information about a specific cart.\",\n        \"properties\": {\n          \"customer\": {\n            \"type\": \"object\",\n            \"title\": \"E-commerce Customer\",\n            \"description\": \"Information about a specific customer. Orders for existing customers should include only the `id` parameter in the `customer` object body.\",\n            \"properties\": {\n              \"opt_in_status\": {\n                \"type\": \"boolean\",\n                \"title\": \"Opt-in Status\",\n                \"description\": \"The customer's opt-in status. This value will never overwrite the opt-in status of a pre-existing Mailchimp list member, but will apply to list members that are added through the e-commerce API endpoints. Customers who don't opt in to your Mailchimp list [will be added as `Transactional` members](https://mailchimp.com/developer/marketing/docs/e-commerce/#customers).\"\n              },\n              \"company\": {\n                \"type\": \"string\",\n                \"title\": \"Company\",\n                \"description\": \"The customer's company.\"\n              },\n              \"first_name\": {\n                \"type\": \"string\",\n                \"title\": \"First Name\",\n                \"description\": \"The customer's first name.\"\n              },\n              \"last_name\": {\n                \"type\": \"string\",\n                \"title\": \"Last Name\",\n                \"description\": \"The customer's last name.\"\n              },\n              \"address\": {\n                \"type\": \"object\",\n                \"title\": \"Address\",\n                \"description\": \"The customer's address.\",\n                \"properties\": {\n                  \"address1\": {\n                    \"type\": \"string\",\n                    \"title\": \"Address Field 1\",\n                    \"description\": \"The mailing address of the customer.\",\n                    \"example\": \"675 Ponce de Leon Ave NE\"\n                  },\n                  \"address2\": {\n                    \"type\": \"string\",\n                    \"title\": \"Address Field 2\",\n                    \"description\": \"An additional field for the customer's mailing address.\",\n                    \"example\": \"Suite 5000\"\n                  },\n                  \"city\": {\n                    \"type\": \"string\",\n                    \"title\": \"City \",\n                    \"description\": \"The city the customer is located in.\",\n                    \"example\": \"Atlanta\"\n                  },\n                  \"province\": {\n                    \"type\": \"string\",\n                    \"title\": \"Province\",\n                    \"description\": \"The customer's state name or normalized province.\",\n                    \"example\": \"Georgia\"\n                  },\n                  \"province_code\": {\n                    \"type\": \"string\",\n                    \"title\": \"Province Code\",\n                    \"description\": \"The two-letter code for the customer's province or state.\",\n                    \"example\": \"GA\"\n                  },\n                  \"postal_code\": {\n                    \"type\": \"string\",\n                    \"title\": \"Postal Code\",\n                    \"description\": \"The customer's postal or zip code.\",\n                    \"example\": \"30308\"\n                  },\n                  \"country\": {\n                    \"type\": \"string\",\n                    \"title\": \"Country Code\",\n                    \"description\": \"The customer's country.\",\n                    \"example\": \"United States\"\n                  },\n                  \"country_code\": {\n                    \"type\": \"string\",\n                    \"title\": \"Country Code\",\n                    \"description\": \"The two-letter code for the customer's country.\",\n                    \"example\": \"US\"\n                  }\n                }\n              }\n            }\n          },\n          \"campaign_id\": {\n            \"type\": \"string\",\n            \"title\": \"Campaign ID\",\n            \"description\": \"A string that uniquely identifies the campaign associated with a cart.\",\n            \"example\": \"839488a60b\"\n          },\n          \"checkout_url\": {\n            \"type\": \"string\",\n            \"title\": \"Checkout URL\",\n            \"description\": \"The URL for the cart. This parameter is required for [Abandoned Cart](https://mailchimp.com/help/create-an-abandoned-cart-email/) automations.\"\n          },\n          \"currency_code\": {\n            \"type\": \"string\",\n            \"title\": \"Currency Code\",\n            \"description\": \"The three-letter ISO 4217 code for the currency that the cart uses.\"\n          },\n          \"order_total\": {\n            \"type\": \"number\",\n            \"title\": \"Order Total\",\n            \"description\": \"The order total for the cart.\"\n          },\n          \"tax_total\": {\n            \"type\": \"number\",\n            \"title\": \"Tax Total\",\n            \"description\": \"The total tax for the cart.\"\n          },\n          \"lines\": {\n            \"type\": \"array\",\n            \"title\": \"Cart Line Items\",\n            \"description\": \"An array of the cart's line items.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"title\": \"E-commerce Cart Line Item\",\n              \"description\": \"Information about a specific cart line item.\",\n              \"properties\": {\n                \"product_id\": {\n                  \"type\": \"string\",\n                  \"title\": \"Cart Line Product Foreign ID\",\n                  \"description\": \"A unique identifier for the product associated with the cart line item.\"\n                },\n                \"product_variant_id\": {\n                  \"type\": \"string\",\n                  \"title\": \"Cart Line Product Variant Foreign ID\",\n                  \"description\": \"A unique identifier for the product variant associated with the cart line item.\"\n                },\n                \"quantity\": {\n                  \"type\": \"integer\",\n                  \"title\": \"Quantity\",\n                  \"description\": \"The quantity of a cart line item.\"\n                },\n                \"price\": {\n                  \"type\": \"number\",\n                  \"title\": \"Price\",\n                  \"description\": \"The price of a cart line item.\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

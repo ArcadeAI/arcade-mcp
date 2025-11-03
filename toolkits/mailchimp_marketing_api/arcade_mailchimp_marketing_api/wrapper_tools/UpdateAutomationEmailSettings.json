@@ -1,0 +1,377 @@
+{
+  "name": "UpdateAutomationEmailSettings",
+  "fully_qualified_name": "MailchimpTransactionApi.UpdateAutomationEmailSettings@0.1.0",
+  "description": "Update settings for a classic automation workflow email.\n\nUse this tool to update the settings of a specific email in a classic automation workflow in Mailchimp. Applicable for workflows of type: abandonedBrowse, abandonedCart, emailFollowup, or singleWelcome.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "automation_workflow_id",
+        "required": true,
+        "description": "The unique identifier for the Automation workflow to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the Automation workflow."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workflow_id"
+      },
+      {
+        "name": "automation_workflow_email_id",
+        "required": true,
+        "description": "The unique ID for the Automation workflow email to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the Automation workflow email."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workflow_email_id"
+      },
+      {
+        "name": "automation_email_settings",
+        "required": true,
+        "description": "JSON object with settings such as subject line, preview text, title, from name, reply-to email, and delay configurations. Used to update automation email settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "settings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "subject_line": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The subject line for the campaign."
+                },
+                "preview_text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The preview text for the campaign."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The title of the Automation."
+                },
+                "from_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The 'from' name for the Automation (not an email address)."
+                },
+                "reply_to": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The reply-to email address for the Automation."
+                }
+              },
+              "inner_properties": null,
+              "description": "Settings for the campaign including the email subject, from name, and from email address."
+            },
+            "delay": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "amount": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The delay amount for an automation email."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "now",
+                    "day",
+                    "hour",
+                    "week"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of delay for an automation email."
+                },
+                "direction": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "after"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the delay settings describe before or after the delay action of an automation email."
+                },
+                "action": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "signup",
+                    "ecomm_abandoned_browse",
+                    "ecomm_abandoned_cart"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The action that triggers the delay of an automation emails."
+                }
+              },
+              "inner_properties": null,
+              "description": "The delay settings for an automation email."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patchAutomationEmailWorkflowId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/automations/{workflow_id}/emails/{workflow_email_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "workflow_id",
+        "tool_parameter_name": "automation_workflow_id",
+        "description": "The unique id for the Automation workflow.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the Automation workflow."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workflow_email_id",
+        "tool_parameter_name": "automation_workflow_email_id",
+        "description": "The unique id for the Automation workflow email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the Automation workflow email."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "automation_email_settings",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "settings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "subject_line": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The subject line for the campaign."
+                },
+                "preview_text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The preview text for the campaign."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The title of the Automation."
+                },
+                "from_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The 'from' name for the Automation (not an email address)."
+                },
+                "reply_to": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The reply-to email address for the Automation."
+                }
+              },
+              "inner_properties": null,
+              "description": "Settings for the campaign including the email subject, from name, and from email address."
+            },
+            "delay": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "amount": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The delay amount for an automation email."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "now",
+                    "day",
+                    "hour",
+                    "week"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of delay for an automation email."
+                },
+                "direction": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "after"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the delay settings describe before or after the delay action of an automation email."
+                },
+                "action": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "signup",
+                    "ecomm_abandoned_browse",
+                    "ecomm_abandoned_cart"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The action that triggers the delay of an automation emails."
+                }
+              },
+              "inner_properties": null,
+              "description": "The delay settings for an automation email."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"Update information about a specific workflow email\",\n        \"description\": \"Update information about an individual Automation workflow email.\",\n        \"properties\": {\n          \"settings\": {\n            \"type\": \"object\",\n            \"title\": \"Campaign Settings\",\n            \"description\": \"Settings for the campaign including the email subject, from name, and from email address.\",\n            \"properties\": {\n              \"subject_line\": {\n                \"type\": \"string\",\n                \"title\": \"Campaign Subject Line\",\n                \"description\": \"The subject line for the campaign.\"\n              },\n              \"preview_text\": {\n                \"type\": \"string\",\n                \"title\": \"Campaign Preview Text\",\n                \"description\": \"The preview text for the campaign.\"\n              },\n              \"title\": {\n                \"type\": \"string\",\n                \"title\": \"Automation Title\",\n                \"description\": \"The title of the Automation.\"\n              },\n              \"from_name\": {\n                \"type\": \"string\",\n                \"title\": \"From Name\",\n                \"description\": \"The 'from' name for the Automation (not an email address).\"\n              },\n              \"reply_to\": {\n                \"type\": \"string\",\n                \"title\": \"Reply To Address\",\n                \"description\": \"The reply-to email address for the Automation.\"\n              }\n            }\n          },\n          \"delay\": {\n            \"type\": \"object\",\n            \"title\": \"Automation Delay\",\n            \"description\": \"The delay settings for an automation email.\",\n            \"required\": [\n              \"action\"\n            ],\n            \"properties\": {\n              \"amount\": {\n                \"type\": \"integer\",\n                \"title\": \"Delay Amount\",\n                \"description\": \"The delay amount for an automation email.\",\n                \"example\": 1\n              },\n              \"type\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"now\",\n                  \"day\",\n                  \"hour\",\n                  \"week\"\n                ],\n                \"title\": \"Delay Type\",\n                \"description\": \"The type of delay for an automation email.\",\n                \"example\": \"day\"\n              },\n              \"direction\": {\n                \"type\": \"string\",\n                \"title\": \"Delay Direction\",\n                \"description\": \"Whether the delay settings describe before or after the delay action of an automation email.\",\n                \"enum\": [\n                  \"after\"\n                ],\n                \"example\": \"after\"\n              },\n              \"action\": {\n                \"type\": \"string\",\n                \"title\": \"Delay Action\",\n                \"description\": \"The action that triggers the delay of an automation emails.\",\n                \"enum\": [\n                  \"signup\",\n                  \"ecomm_abandoned_browse\",\n                  \"ecomm_abandoned_cart\"\n                ],\n                \"example\": \"signup\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

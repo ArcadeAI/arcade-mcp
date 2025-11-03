@@ -1,0 +1,140 @@
+{
+  "name": "GetAutomationEmailQueueInfo",
+  "fully_qualified_name": "MailchimpTransactionApi.GetAutomationEmailQueueInfo@0.1.0",
+  "description": "Retrieve details of a classic automation email queue in Mailchimp.\n\nThis tool retrieves information about a classic automation email queue in Mailchimp. It should be called when you need details about queued emails for a specific automation workflow and email.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "automation_workflow_id",
+        "required": true,
+        "description": "The unique ID for the Automation workflow to obtain the email queue details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the Automation workflow."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workflow_id"
+      },
+      {
+        "name": "automation_workflow_email_id",
+        "required": true,
+        "description": "The unique ID for the automation workflow email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the Automation workflow email."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workflow_email_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getAutomationsIdEmailsIdQueue'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/automations/{workflow_id}/emails/{workflow_email_id}/queue",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "workflow_id",
+        "tool_parameter_name": "automation_workflow_id",
+        "description": "The unique id for the Automation workflow.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the Automation workflow."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workflow_email_id",
+        "tool_parameter_name": "automation_workflow_email_id",
+        "description": "The unique id for the Automation workflow email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the Automation workflow email."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

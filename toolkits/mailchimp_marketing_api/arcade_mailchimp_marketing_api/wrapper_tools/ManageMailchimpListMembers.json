@@ -1,0 +1,496 @@
+{
+  "name": "ManageMailchimpListMembers",
+  "fully_qualified_name": "MailchimpTransactionApi.ManageMailchimpListMembers@0.1.0",
+  "description": "Batch subscribe or unsubscribe members in a Mailchimp list.\n\nUse this tool to add or remove multiple members from a specific Mailchimp list. Ideal for managing subscriber lists efficiently.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_id",
+        "required": true,
+        "description": "The unique ID for the specific Mailchimp list to manage.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID for the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_id"
+      },
+      {
+        "name": "batch_manage_members_data",
+        "required": true,
+        "description": "JSON array of subscriber objects to add or update, each including email, status, merge fields, etc. Up to 500 members per request.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "members": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "email_address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Email address for a subscriber."
+                },
+                "email_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of email this member asked to get ('html' or 'text')."
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "subscribed",
+                    "unsubscribed",
+                    "cleaned",
+                    "pending",
+                    "transactional"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Subscriber's current status."
+                },
+                "merge_fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A dictionary of merge fields where the keys are the merge tags. See the [Merge Fields documentation](https://mailchimp.com/developer/marketing/docs/merge-fields/#structure) for more about the structure."
+                },
+                "interests": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The key of this object's properties is the ID of the interest in question."
+                },
+                "language": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If set/detected, the [subscriber's language](https://mailchimp.com/help/view-and-edit-contact-languages/)."
+                },
+                "vip": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "[VIP status](https://mailchimp.com/help/designate-and-send-to-vip-contacts/) for subscriber."
+                },
+                "location": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "latitude": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The location latitude."
+                    },
+                    "longitude": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The location longitude."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Subscriber location information."
+                },
+                "ip_signup": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "IP address the subscriber signed up from."
+                },
+                "timestamp_signup": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the subscriber signed up for the list in ISO 8601 format."
+                },
+                "ip_opt": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The IP address the subscriber used to confirm their opt-in status."
+                },
+                "timestamp_opt": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the subscriber confirmed their opt-in status in ISO 8601 format."
+                }
+              },
+              "description": "An array of objects, each representing an email address and the subscription status for a specific list. Up to 500 members may be added or updated with each API call."
+            },
+            "sync_tags": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether this batch operation will replace all existing tags with tags in request."
+            },
+            "update_existing": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether this batch operation will change existing members' subscription status."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "allow_incomplete_merge_fields",
+        "required": false,
+        "description": "Allows member data without required merge fields if set to true. Defaults to false.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If skip_merge_validation is true, member data will be accepted without merge field values, even if the merge field is usually required. This defaults to false."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "skip_merge_validation"
+      },
+      {
+        "name": "ignore_duplicate_members",
+        "required": false,
+        "description": "Set to true to ignore duplicate entries in the batch request, saving the first occurrence.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If skip_duplicate_check is true, we will ignore duplicates sent in the request when using the batch sub/unsub on the lists endpoint. The status of the first appearance in the request will be saved. This defaults to false."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "skip_duplicate_check"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postListsId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/lists/{list_id}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "skip_merge_validation",
+        "tool_parameter_name": "allow_incomplete_merge_fields",
+        "description": "If skip_merge_validation is true, member data will be accepted without merge field values, even if the merge field is usually required. This defaults to false.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If skip_merge_validation is true, member data will be accepted without merge field values, even if the merge field is usually required. This defaults to false."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "skip_duplicate_check",
+        "tool_parameter_name": "ignore_duplicate_members",
+        "description": "If skip_duplicate_check is true, we will ignore duplicates sent in the request when using the batch sub/unsub on the lists endpoint. The status of the first appearance in the request will be saved. This defaults to false.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If skip_duplicate_check is true, we will ignore duplicates sent in the request when using the batch sub/unsub on the lists endpoint. The status of the first appearance in the request will be saved. This defaults to false."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "list_id",
+        "tool_parameter_name": "list_id",
+        "description": "The unique ID for the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID for the list."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "batch_manage_members_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "members": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "email_address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Email address for a subscriber."
+                },
+                "email_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of email this member asked to get ('html' or 'text')."
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "subscribed",
+                    "unsubscribed",
+                    "cleaned",
+                    "pending",
+                    "transactional"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Subscriber's current status."
+                },
+                "merge_fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A dictionary of merge fields where the keys are the merge tags. See the [Merge Fields documentation](https://mailchimp.com/developer/marketing/docs/merge-fields/#structure) for more about the structure."
+                },
+                "interests": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The key of this object's properties is the ID of the interest in question."
+                },
+                "language": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If set/detected, the [subscriber's language](https://mailchimp.com/help/view-and-edit-contact-languages/)."
+                },
+                "vip": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "[VIP status](https://mailchimp.com/help/designate-and-send-to-vip-contacts/) for subscriber."
+                },
+                "location": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "latitude": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The location latitude."
+                    },
+                    "longitude": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The location longitude."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Subscriber location information."
+                },
+                "ip_signup": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "IP address the subscriber signed up from."
+                },
+                "timestamp_signup": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the subscriber signed up for the list in ISO 8601 format."
+                },
+                "ip_opt": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The IP address the subscriber used to confirm their opt-in status."
+                },
+                "timestamp_opt": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the subscriber confirmed their opt-in status in ISO 8601 format."
+                }
+              },
+              "description": "An array of objects, each representing an email address and the subscription status for a specific list. Up to 500 members may be added or updated with each API call."
+            },
+            "sync_tags": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether this batch operation will replace all existing tags with tags in request."
+            },
+            "update_existing": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether this batch operation will change existing members' subscription status."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"Members to Subscribe/Unsubscribe to/from a List in batch\",\n        \"description\": \"Members to subscribe to or unsubscribe from a list.\",\n        \"required\": [\n          \"members\"\n        ],\n        \"properties\": {\n          \"members\": {\n            \"type\": \"array\",\n            \"title\": \"List Members\",\n            \"description\": \"An array of objects, each representing an email address and the subscription status for a specific list. Up to 500 members may be added or updated with each API call.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"title\": \"Add List Members\",\n              \"description\": \"Individuals who are currently or have been previously subscribed to this list, including members who have bounced or unsubscribed.\",\n              \"properties\": {\n                \"email_address\": {\n                  \"type\": \"string\",\n                  \"title\": \"Email Address\",\n                  \"description\": \"Email address for a subscriber.\"\n                },\n                \"email_type\": {\n                  \"type\": \"string\",\n                  \"title\": \"Email Type\",\n                  \"description\": \"Type of email this member asked to get ('html' or 'text').\"\n                },\n                \"status\": {\n                  \"type\": \"string\",\n                  \"title\": \"Status\",\n                  \"description\": \"Subscriber's current status.\",\n                  \"enum\": [\n                    \"subscribed\",\n                    \"unsubscribed\",\n                    \"cleaned\",\n                    \"pending\",\n                    \"transactional\"\n                  ]\n                },\n                \"merge_fields\": {\n                  \"type\": \"object\",\n                  \"title\": \"Merge Fields\",\n                  \"description\": \"A dictionary of merge fields where the keys are the merge tags. See the [Merge Fields documentation](https://mailchimp.com/developer/marketing/docs/merge-fields/#structure) for more about the structure.\",\n                  \"additionalProperties\": {\n                    \"description\": \"This object's keys are merge tags (like FNAME). It's values are the values to be added to the merge field.\"\n                  }\n                },\n                \"interests\": {\n                  \"type\": \"object\",\n                  \"title\": \"Subscriber Interests\",\n                  \"description\": \"The key of this object's properties is the ID of the interest in question.\",\n                  \"additionalProperties\": {\n                    \"type\": \"boolean\",\n                    \"title\": \"Interest Value\",\n                    \"description\": \"Keys are interest IDs, values are booleans that describe whether the list member is in that group or not.\"\n                  }\n                },\n                \"language\": {\n                  \"type\": \"string\",\n                  \"title\": \"Language\",\n                  \"description\": \"If set/detected, the [subscriber's language](https://mailchimp.com/help/view-and-edit-contact-languages/).\"\n                },\n                \"vip\": {\n                  \"type\": \"boolean\",\n                  \"title\": \"VIP\",\n                  \"description\": \"[VIP status](https://mailchimp.com/help/designate-and-send-to-vip-contacts/) for subscriber.\"\n                },\n                \"location\": {\n                  \"type\": \"object\",\n                  \"title\": \"Location\",\n                  \"description\": \"Subscriber location information.\",\n                  \"properties\": {\n                    \"latitude\": {\n                      \"type\": \"number\",\n                      \"title\": \"Latitude\",\n                      \"description\": \"The location latitude.\"\n                    },\n                    \"longitude\": {\n                      \"type\": \"number\",\n                      \"title\": \"Longitude\",\n                      \"description\": \"The location longitude.\"\n                    }\n                  }\n                },\n                \"ip_signup\": {\n                  \"type\": \"string\",\n                  \"title\": \"Signup IP\",\n                  \"description\": \"IP address the subscriber signed up from.\"\n                },\n                \"timestamp_signup\": {\n                  \"type\": \"string\",\n                  \"title\": \"Signup Timestamp\",\n                  \"description\": \"The date and time the subscriber signed up for the list in ISO 8601 format.\",\n                  \"format\": \"date-time\"\n                },\n                \"ip_opt\": {\n                  \"type\": \"string\",\n                  \"title\": \"Opt-in IP\",\n                  \"description\": \"The IP address the subscriber used to confirm their opt-in status.\"\n                },\n                \"timestamp_opt\": {\n                  \"type\": \"string\",\n                  \"title\": \"Opt-in Timestamp\",\n                  \"description\": \"The date and time the subscriber confirmed their opt-in status in ISO 8601 format.\",\n                  \"format\": \"date-time\"\n                }\n              }\n            }\n          },\n          \"sync_tags\": {\n            \"type\": \"boolean\",\n            \"title\": \"Sync Tags\",\n            \"description\": \"Whether this batch operation will replace all existing tags with tags in request.\"\n          },\n          \"update_existing\": {\n            \"type\": \"boolean\",\n            \"title\": \"Update Existing Members\",\n            \"description\": \"Whether this batch operation will change existing members' subscription status.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

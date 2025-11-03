@@ -1,0 +1,1805 @@
+{
+  "name": "UpdateEcommerceOrder",
+  "fully_qualified_name": "MailchimpTransactionApi.UpdateEcommerceOrder@0.1.0",
+  "description": "Add or update an order in an ecommerce store.\n\nUse this tool to either add a new order or update an existing order within an ecommerce store in Mailchimp Marketing. This tool is suitable when order details need to be adjusted or fresh orders are being added.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "store_identifier",
+        "required": true,
+        "description": "The unique identifier for the store in which the order is being added or updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "store_id"
+      },
+      {
+        "name": "order_identifier",
+        "required": true,
+        "description": "The unique identifier for the order in the store. Used to specify which order to update or add.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the order in a store."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_id"
+      },
+      {
+        "name": "order_request_data",
+        "required": true,
+        "description": "The JSON object containing all order details such as customer info, financial status, and line items.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the order."
+            },
+            "customer": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the customer. Limited to 50 characters."
+                },
+                "email_address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's email address."
+                },
+                "opt_in_status": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's opt-in status. This value will never overwrite the opt-in status of a pre-existing Mailchimp list member, but will apply to list members that are added through the e-commerce API endpoints. Customers who don't opt in to your Mailchimp list [will be added as `Transactional` members](https://mailchimp.com/developer/marketing/docs/e-commerce/#customers)."
+                },
+                "company": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's company."
+                },
+                "first_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's first name."
+                },
+                "last_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's last name."
+                },
+                "address": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "address1": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The mailing address of the customer."
+                    },
+                    "address2": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An additional field for the customer's mailing address."
+                    },
+                    "city": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The city the customer is located in."
+                    },
+                    "province": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's state name or normalized province."
+                    },
+                    "province_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The two-letter code for the customer's province or state."
+                    },
+                    "postal_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's postal or zip code."
+                    },
+                    "country": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's country."
+                    },
+                    "country_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The two-letter code for the customer's country."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The customer's address."
+                }
+              },
+              "inner_properties": null,
+              "description": "Information about a specific customer. For existing customers include only the `id` parameter in the `customer` object body."
+            },
+            "campaign_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A string that uniquely identifies the campaign for an order."
+            },
+            "cart_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A cart id that the order was placed for."
+            },
+            "landing_site": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL for the page where the buyer landed when entering the shop."
+            },
+            "financial_status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order status. Use this parameter to trigger [Order Notifications](https://mailchimp.com/developer/marketing/docs/e-commerce/#order-notifications)."
+            },
+            "fulfillment_status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The fulfillment status for the order. Use this parameter to trigger [Order Notifications](https://mailchimp.com/developer/marketing/docs/e-commerce/#order-notifications)."
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The three-letter ISO 4217 code for the currency that the store accepts."
+            },
+            "order_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The total for the order."
+            },
+            "order_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL for the order."
+            },
+            "discount_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The total amount of the discounts to be applied to the price of the order."
+            },
+            "tax_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tax total for the order."
+            },
+            "shipping_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The shipping total for the order."
+            },
+            "tracking_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "prec"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Mailchimp tracking code for the order. Uses the 'mc_tc' parameter in E-Commerce tracking URLs."
+            },
+            "processed_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the order was processed in ISO 8601 format."
+            },
+            "cancelled_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the order was cancelled in ISO 8601 format. Note: passing a value for this parameter will cancel the order being created."
+            },
+            "updated_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the order was updated in ISO 8601 format."
+            },
+            "shipping_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name associated with an order's shipping address."
+                },
+                "address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The shipping address for the order."
+                },
+                "address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An additional field for the shipping address."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The city in the order's shipping address."
+                },
+                "province": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The state or normalized province in the order's shipping address."
+                },
+                "province_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the province or state in the shipping address."
+                },
+                "postal_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The postal or zip code in the shipping address."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The country in the shipping address."
+                },
+                "country_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the country in the shipping address."
+                },
+                "longitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The longitude for the shipping address location."
+                },
+                "latitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The latitude for the shipping address location."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The phone number for the order's shipping address."
+                },
+                "company": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The company associated with the shipping address."
+                }
+              },
+              "inner_properties": null,
+              "description": "The shipping address for the order."
+            },
+            "billing_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name associated with the billing address."
+                },
+                "address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The billing address for the order."
+                },
+                "address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An additional field for the billing address."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The city in the billing address."
+                },
+                "province": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The state or normalized province in the billing address."
+                },
+                "province_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the province in the billing address."
+                },
+                "postal_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The postal or zip code in the billing address."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The country in the billing address."
+                },
+                "country_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the country in the billing address."
+                },
+                "longitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The longitude for the billing address location."
+                },
+                "latitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The latitude for the billing address location."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The phone number for the billing address"
+                },
+                "company": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The company associated with the billing address."
+                }
+              },
+              "inner_properties": null,
+              "description": "The billing address for the order."
+            },
+            "promos": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Promo Code"
+                },
+                "amount_discounted": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The amount of discount applied on the total price. For example if the total cost was $100 and the customer paid $95.5, amount_discounted will be 4.5 For free shipping set amount_discounted to 0"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "fixed",
+                    "percentage"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of discount. For free shipping set type to fixed"
+                }
+              },
+              "description": "The promo codes applied on the order"
+            },
+            "lines": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the order line item."
+                },
+                "product_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product associated with the order line item."
+                },
+                "product_variant_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product variant associated with the order line item."
+                },
+                "product": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A unique identifier for the product."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title of a product."
+                    },
+                    "handle": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The handle of a product."
+                    },
+                    "url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The URL for a product."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The description of a product."
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of product."
+                    },
+                    "vendor": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The vendor for a product."
+                    },
+                    "image_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The image URL for a product."
+                    },
+                    "variants": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A unique identifier for the product variant."
+                        },
+                        "title": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The title of a product variant."
+                        },
+                        "url": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The URL for a product variant."
+                        },
+                        "sku": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The stock keeping unit (SKU) of a product variant."
+                        },
+                        "price": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The price of a product variant."
+                        },
+                        "inventory_quantity": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The inventory quantity of a product variant."
+                        },
+                        "image_url": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The image URL for a product variant."
+                        },
+                        "backorders": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The backorders of a product variant."
+                        },
+                        "visibility": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The visibility of a product variant."
+                        }
+                      },
+                      "description": "An array of the product's variants. At least one variant is required for each product. A variant can use the same `id` and `title` as the parent product."
+                    },
+                    "images": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A unique identifier for the product image."
+                        },
+                        "url": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The URL for a product image."
+                        },
+                        "variant_ids": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The list of product variants using the image."
+                        }
+                      },
+                      "description": "An array of the product's images."
+                    },
+                    "published_at_foreign": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The date and time the product was published."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Information about a specific product."
+                },
+                "quantity": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The quantity of an order line item."
+                },
+                "price": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The price of an order line item."
+                },
+                "discount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The total discount amount applied to this line item."
+                }
+              },
+              "description": "An array of the order's line items."
+            },
+            "outreach": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the outreach. Can be an email campaign ID."
+                }
+              },
+              "inner_properties": null,
+              "description": "The outreach associated with this order. For example, an email campaign or Facebook ad."
+            },
+            "tracking_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tracking number associated with the order."
+            },
+            "tracking_carrier": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tracking carrier associated with the order."
+            },
+            "tracking_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tracking URL associated with the order."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'putEcommerceStoresIdOrdersId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/ecommerce/stores/{store_id}/orders/{order_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "store_id",
+        "tool_parameter_name": "store_identifier",
+        "description": "The store id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order_id",
+        "tool_parameter_name": "order_identifier",
+        "description": "The id for the order in a store.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the order in a store."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "order_request_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the order."
+            },
+            "customer": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the customer. Limited to 50 characters."
+                },
+                "email_address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's email address."
+                },
+                "opt_in_status": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's opt-in status. This value will never overwrite the opt-in status of a pre-existing Mailchimp list member, but will apply to list members that are added through the e-commerce API endpoints. Customers who don't opt in to your Mailchimp list [will be added as `Transactional` members](https://mailchimp.com/developer/marketing/docs/e-commerce/#customers)."
+                },
+                "company": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's company."
+                },
+                "first_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's first name."
+                },
+                "last_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The customer's last name."
+                },
+                "address": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "address1": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The mailing address of the customer."
+                    },
+                    "address2": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An additional field for the customer's mailing address."
+                    },
+                    "city": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The city the customer is located in."
+                    },
+                    "province": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's state name or normalized province."
+                    },
+                    "province_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The two-letter code for the customer's province or state."
+                    },
+                    "postal_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's postal or zip code."
+                    },
+                    "country": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The customer's country."
+                    },
+                    "country_code": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The two-letter code for the customer's country."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The customer's address."
+                }
+              },
+              "inner_properties": null,
+              "description": "Information about a specific customer. For existing customers include only the `id` parameter in the `customer` object body."
+            },
+            "campaign_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A string that uniquely identifies the campaign for an order."
+            },
+            "cart_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A cart id that the order was placed for."
+            },
+            "landing_site": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL for the page where the buyer landed when entering the shop."
+            },
+            "financial_status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order status. Use this parameter to trigger [Order Notifications](https://mailchimp.com/developer/marketing/docs/e-commerce/#order-notifications)."
+            },
+            "fulfillment_status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The fulfillment status for the order. Use this parameter to trigger [Order Notifications](https://mailchimp.com/developer/marketing/docs/e-commerce/#order-notifications)."
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The three-letter ISO 4217 code for the currency that the store accepts."
+            },
+            "order_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The total for the order."
+            },
+            "order_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL for the order."
+            },
+            "discount_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The total amount of the discounts to be applied to the price of the order."
+            },
+            "tax_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tax total for the order."
+            },
+            "shipping_total": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The shipping total for the order."
+            },
+            "tracking_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "prec"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Mailchimp tracking code for the order. Uses the 'mc_tc' parameter in E-Commerce tracking URLs."
+            },
+            "processed_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the order was processed in ISO 8601 format."
+            },
+            "cancelled_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the order was cancelled in ISO 8601 format. Note: passing a value for this parameter will cancel the order being created."
+            },
+            "updated_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the order was updated in ISO 8601 format."
+            },
+            "shipping_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name associated with an order's shipping address."
+                },
+                "address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The shipping address for the order."
+                },
+                "address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An additional field for the shipping address."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The city in the order's shipping address."
+                },
+                "province": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The state or normalized province in the order's shipping address."
+                },
+                "province_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the province or state in the shipping address."
+                },
+                "postal_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The postal or zip code in the shipping address."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The country in the shipping address."
+                },
+                "country_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the country in the shipping address."
+                },
+                "longitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The longitude for the shipping address location."
+                },
+                "latitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The latitude for the shipping address location."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The phone number for the order's shipping address."
+                },
+                "company": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The company associated with the shipping address."
+                }
+              },
+              "inner_properties": null,
+              "description": "The shipping address for the order."
+            },
+            "billing_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name associated with the billing address."
+                },
+                "address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The billing address for the order."
+                },
+                "address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An additional field for the billing address."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The city in the billing address."
+                },
+                "province": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The state or normalized province in the billing address."
+                },
+                "province_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the province in the billing address."
+                },
+                "postal_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The postal or zip code in the billing address."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The country in the billing address."
+                },
+                "country_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the country in the billing address."
+                },
+                "longitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The longitude for the billing address location."
+                },
+                "latitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The latitude for the billing address location."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The phone number for the billing address"
+                },
+                "company": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The company associated with the billing address."
+                }
+              },
+              "inner_properties": null,
+              "description": "The billing address for the order."
+            },
+            "promos": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Promo Code"
+                },
+                "amount_discounted": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The amount of discount applied on the total price. For example if the total cost was $100 and the customer paid $95.5, amount_discounted will be 4.5 For free shipping set amount_discounted to 0"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "fixed",
+                    "percentage"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of discount. For free shipping set type to fixed"
+                }
+              },
+              "description": "The promo codes applied on the order"
+            },
+            "lines": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the order line item."
+                },
+                "product_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product associated with the order line item."
+                },
+                "product_variant_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product variant associated with the order line item."
+                },
+                "product": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A unique identifier for the product."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title of a product."
+                    },
+                    "handle": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The handle of a product."
+                    },
+                    "url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The URL for a product."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The description of a product."
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of product."
+                    },
+                    "vendor": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The vendor for a product."
+                    },
+                    "image_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The image URL for a product."
+                    },
+                    "variants": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A unique identifier for the product variant."
+                        },
+                        "title": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The title of a product variant."
+                        },
+                        "url": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The URL for a product variant."
+                        },
+                        "sku": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The stock keeping unit (SKU) of a product variant."
+                        },
+                        "price": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The price of a product variant."
+                        },
+                        "inventory_quantity": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The inventory quantity of a product variant."
+                        },
+                        "image_url": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The image URL for a product variant."
+                        },
+                        "backorders": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The backorders of a product variant."
+                        },
+                        "visibility": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The visibility of a product variant."
+                        }
+                      },
+                      "description": "An array of the product's variants. At least one variant is required for each product. A variant can use the same `id` and `title` as the parent product."
+                    },
+                    "images": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A unique identifier for the product image."
+                        },
+                        "url": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The URL for a product image."
+                        },
+                        "variant_ids": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The list of product variants using the image."
+                        }
+                      },
+                      "description": "An array of the product's images."
+                    },
+                    "published_at_foreign": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The date and time the product was published."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Information about a specific product."
+                },
+                "quantity": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The quantity of an order line item."
+                },
+                "price": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The price of an order line item."
+                },
+                "discount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The total discount amount applied to this line item."
+                }
+              },
+              "description": "An array of the order's line items."
+            },
+            "outreach": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the outreach. Can be an email campaign ID."
+                }
+              },
+              "inner_properties": null,
+              "description": "The outreach associated with this order. For example, an email campaign or Facebook ad."
+            },
+            "tracking_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tracking number associated with the order."
+            },
+            "tracking_carrier": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tracking carrier associated with the order."
+            },
+            "tracking_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tracking URL associated with the order."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"E-commerce Order\",\n        \"description\": \"Information about a specific order.\",\n        \"required\": [\n          \"id\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"title\": \"Order Foreign ID\",\n            \"description\": \"A unique identifier for the order.\"\n          },\n          \"customer\": {\n            \"type\": \"object\",\n            \"title\": \"E-commerce Customer\",\n            \"description\": \"Information about a specific customer. For existing customers include only the `id` parameter in the `customer` object body.\",\n            \"required\": [\n              \"id\"\n            ],\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"title\": \"Customer Foreign ID\",\n                \"description\": \"A unique identifier for the customer. Limited to 50 characters.\",\n                \"maxLength\": 50\n              },\n              \"email_address\": {\n                \"type\": \"string\",\n                \"title\": \"Email Address\",\n                \"description\": \"The customer's email address.\"\n              },\n              \"opt_in_status\": {\n                \"type\": \"boolean\",\n                \"title\": \"Opt-in Status\",\n                \"description\": \"The customer's opt-in status. This value will never overwrite the opt-in status of a pre-existing Mailchimp list member, but will apply to list members that are added through the e-commerce API endpoints. Customers who don't opt in to your Mailchimp list [will be added as `Transactional` members](https://mailchimp.com/developer/marketing/docs/e-commerce/#customers).\"\n              },\n              \"company\": {\n                \"type\": \"string\",\n                \"title\": \"Company\",\n                \"description\": \"The customer's company.\"\n              },\n              \"first_name\": {\n                \"type\": \"string\",\n                \"title\": \"First Name\",\n                \"description\": \"The customer's first name.\"\n              },\n              \"last_name\": {\n                \"type\": \"string\",\n                \"title\": \"Last Name\",\n                \"description\": \"The customer's last name.\"\n              },\n              \"address\": {\n                \"type\": \"object\",\n                \"title\": \"Address\",\n                \"description\": \"The customer's address.\",\n                \"properties\": {\n                  \"address1\": {\n                    \"type\": \"string\",\n                    \"title\": \"Address Field 1\",\n                    \"description\": \"The mailing address of the customer.\",\n                    \"example\": \"405 N Angier Ave NE\"\n                  },\n                  \"address2\": {\n                    \"type\": \"string\",\n                    \"title\": \"Address Field 2\",\n                    \"description\": \"An additional field for the customer's mailing address.\"\n                  },\n                  \"city\": {\n                    \"type\": \"string\",\n                    \"title\": \"City \",\n                    \"description\": \"The city the customer is located in.\",\n                    \"example\": \"Atlanta\"\n                  },\n                  \"province\": {\n                    \"type\": \"string\",\n                    \"title\": \"Province\",\n                    \"description\": \"The customer's state name or normalized province.\",\n                    \"example\": \"Georgia\"\n                  },\n                  \"province_code\": {\n                    \"type\": \"string\",\n                    \"title\": \"Province Code\",\n                    \"description\": \"The two-letter code for the customer's province or state.\",\n                    \"example\": \"GA\"\n                  },\n                  \"postal_code\": {\n                    \"type\": \"string\",\n                    \"title\": \"Postal Code\",\n                    \"description\": \"The customer's postal or zip code.\",\n                    \"example\": \"30308\"\n                  },\n                  \"country\": {\n                    \"type\": \"string\",\n                    \"title\": \"Country\",\n                    \"description\": \"The customer's country.\",\n                    \"example\": \"United States\"\n                  },\n                  \"country_code\": {\n                    \"type\": \"string\",\n                    \"title\": \"Country Code\",\n                    \"description\": \"The two-letter code for the customer's country.\",\n                    \"example\": \"US\"\n                  }\n                }\n              }\n            }\n          },\n          \"campaign_id\": {\n            \"type\": \"string\",\n            \"title\": \"Campaign ID\",\n            \"description\": \"A string that uniquely identifies the campaign for an order.\",\n            \"example\": \"839488a60b\"\n          },\n          \"cart_id\": {\n            \"type\": \"string\",\n            \"title\": \"Cart ID\",\n            \"description\": \"A cart id that the order was placed for.\",\n            \"example\": \"cart-123\"\n          },\n          \"landing_site\": {\n            \"type\": \"string\",\n            \"title\": \"Landing Site\",\n            \"description\": \"The URL for the page where the buyer landed when entering the shop.\",\n            \"example\": \"http://www.example.com?source=abc\"\n          },\n          \"financial_status\": {\n            \"type\": \"string\",\n            \"title\": \"Financial Status\",\n            \"description\": \"The order status. Use this parameter to trigger [Order Notifications](https://mailchimp.com/developer/marketing/docs/e-commerce/#order-notifications).\"\n          },\n          \"fulfillment_status\": {\n            \"type\": \"string\",\n            \"title\": \"Fulfillment Status\",\n            \"description\": \"The fulfillment status for the order. Use this parameter to trigger [Order Notifications](https://mailchimp.com/developer/marketing/docs/e-commerce/#order-notifications).\"\n          },\n          \"currency_code\": {\n            \"type\": \"string\",\n            \"title\": \"Currency Code\",\n            \"description\": \"The three-letter ISO 4217 code for the currency that the store accepts.\"\n          },\n          \"order_total\": {\n            \"type\": \"number\",\n            \"title\": \"Order Total\",\n            \"description\": \"The total for the order.\"\n          },\n          \"order_url\": {\n            \"type\": \"string\",\n            \"title\": \"Order URL\",\n            \"description\": \"The URL for the order.\"\n          },\n          \"discount_total\": {\n            \"type\": \"number\",\n            \"title\": \"Discount Total\",\n            \"description\": \"The total amount of the discounts to be applied to the price of the order.\"\n          },\n          \"tax_total\": {\n            \"type\": \"number\",\n            \"title\": \"Tax Total\",\n            \"description\": \"The tax total for the order.\"\n          },\n          \"shipping_total\": {\n            \"type\": \"number\",\n            \"title\": \"Shipping Total\",\n            \"description\": \"The shipping total for the order.\"\n          },\n          \"tracking_code\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"prec\"\n            ],\n            \"title\": \"Tracking Code\",\n            \"description\": \"The Mailchimp tracking code for the order. Uses the 'mc_tc' parameter in E-Commerce tracking URLs.\"\n          },\n          \"processed_at_foreign\": {\n            \"type\": \"string\",\n            \"title\": \"Foreign Processed Time\",\n            \"format\": \"date-time\",\n            \"description\": \"The date and time the order was processed in ISO 8601 format.\",\n            \"example\": \"2024-09-10T17:27:43+00:00\"\n          },\n          \"cancelled_at_foreign\": {\n            \"type\": \"string\",\n            \"title\": \"Foreign Cancel Time\",\n            \"format\": \"date-time\",\n            \"description\": \"The date and time the order was cancelled in ISO 8601 format. Note: passing a value for this parameter will cancel the order being created.\",\n            \"example\": \"2024-09-10T17:27:43+00:00\"\n          },\n          \"updated_at_foreign\": {\n            \"type\": \"string\",\n            \"title\": \"Foreign Update Time\",\n            \"format\": \"date-time\",\n            \"description\": \"The date and time the order was updated in ISO 8601 format.\",\n            \"example\": \"2024-09-10T17:27:43+00:00\"\n          },\n          \"shipping_address\": {\n            \"type\": \"object\",\n            \"title\": \"Shipping Address\",\n            \"description\": \"The shipping address for the order.\",\n            \"properties\": {\n              \"name\": {\n                \"type\": \"string\",\n                \"title\": \"Name\",\n                \"description\": \"The name associated with an order's shipping address.\",\n                \"example\": \"Freddie Chimpenheimer\"\n              },\n              \"address1\": {\n                \"type\": \"string\",\n                \"title\": \"Address Field 1\",\n                \"description\": \"The shipping address for the order.\",\n                \"example\": \"405 N Angier Ave NE\"\n              },\n              \"address2\": {\n                \"type\": \"string\",\n                \"title\": \"Address Field 2\",\n                \"description\": \"An additional field for the shipping address.\"\n              },\n              \"city\": {\n                \"type\": \"string\",\n                \"title\": \"City \",\n                \"description\": \"The city in the order's shipping address.\",\n                \"example\": \"Atlanta\"\n              },\n              \"province\": {\n                \"type\": \"string\",\n                \"title\": \"Province\",\n                \"description\": \"The state or normalized province in the order's shipping address.\",\n                \"example\": \"Georgia\"\n              },\n              \"province_code\": {\n                \"type\": \"string\",\n                \"title\": \"Province Code\",\n                \"description\": \"The two-letter code for the province or state in the shipping address.\",\n                \"example\": \"GA\"\n              },\n              \"postal_code\": {\n                \"type\": \"string\",\n                \"title\": \"Postal Code\",\n                \"description\": \"The postal or zip code in the shipping address.\",\n                \"example\": \"30308\"\n              },\n              \"country\": {\n                \"type\": \"string\",\n                \"title\": \"Country\",\n                \"description\": \"The country in the shipping address.\",\n                \"example\": \"United States\"\n              },\n              \"country_code\": {\n                \"type\": \"string\",\n                \"title\": \"Country Code\",\n                \"description\": \"The two-letter code for the country in the shipping address.\",\n                \"example\": \"US\"\n              },\n              \"longitude\": {\n                \"type\": \"number\",\n                \"title\": \"Longitude\",\n                \"description\": \"The longitude for the shipping address location.\",\n                \"example\": -84.362887\n              },\n              \"latitude\": {\n                \"type\": \"number\",\n                \"title\": \"Latitude\",\n                \"description\": \"The latitude for the shipping address location.\",\n                \"example\": 33.768526\n              },\n              \"phone\": {\n                \"type\": \"string\",\n                \"title\": \"Phone Number\",\n                \"description\": \"The phone number for the order's shipping address.\",\n                \"example\": \"+16155550128\"\n              },\n              \"company\": {\n                \"type\": \"string\",\n                \"title\": \"Company\",\n                \"description\": \"The company associated with the shipping address.\"\n              }\n            }\n          },\n          \"billing_address\": {\n            \"type\": \"object\",\n            \"title\": \"Billing Address\",\n            \"description\": \"The billing address for the order.\",\n            \"properties\": {\n              \"name\": {\n                \"type\": \"string\",\n                \"title\": \"Name\",\n                \"description\": \"The name associated with the billing address.\",\n                \"example\": \"Freddie Chimpenheimer\"\n              },\n              \"address1\": {\n                \"type\": \"string\",\n                \"title\": \"Address Field 1\",\n                \"description\": \"The billing address for the order.\",\n                \"example\": \"405 N Angier Ave NE\"\n              },\n              \"address2\": {\n                \"type\": \"string\",\n                \"title\": \"Address Field 2\",\n                \"description\": \"An additional field for the billing address.\"\n              },\n              \"city\": {\n                \"type\": \"string\",\n                \"title\": \"City \",\n                \"description\": \"The city in the billing address.\",\n                \"example\": \"Atlanta\"\n              },\n              \"province\": {\n                \"type\": \"string\",\n                \"title\": \"Province\",\n                \"description\": \"The state or normalized province in the billing address.\",\n                \"example\": \"Georgia\"\n              },\n              \"province_code\": {\n                \"type\": \"string\",\n                \"title\": \"Province Code\",\n                \"description\": \"The two-letter code for the province in the billing address.\",\n                \"example\": \"GA\"\n              },\n              \"postal_code\": {\n                \"type\": \"string\",\n                \"title\": \"Postal Code\",\n                \"description\": \"The postal or zip code in the billing address.\",\n                \"example\": \"30308\"\n              },\n              \"country\": {\n                \"type\": \"string\",\n                \"title\": \"Country\",\n                \"description\": \"The country in the billing address.\",\n                \"example\": \"United States\"\n              },\n              \"country_code\": {\n                \"type\": \"string\",\n                \"title\": \"Country Code\",\n                \"description\": \"The two-letter code for the country in the billing address.\",\n                \"example\": \"US\"\n              },\n              \"longitude\": {\n                \"type\": \"number\",\n                \"title\": \"Longitude\",\n                \"description\": \"The longitude for the billing address location.\",\n                \"example\": -84.362887\n              },\n              \"latitude\": {\n                \"type\": \"number\",\n                \"title\": \"Latitude\",\n                \"description\": \"The latitude for the billing address location.\",\n                \"example\": 33.768526\n              },\n              \"phone\": {\n                \"type\": \"string\",\n                \"title\": \"Phone Number\",\n                \"description\": \"The phone number for the billing address\",\n                \"example\": \"+16155550128\"\n              },\n              \"company\": {\n                \"type\": \"string\",\n                \"title\": \"Company\",\n                \"description\": \"The company associated with the billing address.\"\n              }\n            }\n          },\n          \"promos\": {\n            \"type\": \"array\",\n            \"title\": \"Promos\",\n            \"description\": \"The promo codes applied on the order\",\n            \"items\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"code\",\n                \"type\",\n                \"amount_discounted\"\n              ],\n              \"properties\": {\n                \"code\": {\n                  \"type\": \"string\",\n                  \"title\": \"Code\",\n                  \"description\": \"The Promo Code\"\n                },\n                \"amount_discounted\": {\n                  \"type\": \"number\",\n                  \"title\": \"Amount Discounted\",\n                  \"description\": \"The amount of discount applied on the total price. For example if the total cost was $100 and the customer paid $95.5, amount_discounted will be 4.5 For free shipping set amount_discounted to 0\"\n                },\n                \"type\": {\n                  \"type\": \"string\",\n                  \"title\": \"Type\",\n                  \"description\": \"Type of discount. For free shipping set type to fixed\",\n                  \"enum\": [\n                    \"fixed\",\n                    \"percentage\"\n                  ]\n                }\n              }\n            }\n          },\n          \"lines\": {\n            \"type\": \"array\",\n            \"title\": \"Order Line Items\",\n            \"description\": \"An array of the order's line items.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"title\": \"E-commerce Order Line Item\",\n              \"description\": \"Information about a specific order line.\",\n              \"required\": [\n                \"id\"\n              ],\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\",\n                  \"title\": \"Order Line Item Foreign ID\",\n                  \"description\": \"A unique identifier for the order line item.\"\n                },\n                \"product_id\": {\n                  \"type\": \"string\",\n                  \"title\": \"Order Line Item Product Foreign ID\",\n                  \"description\": \"A unique identifier for the product associated with the order line item.\"\n                },\n                \"product_variant_id\": {\n                  \"type\": \"string\",\n                  \"title\": \"Order Line Item Product Variant Foreign ID\",\n                  \"description\": \"A unique identifier for the product variant associated with the order line item.\"\n                },\n                \"product\": {\n                  \"type\": \"object\",\n                  \"title\": \"E-commerce Product\",\n                  \"description\": \"Information about a specific product.\",\n                  \"required\": [\n                    \"id\"\n                  ],\n                  \"properties\": {\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"title\": \"Product Foreign ID\",\n                      \"description\": \"A unique identifier for the product.\"\n                    },\n                    \"title\": {\n                      \"type\": \"string\",\n                      \"title\": \"Title\",\n                      \"description\": \"The title of a product.\",\n                      \"example\": \"Cat Hat\"\n                    },\n                    \"handle\": {\n                      \"type\": \"string\",\n                      \"title\": \"Handle\",\n                      \"description\": \"The handle of a product.\",\n                      \"example\": \"cat-hat\"\n                    },\n                    \"url\": {\n                      \"type\": \"string\",\n                      \"title\": \"Product URL\",\n                      \"description\": \"The URL for a product.\"\n                    },\n                    \"description\": {\n                      \"type\": \"string\",\n                      \"title\": \"Description\",\n                      \"description\": \"The description of a product.\",\n                      \"example\": \"This is a cat hat.\"\n                    },\n                    \"type\": {\n                      \"type\": \"string\",\n                      \"title\": \"Type\",\n                      \"description\": \"The type of product.\",\n                      \"example\": \"Accessories\"\n                    },\n                    \"vendor\": {\n                      \"type\": \"string\",\n                      \"title\": \"Vendor\",\n                      \"description\": \"The vendor for a product.\"\n                    },\n                    \"image_url\": {\n                      \"type\": \"string\",\n                      \"title\": \"Product Image URL\",\n                      \"description\": \"The image URL for a product.\"\n                    },\n                    \"variants\": {\n                      \"type\": \"array\",\n                      \"title\": \"Product Variants\",\n                      \"description\": \"An array of the product's variants. At least one variant is required for each product. A variant can use the same `id` and `title` as the parent product.\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"title\": \"E-commerce Product Variant\",\n                        \"description\": \"Information about a specific product variant.\",\n                        \"required\": [\n                          \"id\",\n                          \"title\"\n                        ],\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"string\",\n                            \"title\": \"Product Variant Foreign ID\",\n                            \"description\": \"A unique identifier for the product variant.\"\n                          },\n                          \"title\": {\n                            \"type\": \"string\",\n                            \"title\": \"Title\",\n                            \"description\": \"The title of a product variant.\",\n                            \"example\": \"Cat Hat\"\n                          },\n                          \"url\": {\n                            \"type\": \"string\",\n                            \"title\": \"URL\",\n                            \"description\": \"The URL for a product variant.\"\n                          },\n                          \"sku\": {\n                            \"type\": \"string\",\n                            \"title\": \"SKU\",\n                            \"description\": \"The stock keeping unit (SKU) of a product variant.\"\n                          },\n                          \"price\": {\n                            \"type\": \"number\",\n                            \"title\": \"Price\",\n                            \"description\": \"The price of a product variant.\"\n                          },\n                          \"inventory_quantity\": {\n                            \"type\": \"integer\",\n                            \"title\": \"Inventory Quantity\",\n                            \"description\": \"The inventory quantity of a product variant.\"\n                          },\n                          \"image_url\": {\n                            \"type\": \"string\",\n                            \"title\": \"Image URL\",\n                            \"description\": \"The image URL for a product variant.\"\n                          },\n                          \"backorders\": {\n                            \"type\": \"string\",\n                            \"title\": \"Backorders\",\n                            \"description\": \"The backorders of a product variant.\"\n                          },\n                          \"visibility\": {\n                            \"type\": \"string\",\n                            \"title\": \"Visibility\",\n                            \"description\": \"The visibility of a product variant.\"\n                          }\n                        }\n                      }\n                    },\n                    \"images\": {\n                      \"type\": \"array\",\n                      \"title\": \"Product Images\",\n                      \"description\": \"An array of the product's images.\",\n                      \"items\": {\n                        \"type\": \"object\",\n                        \"title\": \"E-commerce Product Image\",\n                        \"description\": \"Information about a specific product image.\",\n                        \"required\": [\n                          \"id\",\n                          \"url\"\n                        ],\n                        \"properties\": {\n                          \"id\": {\n                            \"type\": \"string\",\n                            \"title\": \"Image Foreign ID\",\n                            \"description\": \"A unique identifier for the product image.\"\n                          },\n                          \"url\": {\n                            \"type\": \"string\",\n                            \"title\": \"URL\",\n                            \"description\": \"The URL for a product image.\"\n                          },\n                          \"variant_ids\": {\n                            \"type\": \"array\",\n                            \"title\": \"Product Variants\",\n                            \"description\": \"The list of product variants using the image.\",\n                            \"items\": {\n                              \"type\": \"string\"\n                            }\n                          }\n                        }\n                      }\n                    },\n                    \"published_at_foreign\": {\n                      \"type\": \"string\",\n                      \"title\": \"Foreign Publish Time\",\n                      \"format\": \"date-time\",\n                      \"description\": \"The date and time the product was published.\",\n                      \"example\": \"2015-07-15T19:28:00+00:00\"\n                    }\n                  }\n                },\n                \"quantity\": {\n                  \"type\": \"integer\",\n                  \"title\": \"Quantity\",\n                  \"description\": \"The quantity of an order line item.\"\n                },\n                \"price\": {\n                  \"type\": \"number\",\n                  \"title\": \"Price\",\n                  \"description\": \"The price of an order line item.\"\n                },\n                \"discount\": {\n                  \"type\": \"number\",\n                  \"title\": \"Discount\",\n                  \"description\": \"The total discount amount applied to this line item.\"\n                }\n              }\n            }\n          },\n          \"outreach\": {\n            \"type\": \"object\",\n            \"title\": \"Outreach\",\n            \"description\": \"The outreach associated with this order. For example, an email campaign or Facebook ad.\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"title\": \"Outreach ID\",\n                \"description\": \"A unique identifier for the outreach. Can be an email campaign ID.\",\n                \"example\": \"839488a60b\"\n              }\n            }\n          },\n          \"tracking_number\": {\n            \"type\": \"string\",\n            \"title\": \"Tracking number\",\n            \"description\": \"The tracking number associated with the order.\"\n          },\n          \"tracking_carrier\": {\n            \"type\": \"string\",\n            \"title\": \"Tracking carrier\",\n            \"description\": \"The tracking carrier associated with the order.\"\n          },\n          \"tracking_url\": {\n            \"type\": \"string\",\n            \"title\": \"Tracking URL\",\n            \"description\": \"The tracking URL associated with the order.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}
