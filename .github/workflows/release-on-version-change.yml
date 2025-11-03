@@ -28,6 +28,7 @@ jobs:
             **/pyproject.toml
           files_ignore: |
             examples/**
+            libs/tests/**
 
       - name: Check for version changes or new packages
         id: check-versions
