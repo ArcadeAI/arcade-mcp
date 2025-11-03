@@ -13,7 +13,7 @@ async def call_other_tool(
 ) -> str:
     """Get the hash value of a secret"""
 
-    other_tool_response = await context.tools.call_raw("Test_TheOtherTool", {})
+    other_tool_response = await context.tools.call_raw("Server_TheOtherTool", {})
 
     if other_tool_response.isError:
         return (
