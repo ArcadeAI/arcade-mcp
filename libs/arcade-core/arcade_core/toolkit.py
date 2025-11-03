@@ -297,7 +297,7 @@ class Toolkit(BaseModel):
 
         # Get the currently executing file (the entrypoint file) so that we can skip it when loading tools.
         # Skipping this file is necessary because tools are discovered via AST parsing, but those tools
-        # aren't aren't in the module's namespace yet since the file is still executing.
+        # aren't in the module's namespace yet since the file is still executing.
         current_file = None
         main_module = sys.modules.get("__main__")
         if main_module and hasattr(main_module, "__file__") and main_module.__file__:
