@@ -1,0 +1,208 @@
+{
+  "name": "AttachTagToLanguageGroup",
+  "fully_qualified_name": "HubspotCmsApi.AttachTagToLanguageGroup@0.1.0",
+  "description": "Attach a blog tag to a multi-language group.\n\nUse this tool to connect a specific blog tag to a designated multi-language group within HubSpot CMS. This is useful for managing tags across different language versions of a blog.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "designated_language",
+        "required": true,
+        "description": "Specify the language of the blog tag to add to a multi-language group. Use a language code like 'en' for English.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Designated language of the object to add to a multi-language group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "language"
+      },
+      {
+        "name": "object_id_for_multilanguage_group",
+        "required": true,
+        "description": "ID of the blog tag to add to the multi-language group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the object to add to a multi-language group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "primary_language_object_id",
+        "required": true,
+        "description": "ID of the primary language object in the multi-language group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of primary language object in multi-language group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "primaryId"
+      },
+      {
+        "name": "primary_language",
+        "required": false,
+        "description": "Specifies the primary language of the multi-language group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Primary language of the multi-language group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "primaryLanguage"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/blogs/tags/multi-language/attach-to-lang-group_attachToLangGroup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/blogs/tags/multi-language/attach-to-lang-group",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "language",
+        "tool_parameter_name": "designated_language",
+        "description": "Designated language of the object to add to a multi-language group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Designated language of the object to add to a multi-language group."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "object_id_for_multilanguage_group",
+        "description": "ID of the object to add to a multi-language group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the object to add to a multi-language group."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "primaryId",
+        "tool_parameter_name": "primary_language_object_id",
+        "description": "ID of primary language object in multi-language group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of primary language object in multi-language group."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "primaryLanguage",
+        "tool_parameter_name": "primary_language",
+        "description": "Primary language of the multi-language group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Primary language of the multi-language group."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The JSON representation of the AttachToLangPrimaryRequest object.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"id\",\n          \"language\",\n          \"primaryId\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"language\": {\n            \"type\": \"string\",\n            \"description\": \"Designated language of the object to add to a multi-language group.\"\n          },\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"ID of the object to add to a multi-language group.\"\n          },\n          \"primaryId\": {\n            \"type\": \"string\",\n            \"description\": \"ID of primary language object in multi-language group.\"\n          },\n          \"primaryLanguage\": {\n            \"type\": \"string\",\n            \"description\": \"Primary language of the multi-language group.\"\n          }\n        },\n        \"description\": \"Request body object for attaching objects to multi-language groups.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

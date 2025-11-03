@@ -1,0 +1,241 @@
+{
+  "name": "CreateLandingPageFolders",
+  "fully_qualified_name": "HubspotCmsApi.CreateLandingPageFolders@0.1.0",
+  "description": "Create multiple landing page folders in HubSpot CMS.\n\nUse this tool to create multiple folder objects for landing pages in HubSpot CMS as specified in the request details.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "folders_to_create",
+        "required": true,
+        "description": "A JSON array detailing the new folders to create, including their names, parent folder IDs, and other metadata.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "deletedAt": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp (ISO8601 format) when this content folder was deleted."
+                },
+                "parentFolderId": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the content folder this folder is nested under"
+                },
+                "created": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the folder which will show up in the app dashboard"
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique ID of the content folder."
+                },
+                "category": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of object this folder applies to. Should always be LANDING_PAGE."
+                },
+                "updated": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Content folders to input."
+            }
+          },
+          "inner_properties": null,
+          "description": "The JSON array of new Folders to create."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/pages/landing-pages/folders/batch/create_createFolders'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/pages/landing-pages/folders/batch/create",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "folders_to_create",
+        "description": "The JSON array of new Folders to create.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "deletedAt": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timestamp (ISO8601 format) when this content folder was deleted."
+                },
+                "parentFolderId": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the content folder this folder is nested under"
+                },
+                "created": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the folder which will show up in the app dashboard"
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique ID of the content folder."
+                },
+                "category": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of object this folder applies to. Should always be LANDING_PAGE."
+                },
+                "updated": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Content folders to input."
+            }
+          },
+          "inner_properties": null,
+          "description": "The JSON array of new Folders to create."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The JSON array of new Folders to create.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"inputs\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"inputs\": {\n            \"type\": \"array\",\n            \"description\": \"Content folders to input.\",\n            \"items\": {\n              \"required\": [\n                \"category\",\n                \"created\",\n                \"deletedAt\",\n                \"id\",\n                \"name\",\n                \"parentFolderId\",\n                \"updated\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"deletedAt\": {\n                  \"type\": \"string\",\n                  \"description\": \"The timestamp (ISO8601 format) when this content folder was deleted.\",\n                  \"format\": \"date-time\"\n                },\n                \"parentFolderId\": {\n                  \"type\": \"integer\",\n                  \"description\": \"The ID of the content folder this folder is nested under\",\n                  \"format\": \"int64\"\n                },\n                \"created\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"The name of the folder which will show up in the app dashboard\"\n                },\n                \"id\": {\n                  \"type\": \"string\",\n                  \"description\": \"The unique ID of the content folder.\"\n                },\n                \"category\": {\n                  \"type\": \"integer\",\n                  \"description\": \"The type of object this folder applies to. Should always be LANDING_PAGE.\",\n                  \"format\": \"int32\"\n                },\n                \"updated\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                }\n              },\n              \"description\": \"Model definition for a content folder.\"\n            }\n          }\n        },\n        \"description\": \"Wrapper for providing an array of content folders as inputs.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,352 @@
+{
+  "name": "UpdateUrlRedirectSettings",
+  "fully_qualified_name": "HubspotCmsApi.UpdateUrlRedirectSettings@0.1.0",
+  "description": "Update settings for an existing URL redirect in HubSpot CMS.\n\nThis tool updates the configuration of a specified URL redirect in HubSpot CMS. Use it when you need to change the destination or other settings of an existing URL redirect.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "url_redirect_id",
+        "required": true,
+        "description": "The unique identifier for the URL redirect to be updated. This ID specifies which redirect's settings will be modified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "urlRedirectId"
+      },
+      {
+        "name": "url_redirect_settings",
+        "required": true,
+        "description": "JSON object defining the URL redirect settings, including destination URL, redirect style, and matching criteria.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "isTrailingSlashOptional": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether a trailing slash will be ignored."
+            },
+            "redirectStyle": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of redirect to create. Options include: 301 (permanent), 302 (temporary), or 305 (proxy). Find more details [here](https://knowledge.hubspot.com/cos-general/how-to-redirect-a-hubspot-page)."
+            },
+            "isMatchQueryString": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the `routePrefix` should match on the entire URL path, including the query string."
+            },
+            "created": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "isMatchFullUrl": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the `routePrefix` should match on the entire URL, including the domain."
+            },
+            "destination": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The destination URL, where the target URL should be redirected if it matches the `routePrefix`."
+            },
+            "isOnlyAfterNotFound": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the URL redirect mapping should apply only if a live page on the URL isn't found. If False, the URL redirect mapping will take precedence over any existing page."
+            },
+            "isPattern": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the `routePrefix` should match based on pattern."
+            },
+            "precedence": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to prioritize URL redirection. If a given URL matches more than one redirect, the one with the **lower** precedence will be used."
+            },
+            "routePrefix": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The target incoming URL, path, or pattern to match for redirection."
+            },
+            "isProtocolAgnostic": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the `routePrefix` should match both HTTP and HTTPS protocols."
+            },
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The unique ID of this URL redirect."
+            },
+            "updated": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patch-/cms/v3/url-redirects/{urlRedirectId}_update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/url-redirects/{urlRedirectId}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "urlRedirectId",
+        "tool_parameter_name": "url_redirect_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "url_redirect_settings",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "isTrailingSlashOptional": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether a trailing slash will be ignored."
+            },
+            "redirectStyle": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of redirect to create. Options include: 301 (permanent), 302 (temporary), or 305 (proxy). Find more details [here](https://knowledge.hubspot.com/cos-general/how-to-redirect-a-hubspot-page)."
+            },
+            "isMatchQueryString": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the `routePrefix` should match on the entire URL path, including the query string."
+            },
+            "created": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "isMatchFullUrl": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the `routePrefix` should match on the entire URL, including the domain."
+            },
+            "destination": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The destination URL, where the target URL should be redirected if it matches the `routePrefix`."
+            },
+            "isOnlyAfterNotFound": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the URL redirect mapping should apply only if a live page on the URL isn't found. If False, the URL redirect mapping will take precedence over any existing page."
+            },
+            "isPattern": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the `routePrefix` should match based on pattern."
+            },
+            "precedence": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to prioritize URL redirection. If a given URL matches more than one redirect, the one with the **lower** precedence will be used."
+            },
+            "routePrefix": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The target incoming URL, path, or pattern to match for redirection."
+            },
+            "isProtocolAgnostic": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the `routePrefix` should match both HTTP and HTTPS protocols."
+            },
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The unique ID of this URL redirect."
+            },
+            "updated": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"destination\",\n          \"id\",\n          \"isMatchFullUrl\",\n          \"isMatchQueryString\",\n          \"isOnlyAfterNotFound\",\n          \"isPattern\",\n          \"isProtocolAgnostic\",\n          \"isTrailingSlashOptional\",\n          \"precedence\",\n          \"redirectStyle\",\n          \"routePrefix\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"isTrailingSlashOptional\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether a trailing slash will be ignored.\"\n          },\n          \"redirectStyle\": {\n            \"type\": \"integer\",\n            \"description\": \"The type of redirect to create. Options include: 301 (permanent), 302 (temporary), or 305 (proxy). Find more details [here](https://knowledge.hubspot.com/cos-general/how-to-redirect-a-hubspot-page).\",\n            \"format\": \"int32\"\n          },\n          \"isMatchQueryString\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether the `routePrefix` should match on the entire URL path, including the query string.\"\n          },\n          \"created\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"isMatchFullUrl\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether the `routePrefix` should match on the entire URL, including the domain.\"\n          },\n          \"destination\": {\n            \"type\": \"string\",\n            \"description\": \"The destination URL, where the target URL should be redirected if it matches the `routePrefix`.\"\n          },\n          \"isOnlyAfterNotFound\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether the URL redirect mapping should apply only if a live page on the URL isn't found. If False, the URL redirect mapping will take precedence over any existing page.\"\n          },\n          \"isPattern\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether the `routePrefix` should match based on pattern.\"\n          },\n          \"precedence\": {\n            \"type\": \"integer\",\n            \"description\": \"Used to prioritize URL redirection. If a given URL matches more than one redirect, the one with the **lower** precedence will be used.\",\n            \"format\": \"int32\"\n          },\n          \"routePrefix\": {\n            \"type\": \"string\",\n            \"description\": \"The target incoming URL, path, or pattern to match for redirection.\"\n          },\n          \"isProtocolAgnostic\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether the `routePrefix` should match both HTTP and HTTPS protocols.\"\n          },\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"The unique ID of this URL redirect.\"\n          },\n          \"updated\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
