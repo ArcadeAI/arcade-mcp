@@ -203,9 +203,18 @@ class ToolCatalog(BaseModel):
         tool_func: Callable,
         toolkit_or_name: str | Toolkit,
         module: ModuleType | None = None,
+        toolkit_version: str | None = None,
+        toolkit_description: str | None = None,
     ) -> None:
         """
         Add a function to the catalog as a tool.
+
+        Args:
+            tool_func: The function to add to the catalog.
+            toolkit_or_name: The toolkit or name of the toolkit.
+            module: The module to add the tool from.
+            toolkit_version: The version of the toolkit. Overrides the version of the toolkit if provided.
+            toolkit_description: The description of the toolkit. Overrides the description of the toolkit if provided.
         """
 
         input_model, output_model = create_func_models(tool_func)
@@ -213,6 +222,8 @@ class ToolCatalog(BaseModel):
         if isinstance(toolkit_or_name, Toolkit):
             toolkit = toolkit_or_name
             toolkit_name = toolkit.name
+            toolkit_version = toolkit_version or toolkit.version
+            toolkit_description = toolkit_description or toolkit.description
         elif isinstance(toolkit_or_name, str):
             toolkit = None
             toolkit_name = toolkit_or_name
@@ -223,8 +234,8 @@ class ToolCatalog(BaseModel):
         definition = ToolCatalog.create_tool_definition(
             tool_func,
             toolkit_name,
-            toolkit.version if toolkit else None,
-            toolkit.description if toolkit else None,
+            toolkit_version,
+            toolkit_description,
         )
 
         fully_qualified_name = definition.get_fully_qualified_name()

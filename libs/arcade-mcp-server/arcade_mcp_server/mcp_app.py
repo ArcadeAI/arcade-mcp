@@ -236,7 +236,12 @@ class MCPApp:
                 adapters=adapters,
             )
         try:
-            self._catalog.add_tool(func, self._toolkit_name)
+            self._catalog.add_tool(
+                func,
+                self._toolkit_name,
+                toolkit_version=self.version,
+                toolkit_description=self.instructions,
+            )
         except ToolDefinitionError as e:
             raise e.with_context(func.__name__) from e
         logger.debug(f"Added tool: {func.__name__}")
