@@ -1,7 +1,9 @@
+import contextlib
 import importlib.metadata
 import importlib.util
 import logging
 import os
+import sys
 import types
 from collections import defaultdict
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -293,9 +295,27 @@ class Toolkit(BaseModel):
                 f"Failed to locate Python files in package directory for '{package_name}'."
             ) from e
 
+        # Get the currently executing file (the entrypoint file) so that we can skip it when loading tools.
+        # Skipping this file is necessary because tools are discovered via AST parsing, but those tools
+        # aren't in the module's namespace yet since the file is still executing.
+        current_file = None
+        main_module = sys.modules.get("__main__")
+        if main_module and hasattr(main_module, "__file__") and main_module.__file__:
+            with contextlib.suppress(Exception):
+                current_file = Path(main_module.__file__).resolve()
+
         tools: dict[str, list[str]] = {}
 
         for module_path in modules:
+            # Skip adding tools from the currently executing file
+            if current_file:
+                try:
+                    module_path_resolved = module_path.resolve()
+                    if module_path_resolved == current_file:
+                        continue
+                except Exception:  # noqa: S110
+                    pass
+
             relative_path = module_path.relative_to(package_dir)
             cls.validate_file(module_path)
             # Build import path and avoid duplicating the package prefix if it already exists
