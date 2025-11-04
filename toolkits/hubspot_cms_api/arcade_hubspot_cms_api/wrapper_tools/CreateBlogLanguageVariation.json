@@ -1,0 +1,208 @@
+{
+  "name": "CreateBlogLanguageVariation",
+  "fully_qualified_name": "HubspotCmsApi.CreateBlogLanguageVariation@0.1.0",
+  "description": "Create a language variation for a blog in HubSpot CMS.\n\nThis tool allows you to create a new language variation for an existing blog using HubSpot CMS's multi-language settings. Use it when you need to support multiple languages for a blog.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "blog_id",
+        "required": true,
+        "description": "ID of the blog to clone for creating a language variation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of blog to clone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "target_language_for_blog_variant",
+        "required": false,
+        "description": "The language code for the new blog variant, specifying the target language for translation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Target language of new variant."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "language"
+      },
+      {
+        "name": "primary_language",
+        "required": false,
+        "description": "Specify the language of the primary blog to clone. This determines the source content for the new language variation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Language of primary blog to clone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "primaryLanguage"
+      },
+      {
+        "name": "blog_slug",
+        "required": false,
+        "description": "Path to the blog. Used to specify the location of the language variation within the CMS.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Path to this blog."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/blog-settings/settings/multi-language/create-language-variation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/blog-settings/settings/multi-language/create-language-variation",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "language",
+        "tool_parameter_name": "target_language_for_blog_variant",
+        "description": "Target language of new variant.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Target language of new variant."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "blog_id",
+        "description": "ID of blog to clone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of blog to clone."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "primaryLanguage",
+        "tool_parameter_name": "primary_language",
+        "description": "Language of primary blog to clone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Language of primary blog to clone."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "blog_slug",
+        "description": "Path to this blog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Path to this blog."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The JSON representation of the ContentLanguageCloneRequest object.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"language\": {\n            \"type\": \"string\",\n            \"description\": \"Target language of new variant.\"\n          },\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"ID of blog to clone.\"\n          },\n          \"primaryLanguage\": {\n            \"type\": \"string\",\n            \"description\": \"Language of primary blog to clone.\"\n          },\n          \"slug\": {\n            \"type\": \"string\",\n            \"description\": \"Path to this blog.\"\n          }\n        },\n        \"description\": \"Request body object for creating new language variant blog.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

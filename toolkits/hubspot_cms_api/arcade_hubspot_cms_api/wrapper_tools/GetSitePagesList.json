@@ -1,0 +1,439 @@
+{
+  "name": "GetSitePagesList",
+  "fully_qualified_name": "HubspotCmsApi.GetSitePagesList@0.1.0",
+  "description": "Retrieve a list of site pages with filtering options.\n\nUse this tool to get a list of site pages, supporting both paging and filtering. Ideal for integrations that need to examine pages or use external services to suggest edits.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "created_at_time_filter",
+        "required": false,
+        "description": "Return Site Pages created at exactly the specified time. Accepts an exact timestamp in string format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages created at exactly the specified time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdAt"
+      },
+      {
+        "name": "filter_created_after",
+        "required": false,
+        "description": "Return Site Pages created after the specified time. Use an ISO 8601 timestamp format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages created after the specified time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdAfter"
+      },
+      {
+        "name": "created_before_date_time",
+        "required": false,
+        "description": "Return Site Pages created before this date-time. Use ISO 8601 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages created before the specified time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdBefore"
+      },
+      {
+        "name": "last_updated_exact_time",
+        "required": false,
+        "description": "Return site pages last updated at exactly the specified time in ISO 8601 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages last updated at exactly the specified time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updatedAt"
+      },
+      {
+        "name": "filter_updated_after",
+        "required": false,
+        "description": "Return site pages updated after this specific time. Use ISO 8601 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages last updated after the specified time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updatedAfter"
+      },
+      {
+        "name": "last_updated_before",
+        "required": false,
+        "description": "Return site pages last updated before this datetime. Format: ISO 8601 string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages last updated before the specified time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updatedBefore"
+      },
+      {
+        "name": "sort_fields_for_results",
+        "required": false,
+        "description": "Specify fields for sorting site pages. Options: `name`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`. Default is `createdAt`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields to use for sorting results. Valid fields are `name`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`. `createdAt` will be used by default."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "next_page_cursor",
+        "required": false,
+        "description": "Cursor token for paged results; use `paging.next.after` for the next set.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor token value to get the next set of results. You can get this from the `paging.next.after` JSON property of a paged response containing more results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "maximum_results",
+        "required": false,
+        "description": "The maximum number of site pages to return. Default is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return. Default is 100."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "include_property_details",
+        "required": false,
+        "description": "Specify the properties to include in the Site Pages results. Leave empty to include all properties.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "property"
+      },
+      {
+        "name": "include_deleted_site_pages",
+        "required": false,
+        "description": "Set to true to include deleted Site Pages in the results. Defaults to false if not specified.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether to return deleted Site Pages. Defaults to `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-/cms/v3/pages/site-pages_getPage'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/pages/site-pages",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "createdAt",
+        "tool_parameter_name": "created_at_time_filter",
+        "description": "Only return Site Pages created at exactly the specified time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages created at exactly the specified time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "createdAfter",
+        "tool_parameter_name": "filter_created_after",
+        "description": "Only return Site Pages created after the specified time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages created after the specified time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "createdBefore",
+        "tool_parameter_name": "created_before_date_time",
+        "description": "Only return Site Pages created before the specified time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages created before the specified time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updatedAt",
+        "tool_parameter_name": "last_updated_exact_time",
+        "description": "Only return Site Pages last updated at exactly the specified time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages last updated at exactly the specified time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updatedAfter",
+        "tool_parameter_name": "filter_updated_after",
+        "description": "Only return Site Pages last updated after the specified time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages last updated after the specified time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updatedBefore",
+        "tool_parameter_name": "last_updated_before",
+        "description": "Only return Site Pages last updated before the specified time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return Site Pages last updated before the specified time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_fields_for_results",
+        "description": "Specifies which fields to use for sorting results. Valid fields are `name`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`. `createdAt` will be used by default.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields to use for sorting results. Valid fields are `name`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`. `createdAt` will be used by default."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "next_page_cursor",
+        "description": "The cursor token value to get the next set of results. You can get this from the `paging.next.after` JSON property of a paged response containing more results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor token value to get the next set of results. You can get this from the `paging.next.after` JSON property of a paged response containing more results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_results",
+        "description": "The maximum number of results to return. Default is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return. Default is 100."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "archived",
+        "tool_parameter_name": "include_deleted_site_pages",
+        "description": "Specifies whether to return deleted Site Pages. Defaults to `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether to return deleted Site Pages. Defaults to `false`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "property",
+        "tool_parameter_name": "include_property_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

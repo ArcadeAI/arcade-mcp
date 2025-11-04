@@ -1,0 +1,386 @@
+{
+  "name": "BatchCreateTimelineEvents",
+  "fully_qualified_name": "HubspotCrmApi.BatchCreateTimelineEvents@0.1.0",
+  "description": "Batch create multiple timeline event instances.\n\nBatch create multiple timeline events using an event template. Created events are immutable and can trigger updates to object properties if configured in the template.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "timeline_event_definitions",
+        "required": true,
+        "description": "A JSON array of event definitions, each requiring an eventTemplateId, domain, and additional optional fields like extraData, timelineIFrame, tokens, and more. This defines the timeline events to create.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "eventTemplateId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The event template ID."
+                },
+                "extraData": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Additional event-specific data that can be interpreted by the template's markdown."
+                },
+                "timelineIFrame": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "linkLabel": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The text displaying the link that will display the iframe."
+                    },
+                    "headerLabel": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The label of the modal window that displays the iframe contents."
+                    },
+                    "width": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The width of the modal window in pixels."
+                    },
+                    "url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The URI of the iframe contents."
+                    },
+                    "height": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The height of the modal window in pixels."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "domain": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The event domain (often paired with utk)."
+                },
+                "tokens": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A collection of token keys and values associated with the template tokens."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Identifier for the event. This is optional, and we recommend you do not pass this in. We will create one for you if you omit this. You can also use `{{uuid}}` anywhere in the ID to generate a unique string, guaranteeing uniqueness."
+                },
+                "utk": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Use the `utk` parameter to associate an event with a contact by `usertoken`. This is recommended if you don't know a user's email, but have an identifying user token in your cookie."
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email address used for contact-specific events. This can be used to identify existing contacts, create new ones, or change the email for an existing contact (if paired with the `objectId`)."
+                },
+                "objectId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The CRM object identifier. This is required for every event other than contacts (where utk or email can be used)."
+                },
+                "timestamp": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time the event occurred. If not passed in, the curren time will be assumed. This is used to determine where an event is shown on a CRM object's timeline."
+                }
+              },
+              "description": "A collection of timeline events we want to create."
+            }
+          },
+          "inner_properties": null,
+          "description": "The timeline event definition."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/integrators/timeline/v3/events/batch/create_createBatch'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.schemas.deals.write",
+          "crm.objects.contacts.write",
+          "crm.objects.companies.highly_sensitive.write.v2",
+          "tickets.sensitive.v2",
+          "tickets.highly_sensitive.v2",
+          "crm.schemas.companies.write",
+          "crm.objects.companies.write",
+          "tickets",
+          "crm.objects.deals.highly_sensitive.write.v2",
+          "crm.objects.deals.write",
+          "crm.schemas.contacts.write",
+          "crm.objects.contacts.sensitive.write.v2",
+          "crm.objects.contacts.highly_sensitive.write.v2",
+          "timeline",
+          "crm.objects.companies.sensitive.write.v2",
+          "crm.objects.deals.sensitive.write.v2"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/integrators/timeline/v3/events/batch/create",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "timeline_event_definitions",
+        "description": "The timeline event definition.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "inputs": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "eventTemplateId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The event template ID."
+                },
+                "extraData": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Additional event-specific data that can be interpreted by the template's markdown."
+                },
+                "timelineIFrame": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "linkLabel": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The text displaying the link that will display the iframe."
+                    },
+                    "headerLabel": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The label of the modal window that displays the iframe contents."
+                    },
+                    "width": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The width of the modal window in pixels."
+                    },
+                    "url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The URI of the iframe contents."
+                    },
+                    "height": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The height of the modal window in pixels."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "domain": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The event domain (often paired with utk)."
+                },
+                "tokens": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A collection of token keys and values associated with the template tokens."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Identifier for the event. This is optional, and we recommend you do not pass this in. We will create one for you if you omit this. You can also use `{{uuid}}` anywhere in the ID to generate a unique string, guaranteeing uniqueness."
+                },
+                "utk": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Use the `utk` parameter to associate an event with a contact by `usertoken`. This is recommended if you don't know a user's email, but have an identifying user token in your cookie."
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email address used for contact-specific events. This can be used to identify existing contacts, create new ones, or change the email for an existing contact (if paired with the `objectId`)."
+                },
+                "objectId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The CRM object identifier. This is required for every event other than contacts (where utk or email can be used)."
+                },
+                "timestamp": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time the event occurred. If not passed in, the curren time will be assumed. This is used to determine where an event is shown on a CRM object's timeline."
+                }
+              },
+              "description": "A collection of timeline events we want to create."
+            }
+          },
+          "inner_properties": null,
+          "description": "The timeline event definition."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The timeline event definition.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"inputs\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"inputs\": {\n            \"type\": \"array\",\n            \"description\": \"A collection of timeline events we want to create.\",\n            \"items\": {\n              \"required\": [\n                \"eventTemplateId\",\n                \"tokens\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"eventTemplateId\": {\n                  \"type\": \"string\",\n                  \"description\": \"The event template ID.\"\n                },\n                \"extraData\": {\n                  \"type\": \"object\",\n                  \"properties\": {},\n                  \"description\": \"Additional event-specific data that can be interpreted by the template's markdown.\"\n                },\n                \"timelineIFrame\": {\n                  \"required\": [\n                    \"headerLabel\",\n                    \"height\",\n                    \"linkLabel\",\n                    \"url\",\n                    \"width\"\n                  ],\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"linkLabel\": {\n                      \"type\": \"string\",\n                      \"description\": \"The text displaying the link that will display the iframe.\"\n                    },\n                    \"headerLabel\": {\n                      \"type\": \"string\",\n                      \"description\": \"The label of the modal window that displays the iframe contents.\"\n                    },\n                    \"width\": {\n                      \"type\": \"integer\",\n                      \"description\": \"The width of the modal window in pixels.\",\n                      \"format\": \"int32\"\n                    },\n                    \"url\": {\n                      \"type\": \"string\",\n                      \"description\": \"The URI of the iframe contents.\"\n                    },\n                    \"height\": {\n                      \"type\": \"integer\",\n                      \"description\": \"The height of the modal window in pixels.\",\n                      \"format\": \"int32\"\n                    }\n                  },\n                  \"example\": {\n                    \"linkLabel\": \"View Art3mis\",\n                    \"headerLabel\": \"Art3mis dog\",\n                    \"url\": \"https://my.petspot.com/pets/Art3mis\",\n                    \"width\": 600,\n                    \"height\": 400\n                  }\n                },\n                \"domain\": {\n                  \"type\": \"string\",\n                  \"description\": \"The event domain (often paired with utk).\"\n                },\n                \"tokens\": {\n                  \"type\": \"object\",\n                  \"additionalProperties\": {\n                    \"type\": \"string\"\n                  },\n                  \"description\": \"A collection of token keys and values associated with the template tokens.\"\n                },\n                \"id\": {\n                  \"type\": \"string\",\n                  \"description\": \"Identifier for the event. This is optional, and we recommend you do not pass this in. We will create one for you if you omit this. You can also use `{{uuid}}` anywhere in the ID to generate a unique string, guaranteeing uniqueness.\"\n                },\n                \"utk\": {\n                  \"type\": \"string\",\n                  \"description\": \"Use the `utk` parameter to associate an event with a contact by `usertoken`. This is recommended if you don't know a user's email, but have an identifying user token in your cookie.\"\n                },\n                \"email\": {\n                  \"type\": \"string\",\n                  \"description\": \"The email address used for contact-specific events. This can be used to identify existing contacts, create new ones, or change the email for an existing contact (if paired with the `objectId`).\"\n                },\n                \"objectId\": {\n                  \"type\": \"string\",\n                  \"description\": \"The CRM object identifier. This is required for every event other than contacts (where utk or email can be used).\"\n                },\n                \"timestamp\": {\n                  \"type\": \"string\",\n                  \"description\": \"The time the event occurred. If not passed in, the curren time will be assumed. This is used to determine where an event is shown on a CRM object's timeline.\",\n                  \"format\": \"date-time\"\n                }\n              },\n              \"description\": \"The state of the timeline event.\",\n              \"example\": {\n                \"eventTemplateId\": \"1001298\",\n                \"email\": \"art3mis-pup@petspot.com\",\n                \"tokens\": {\n                  \"petName\": \"Art3mis\",\n                  \"petAge\": 3,\n                  \"petColor\": \"black\"\n                },\n                \"extraData\": {\n                  \"questions\": [\n                    {\n                      \"question\": \"Who's a good girl?\",\n                      \"answer\": \"Bark!\"\n                    },\n                    {\n                      \"question\": \"Do you wanna go on a walk?\",\n                      \"answer\": \"Woof!\"\n                    }\n                  ]\n                },\n                \"timelineIFrame\": {\n                  \"linkLabel\": \"View Art3mis\",\n                  \"headerLabel\": \"Art3mis dog\",\n                  \"url\": \"https://my.petspot.com/pets/Art3mis\",\n                  \"width\": 600,\n                  \"height\": 400\n                }\n              }\n            }\n          }\n        },\n        \"description\": \"Used to create timeline events in batches.\",\n        \"example\": {\n          \"inputs\": [\n            {\n              \"eventTemplateId\": \"1001298\",\n              \"email\": \"art3mis-pup@petspot.com\",\n              \"tokens\": {\n                \"petName\": \"Art3mis\",\n                \"petAge\": 3,\n                \"petColor\": \"black\"\n              },\n              \"extraData\": {\n                \"questions\": [\n                  {\n                    \"question\": \"Who's a good girl?\",\n                    \"answer\": \"Bark!\"\n                  },\n                  {\n                    \"question\": \"Do you wanna go on a walk?\",\n                    \"answer\": \"Woof!\"\n                  }\n                ]\n              },\n              \"timelineIFrame\": {\n                \"linkLabel\": \"View Art3mis\",\n                \"headerLabel\": \"Art3mis dog\",\n                \"url\": \"https://my.petspot.com/pets/Art3mis\",\n                \"width\": 600,\n                \"height\": 400\n              }\n            },\n            {\n              \"eventTemplateId\": \"1001298\",\n              \"email\": \"pocket-tiger@petspot.com\",\n              \"tokens\": {\n                \"petName\": \"Pocket\",\n                \"petAge\": 3,\n                \"petColor\": \"yellow\"\n              },\n              \"extraData\": {\n                \"questions\": [\n                  {\n                    \"question\": \"Who's a good kitty?\",\n                    \"answer\": \"Purr...\"\n                  },\n                  {\n                    \"question\": \"Will you stop playing with that?\",\n                    \"answer\": \"Meow!\"\n                  }\n                ]\n              },\n              \"timelineIFrame\": {\n                \"linkLabel\": \"View Pocket\",\n                \"headerLabel\": \"Pocket Tiger\",\n                \"url\": \"https://my.petspot.com/pets/Pocket\",\n                \"width\": 600,\n                \"height\": 400\n              }\n            }\n          ]\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "name": "AssociateAssetWithCampaign",
+  "fully_qualified_name": "HubspotMarketingApi.AssociateAssetWithCampaign@0.1.0",
+  "description": "Associate a specified asset with a HubSpot campaign.\n\nThis tool is used to link various asset types such as forms, lists, or emails with a specific HubSpot campaign. It's useful for managing and organizing marketing efforts across different platforms.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "campaign_unique_identifier",
+        "required": true,
+        "description": "Unique identifier for the campaign, formatted as a UUID. Essential for associating an asset with the correct campaign.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the campaign, formatted as a UUID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "campaignGuid"
+      },
+      {
+        "name": "asset_type",
+        "required": true,
+        "description": "Specify the asset type to associate with the campaign. Allowed values are FORM, OBJECT_LIST, and EXTERNAL_WEB_URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of asset\nImportant: Currently, only the following asset types are available for association via the API: FORM, OBJECT_LIST, EXTERNAL_WEB_URL"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assetType"
+      },
+      {
+        "name": "asset_id",
+        "required": true,
+        "description": "The unique identifier for the asset to be associated with a campaign. This should be provided as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Id of the asset"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "assetId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-/marketing/v3/campaigns/{campaignGuid}/assets/{assetType}/{assetId}'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "marketing.campaigns.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/campaigns/{campaignGuid}/assets/{assetType}/{assetId}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "campaignGuid",
+        "tool_parameter_name": "campaign_unique_identifier",
+        "description": "Unique identifier for the campaign, formatted as a UUID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the campaign, formatted as a UUID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assetType",
+        "tool_parameter_name": "asset_type",
+        "description": "The type of asset\nImportant: Currently, only the following asset types are available for association via the API: FORM, OBJECT_LIST, EXTERNAL_WEB_URL",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of asset\nImportant: Currently, only the following asset types are available for association via the API: FORM, OBJECT_LIST, EXTERNAL_WEB_URL"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "assetId",
+        "tool_parameter_name": "asset_id",
+        "description": "Id of the asset",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Id of the asset"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

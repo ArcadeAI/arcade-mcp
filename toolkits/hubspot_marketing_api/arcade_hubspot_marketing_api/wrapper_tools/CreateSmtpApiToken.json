@@ -1,0 +1,142 @@
+{
+  "name": "CreateSmtpApiToken",
+  "fully_qualified_name": "HubspotMarketingApi.CreateSmtpApiToken@0.1.0",
+  "description": "Creates a SMTP API token for transaction emails.\n\nThis tool is used to create a new SMTP API token for sending transactional emails through HubSpot's marketing service. It should be called when a new token is needed for email operations.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "campaign_name",
+        "required": true,
+        "description": "The name of the campaign associated with the SMTP API token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A name for the campaign tied to the SMTP API token."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "campaignName"
+      },
+      {
+        "name": "create_contact_for_recipients",
+        "required": true,
+        "description": "Indicates whether a contact should be created for email recipients. Set to true to create a contact.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether a contact should be created for email recipients."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createContact"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/marketing/v3/transactional/smtp-tokens_createToken'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "transactional-email"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/transactional/smtp-tokens",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "createContact",
+        "tool_parameter_name": "create_contact_for_recipients",
+        "description": "Indicates whether a contact should be created for email recipients.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether a contact should be created for email recipients."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "campaignName",
+        "tool_parameter_name": "campaign_name",
+        "description": "A name for the campaign tied to the SMTP API token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A name for the campaign tied to the SMTP API token."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"A request object that includes the campaign name tied to the token and whether contacts should be created for email recipients.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"campaignName\",\n          \"createContact\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"createContact\": {\n            \"type\": \"boolean\",\n            \"description\": \"Indicates whether a contact should be created for email recipients.\"\n          },\n          \"campaignName\": {\n            \"type\": \"string\",\n            \"description\": \"A name for the campaign tied to the SMTP API token.\"\n          }\n        },\n        \"description\": \"A request object to create a SMTP API token\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

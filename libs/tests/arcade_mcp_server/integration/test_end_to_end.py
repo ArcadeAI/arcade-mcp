@@ -9,7 +9,6 @@ import json
 import os
 import random
 import subprocess
-import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -20,9 +19,9 @@ import pytest
 # Helper Functions
 
 
-def get_server_path() -> str:
+def get_entrypoint_path() -> str:
     """Get the path to the test server entrypoint."""
-    return str(Path(__file__).parent / "server" / "server.py")
+    return str(Path(__file__).parent / "server" / "src" / "server" / "entrypoint.py")
 
 
 def start_mcp_server(
@@ -38,10 +37,12 @@ def start_mcp_server(
     Returns:
         Tuple of (process, port). Port is None for stdio transport.
     """
-    server_path = get_server_path()
+    entrypoint_path = get_entrypoint_path()
+    # Get the server package directory (where pyproject.toml is)
+    package_path = Path(__file__).parent / "server"
 
     if transport == "stdio":
-        cmd = [sys.executable, server_path, "stdio"]
+        cmd = ["uv", "run", entrypoint_path, "stdio"]
         process = subprocess.Popen(
             cmd,
             stdin=subprocess.PIPE,
@@ -49,6 +50,7 @@ def start_mcp_server(
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,  # Line buffered
+            cwd=str(package_path),
         )
         return process, None
 
@@ -64,13 +66,14 @@ def start_mcp_server(
             "ARCADE_AUTH_DISABLED": "true",
         }
 
-        cmd = [sys.executable, server_path, "http"]
+        cmd = ["uv", "run", entrypoint_path, "http"]
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
             env=env,
+            cwd=str(package_path),
         )
         return process, port
 
@@ -298,7 +301,7 @@ async def test_stdio_e2e():
         assert init_response["id"] == init_id
         assert "result" in init_response
         assert "error" not in init_response
-        assert init_response["result"]["serverInfo"]["name"] == "Test"
+        assert init_response["result"]["serverInfo"]["name"] == "server"
         assert init_response["result"]["serverInfo"]["version"] == "1.0.0"
 
         # 2. Send initialized notification
@@ -319,13 +322,13 @@ async def test_stdio_e2e():
         assert "result" in list_tools_response
         assert "tools" in list_tools_response["result"]
         tools = list_tools_response["result"]["tools"]
-        assert len(tools) == 6
+        assert len(tools) == 7
 
         # 5. Call logging_tool
         logging_id = client.send_request(
             "tools/call",
             {
-                "name": "Test_LoggingTool",
+                "name": "Server_LoggingTool",
                 "arguments": {"message": "test message"},
             },
         )
@@ -351,7 +354,7 @@ async def test_stdio_e2e():
         progress_id = client.send_request(
             "tools/call",
             {
-                "name": "Test_ReportingProgress",
+                "name": "Server_ReportingProgress",
                 "arguments": {},
                 "_meta": {
                     "progressToken": "test-progress-token",
@@ -388,7 +391,7 @@ async def test_stdio_e2e():
         chaining_id = client.send_request(
             "tools/call",
             {
-                "name": "Test_CallOtherTool",
+                "name": "Server_CallOtherTool",
                 "arguments": {},
             },
         )
@@ -402,7 +405,7 @@ async def test_stdio_e2e():
         sampling_id = client.send_request(
             "tools/call",
             {
-                "name": "Test_Sampling",
+                "name": "Server_Sampling",
                 "arguments": {"text": "This is some text to summarize."},
             },
         )
@@ -442,7 +445,7 @@ async def test_stdio_e2e():
         elicit_id = client.send_request(
             "tools/call",
             {
-                "name": "Test_ElicitNickname",
+                "name": "Server_ElicitNickname",
                 "arguments": {},
             },
         )
@@ -520,7 +523,7 @@ async def test_http_e2e():
         assert init_data["id"] == 1
         assert "result" in init_data
         assert "error" not in init_data
-        assert init_data["result"]["serverInfo"]["name"] == "Test"
+        assert init_data["result"]["serverInfo"]["name"] == "server"
         assert init_data["result"]["serverInfo"]["version"] == "1.0.0"
 
         session_id = init_response.headers.get("mcp-session-id")
@@ -555,13 +558,13 @@ async def test_http_e2e():
         assert "result" in list_tools_data
         assert "tools" in list_tools_data["result"]
         tools = list_tools_data["result"]["tools"]
-        assert len(tools) == 6
+        assert len(tools) == 7
 
         # 5. Call logging_tool
         logging_request = build_jsonrpc_request(
             "tools/call",
             {
-                "name": "Test_LoggingTool",
+                "name": "Server_LoggingTool",
                 "arguments": {"message": "test message"},
             },
             request_id=4,
@@ -580,7 +583,7 @@ async def test_http_e2e():
         progress_request = build_jsonrpc_request(
             "tools/call",
             {
-                "name": "Test_ReportingProgress",
+                "name": "Server_ReportingProgress",
                 "arguments": {},
             },
             request_id=5,
@@ -598,7 +601,7 @@ async def test_http_e2e():
         chaining_request = build_jsonrpc_request(
             "tools/call",
             {
-                "name": "Test_CallOtherTool",
+                "name": "Server_CallOtherTool",
                 "arguments": {},
             },
             request_id=6,

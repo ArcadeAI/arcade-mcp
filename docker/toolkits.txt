@@ -11,6 +11,10 @@ arcade-exa-api
 arcade-figma-api
 arcade-freshservice-api
 arcade-github-api
+arcade-hubspot-automation-api
+arcade-hubspot-cms-api
+arcade-hubspot-crm-api
+arcade-hubspot-marketing-api
 arcade-linkedin
 arcade-math
 arcade-miro-api

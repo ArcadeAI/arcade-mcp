@@ -1,0 +1,331 @@
+{
+  "name": "SearchHubspotPayments",
+  "fully_qualified_name": "HubspotCrmApi.SearchHubspotPayments@0.1.0",
+  "description": "Search for payments in HubSpot CRM.\n\nUse this tool to search for specific payments within the HubSpot CRM. It should be called when you need to locate payments based on specific criteria.",
+  "toolkit": {
+    "name": "ArcadeHubspotCrmApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "payment_search_criteria",
+        "required": true,
+        "description": "Criteria for searching payments, including query, limit, pagination, sorting, and filters.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "after": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "sorts": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "properties": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filterGroups": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "filters": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "highValue": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The upper boundary value when using ranged-based filters."
+                    },
+                    "propertyName": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the property to apply the filter to."
+                    },
+                    "values": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The values to match against the property."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The value to match against the property."
+                    },
+                    "operator": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "EQ",
+                        "NEQ",
+                        "LT",
+                        "LTE",
+                        "GT",
+                        "GTE",
+                        "BETWEEN",
+                        "IN",
+                        "NOT_IN",
+                        "HAS_PROPERTY",
+                        "NOT_HAS_PROPERTY",
+                        "CONTAINS_TOKEN",
+                        "NOT_CONTAINS_TOKEN"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "null"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/crm/v3/objects/payments/search'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_crm API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/crm/v3/objects/payments/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "payment_search_criteria",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "query": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "after": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "sorts": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "properties": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "filterGroups": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "filters": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "highValue": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The upper boundary value when using ranged-based filters."
+                    },
+                    "propertyName": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the property to apply the filter to."
+                    },
+                    "values": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The values to match against the property."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The value to match against the property."
+                    },
+                    "operator": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "EQ",
+                        "NEQ",
+                        "LT",
+                        "LTE",
+                        "GT",
+                        "GTE",
+                        "BETWEEN",
+                        "IN",
+                        "NOT_IN",
+                        "HAS_PROPERTY",
+                        "NOT_HAS_PROPERTY",
+                        "CONTAINS_TOKEN",
+                        "NOT_CONTAINS_TOKEN"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "null"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"after\",\n          \"filterGroups\",\n          \"limit\",\n          \"properties\",\n          \"sorts\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"string\"\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"format\": \"int32\"\n          },\n          \"after\": {\n            \"type\": \"string\"\n          },\n          \"sorts\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"properties\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"filterGroups\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"required\": [\n                \"filters\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"filters\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"required\": [\n                      \"operator\",\n                      \"propertyName\"\n                    ],\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"highValue\": {\n                        \"type\": \"string\",\n                        \"description\": \"The upper boundary value when using ranged-based filters.\"\n                      },\n                      \"propertyName\": {\n                        \"type\": \"string\",\n                        \"description\": \"The name of the property to apply the filter to.\"\n                      },\n                      \"values\": {\n                        \"type\": \"array\",\n                        \"description\": \"The values to match against the property.\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"value\": {\n                        \"type\": \"string\",\n                        \"description\": \"The value to match against the property.\"\n                      },\n                      \"operator\": {\n                        \"type\": \"string\",\n                        \"description\": \"null\",\n                        \"enum\": [\n                          \"EQ\",\n                          \"NEQ\",\n                          \"LT\",\n                          \"LTE\",\n                          \"GT\",\n                          \"GTE\",\n                          \"BETWEEN\",\n                          \"IN\",\n                          \"NOT_IN\",\n                          \"HAS_PROPERTY\",\n                          \"NOT_HAS_PROPERTY\",\n                          \"CONTAINS_TOKEN\",\n                          \"NOT_CONTAINS_TOKEN\"\n                        ]\n                      }\n                    },\n                    \"description\": \"Defines a single condition for searching CRM objects, specifying the property to filter on, the operator to use (such as equals, greater than, or contains), and the value(s) to compare against. \"\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -203,9 +203,18 @@ class ToolCatalog(BaseModel):
         tool_func: Callable,
         toolkit_or_name: str | Toolkit,
         module: ModuleType | None = None,
+        toolkit_version: str | None = None,
+        toolkit_description: str | None = None,
     ) -> None:
         """
         Add a function to the catalog as a tool.
+
+        Args:
+            tool_func: The function to add to the catalog.
+            toolkit_or_name: The toolkit or name of the toolkit.
+            module: The module to add the tool from.
+            toolkit_version: The version of the toolkit. Overrides the version of the toolkit if provided.
+            toolkit_description: The description of the toolkit. Overrides the description of the toolkit if provided.
         """
 
         input_model, output_model = create_func_models(tool_func)
@@ -213,6 +222,8 @@ class ToolCatalog(BaseModel):
         if isinstance(toolkit_or_name, Toolkit):
             toolkit = toolkit_or_name
             toolkit_name = toolkit.name
+            toolkit_version = toolkit_version or toolkit.version
+            toolkit_description = toolkit_description or toolkit.description
         elif isinstance(toolkit_or_name, str):
             toolkit = None
             toolkit_name = toolkit_or_name
@@ -223,8 +234,8 @@ class ToolCatalog(BaseModel):
         definition = ToolCatalog.create_tool_definition(
             tool_func,
             toolkit_name,
-            toolkit.version if toolkit else None,
-            toolkit.description if toolkit else None,
+            toolkit_version,
+            toolkit_description,
         )
 
         fully_qualified_name = definition.get_fully_qualified_name()
@@ -255,22 +266,37 @@ class ToolCatalog(BaseModel):
             output_model=output_model,
         )
 
-    def add_module(self, module: ModuleType, name: str | None = None) -> None:
+    def add_module(
+        self,
+        module: ModuleType,
+        name: str | None = None,
+        version: str | None = None,
+        description: str | None = None,
+    ) -> None:
         """
         Add all the tools in a module to the catalog.
 
         Args:
             module: The module to add.
             name: Optionally override the name of the toolkit with this parameter
+            version: Optionally override the version of the toolkit with this parameter
+            description: Optionally override the description of the toolkit with this parameter
         """
         toolkit = Toolkit.from_module(module)
         if name:
             toolkit.name = name
-        self.add_toolkit(toolkit)
+        self.add_toolkit(toolkit, version=version, description=description)
 
-    def add_toolkit(self, toolkit: Toolkit) -> None:
+    def add_toolkit(
+        self, toolkit: Toolkit, version: str | None = None, description: str | None = None
+    ) -> None:
         """
         Add the tools from a loaded toolkit to the catalog.
+
+        Args:
+            toolkit: The toolkit to add.
+            version: Optionally override the version of the toolkit with this parameter
+            description: Optionally override the description of the toolkit with this parameter
         """
 
         if str(toolkit).lower() in self._disabled_toolkits:
@@ -282,8 +308,13 @@ class ToolCatalog(BaseModel):
                 try:
                     module = import_module(module_name)
                     tool_func = getattr(module, tool_name)
-                    self.add_tool(tool_func, toolkit, module)
-
+                    self.add_tool(
+                        tool_func,
+                        toolkit,
+                        module,
+                        toolkit_version=version,
+                        toolkit_description=description,
+                    )
                 except ToolDefinitionError as e:
                     raise e.with_context(tool_name) from e
                 except ToolkitLoadError as e:

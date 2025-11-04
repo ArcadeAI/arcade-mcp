@@ -1,0 +1,208 @@
+{
+  "name": "MarkMarketingEventCompleted",
+  "fully_qualified_name": "HubspotMarketingApi.MarkMarketingEventCompleted@0.1.0",
+  "description": "Mark a marketing event as completed in HubSpot.\n\nUse this tool to mark a marketing event as completed in HubSpot, identified by its externalEventId. This confirms that the specified event has been finalized.",
+  "toolkit": {
+    "name": "HubspotMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "external_account_id",
+        "required": true,
+        "description": "The account ID associated with the marketing event in the external application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The accountId that is associated with this marketing event in the external event application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "externalAccountId"
+      },
+      {
+        "name": "marketing_event_id",
+        "required": true,
+        "description": "The unique ID of the marketing event in the external event application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the marketing event in the external event application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "externalEventId"
+      },
+      {
+        "name": "event_start_date_time",
+        "required": true,
+        "description": "The start date and time of the marketing event, formatted as an ISO 8601 string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "startDateTime"
+      },
+      {
+        "name": "event_end_datetime",
+        "required": true,
+        "description": "The date and time when the marketing event ended. Expected in ISO 8601 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "endDateTime"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/marketing/v3/marketing-events/events/{externalEventId}/complete_complete'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "crm.objects.marketing_events.write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Arcade Starter tools for LLMs to interact directly with the low-level Hubspot Marketing API"
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/marketing/v3/marketing-events/events/{externalEventId}/complete",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "externalAccountId",
+        "tool_parameter_name": "external_account_id",
+        "description": "The accountId that is associated with this marketing event in the external event application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The accountId that is associated with this marketing event in the external event application."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "externalEventId",
+        "tool_parameter_name": "marketing_event_id",
+        "description": "The id of the marketing event in the external event application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the marketing event in the external event application."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "startDateTime",
+        "tool_parameter_name": "event_start_date_time",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "endDateTime",
+        "tool_parameter_name": "event_end_datetime",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"endDateTime\",\n          \"startDateTime\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"startDateTime\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"endDateTime\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

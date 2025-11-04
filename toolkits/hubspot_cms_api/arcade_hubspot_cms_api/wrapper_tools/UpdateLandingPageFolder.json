@@ -1,0 +1,373 @@
+{
+  "name": "UpdateLandingPageFolder",
+  "fully_qualified_name": "HubspotCmsApi.UpdateLandingPageFolder@0.1.0",
+  "description": "Update specific attributes of a landing page folder.\n\nUse this tool to update specific attributes of a HubSpot CMS landing page folder, identified by its object ID. Only the column values that need modification should be specified.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "folder_id",
+        "required": true,
+        "description": "The unique ID of the landing page folder to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Folder id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "objectId"
+      },
+      {
+        "name": "deletion_timestamp_iso8601",
+        "required": true,
+        "description": "The timestamp in ISO8601 format indicating when the content folder was deleted. Required for specifying deletion time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp (ISO8601 format) when this content folder was deleted."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deletedAt"
+      },
+      {
+        "name": "parent_folder_id",
+        "required": true,
+        "description": "The ID of the content folder this folder is nested under. Specify this to set a new parent folder.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the content folder this folder is nested under"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parentFolderId"
+      },
+      {
+        "name": "creation_timestamp",
+        "required": true,
+        "description": "The creation timestamp of the folder in ISO8601 format. Used for reference only, typically not updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created"
+      },
+      {
+        "name": "folder_name",
+        "required": true,
+        "description": "Specify the new name of the landing page folder to display in the app dashboard.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the folder which will show up in the app dashboard"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "content_folder_unique_id",
+        "required": true,
+        "description": "The unique ID of the landing page content folder to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID of the content folder."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "folder_category",
+        "required": true,
+        "description": "Specify the object type for the folder. Must be LANDING_PAGE.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of object this folder applies to. Should always be LANDING_PAGE."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "category"
+      },
+      {
+        "name": "update_timestamp",
+        "required": true,
+        "description": "The timestamp when the folder was last updated, in ISO8601 format. This indicates when changes were made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated"
+      },
+      {
+        "name": "update_deleted_folders",
+        "required": false,
+        "description": "Set to true to update folders marked as deleted. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether to update deleted Folders. Defaults to `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patch-/cms/v3/pages/landing-pages/folders/{objectId}_updateFolder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/pages/landing-pages/folders/{objectId}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "archived",
+        "tool_parameter_name": "update_deleted_folders",
+        "description": "Specifies whether to update deleted Folders. Defaults to `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether to update deleted Folders. Defaults to `false`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "objectId",
+        "tool_parameter_name": "folder_id",
+        "description": "The Folder id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Folder id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "deletedAt",
+        "tool_parameter_name": "deletion_timestamp_iso8601",
+        "description": "The timestamp (ISO8601 format) when this content folder was deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp (ISO8601 format) when this content folder was deleted."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "parentFolderId",
+        "tool_parameter_name": "parent_folder_id",
+        "description": "The ID of the content folder this folder is nested under",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the content folder this folder is nested under"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created",
+        "tool_parameter_name": "creation_timestamp",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "folder_name",
+        "description": "The name of the folder which will show up in the app dashboard",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the folder which will show up in the app dashboard"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "content_folder_unique_id",
+        "description": "The unique ID of the content folder.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID of the content folder."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "category",
+        "tool_parameter_name": "folder_category",
+        "description": "The type of object this folder applies to. Should always be LANDING_PAGE.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of object this folder applies to. Should always be LANDING_PAGE."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated",
+        "tool_parameter_name": "update_timestamp",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The JSON representation of the updated Folder.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"category\",\n          \"created\",\n          \"deletedAt\",\n          \"id\",\n          \"name\",\n          \"parentFolderId\",\n          \"updated\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"deletedAt\": {\n            \"type\": \"string\",\n            \"description\": \"The timestamp (ISO8601 format) when this content folder was deleted.\",\n            \"format\": \"date-time\"\n          },\n          \"parentFolderId\": {\n            \"type\": \"integer\",\n            \"description\": \"The ID of the content folder this folder is nested under\",\n            \"format\": \"int64\"\n          },\n          \"created\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the folder which will show up in the app dashboard\"\n          },\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"The unique ID of the content folder.\"\n          },\n          \"category\": {\n            \"type\": \"integer\",\n            \"description\": \"The type of object this folder applies to. Should always be LANDING_PAGE.\",\n            \"format\": \"int32\"\n          },\n          \"updated\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          }\n        },\n        \"description\": \"Model definition for a content folder.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

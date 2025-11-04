@@ -1,0 +1,142 @@
+{
+  "name": "NewAbTestVariation",
+  "fully_qualified_name": "HubspotCmsApi.NewAbTestVariation@0.1.0",
+  "description": "Create a new A/B test variation in HubSpot CMS.\n\nThis tool creates a new A/B test variation for a site page in HubSpot CMS using the provided details.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "ab_test_variation_name",
+        "required": true,
+        "description": "The name for the new A/B test variation to be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of A/B test variation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "variationName"
+      },
+      {
+        "name": "object_id_to_test",
+        "required": true,
+        "description": "ID of the object to be tested in the A/B test variation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the object to test."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contentId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/pages/site-pages/ab-test/create-variation_createABTestVariation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/pages/site-pages/ab-test/create-variation",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "variationName",
+        "tool_parameter_name": "ab_test_variation_name",
+        "description": "Name of A/B test variation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of A/B test variation."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "contentId",
+        "tool_parameter_name": "object_id_to_test",
+        "description": "ID of the object to test.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the object to test."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The JSON representation of the AbTestCreateRequest object.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"contentId\",\n          \"variationName\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"variationName\": {\n            \"type\": \"string\",\n            \"description\": \"Name of A/B test variation.\"\n          },\n          \"contentId\": {\n            \"type\": \"string\",\n            \"description\": \"ID of the object to test.\"\n          }\n        },\n        \"description\": \"Request body object for creating A/B tests.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "name": "UpdateBlogTagLanguages",
+  "fully_qualified_name": "HubspotCmsApi.UpdateBlogTagLanguages@0.1.0",
+  "description": "Update languages for blog tags in a multi-language group.\n\nUse this tool to set new languages for each blog tag within a multi-language group in the HubSpot CMS.",
+  "toolkit": {
+    "name": "ArcadeHubspotCmsApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "blog_tag_language_update_request",
+        "required": true,
+        "description": "JSON object containing 'languages', a map for object IDs and their languages, and 'primaryId', the ID of the primary object.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "languages": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Map of object IDs to associated languages of object in the multi-language group."
+            },
+            "primaryId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the primary object in the multi-language group."
+            }
+          },
+          "inner_properties": null,
+          "description": "The JSON representation of the UpdateLanguagesRequest object."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-/cms/v3/blogs/tags/multi-language/update-languages_updateLangs'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-hubspot",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "content"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the hubspot_cms API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.hubapi.com/cms/v3/blogs/tags/multi-language/update-languages",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "blog_tag_language_update_request",
+        "description": "The JSON representation of the UpdateLanguagesRequest object.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "languages": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Map of object IDs to associated languages of object in the multi-language group."
+            },
+            "primaryId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the primary object in the multi-language group."
+            }
+          },
+          "inner_properties": null,
+          "description": "The JSON representation of the UpdateLanguagesRequest object."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The JSON representation of the UpdateLanguagesRequest object.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"languages\",\n          \"primaryId\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"languages\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Map of object IDs to associated languages of object in the multi-language group.\"\n          },\n          \"primaryId\": {\n            \"type\": \"string\",\n            \"description\": \"ID of the primary object in the multi-language group.\"\n          }\n        },\n        \"description\": \"Request object for updating languages within a multi-language group.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
