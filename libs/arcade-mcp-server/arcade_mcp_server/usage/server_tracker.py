@@ -110,6 +110,13 @@ class ServerTracker:
         self.usage_service.capture(
             EVENT_MCP_SERVER_STARTED, self.user_id, properties=properties, is_anon=is_anon
         )
+        # TODO: Use background thread instead of subprocess to capture server start events.
+        # Using a subprocess for server starts is not ideal because the parent immediately enters `uvicorn.run()`
+        # for http and `asyncio.run()` for stdio which is blocking and prevents the subprocess from starting.
+        # Therefore we add a small delay to ensure the subprocess has started.
+
+        # Assumes that the process creation takes  max ~50ms and Python startup takes max ~100ms.
+        time.sleep(0.15)
 
     def track_tool_call(
         self,
