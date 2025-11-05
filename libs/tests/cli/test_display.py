@@ -268,3 +268,291 @@ def test_display_eval_results_with_details() -> None:
 
     # Should not raise any exceptions
     display_eval_results(results, show_details=True)
+
+
+def test_display_eval_results_with_failed_only_no_warnings() -> None:
+    """Test display with failed_only but original counts have no warnings."""
+    results = [
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric",
+                "cases": [
+                    {
+                        "name": "Failed Case",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=False, warning=False, score=0.3
+                        ),
+                    },
+                ],
+            }
+        ]
+    ]
+
+    # Original counts: 10 total, 8 passed, 2 failed, 0 warned
+    original_counts = (10, 8, 2, 0)
+
+    display_eval_results(
+        results,
+        show_details=False,
+        failed_only=True,
+        original_counts=original_counts,
+    )
+
+
+def test_display_eval_results_with_failed_only_no_failed() -> None:
+    """Test display with failed_only but original counts have no failed."""
+    results = [
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric",
+                "cases": [
+                    {
+                        "name": "Failed Case",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=False, warning=False, score=0.3
+                        ),
+                    },
+                ],
+            }
+        ]
+    ]
+
+    # Original counts: 5 total, 5 passed, 0 failed, 0 warned (edge case)
+    original_counts = (5, 5, 0, 0)
+
+    display_eval_results(
+        results,
+        show_details=False,
+        failed_only=True,
+        original_counts=original_counts,
+    )
+
+
+def test_display_eval_results_multiple_suites() -> None:
+    """Test display with multiple eval suites."""
+    results = [
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric 1",
+                "cases": [
+                    {
+                        "name": "Test Case 1",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=True, warning=False, score=0.95
+                        ),
+                    },
+                ],
+            }
+        ],
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric 2",
+                "cases": [
+                    {
+                        "name": "Test Case 2",
+                        "input": "Test input 2",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=False, warning=False, score=0.5
+                        ),
+                    },
+                ],
+            }
+        ],
+    ]
+
+    display_eval_results(results, show_details=False)
+
+
+def test_display_eval_results_multiple_models() -> None:
+    """Test display with multiple models in same suite."""
+    results = [
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric",
+                "cases": [
+                    {
+                        "name": "Test Case 1",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=True, warning=False, score=0.95
+                        ),
+                    },
+                ],
+            },
+            {
+                "model": "gpt-3.5-turbo",
+                "rubric": "Test Rubric",
+                "cases": [
+                    {
+                        "name": "Test Case 2",
+                        "input": "Test input 2",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=False, warning=False, score=0.5
+                        ),
+                    },
+                ],
+            },
+        ]
+    ]
+
+    display_eval_results(results, show_details=False)
+
+
+def test_display_eval_results_summary_with_warnings() -> None:
+    """Test summary display when warnings are present."""
+    results = [
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric",
+                "cases": [
+                    {
+                        "name": "Passed Case",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=True, warning=False, score=0.95
+                        ),
+                    },
+                    {
+                        "name": "Warning Case",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=False, warning=True, score=0.85
+                        ),
+                    },
+                    {
+                        "name": "Failed Case",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=False, warning=False, score=0.3
+                        ),
+                    },
+                ],
+            }
+        ]
+    ]
+
+    display_eval_results(results, show_details=False)
+
+
+def test_display_eval_results_summary_only_passed() -> None:
+    """Test summary when all cases passed."""
+    results = [
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric",
+                "cases": [
+                    {
+                        "name": "Passed Case 1",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=True, warning=False, score=0.95
+                        ),
+                    },
+                    {
+                        "name": "Passed Case 2",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=True, warning=False, score=0.98
+                        ),
+                    },
+                ],
+            }
+        ]
+    ]
+
+    display_eval_results(results, show_details=False)
+
+
+def test_display_eval_results_failed_only_with_warnings_in_summary() -> None:
+    """Test failed_only display when original counts include warnings."""
+    results = [
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric",
+                "cases": [
+                    {
+                        "name": "Failed Case",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=False, warning=False, score=0.3
+                        ),
+                    },
+                ],
+            }
+        ]
+    ]
+
+    # Original counts: 10 total, 7 passed, 2 failed, 1 warned
+    original_counts = (10, 7, 2, 1)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_file = Path(tmpdir) / "test_output.txt"
+
+        display_eval_results(
+            results,
+            show_details=False,
+            output_file=str(output_file),
+            failed_only=True,
+            original_counts=original_counts,
+        )
+
+        content = output_file.read_text()
+        # Should show warnings in summary
+        assert "Warnings: 1" in content or "Warnings" in content
+
+
+def test_display_eval_results_with_details_and_output() -> None:
+    """Test display with details and output file."""
+    evaluation = create_mock_evaluation_result(passed=True, warning=False, score=0.95)
+    evaluation.results = [
+        {
+            "field": "test_field",
+            "match": True,
+            "score": 1.0,
+            "weight": 1.0,
+            "expected": "expected_value",
+            "actual": "actual_value",
+            "is_criticized": True,
+        }
+    ]
+
+    results = [
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric",
+                "cases": [
+                    {
+                        "name": "Test Case",
+                        "input": "Test input",
+                        "evaluation": evaluation,
+                    },
+                ],
+            }
+        ]
+    ]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_file = Path(tmpdir) / "test_output.txt"
+
+        display_eval_results(
+            results,
+            show_details=True,
+            output_file=str(output_file),
+        )
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        assert "User Input:" in content
+        assert "Details:" in content
