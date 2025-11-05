@@ -373,6 +373,18 @@ def evals(
         "-k",
         help="The model provider API key. If not provided, will look for the appropriate environment variable based on the provider (e.g., OPENAI_API_KEY for openai provider), first in the current environment, then in the current working directory's .env file.",
     ),
+    failed_only: bool = typer.Option(
+        False,
+        "--failed-only",
+        "-f",
+        help="Show only failed evaluations",
+    ),
+    output: Optional[str] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write results to a file (plain text format)",
+    ),
     debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
     """
@@ -458,7 +470,59 @@ def evals(
 
         # TODO error handling on each eval
         all_evaluations.extend(results)
-        display_eval_results(all_evaluations, show_details=show_details)
+
+        # Calculate total counts before filtering
+        original_total_cases = 0
+        original_total_passed = 0
+        original_total_failed = 0
+        original_total_warned = 0
+
+        if failed_only:
+            # Calculate original counts before filtering
+            for eval_suite in all_evaluations:
+                for model_results in eval_suite:
+                    for case in model_results.get("cases", []):
+                        evaluation = case["evaluation"]
+                        original_total_cases += 1
+                        if evaluation.passed:
+                            original_total_passed += 1
+                        elif evaluation.warning:
+                            original_total_warned += 1
+                        else:
+                            original_total_failed += 1
+
+            # Filter to show only failed evaluations
+            filtered_evaluations = []
+            for eval_suite in all_evaluations:
+                filtered_suite = []
+                for model_results in eval_suite:
+                    filtered_cases = [
+                        case
+                        for case in model_results.get("cases", [])
+                        if not case["evaluation"].passed and not case["evaluation"].warning
+                    ]
+                    if filtered_cases:  # Only include model results with failed cases
+                        filtered_model_results = model_results.copy()
+                        filtered_model_results["cases"] = filtered_cases
+                        filtered_suite.append(filtered_model_results)
+                if filtered_suite:
+                    filtered_evaluations.append(filtered_suite)
+            all_evaluations = filtered_evaluations
+
+        display_eval_results(
+            all_evaluations,
+            show_details=show_details,
+            output_file=output,
+            failed_only=failed_only,
+            original_counts=(
+                original_total_cases,
+                original_total_passed,
+                original_total_failed,
+                original_total_warned,
+            )
+            if failed_only
+            else None,
+        )
 
     try:
         asyncio.run(run_evaluations())
