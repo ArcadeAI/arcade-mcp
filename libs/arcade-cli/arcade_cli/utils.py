@@ -958,6 +958,65 @@ def resolve_provider_api_key(provider: Provider, provider_api_key: str | None = 
     return None
 
 
+def filter_failed_evaluations(
+    all_evaluations: list[list[dict[str, Any]]],
+) -> tuple[list[list[dict[str, Any]]], tuple[int, int, int, int]]:
+    """
+    Filter evaluation results to show only failed cases and calculate original counts.
+
+    Args:
+        all_evaluations: List of evaluation results with structure:
+            [[{model: str, rubric: str, cases: [{name, input, evaluation}]}]]
+
+    Returns:
+        Tuple of (filtered_evaluations, original_counts) where original_counts is
+        (total_cases, total_passed, total_failed, total_warned)
+    """
+    original_total_cases = 0
+    original_total_passed = 0
+    original_total_failed = 0
+    original_total_warned = 0
+
+    # Calculate original counts before filtering
+    for eval_suite in all_evaluations:
+        for model_results in eval_suite:
+            for case in model_results.get("cases", []):
+                evaluation = case["evaluation"]
+                original_total_cases += 1
+                if evaluation.passed:
+                    original_total_passed += 1
+                elif evaluation.warning:
+                    original_total_warned += 1
+                else:
+                    original_total_failed += 1
+
+    # Filter to show only failed evaluations
+    filtered_evaluations = []
+    for eval_suite in all_evaluations:
+        filtered_suite = []
+        for model_results in eval_suite:
+            filtered_cases = [
+                case
+                for case in model_results.get("cases", [])
+                if not case["evaluation"].passed and not case["evaluation"].warning
+            ]
+            if filtered_cases:  # Only include model results with failed cases
+                filtered_model_results = model_results.copy()
+                filtered_model_results["cases"] = filtered_cases
+                filtered_suite.append(filtered_model_results)
+        if filtered_suite:
+            filtered_evaluations.append(filtered_suite)
+
+    original_counts = (
+        original_total_cases,
+        original_total_passed,
+        original_total_failed,
+        original_total_warned,
+    )
+
+    return filtered_evaluations, original_counts
+
+
 def require_dependency(
     package_name: str,
     command_name: str,
