@@ -290,7 +290,7 @@ def server_already_exists(engine_url: str, api_key: str, server_name: str) -> bo
 
     response.raise_for_status()
 
-    return response.json().get("managed")
+    return cast(bool, response.json().get("managed"))
 
 
 def update_deployment(
@@ -723,7 +723,7 @@ def deploy_server_logic(
     user_email = config.user.email if config.user else "User"
     console.print(f"✓ {user_email} is logged in", style="green")
 
-    # Step 2: Validate pyproject.toml exists in current directory
+    # Step 2: Validate necessary files exist in the correct location
     console.print("\nValidating pyproject.toml exists in current directory...", style="dim")
     current_dir = Path.cwd()
     pyproject_path = current_dir / "pyproject.toml"
@@ -731,9 +731,18 @@ def deploy_server_logic(
     if not pyproject_path.exists():
         raise FileNotFoundError(
             f"pyproject.toml not found at {pyproject_path}\n"
-            "Please run this command from the root of your MCP server package."
+            "Please run this command from the root of your MCP server package (the same directory that contains pyproject.toml)."
         )
     console.print(f"✓ pyproject.toml found at {pyproject_path}", style="green")
+    console.print("\nValidating entrypoint file exists at the specified location...", style="dim")
+    entrypoint_path = current_dir / entrypoint
+    if not entrypoint_path.exists():
+        raise FileNotFoundError(
+            f"Entrypoint file not found at {entrypoint_path}\n"
+            "Please specify the correct entrypoint file using the --entrypoint/-e flag.\n"
+            "For example: arcade deploy -e src/my_server/server.py"
+        )
+    console.print(f"✓ Entrypoint file found at {entrypoint_path}", style="green")
 
     # Step 3: Load .env file from current directory if it exists
     console.print("\nLoading .env file from current directory if it exists...", style="dim")
