@@ -1,0 +1,544 @@
+{
+  "name": "CustomizeListSignupForm",
+  "fully_qualified_name": "MailchimpTransactionApi.CustomizeListSignupForm@0.1.0",
+  "description": "Customize a list's default signup form in Mailchimp.\n\nUse this tool to modify the default signup form for a specific list in Mailchimp's marketing platform. Ideal for tailoring signup forms to better match branding or collect specific user information.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_unique_id",
+        "required": true,
+        "description": "The unique ID for the Mailchimp list to customize the signup form.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID for the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_id"
+      },
+      {
+        "name": "signup_form_customization_options",
+        "required": true,
+        "description": "A JSON object containing header settings, body content, and styles for the signup form. It includes header image details, content sections like signup messages, and style properties for elements such as buttons and backgrounds.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "header": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "image_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Header image URL."
+                },
+                "text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Header text."
+                },
+                "image_width": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image width, in pixels."
+                },
+                "image_height": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image height, in pixels."
+                },
+                "image_alt": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Alt text for the image."
+                },
+                "image_link": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL that the header image will link to."
+                },
+                "image_align": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "left",
+                    "center",
+                    "right"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image alignment."
+                },
+                "image_border_width": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image border width."
+                },
+                "image_border_style": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "solid",
+                    "dotted",
+                    "dashed",
+                    "double",
+                    "groove",
+                    "outset",
+                    "inset",
+                    "ridge"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image border style."
+                },
+                "image_border_color": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image border color."
+                },
+                "image_target": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "_blank",
+                    "null"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image link target."
+                }
+              },
+              "inner_properties": null,
+              "description": "Options for customizing your signup form header."
+            },
+            "contents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "section": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "signup_message",
+                    "unsub_message",
+                    "signup_thank_you_title"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The content section name."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The content section text."
+                }
+              },
+              "description": "The signup form body content."
+            },
+            "styles": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "selector": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "page_background",
+                    "page_header",
+                    "page_outer_wrapper",
+                    "body_background",
+                    "body_link_style",
+                    "forms_buttons",
+                    "forms_buttons_hovered",
+                    "forms_field_label",
+                    "forms_field_text",
+                    "forms_required",
+                    "forms_required_legend",
+                    "forms_help_text",
+                    "forms_errors",
+                    "monkey_rewards_badge"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A string that identifies the element selector."
+                },
+                "options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "property": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that identifies the property."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that identifies value of the property."
+                    }
+                  },
+                  "description": "A collection of options for a selector."
+                }
+              },
+              "description": "An array of objects, each representing an element style for the signup form."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postListsIdSignupForms'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/lists/{list_id}/signup-forms",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "list_id",
+        "tool_parameter_name": "list_unique_id",
+        "description": "The unique ID for the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID for the list."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "signup_form_customization_options",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "header": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "image_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Header image URL."
+                },
+                "text": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Header text."
+                },
+                "image_width": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image width, in pixels."
+                },
+                "image_height": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image height, in pixels."
+                },
+                "image_alt": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Alt text for the image."
+                },
+                "image_link": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL that the header image will link to."
+                },
+                "image_align": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "left",
+                    "center",
+                    "right"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image alignment."
+                },
+                "image_border_width": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image border width."
+                },
+                "image_border_style": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "none",
+                    "solid",
+                    "dotted",
+                    "dashed",
+                    "double",
+                    "groove",
+                    "outset",
+                    "inset",
+                    "ridge"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image border style."
+                },
+                "image_border_color": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image border color."
+                },
+                "image_target": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "_blank",
+                    "null"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Image link target."
+                }
+              },
+              "inner_properties": null,
+              "description": "Options for customizing your signup form header."
+            },
+            "contents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "section": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "signup_message",
+                    "unsub_message",
+                    "signup_thank_you_title"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The content section name."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The content section text."
+                }
+              },
+              "description": "The signup form body content."
+            },
+            "styles": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "selector": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "page_background",
+                    "page_header",
+                    "page_outer_wrapper",
+                    "body_background",
+                    "body_link_style",
+                    "forms_buttons",
+                    "forms_buttons_hovered",
+                    "forms_field_label",
+                    "forms_field_text",
+                    "forms_required",
+                    "forms_required_legend",
+                    "forms_help_text",
+                    "forms_errors",
+                    "monkey_rewards_badge"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A string that identifies the element selector."
+                },
+                "options": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "property": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that identifies the property."
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that identifies value of the property."
+                    }
+                  },
+                  "description": "A collection of options for a selector."
+                }
+              },
+              "description": "An array of objects, each representing an element style for the signup form."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"Signup Form\",\n        \"description\": \"List signup form.\",\n        \"properties\": {\n          \"header\": {\n            \"type\": \"object\",\n            \"title\": \"Signup form header options\",\n            \"description\": \"Options for customizing your signup form header.\",\n            \"properties\": {\n              \"image_url\": {\n                \"type\": \"string\",\n                \"title\": \"Header Image URL\",\n                \"description\": \"Header image URL.\",\n                \"example\": \"http://gallery.mailchimp.com/332310cb9a420a9e7fea2858a/images/2491208c-9458-4834-a708-fef4ee736472.png\"\n              },\n              \"text\": {\n                \"type\": \"string\",\n                \"title\": \"Header Text\",\n                \"description\": \"Header text.\",\n                \"example\": \"Header Text goes here\"\n              },\n              \"image_width\": {\n                \"type\": \"string\",\n                \"title\": \"Image width\",\n                \"description\": \"Image width, in pixels.\",\n                \"example\": \"800\"\n              },\n              \"image_height\": {\n                \"type\": \"string\",\n                \"title\": \"Image height\",\n                \"description\": \"Image height, in pixels.\",\n                \"example\": \"200\"\n              },\n              \"image_alt\": {\n                \"type\": \"string\",\n                \"title\": \"Image Alt\",\n                \"description\": \"Alt text for the image.\",\n                \"example\": \"This is an image\"\n              },\n              \"image_link\": {\n                \"type\": \"string\",\n                \"title\": \"Image Link\",\n                \"description\": \"The URL that the header image will link to.\",\n                \"example\": \"gotothisimage.com\"\n              },\n              \"image_align\": {\n                \"type\": \"string\",\n                \"title\": \"Image align\",\n                \"description\": \"Image alignment.\",\n                \"enum\": [\n                  \"none\",\n                  \"left\",\n                  \"center\",\n                  \"right\"\n                ],\n                \"example\": \"center\"\n              },\n              \"image_border_width\": {\n                \"type\": \"string\",\n                \"title\": \"Image border width\",\n                \"description\": \"Image border width.\",\n                \"example\": \"2\"\n              },\n              \"image_border_style\": {\n                \"type\": \"string\",\n                \"title\": \"Image border style\",\n                \"description\": \"Image border style.\",\n                \"enum\": [\n                  \"none\",\n                  \"solid\",\n                  \"dotted\",\n                  \"dashed\",\n                  \"double\",\n                  \"groove\",\n                  \"outset\",\n                  \"inset\",\n                  \"ridge\"\n                ],\n                \"example\": \"solid\"\n              },\n              \"image_border_color\": {\n                \"type\": \"string\",\n                \"title\": \"Image border color\",\n                \"description\": \"Image border color.\",\n                \"example\": \"#896d6d\"\n              },\n              \"image_target\": {\n                \"type\": \"string\",\n                \"title\": \"Image target\",\n                \"description\": \"Image link target.\",\n                \"enum\": [\n                  \"_blank\",\n                  \"null\"\n                ],\n                \"example\": \"_blank\"\n              }\n            }\n          },\n          \"contents\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"title\": \"Collection of Content for List Signup Forms\",\n              \"description\": \"Collection of Content for List Signup Forms.\",\n              \"properties\": {\n                \"section\": {\n                  \"type\": \"string\",\n                  \"title\": \"Content Section Name\",\n                  \"description\": \"The content section name.\",\n                  \"enum\": [\n                    \"signup_message\",\n                    \"unsub_message\",\n                    \"signup_thank_you_title\"\n                  ],\n                  \"example\": \"signup_message\"\n                },\n                \"value\": {\n                  \"type\": \"string\",\n                  \"title\": \"Content Section Value\",\n                  \"description\": \"The content section text.\",\n                  \"example\": \"Signup message goes here\"\n                }\n              }\n            },\n            \"title\": \"Signup form body content\",\n            \"description\": \"The signup form body content.\"\n          },\n          \"styles\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"title\": \"Collection of Element style for List Signup Forms\",\n              \"description\": \"Collection of Element style for List Signup Forms.\",\n              \"properties\": {\n                \"selector\": {\n                  \"type\": \"string\",\n                  \"title\": \"Selector\",\n                  \"description\": \"A string that identifies the element selector.\",\n                  \"enum\": [\n                    \"page_background\",\n                    \"page_header\",\n                    \"page_outer_wrapper\",\n                    \"body_background\",\n                    \"body_link_style\",\n                    \"forms_buttons\",\n                    \"forms_buttons_hovered\",\n                    \"forms_field_label\",\n                    \"forms_field_text\",\n                    \"forms_required\",\n                    \"forms_required_legend\",\n                    \"forms_help_text\",\n                    \"forms_errors\",\n                    \"monkey_rewards_badge\"\n                  ],\n                  \"example\": \"page_background\"\n                },\n                \"options\": {\n                  \"type\": \"array\",\n                  \"title\": \"Options\",\n                  \"description\": \"A collection of options for a selector.\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"title\": \"An option for Signup Form Styles\",\n                    \"description\": \"An option for Signup Form Styles.\",\n                    \"properties\": {\n                      \"property\": {\n                        \"type\": \"string\",\n                        \"title\": \"Property\",\n                        \"description\": \"A string that identifies the property.\",\n                        \"example\": \"background-color\"\n                      },\n                      \"value\": {\n                        \"type\": \"string\",\n                        \"title\": \"Value\",\n                        \"description\": \"A string that identifies value of the property.\",\n                        \"example\": \"#111111\"\n                      }\n                    }\n                  }\n                }\n              }\n            },\n            \"title\": \"Signup Form element style\",\n            \"description\": \"An array of objects, each representing an element style for the signup form.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

@@ -1,0 +1,239 @@
+{
+  "name": "ScheduleCampaignDelivery",
+  "fully_qualified_name": "MailchimpTransactionApi.ScheduleCampaignDelivery@0.1.0",
+  "description": "Schedule a Mailchimp campaign for delivery.\n\nUse this tool to schedule a Mailchimp campaign for delivery. Ideal for standard campaigns; for Multivariate or RSS campaigns, consider using the send action instead.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "campaign_unique_id",
+        "required": true,
+        "description": "The unique identifier for the Mailchimp campaign to be scheduled.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the campaign."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "campaign_id"
+      },
+      {
+        "name": "schedule_delivery_time",
+        "required": true,
+        "description": "The UTC date and time to schedule the campaign for delivery in ISO 8601 format. Must be on the quarter-hour (:00, :15, :30, :45).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UTC date and time to schedule the campaign for delivery in ISO 8601 format. Campaigns may only be scheduled to send on the quarter-hour (:00, :15, :30, :45)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "schedule_time"
+      },
+      {
+        "name": "batch_delivery_delay",
+        "required": false,
+        "description": "The delay in minutes between batches for campaign delivery.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The delay, in minutes, between batches."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "batch_delivery.batch_delay"
+      },
+      {
+        "name": "number_of_batches_for_campaign",
+        "required": false,
+        "description": "The number of batches for the campaign send. Determines how the campaign delivery is split into batches.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of batches for the campaign send."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "batch_delivery.batch_count"
+      },
+      {
+        "name": "use_timewarp",
+        "required": false,
+        "description": "Set to true to use Timewarp for localizing campaign delivery to recipients' time zones. Cannot be true when using Batch Delivery.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Choose whether the campaign should use [Timewarp](https://mailchimp.com/help/use-timewarp/) when sending. Campaigns scheduled with Timewarp are localized based on the recipients' time zones. For example, a Timewarp campaign with a `schedule_time` of 13:00 will be sent to each recipient at 1:00pm in their local time. Cannot be set to `true` for campaigns using [Batch Delivery](https://mailchimp.com/help/schedule-batch-delivery/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "timewarp"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postCampaignsIdActionsSchedule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/campaigns/{campaign_id}/actions/schedule",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "campaign_id",
+        "tool_parameter_name": "campaign_unique_id",
+        "description": "The unique id for the campaign.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the campaign."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "schedule_time",
+        "tool_parameter_name": "schedule_delivery_time",
+        "description": "The UTC date and time to schedule the campaign for delivery in ISO 8601 format. Campaigns may only be scheduled to send on the quarter-hour (:00, :15, :30, :45).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UTC date and time to schedule the campaign for delivery in ISO 8601 format. Campaigns may only be scheduled to send on the quarter-hour (:00, :15, :30, :45)."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "timewarp",
+        "tool_parameter_name": "use_timewarp",
+        "description": "Choose whether the campaign should use [Timewarp](https://mailchimp.com/help/use-timewarp/) when sending. Campaigns scheduled with Timewarp are localized based on the recipients' time zones. For example, a Timewarp campaign with a `schedule_time` of 13:00 will be sent to each recipient at 1:00pm in their local time. Cannot be set to `true` for campaigns using [Batch Delivery](https://mailchimp.com/help/schedule-batch-delivery/).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Choose whether the campaign should use [Timewarp](https://mailchimp.com/help/use-timewarp/) when sending. Campaigns scheduled with Timewarp are localized based on the recipients' time zones. For example, a Timewarp campaign with a `schedule_time` of 13:00 will be sent to each recipient at 1:00pm in their local time. Cannot be set to `true` for campaigns using [Batch Delivery](https://mailchimp.com/help/schedule-batch-delivery/)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "batch_delivery.batch_delay",
+        "tool_parameter_name": "batch_delivery_delay",
+        "description": "The delay, in minutes, between batches.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The delay, in minutes, between batches."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "batch_delivery.batch_count",
+        "tool_parameter_name": "number_of_batches_for_campaign",
+        "description": "The number of batches for the campaign send.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of batches for the campaign send."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"schedule_time\"\n        ],\n        \"properties\": {\n          \"schedule_time\": {\n            \"type\": \"string\",\n            \"title\": \"Schedule Time\",\n            \"format\": \"date-time\",\n            \"description\": \"The UTC date and time to schedule the campaign for delivery in ISO 8601 format. Campaigns may only be scheduled to send on the quarter-hour (:00, :15, :30, :45).\"\n          },\n          \"timewarp\": {\n            \"type\": \"boolean\",\n            \"title\": \"Timewarp\",\n            \"description\": \"Choose whether the campaign should use [Timewarp](https://mailchimp.com/help/use-timewarp/) when sending. Campaigns scheduled with Timewarp are localized based on the recipients' time zones. For example, a Timewarp campaign with a `schedule_time` of 13:00 will be sent to each recipient at 1:00pm in their local time. Cannot be set to `true` for campaigns using [Batch Delivery](https://mailchimp.com/help/schedule-batch-delivery/).\"\n          },\n          \"batch_delivery\": {\n            \"type\": \"object\",\n            \"title\": \"Batch Delivery\",\n            \"description\": \"Choose whether the campaign should use [Batch Delivery](https://mailchimp.com/help/schedule-batch-delivery/). Cannot be set to `true` for campaigns using [Timewarp](https://mailchimp.com/help/use-timewarp/).\",\n            \"required\": [\n              \"batch_delay\",\n              \"batch_count\"\n            ],\n            \"properties\": {\n              \"batch_delay\": {\n                \"type\": \"integer\",\n                \"title\": \"Batch Delay\",\n                \"description\": \"The delay, in minutes, between batches.\"\n              },\n              \"batch_count\": {\n                \"type\": \"integer\",\n                \"title\": \"Batch Count\",\n                \"description\": \"The number of batches for the campaign send.\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

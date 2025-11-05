@@ -1,0 +1,547 @@
+{
+  "name": "UpdateEcommerceProduct",
+  "fully_qualified_name": "MailchimpTransactionApi.UpdateEcommerceProduct@0.1.0",
+  "description": "Update a specific product in an ecommerce store.\n\nUse this tool to update details of a specific product in an ecommerce store. It is useful when you need to modify product information such as pricing, inventory, or descriptions.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "store_identifier",
+        "required": true,
+        "description": "The unique identifier of the store to update the product in.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "store_id"
+      },
+      {
+        "name": "product_id",
+        "required": true,
+        "description": "The unique identifier for the product within a store. This is used to specify which product needs to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the product of a store."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "product_id"
+      },
+      {
+        "name": "ecommerce_product_update_data",
+        "required": true,
+        "description": "JSON object containing details to update a product, including ID, title, and variants.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the product."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of a product."
+            },
+            "handle": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The handle of a product."
+            },
+            "url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL for a product."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of a product."
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of product."
+            },
+            "vendor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The vendor for a product."
+            },
+            "image_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The image URL for a product."
+            },
+            "variants": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product variant."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The title of a product variant."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL for a product variant."
+                },
+                "sku": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The stock keeping unit (SKU) of a product variant."
+                },
+                "price": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The price of a product variant."
+                },
+                "inventory_quantity": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The inventory quantity of a product variant."
+                },
+                "image_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The image URL for a product variant."
+                },
+                "backorders": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The backorders of a product variant."
+                },
+                "visibility": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The visibility of a product variant."
+                }
+              },
+              "description": "An array of the product's variants. At least one variant is required for each product. A variant can use the same `id` and `title` as the parent product."
+            },
+            "images": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product image."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL for a product image."
+                },
+                "variant_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of product variants using the image."
+                }
+              },
+              "description": "An array of the product's images."
+            },
+            "published_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the product was published."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'putEcommerceStoresIdProductsId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/ecommerce/stores/{store_id}/products/{product_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "store_id",
+        "tool_parameter_name": "store_identifier",
+        "description": "The store id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "product_id",
+        "tool_parameter_name": "product_id",
+        "description": "The id for the product of a store.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the product of a store."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "ecommerce_product_update_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the product."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title of a product."
+            },
+            "handle": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The handle of a product."
+            },
+            "url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The URL for a product."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of a product."
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of product."
+            },
+            "vendor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The vendor for a product."
+            },
+            "image_url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The image URL for a product."
+            },
+            "variants": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product variant."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The title of a product variant."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL for a product variant."
+                },
+                "sku": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The stock keeping unit (SKU) of a product variant."
+                },
+                "price": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The price of a product variant."
+                },
+                "inventory_quantity": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The inventory quantity of a product variant."
+                },
+                "image_url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The image URL for a product variant."
+                },
+                "backorders": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The backorders of a product variant."
+                },
+                "visibility": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The visibility of a product variant."
+                }
+              },
+              "description": "An array of the product's variants. At least one variant is required for each product. A variant can use the same `id` and `title` as the parent product."
+            },
+            "images": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier for the product image."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL for a product image."
+                },
+                "variant_ids": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The list of product variants using the image."
+                }
+              },
+              "description": "An array of the product's images."
+            },
+            "published_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the product was published."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"E-commerce Product\",\n        \"description\": \"Information about a specific product.\",\n        \"required\": [\n          \"id\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"title\": \"Product Foreign ID\",\n            \"description\": \"A unique identifier for the product.\"\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"title\": \"Title\",\n            \"description\": \"The title of a product.\",\n            \"example\": \"Cat Hat\"\n          },\n          \"handle\": {\n            \"type\": \"string\",\n            \"title\": \"Handle\",\n            \"description\": \"The handle of a product.\",\n            \"example\": \"cat-hat\"\n          },\n          \"url\": {\n            \"type\": \"string\",\n            \"title\": \"Product URL\",\n            \"description\": \"The URL for a product.\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"title\": \"Description\",\n            \"description\": \"The description of a product.\",\n            \"example\": \"This is a cat hat.\"\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"title\": \"Type\",\n            \"description\": \"The type of product.\",\n            \"example\": \"Accessories\"\n          },\n          \"vendor\": {\n            \"type\": \"string\",\n            \"title\": \"Vendor\",\n            \"description\": \"The vendor for a product.\"\n          },\n          \"image_url\": {\n            \"type\": \"string\",\n            \"title\": \"Product Image URL\",\n            \"description\": \"The image URL for a product.\"\n          },\n          \"variants\": {\n            \"type\": \"array\",\n            \"title\": \"Product Variants\",\n            \"description\": \"An array of the product's variants. At least one variant is required for each product. A variant can use the same `id` and `title` as the parent product.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"title\": \"E-commerce Product Variant\",\n              \"description\": \"Information about a specific product variant.\",\n              \"required\": [\n                \"id\",\n                \"title\"\n              ],\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\",\n                  \"title\": \"Product Variant Foreign ID\",\n                  \"description\": \"A unique identifier for the product variant.\"\n                },\n                \"title\": {\n                  \"type\": \"string\",\n                  \"title\": \"Title\",\n                  \"description\": \"The title of a product variant.\",\n                  \"example\": \"Cat Hat\"\n                },\n                \"url\": {\n                  \"type\": \"string\",\n                  \"title\": \"URL\",\n                  \"description\": \"The URL for a product variant.\"\n                },\n                \"sku\": {\n                  \"type\": \"string\",\n                  \"title\": \"SKU\",\n                  \"description\": \"The stock keeping unit (SKU) of a product variant.\"\n                },\n                \"price\": {\n                  \"type\": \"number\",\n                  \"title\": \"Price\",\n                  \"description\": \"The price of a product variant.\"\n                },\n                \"inventory_quantity\": {\n                  \"type\": \"integer\",\n                  \"title\": \"Inventory Quantity\",\n                  \"description\": \"The inventory quantity of a product variant.\"\n                },\n                \"image_url\": {\n                  \"type\": \"string\",\n                  \"title\": \"Image URL\",\n                  \"description\": \"The image URL for a product variant.\"\n                },\n                \"backorders\": {\n                  \"type\": \"string\",\n                  \"title\": \"Backorders\",\n                  \"description\": \"The backorders of a product variant.\"\n                },\n                \"visibility\": {\n                  \"type\": \"string\",\n                  \"title\": \"Visibility\",\n                  \"description\": \"The visibility of a product variant.\"\n                }\n              }\n            }\n          },\n          \"images\": {\n            \"type\": \"array\",\n            \"title\": \"Product Images\",\n            \"description\": \"An array of the product's images.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"title\": \"E-commerce Product Image\",\n              \"description\": \"Information about a specific product image.\",\n              \"required\": [\n                \"id\",\n                \"url\"\n              ],\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\",\n                  \"title\": \"Image Foreign ID\",\n                  \"description\": \"A unique identifier for the product image.\"\n                },\n                \"url\": {\n                  \"type\": \"string\",\n                  \"title\": \"URL\",\n                  \"description\": \"The URL for a product image.\"\n                },\n                \"variant_ids\": {\n                  \"type\": \"array\",\n                  \"title\": \"Product Variants\",\n                  \"description\": \"The list of product variants using the image.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                }\n              }\n            }\n          },\n          \"published_at_foreign\": {\n            \"type\": \"string\",\n            \"title\": \"Foreign Publish Time\",\n            \"format\": \"date-time\",\n            \"description\": \"The date and time the product was published.\",\n            \"example\": \"2015-07-15T19:28:00+00:00\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

@@ -1,0 +1,371 @@
+{
+  "name": "GetClassicAutomationsSummary",
+  "fully_qualified_name": "MailchimpTransactionApi.GetClassicAutomationsSummary@0.1.0",
+  "description": "Fetch a summary of an account's classic automations.\n\nCall this tool to obtain a summary of classic automations set up in a Mailchimp account, useful for understanding automation configurations and statuses.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "number_of_records_to_return",
+        "required": false,
+        "description": "The number of automation records to return. Default is 10, maximum is 1000.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to return. Default value is 10. Maximum value is 1000"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "pagination_offset",
+        "required": false,
+        "description": "Number of records to skip for pagination. Default is 0.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for [pagination](https://mailchimp.com/developer/marketing/docs/methods-parameters/#pagination), this is the number of records from a collection to skip. Default value is 0."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "fields_to_return",
+        "required": false,
+        "description": "Comma-separated list of fields to include in the response, using dot notation for sub-objects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to return. Reference parameters of sub-objects with dot notation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "exclude_fields_list",
+        "required": false,
+        "description": "A comma-separated list of fields to exclude. Use dot notation for sub-objects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to exclude. Reference parameters of sub-objects with dot notation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_fields"
+      },
+      {
+        "name": "restrict_before_create_time",
+        "required": false,
+        "description": "Restrict the response to automations created before the specified time in ISO 8601 format. Example: 2015-10-21T15:41:36+00:00.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the response to automations created before this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "before_create_time"
+      },
+      {
+        "name": "created_after_time",
+        "required": false,
+        "description": "Specify the time to filter automations created after this date-time. Use ISO 8601 format, e.g., 2015-10-21T15:41:36+00:00.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the response to automations created after this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since_create_time"
+      },
+      {
+        "name": "restrict_to_automations_started_before",
+        "required": false,
+        "description": "Restrict the response to automations started before this time using ISO 8601 format (e.g., 2015-10-21T15:41:36+00:00).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the response to automations started before this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "before_start_time"
+      },
+      {
+        "name": "start_time_after",
+        "required": false,
+        "description": "Restrict the response to automations started after this date and time in ISO 8601 format (e.g., 2015-10-21T15:41:36+00:00).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the response to automations started after this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since_start_time"
+      },
+      {
+        "name": "automation_status_filter",
+        "required": false,
+        "description": "Specify the status of automations to filter results (e.g., 'active', 'paused').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the results to automations with the specified status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getAutomations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/automations",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "count",
+        "tool_parameter_name": "number_of_records_to_return",
+        "description": "The number of records to return. Default value is 10. Maximum value is 1000",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to return. Default value is 10. Maximum value is 1000"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "pagination_offset",
+        "description": "Used for [pagination](https://mailchimp.com/developer/marketing/docs/methods-parameters/#pagination), this is the number of records from a collection to skip. Default value is 0.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for [pagination](https://mailchimp.com/developer/marketing/docs/methods-parameters/#pagination), this is the number of records from a collection to skip. Default value is 0."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "fields_to_return",
+        "description": "A comma-separated list of fields to return. Reference parameters of sub-objects with dot notation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to return. Reference parameters of sub-objects with dot notation."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_fields",
+        "tool_parameter_name": "exclude_fields_list",
+        "description": "A comma-separated list of fields to exclude. Reference parameters of sub-objects with dot notation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to exclude. Reference parameters of sub-objects with dot notation."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "before_create_time",
+        "tool_parameter_name": "restrict_before_create_time",
+        "description": "Restrict the response to automations created before this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the response to automations created before this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since_create_time",
+        "tool_parameter_name": "created_after_time",
+        "description": "Restrict the response to automations created after this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the response to automations created after this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "before_start_time",
+        "tool_parameter_name": "restrict_to_automations_started_before",
+        "description": "Restrict the response to automations started before this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the response to automations started before this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since_start_time",
+        "tool_parameter_name": "start_time_after",
+        "description": "Restrict the response to automations started after this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the response to automations started after this time. Uses the ISO 8601 time format: 2015-10-21T15:41:36+00:00."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "automation_status_filter",
+        "description": "Restrict the results to automations with the specified status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Restrict the results to automations with the specified status."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

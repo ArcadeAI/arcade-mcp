@@ -1,0 +1,479 @@
+{
+  "name": "AddNewEcommerceStore",
+  "fully_qualified_name": "MailchimpTransactionApi.AddNewEcommerceStore@0.1.0",
+  "description": "Add a new e-commerce store to your Mailchimp account.\n\nUse this tool to add a new store to your Mailchimp account for managing e-commerce activities. Call this tool when you need to integrate a new store with Mailchimp.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "ecommerce_store_details",
+        "required": true,
+        "description": "A JSON object with details about the e-commerce store like id, platform, domain, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The unique identifier for the store."
+            },
+            "list_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The unique identifier for the list associated with the store. The `list_id` for a specific store cannot change."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the store."
+            },
+            "platform": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The e-commerce platform of the store."
+            },
+            "domain": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The store domain. This parameter is required for Connected Sites and Google Ads."
+            },
+            "is_syncing": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to disable automations because the store is currently [syncing](https://mailchimp.com/developer/marketing/docs/e-commerce/#pausing-store-automations)."
+            },
+            "email_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email address for the store."
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The three-letter ISO 4217 code for the currency that the store accepts."
+            },
+            "money_format": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currency format for the store. For example: `$`, `\u00a3`, etc."
+            },
+            "primary_locale": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The primary locale for the store. For example: `en`, `de`, etc."
+            },
+            "timezone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timezone for the store."
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The store phone number."
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The store's mailing address."
+                },
+                "address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An additional field for the store's mailing address."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The city the store is located in."
+                },
+                "province": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The store's state name or normalized province."
+                },
+                "province_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the store's province or state."
+                },
+                "postal_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The store's postal or zip code."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The store's country."
+                },
+                "country_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for to the store's country."
+                },
+                "longitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The longitude of the store location."
+                },
+                "latitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The latitude of the store location."
+                }
+              },
+              "inner_properties": null,
+              "description": "The store address."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postEcommerceStores'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/ecommerce/stores",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "ecommerce_store_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The unique identifier for the store."
+            },
+            "list_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The unique identifier for the list associated with the store. The `list_id` for a specific store cannot change."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the store."
+            },
+            "platform": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The e-commerce platform of the store."
+            },
+            "domain": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The store domain. This parameter is required for Connected Sites and Google Ads."
+            },
+            "is_syncing": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to disable automations because the store is currently [syncing](https://mailchimp.com/developer/marketing/docs/e-commerce/#pausing-store-automations)."
+            },
+            "email_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email address for the store."
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The three-letter ISO 4217 code for the currency that the store accepts."
+            },
+            "money_format": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currency format for the store. For example: `$`, `\u00a3`, etc."
+            },
+            "primary_locale": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The primary locale for the store. For example: `en`, `de`, etc."
+            },
+            "timezone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The timezone for the store."
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The store phone number."
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The store's mailing address."
+                },
+                "address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An additional field for the store's mailing address."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The city the store is located in."
+                },
+                "province": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The store's state name or normalized province."
+                },
+                "province_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for the store's province or state."
+                },
+                "postal_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The store's postal or zip code."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The store's country."
+                },
+                "country_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The two-letter code for to the store's country."
+                },
+                "longitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The longitude of the store location."
+                },
+                "latitude": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The latitude of the store location."
+                }
+              },
+              "inner_properties": null,
+              "description": "The store address."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"E-commerce Store\",\n        \"description\": \"An individual store in an account.\",\n        \"required\": [\n          \"id\",\n          \"list_id\",\n          \"name\",\n          \"currency_code\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"title\": \"Store Foreign ID\",\n            \"description\": \"The unique identifier for the store.\",\n            \"example\": \"example_store\"\n          },\n          \"list_id\": {\n            \"type\": \"string\",\n            \"title\": \"List ID\",\n            \"description\": \"The unique identifier for the list associated with the store. The `list_id` for a specific store cannot change.\",\n            \"example\": \"1a2df69511\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"title\": \"Store Name\",\n            \"description\": \"The name of the store.\",\n            \"example\": \"Freddie's Cat Hat Emporium\"\n          },\n          \"platform\": {\n            \"type\": \"string\",\n            \"title\": \"Platform\",\n            \"description\": \"The e-commerce platform of the store.\"\n          },\n          \"domain\": {\n            \"type\": \"string\",\n            \"title\": \"Domain\",\n            \"description\": \"The store domain. This parameter is required for Connected Sites and Google Ads.\",\n            \"example\": \"example.com\"\n          },\n          \"is_syncing\": {\n            \"type\": \"boolean\",\n            \"title\": \"Is Syncing\",\n            \"description\": \"Whether to disable automations because the store is currently [syncing](https://mailchimp.com/developer/marketing/docs/e-commerce/#pausing-store-automations).\"\n          },\n          \"email_address\": {\n            \"type\": \"string\",\n            \"title\": \"Email Address\",\n            \"description\": \"The email address for the store.\",\n            \"example\": \"freddie@mailchimp.com\"\n          },\n          \"currency_code\": {\n            \"type\": \"string\",\n            \"title\": \"Currency\",\n            \"description\": \"The three-letter ISO 4217 code for the currency that the store accepts.\",\n            \"example\": \"USD\"\n          },\n          \"money_format\": {\n            \"type\": \"string\",\n            \"title\": \"Money Format\",\n            \"description\": \"The currency format for the store. For example: `$`, `\\u00a3`, etc.\",\n            \"example\": \"$\"\n          },\n          \"primary_locale\": {\n            \"type\": \"string\",\n            \"title\": \"Primary Locale\",\n            \"description\": \"The primary locale for the store. For example: `en`, `de`, etc.\",\n            \"example\": \"fr\"\n          },\n          \"timezone\": {\n            \"type\": \"string\",\n            \"title\": \"Timezone\",\n            \"description\": \"The timezone for the store.\",\n            \"example\": \"Eastern\"\n          },\n          \"phone\": {\n            \"type\": \"string\",\n            \"title\": \"Phone\",\n            \"description\": \"The store phone number.\",\n            \"example\": \"+16155550128\"\n          },\n          \"address\": {\n            \"type\": \"object\",\n            \"title\": \"Address\",\n            \"description\": \"The store address.\",\n            \"properties\": {\n              \"address1\": {\n                \"type\": \"string\",\n                \"title\": \"Address Field 1\",\n                \"description\": \"The store's mailing address.\",\n                \"example\": \"675 Ponce de Leon Ave NE\"\n              },\n              \"address2\": {\n                \"type\": \"string\",\n                \"title\": \"Address Field 2\",\n                \"description\": \"An additional field for the store's mailing address.\",\n                \"example\": \"Suite 5000\"\n              },\n              \"city\": {\n                \"type\": \"string\",\n                \"title\": \"City \",\n                \"description\": \"The city the store is located in.\",\n                \"example\": \"Atlanta\"\n              },\n              \"province\": {\n                \"type\": \"string\",\n                \"title\": \"Province\",\n                \"description\": \"The store's state name or normalized province.\",\n                \"example\": \"Georgia\"\n              },\n              \"province_code\": {\n                \"type\": \"string\",\n                \"title\": \"Province Code\",\n                \"description\": \"The two-letter code for the store's province or state.\",\n                \"example\": \"GA\"\n              },\n              \"postal_code\": {\n                \"type\": \"string\",\n                \"title\": \"Postal Code\",\n                \"description\": \"The store's postal or zip code.\",\n                \"example\": \"30308\"\n              },\n              \"country\": {\n                \"type\": \"string\",\n                \"title\": \"Country Code\",\n                \"description\": \"The store's country.\",\n                \"example\": \"United States\"\n              },\n              \"country_code\": {\n                \"type\": \"string\",\n                \"title\": \"Country Code\",\n                \"description\": \"The two-letter code for to the store's country.\",\n                \"example\": \"US\"\n              },\n              \"longitude\": {\n                \"type\": \"number\",\n                \"title\": \"Longitude\",\n                \"description\": \"The longitude of the store location.\",\n                \"example\": -75.68903\n              },\n              \"latitude\": {\n                \"type\": \"number\",\n                \"title\": \"Latitude\",\n                \"description\": \"The latitude of the store location.\",\n                \"example\": 45.427408\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

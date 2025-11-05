@@ -1,0 +1,338 @@
+{
+  "name": "UpdateLandingPage",
+  "fully_qualified_name": "MailchimpTransactionApi.UpdateLandingPage@0.1.0",
+  "description": "Update a landing page on Mailchimp.\n\nUse this tool to update an existing landing page on Mailchimp. Provide the necessary details for the landing page you wish to update.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "landing_page_id",
+        "required": true,
+        "description": "The unique ID for the landing page to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_id"
+      },
+      {
+        "name": "landing_page_name",
+        "required": false,
+        "description": "The name for the landing page to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of this landing page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "landing_page_title",
+        "required": false,
+        "description": "The title displayed in the browser's title bar for the landing page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of this landing page seen in the browser's title bar."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "title"
+      },
+      {
+        "name": "landing_page_description",
+        "required": false,
+        "description": "Provide a description for the landing page. This text summarizes the page's purpose and content.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The description of this landing page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "store_id",
+        "required": false,
+        "description": "The ID of the store associated with this landing page. It must match an existing store in the Mailchimp account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the store associated with this landing page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "store_id"
+      },
+      {
+        "name": "list_id_for_landing_page",
+        "required": false,
+        "description": "The ID of the list associated with this landing page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The list's ID associated with this landing page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list_id"
+      },
+      {
+        "name": "enable_tracking_with_mailchimp",
+        "required": false,
+        "description": "Enable cookie tracking to monitor unique visitors and calculate conversion rates. More info: [here](https://mailchimp.com/help/use-track-mailchimp/).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use cookies to track unique visitors and calculate overall conversion rate. Learn more [here](https://mailchimp.com/help/use-track-mailchimp/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tracking.track_with_mailchimp"
+      },
+      {
+        "name": "enable_restricted_data_processing",
+        "required": false,
+        "description": "Set to true to enable Google\u2019s restricted data processing in compliance with the CCPA for this landing page.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Google offers restricted data processing in connection with the California Consumer Privacy Act (CCPA) to restrict how Google uses certain identifiers and other data processed in the provision of its services. You can learn more about Google's restricted data processing within Google Ads [here](https://privacy.google.com/businesses/rdp/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tracking.enable_restricted_data_processing"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patchLandingPageId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/landing-pages/{page_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page_id",
+        "tool_parameter_name": "landing_page_id",
+        "description": "The unique id for the page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the page."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "landing_page_name",
+        "description": "The name of this landing page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of this landing page."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "title",
+        "tool_parameter_name": "landing_page_title",
+        "description": "The title of this landing page seen in the browser's title bar.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of this landing page seen in the browser's title bar."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "landing_page_description",
+        "description": "The description of this landing page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The description of this landing page."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "store_id",
+        "tool_parameter_name": "store_id",
+        "description": "The ID of the store associated with this landing page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the store associated with this landing page."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "list_id",
+        "tool_parameter_name": "list_id_for_landing_page",
+        "description": "The list's ID associated with this landing page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The list's ID associated with this landing page."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tracking.track_with_mailchimp",
+        "tool_parameter_name": "enable_tracking_with_mailchimp",
+        "description": "Use cookies to track unique visitors and calculate overall conversion rate. Learn more [here](https://mailchimp.com/help/use-track-mailchimp/).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use cookies to track unique visitors and calculate overall conversion rate. Learn more [here](https://mailchimp.com/help/use-track-mailchimp/)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tracking.enable_restricted_data_processing",
+        "tool_parameter_name": "enable_restricted_data_processing",
+        "description": "Google offers restricted data processing in connection with the California Consumer Privacy Act (CCPA) to restrict how Google uses certain identifiers and other data processed in the provision of its services. You can learn more about Google's restricted data processing within Google Ads [here](https://privacy.google.com/businesses/rdp/).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Google offers restricted data processing in connection with the California Consumer Privacy Act (CCPA) to restrict how Google uses certain identifiers and other data processed in the provision of its services. You can learn more about Google's restricted data processing within Google Ads [here](https://privacy.google.com/businesses/rdp/)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"Landing Page\",\n        \"description\": \"A summary of an individual page's properties.\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"title\": \"Landing Page Name\",\n            \"description\": \"The name of this landing page.\"\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"title\": \"Landing Page title\",\n            \"description\": \"The title of this landing page seen in the browser's title bar.\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"title\": \"Landing Page description\",\n            \"description\": \"The description of this landing page.\"\n          },\n          \"store_id\": {\n            \"type\": \"string\",\n            \"title\": \"Store ID\",\n            \"description\": \"The ID of the store associated with this landing page.\"\n          },\n          \"list_id\": {\n            \"type\": \"string\",\n            \"title\": \"Landing Page list id\",\n            \"description\": \"The list's ID associated with this landing page.\"\n          },\n          \"tracking\": {\n            \"type\": \"object\",\n            \"title\": \"Tracking Settings\",\n            \"description\": \"The tracking settings applied to this landing page.\",\n            \"properties\": {\n              \"track_with_mailchimp\": {\n                \"type\": \"boolean\",\n                \"title\": \"Track with Mailchimp\",\n                \"description\": \"Use cookies to track unique visitors and calculate overall conversion rate. Learn more [here](https://mailchimp.com/help/use-track-mailchimp/).\"\n              },\n              \"enable_restricted_data_processing\": {\n                \"type\": \"boolean\",\n                \"title\": \"Enable restricted data processing\",\n                \"description\": \"Google offers restricted data processing in connection with the California Consumer Privacy Act (CCPA) to restrict how Google uses certain identifiers and other data processed in the provision of its services. You can learn more about Google's restricted data processing within Google Ads [here](https://privacy.google.com/businesses/rdp/).\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

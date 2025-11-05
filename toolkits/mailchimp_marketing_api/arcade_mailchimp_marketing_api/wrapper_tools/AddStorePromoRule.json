@@ -1,0 +1,332 @@
+{
+  "name": "AddStorePromoRule",
+  "fully_qualified_name": "MailchimpTransactionApi.AddStorePromoRule@0.1.0",
+  "description": "Add a new promo rule to an e-commerce store on Mailchimp.\n\nThis tool is used to add a new promotional rule to a specific e-commerce store within Mailchimp. It is ideal for automating the management of store promotions.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "store_id",
+        "required": true,
+        "description": "The unique identifier for the store where the promo rule will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "store_id"
+      },
+      {
+        "name": "promo_rule_details",
+        "required": true,
+        "description": "JSON object containing details of the promo rule, including 'id', 'title', 'description', 'starts_at', 'ends_at', 'amount', 'type', 'target', 'enabled', 'created_at_foreign', and 'updated_at_foreign'. These fields ensure the creation or updating of the promotional rule adheres to specifications, such as format, length, and allowed values.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the promo rule. If Ecommerce platform does not support promo rule, use promo code id as promo rule id. Restricted to UTF-8 characters with max length 50."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title that will show up in promotion campaign. Restricted to UTF-8 characters with max length of 100 bytes."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of a promotion restricted to UTF-8 characters with max length 255."
+            },
+            "starts_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time when the promotion is in effect in ISO 8601 format."
+            },
+            "ends_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time when the promotion ends. Must be after starts_at and in ISO 8601 format."
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The amount of the promo code discount. If 'type' is 'fixed', the amount is treated as a monetary value. If 'type' is 'percentage', amount must be a decimal value between 0.0 and 1.0, inclusive."
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "fixed",
+                "percentage"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of discount. For free shipping set type to fixed."
+            },
+            "target": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "per_item",
+                "total",
+                "shipping"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The target that the discount applies to."
+            },
+            "enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the promo rule is currently enabled."
+            },
+            "created_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the promotion was created in ISO 8601 format."
+            },
+            "updated_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the promotion was updated in ISO 8601 format."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postEcommerceStoresIdPromorules'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/ecommerce/stores/{store_id}/promo-rules",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "store_id",
+        "tool_parameter_name": "store_id",
+        "description": "The store id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "promo_rule_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A unique identifier for the promo rule. If Ecommerce platform does not support promo rule, use promo code id as promo rule id. Restricted to UTF-8 characters with max length 50."
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The title that will show up in promotion campaign. Restricted to UTF-8 characters with max length of 100 bytes."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The description of a promotion restricted to UTF-8 characters with max length 255."
+            },
+            "starts_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time when the promotion is in effect in ISO 8601 format."
+            },
+            "ends_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time when the promotion ends. Must be after starts_at and in ISO 8601 format."
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The amount of the promo code discount. If 'type' is 'fixed', the amount is treated as a monetary value. If 'type' is 'percentage', amount must be a decimal value between 0.0 and 1.0, inclusive."
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "fixed",
+                "percentage"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of discount. For free shipping set type to fixed."
+            },
+            "target": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "per_item",
+                "total",
+                "shipping"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The target that the discount applies to."
+            },
+            "enabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether the promo rule is currently enabled."
+            },
+            "created_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the promotion was created in ISO 8601 format."
+            },
+            "updated_at_foreign": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date and time the promotion was updated in ISO 8601 format."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"E-commerce Promo Rule\",\n        \"description\": \"Information about an Ecommerce Store's specific Promo Rule.\",\n        \"required\": [\n          \"id\",\n          \"description\",\n          \"amount\",\n          \"type\",\n          \"target\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"title\": \"Promo Rule Foreign ID\",\n            \"description\": \"A unique identifier for the promo rule. If Ecommerce platform does not support promo rule, use promo code id as promo rule id. Restricted to UTF-8 characters with max length 50.\"\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"title\": \"Title\",\n            \"description\": \"The title that will show up in promotion campaign. Restricted to UTF-8 characters with max length of 100 bytes.\",\n            \"example\": \"50% off Total Order\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"title\": \"Description\",\n            \"description\": \"The description of a promotion restricted to UTF-8 characters with max length 255.\",\n            \"example\": \"Save BIG during our summer sale!\"\n          },\n          \"starts_at\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"title\": \"Promo Start Time\",\n            \"description\": \"The date and time when the promotion is in effect in ISO 8601 format.\"\n          },\n          \"ends_at\": {\n            \"type\": \"string\",\n            \"format\": \"Promo date-time\",\n            \"title\": \"End Time\",\n            \"description\": \"The date and time when the promotion ends. Must be after starts_at and in ISO 8601 format.\"\n          },\n          \"amount\": {\n            \"type\": \"number\",\n            \"title\": \"Amount\",\n            \"format\": \"float\",\n            \"description\": \"The amount of the promo code discount. If 'type' is 'fixed', the amount is treated as a monetary value. If 'type' is 'percentage', amount must be a decimal value between 0.0 and 1.0, inclusive.\",\n            \"example\": 0.5\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"title\": \"Type\",\n            \"description\": \"Type of discount. For free shipping set type to fixed.\",\n            \"enum\": [\n              \"fixed\",\n              \"percentage\"\n            ]\n          },\n          \"target\": {\n            \"type\": \"string\",\n            \"title\": \"Target\",\n            \"description\": \"The target that the discount applies to.\",\n            \"enum\": [\n              \"per_item\",\n              \"total\",\n              \"shipping\"\n            ]\n          },\n          \"enabled\": {\n            \"type\": \"boolean\",\n            \"title\": \"Enabled\",\n            \"description\": \"Whether the promo rule is currently enabled.\",\n            \"example\": \"true\"\n          },\n          \"created_at_foreign\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"title\": \"Foreign Create Time\",\n            \"description\": \"The date and time the promotion was created in ISO 8601 format.\"\n          },\n          \"updated_at_foreign\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"title\": \"Foreign Update Time\",\n            \"description\": \"The date and time the promotion was updated in ISO 8601 format.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

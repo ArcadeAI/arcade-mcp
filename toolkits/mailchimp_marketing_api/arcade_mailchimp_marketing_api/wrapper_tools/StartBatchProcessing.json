@@ -1,0 +1,219 @@
+{
+  "name": "StartBatchProcessing",
+  "fully_qualified_name": "MailchimpTransactionApi.StartBatchProcessing@0.1.0",
+  "description": "Initiate a batch operations request in Mailchimp.\n\nUse this tool to initiate processing of batch operations requests in Mailchimp Marketing. This is useful for handling multiple actions at once, such as managing email campaigns or subscriber updates.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "batch_operations",
+        "required": true,
+        "description": "A JSON object describing the batch operations to perform, including methods, paths, params, and optional body and operation_id for each operation.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "operations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "method": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "PATCH",
+                    "DELETE"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The HTTP method to use for the operation."
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The relative path to use for the operation."
+                },
+                "params": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Any request query parameters. Example parameters: {\"count\":10, \"offset\":0}"
+                },
+                "body": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A string containing the JSON body to use with the request."
+                },
+                "operation_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An optional client-supplied id returned with the operation results."
+                }
+              },
+              "description": "An array of objects that describes operations to perform."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postBatches'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/batches",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "batch_operations",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "operations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "method": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "PATCH",
+                    "DELETE"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The HTTP method to use for the operation."
+                },
+                "path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The relative path to use for the operation."
+                },
+                "params": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Any request query parameters. Example parameters: {\"count\":10, \"offset\":0}"
+                },
+                "body": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A string containing the JSON body to use with the request."
+                },
+                "operation_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An optional client-supplied id returned with the operation results."
+                }
+              },
+              "description": "An array of objects that describes operations to perform."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"operations\"\n        ],\n        \"properties\": {\n          \"operations\": {\n            \"type\": \"array\",\n            \"title\": \"Operations List\",\n            \"description\": \"An array of objects that describes operations to perform.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"title\": \"Operations\",\n              \"required\": [\n                \"method\",\n                \"path\"\n              ],\n              \"properties\": {\n                \"method\": {\n                  \"type\": \"string\",\n                  \"title\": \"HTTP Method\",\n                  \"description\": \"The HTTP method to use for the operation.\",\n                  \"enum\": [\n                    \"GET\",\n                    \"POST\",\n                    \"PUT\",\n                    \"PATCH\",\n                    \"DELETE\"\n                  ],\n                  \"example\": \"POST\"\n                },\n                \"path\": {\n                  \"type\": \"string\",\n                  \"title\": \"Path\",\n                  \"description\": \"The relative path to use for the operation.\",\n                  \"example\": \"/lists\"\n                },\n                \"params\": {\n                  \"type\": \"object\",\n                  \"title\": \"Query Parameters\",\n                  \"description\": \"Any request query parameters. Example parameters: {\\\"count\\\":10, \\\"offset\\\":0}\",\n                  \"example\": \"{\\\"count\\\":10,\\\"offset\\\":0}\"\n                },\n                \"body\": {\n                  \"type\": \"string\",\n                  \"title\": \"Body\",\n                  \"description\": \"A string containing the JSON body to use with the request.\",\n                  \"example\": \"{\\\"title\\\":\\\"Test\\\"}\"\n                },\n                \"operation_id\": {\n                  \"type\": \"string\",\n                  \"title\": \"Operation ID\",\n                  \"description\": \"An optional client-supplied id returned with the operation results.\",\n                  \"example\": \"my-id-123\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

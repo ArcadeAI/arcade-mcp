@@ -1,0 +1,173 @@
+{
+  "name": "DeleteOrderLineItem",
+  "fully_qualified_name": "MailchimpTransactionApi.DeleteOrderLineItem@0.1.0",
+  "description": "Delete a specific order line item.\n\nCall this tool to delete a specific line item from an order within an e-commerce store in Mailchimp. The tool should be used when a user needs to remove an item from an order completely.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "store_id",
+        "required": true,
+        "description": "Unique identifier for the store from which the order line item will be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "store_id"
+      },
+      {
+        "name": "order_id",
+        "required": true,
+        "description": "The unique identifier for the order within a store. This is required to delete a line item from the specified order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the order in a store."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_id"
+      },
+      {
+        "name": "order_line_item_id",
+        "required": true,
+        "description": "The unique identifier for the line item of an order to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the line item of an order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "line_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteEcommerceStoresIdOrdersIdLinesId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/ecommerce/stores/{store_id}/orders/{order_id}/lines/{line_id}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "store_id",
+        "tool_parameter_name": "store_id",
+        "description": "The store id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order_id",
+        "tool_parameter_name": "order_id",
+        "description": "The id for the order in a store.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the order in a store."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "line_id",
+        "tool_parameter_name": "order_line_item_id",
+        "description": "The id for the line item of an order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the line item of an order."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

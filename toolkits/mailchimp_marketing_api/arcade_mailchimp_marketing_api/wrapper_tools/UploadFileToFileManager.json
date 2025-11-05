@@ -1,0 +1,173 @@
+{
+  "name": "UploadFileToFileManager",
+  "fully_qualified_name": "MailchimpTransactionApi.UploadFileToFileManager@0.1.0",
+  "description": "Upload a new file or image to the File Manager.\n\nUse this tool to upload files or images to the File Manager, enhancing content management.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "file_name",
+        "required": true,
+        "description": "The name to be assigned to the uploaded file.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the file."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "file_content_base64",
+        "required": true,
+        "description": "The base64-encoded contents of the file to be uploaded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The base64-encoded contents of the file."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_data"
+      },
+      {
+        "name": "folder_id",
+        "required": false,
+        "description": "The ID of the folder where the file will be uploaded. This should be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the folder."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folder_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postFileManagerFiles'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/file-manager/files",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "folder_id",
+        "tool_parameter_name": "folder_id",
+        "description": "The id of the folder.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the folder."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "file_name",
+        "description": "The name of the file.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the file."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "file_data",
+        "tool_parameter_name": "file_content_base64",
+        "description": "The base64-encoded contents of the file.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The base64-encoded contents of the file."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"Gallery File\",\n        \"description\": \"An individual file listed in the File Manager.\",\n        \"required\": [\n          \"name\",\n          \"file_data\"\n        ],\n        \"properties\": {\n          \"folder_id\": {\n            \"type\": \"integer\",\n            \"title\": \"Folder ID\",\n            \"description\": \"The id of the folder.\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"title\": \"File Name\",\n            \"description\": \"The name of the file.\"\n          },\n          \"file_data\": {\n            \"type\": \"string\",\n            \"title\": \"File Data\",\n            \"description\": \"The base64-encoded contents of the file.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

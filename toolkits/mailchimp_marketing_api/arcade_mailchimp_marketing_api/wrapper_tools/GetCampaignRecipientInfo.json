@@ -1,0 +1,206 @@
+{
+  "name": "GetCampaignRecipientInfo",
+  "fully_qualified_name": "MailchimpTransactionApi.GetCampaignRecipientInfo@0.1.0",
+  "description": "Get information about a specific campaign recipient.\n\nUse this tool to retrieve details about a particular recipient of a Mailchimp marketing campaign. Provide the campaign ID and subscriber hash to access the information.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "campaign_unique_id",
+        "required": true,
+        "description": "The unique ID for the campaign for which recipient information is requested. It should be in string format and is required to identify the specific campaign.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the campaign."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "campaign_id"
+      },
+      {
+        "name": "recipient_subscriber_hash",
+        "required": true,
+        "description": "MD5 hash of the lowercase version of the recipient's email address.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The MD5 hash of the lowercase version of the list member's email address."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscriber_hash"
+      },
+      {
+        "name": "fields_to_return",
+        "required": false,
+        "description": "Comma-separated fields to include in the response, using dot notation for sub-objects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to return. Reference parameters of sub-objects with dot notation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "excluded_fields",
+        "required": false,
+        "description": "A comma-separated list of fields to exclude. Use dot notation for sub-object parameters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to exclude. Reference parameters of sub-objects with dot notation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getReportsIdSentToId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/reports/{campaign_id}/sent-to/{subscriber_hash}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "fields",
+        "tool_parameter_name": "fields_to_return",
+        "description": "A comma-separated list of fields to return. Reference parameters of sub-objects with dot notation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to return. Reference parameters of sub-objects with dot notation."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_fields",
+        "tool_parameter_name": "excluded_fields",
+        "description": "A comma-separated list of fields to exclude. Reference parameters of sub-objects with dot notation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to exclude. Reference parameters of sub-objects with dot notation."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "campaign_id",
+        "tool_parameter_name": "campaign_unique_id",
+        "description": "The unique id for the campaign.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique id for the campaign."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscriber_hash",
+        "tool_parameter_name": "recipient_subscriber_hash",
+        "description": "The MD5 hash of the lowercase version of the list member's email address.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The MD5 hash of the lowercase version of the list member's email address."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

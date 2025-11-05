@@ -1,0 +1,173 @@
+{
+  "name": "GetLandingPageReport",
+  "fully_qualified_name": "MailchimpTransactionApi.GetLandingPageReport@0.1.0",
+  "description": "Retrieve the report for a specific landing page.\n\nUse this tool to get detailed reports on specific landing pages via their ID. Useful for analyzing landing page performance and metrics.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "landing_page_outreach_id",
+        "required": true,
+        "description": "The outreach ID for the landing page you want to retrieve the report for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The outreach id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "outreach_id"
+      },
+      {
+        "name": "fields_to_return",
+        "required": false,
+        "description": "A comma-separated list of fields to return, using dot notation for sub-objects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to return. Reference parameters of sub-objects with dot notation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "exclude_report_fields",
+        "required": false,
+        "description": "A comma-separated list of fields to exclude from the landing page report. Use dot notation for sub-objects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to exclude. Reference parameters of sub-objects with dot notation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getReportingLandingPagesId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/reporting/landing-pages/{outreach_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "fields",
+        "tool_parameter_name": "fields_to_return",
+        "description": "A comma-separated list of fields to return. Reference parameters of sub-objects with dot notation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to return. Reference parameters of sub-objects with dot notation."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_fields",
+        "tool_parameter_name": "exclude_report_fields",
+        "description": "A comma-separated list of fields to exclude. Reference parameters of sub-objects with dot notation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of fields to exclude. Reference parameters of sub-objects with dot notation."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "outreach_id",
+        "tool_parameter_name": "landing_page_outreach_id",
+        "description": "The outreach id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The outreach id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}

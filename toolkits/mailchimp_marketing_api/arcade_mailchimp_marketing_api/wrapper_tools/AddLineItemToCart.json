@@ -1,0 +1,305 @@
+{
+  "name": "AddLineItemToCart",
+  "fully_qualified_name": "MailchimpTransactionApi.AddLineItemToCart@0.1.0",
+  "description": "Add a new line item to an existing shopping cart.\n\nUse this tool to add a product to a specific cart by specifying the store and cart IDs. This enables updating shopping carts with new items in an e-commerce context.",
+  "toolkit": {
+    "name": "ArcadeMailchimpMarketingApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "store_identifier",
+        "required": true,
+        "description": "The unique identifier for the store. This is necessary to specify which store's cart will be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "store_id"
+      },
+      {
+        "name": "cart_identifier",
+        "required": true,
+        "description": "The unique identifier for the cart to which the line item will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the cart."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cart_id"
+      },
+      {
+        "name": "cart_line_item_identifier",
+        "required": true,
+        "description": "A unique identifier for the cart line item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the cart line item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "product_id",
+        "required": true,
+        "description": "A unique identifier for the product to be added to the cart line item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the product associated with the cart line item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "product_id"
+      },
+      {
+        "name": "product_variant_id",
+        "required": true,
+        "description": "A unique identifier for the product variant to be added to the cart. This is necessary to specify which variant of the product is being added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the product variant associated with the cart line item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "product_variant_id"
+      },
+      {
+        "name": "line_item_quantity",
+        "required": true,
+        "description": "The number of units for the specified product variant in the cart.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The quantity of a cart line item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "quantity"
+      },
+      {
+        "name": "line_item_price",
+        "required": true,
+        "description": "The monetary price for the line item being added to the cart. Must be a numeric value.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The price of a cart line item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "price"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postEcommerceStoresIdCartsIdLines'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-mailchimp",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Mailchimp Marketing API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "/ecommerce/stores/{store_id}/carts/{cart_id}/lines",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "store_id",
+        "tool_parameter_name": "store_identifier",
+        "description": "The store id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The store id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cart_id",
+        "tool_parameter_name": "cart_identifier",
+        "description": "The id for the cart.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id for the cart."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "cart_line_item_identifier",
+        "description": "A unique identifier for the cart line item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the cart line item."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "product_id",
+        "tool_parameter_name": "product_id",
+        "description": "A unique identifier for the product associated with the cart line item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the product associated with the cart line item."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "product_variant_id",
+        "tool_parameter_name": "product_variant_id",
+        "description": "A unique identifier for the product variant associated with the cart line item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier for the product variant associated with the cart line item."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "quantity",
+        "tool_parameter_name": "line_item_quantity",
+        "description": "The quantity of a cart line item.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The quantity of a cart line item."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "price",
+        "tool_parameter_name": "line_item_price",
+        "description": "The price of a cart line item.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The price of a cart line item."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"x-moar-converted-from-body-param\": true,\n  \"description\": \"\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"title\": \"E-commerce Cart Line Item\",\n        \"description\": \"Information about a specific cart line item.\",\n        \"required\": [\n          \"id\",\n          \"product_id\",\n          \"product_variant_id\",\n          \"quantity\",\n          \"price\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"title\": \"Cart Line Item Foreign ID\",\n            \"description\": \"A unique identifier for the cart line item.\"\n          },\n          \"product_id\": {\n            \"type\": \"string\",\n            \"title\": \"Cart Line Product Foreign ID\",\n            \"description\": \"A unique identifier for the product associated with the cart line item.\"\n          },\n          \"product_variant_id\": {\n            \"type\": \"string\",\n            \"title\": \"Cart Line Product Variant Foreign ID\",\n            \"description\": \"A unique identifier for the product variant associated with the cart line item.\"\n          },\n          \"quantity\": {\n            \"type\": \"integer\",\n            \"title\": \"Quantity\",\n            \"description\": \"The quantity of a cart line item.\"\n          },\n          \"price\": {\n            \"type\": \"number\",\n            \"title\": \"Price\",\n            \"description\": \"The price of a cart line item.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false,
+    "url_method_call": "await utils.get_base_url(context, HTTP_CLIENT)",
+    "url_method_call_field_name": "base_url"
+  }
+}
