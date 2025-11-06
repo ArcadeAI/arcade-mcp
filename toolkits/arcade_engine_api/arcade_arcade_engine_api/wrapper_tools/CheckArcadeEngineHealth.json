@@ -28,11 +28,7 @@
   },
   "requirements": {
     "authorization": null,
-    "secrets": [
-      {
-        "key": "ARCADE_API_KEY"
-      }
-    ],
+    "secrets": [],
     "metadata": null
   },
   "deprecation_message": null,
@@ -52,16 +48,7 @@
     "headers": {},
     "parameters": [],
     "documentation_urls": [],
-    "secrets": [
-      {
-        "arcade_key": "ARCADE_API_KEY",
-        "parameter_name": "Authorization",
-        "accepted_as": "header",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      }
-    ],
+    "secrets": [],
     "request_body_spec": null,
     "use_request_body_schema_mode": false,
     "validate_request_body_schema": false
