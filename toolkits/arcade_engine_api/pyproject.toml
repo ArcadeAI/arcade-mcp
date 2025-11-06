@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_arcade_engine_api"
-version = "0.2.0"
+version = "1.0.0"
 description = "Tools that enable LLMs to interact directly with the engine API."
 requires-python = ">=3.10"
 dependencies = [

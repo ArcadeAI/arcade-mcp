@@ -200,99 +200,6 @@ async def list_available_auth_providers(
 
 
 @tool(requires_secrets=["ARCADE_API_KEY"])
-async def create_auth_provider(
-    context: ToolContext,
-    mode: Annotated[
-        ToolMode,
-        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
-        "for the request body, 'execute' performs the actual operation",
-    ],
-    request_body: Annotated[
-        str | None,
-        "Stringified JSON representing the request body. Required when "
-        "mode is 'execute', ignored when mode is 'get_request_schema'",
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'auth-providers-create'."]:
-    """Create a new authentication provider.
-
-    This tool is used to create a new authentication provider for the system, allowing integration with different authentication services.
-
-    Note: Understanding the request schema is necessary to properly create
-    the stringified JSON input object for execution.
-
-    Modes:
-    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
-      already have it. Do NOT call repeatedly if you already received
-      the schema.
-    - EXECUTE: Performs the operation with the provided request body
-      JSON.
-
-    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
-    if mode == ToolMode.GET_REQUEST_SCHEMA:
-        return {
-            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEAUTHPROVIDER"],
-            "instructions": (
-                "Use the request_body_schema to construct a valid JSON object. "
-                "Once you have populated the object following the schema "
-                "structure and requirements, call this tool again with "
-                "mode='execute' and the stringified JSON as the "
-                "request_body parameter. "
-                "Do NOT call the schema mode again - you already have "
-                "the schema now."
-            ),
-        }
-
-    # Mode is EXECUTE - validate parameters
-
-    # Validate request body is provided (not None or empty string)
-    # Note: Empty objects like {} are allowed - schema validation will check if valid
-    if request_body is None or request_body.strip() == "":
-        raise RetryableToolError(
-            message="Request body is required when mode is 'execute'",
-            developer_message="The request_body parameter was null or empty string",
-            additional_prompt_content=(
-                "The request body is required to perform this operation. "
-                "Use the schema below to construct a valid JSON object, "
-                "then call this tool again in execute mode with the "
-                "stringified JSON as the request_body parameter.\n\n"
-                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAUTHPROVIDER"] + "\n```"
-            ),
-        )
-
-    # Parse JSON
-    try:
-        request_data = json.loads(request_body)
-    except json.JSONDecodeError as e:
-        raise RetryableToolError(
-            message=f"Invalid JSON in request body: {e!s}",
-            developer_message=f"JSON parsing failed: {e!s}",
-            additional_prompt_content=(
-                f"The request body contains invalid JSON. Error: {e!s}\n\n"
-                "Please provide a valid JSON string that matches the schema "
-                "below, then call this tool again in execute mode.\n\n"
-                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["CREATEAUTHPROVIDER"] + "\n```"
-            ),
-        ) from e
-
-    response = await make_request_with_schema_validation(
-        url="https://api.arcade.dev/v1/admin/auth_providers",
-        method="POST",
-        request_data=request_data,
-        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEAUTHPROVIDER"]),
-        params=remove_none_values({}),
-        headers=remove_none_values({
-            "Content-Type": "application/json",
-            "Authorization": context.get_secret("ARCADE_API_KEY"),
-        }),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
 async def get_auth_provider_details(
     context: ToolContext,
     auth_provider_id: Annotated[str, "The ID of the authentication provider to retrieve."],
@@ -339,121 +246,6 @@ async def delete_auth_provider(
 
 
 @tool(requires_secrets=["ARCADE_API_KEY"])
-async def update_auth_provider(
-    context: ToolContext,
-    mode: Annotated[
-        ToolMode,
-        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
-        "for the request body, 'execute' performs the actual operation",
-    ],
-    request_body: Annotated[
-        str | None,
-        "Stringified JSON representing the request body. Required when "
-        "mode is 'execute', ignored when mode is 'get_request_schema'",
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'auth-providers-update'."]:
-    """Update an existing authentication provider.
-
-    Use this tool to patch details of an existing authentication provider by providing its ID. This is useful when changes are needed in the authentication configuration.
-
-    Note: Understanding the request schema is necessary to properly create
-    the stringified JSON input object for execution.
-
-    Modes:
-    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
-      already have it. Do NOT call repeatedly if you already received
-      the schema.
-    - EXECUTE: Performs the operation with the provided request body
-      JSON.
-
-    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
-    if mode == ToolMode.GET_REQUEST_SCHEMA:
-        return {
-            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEAUTHPROVIDER"],
-            "instructions": (
-                "Use the request_body_schema to construct a valid JSON object. "
-                "Once you have populated the object following the schema "
-                "structure and requirements, call this tool again with "
-                "mode='execute' and the stringified JSON as the "
-                "request_body parameter. "
-                "Do NOT call the schema mode again - you already have "
-                "the schema now."
-            ),
-        }
-
-    # Mode is EXECUTE - validate parameters
-
-    # Validate request body is provided (not None or empty string)
-    # Note: Empty objects like {} are allowed - schema validation will check if valid
-    if request_body is None or request_body.strip() == "":
-        raise RetryableToolError(
-            message="Request body is required when mode is 'execute'",
-            developer_message="The request_body parameter was null or empty string",
-            additional_prompt_content=(
-                "The request body is required to perform this operation. "
-                "Use the schema below to construct a valid JSON object, "
-                "then call this tool again in execute mode with the "
-                "stringified JSON as the request_body parameter.\n\n"
-                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEAUTHPROVIDER"] + "\n```"
-            ),
-        )
-
-    # Parse JSON
-    try:
-        request_data = json.loads(request_body)
-    except json.JSONDecodeError as e:
-        raise RetryableToolError(
-            message=f"Invalid JSON in request body: {e!s}",
-            developer_message=f"JSON parsing failed: {e!s}",
-            additional_prompt_content=(
-                f"The request body contains invalid JSON. Error: {e!s}\n\n"
-                "Please provide a valid JSON string that matches the schema "
-                "below, then call this tool again in execute mode.\n\n"
-                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["UPDATEAUTHPROVIDER"] + "\n```"
-            ),
-        ) from e
-
-    response = await make_request_with_schema_validation(
-        url="https://api.arcade.dev/v1/admin/auth_providers/{id}",
-        method="PATCH",
-        request_data=request_data,
-        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEAUTHPROVIDER"]),
-        params=remove_none_values({}),
-        headers=remove_none_values({
-            "Content-Type": "application/json",
-            "Authorization": context.get_secret("ARCADE_API_KEY"),
-        }),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def list_visible_secrets(
-    context: ToolContext,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'secrets-list'."]:
-    """Retrieve all secrets visible to the caller.
-
-    This tool fetches a list of all secrets that the caller has access to. It should be used when there is a need to view available secrets within the user's administrative scope."""  # noqa: E501
-    request_data = remove_none_values({})
-    content = json.dumps(request_data) if request_data else None
-    response = await make_request(
-        url="https://api.arcade.dev/v1/admin/secrets",
-        method="GET",
-        params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
-        content=content,
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
 async def delete_secret_by_id(
     context: ToolContext,
     secret_id: Annotated[str, "The unique identifier of the secret to delete."],
@@ -466,67 +258,6 @@ async def delete_secret_by_id(
     response = await make_request(
         url="https://api.arcade.dev/v1/admin/secrets/{secret_id}".format(secret_id=secret_id),  # noqa: UP032
         method="DELETE",
-        params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
-        content=content,
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def manage_secret(
-    context: ToolContext,
-    secret_key: Annotated[
-        str,
-        "The key of the secret to be created or updated in the storage system. It should be a unique identifier for the secret.",  # noqa: E501
-    ],
-    secret_value: Annotated[
-        str,
-        "The new or updated value of the secret to be stored. It should be a string containing the secret information.",  # noqa: E501
-    ],
-    secret_description: Annotated[
-        str | None,
-        "A description of the secret. Provide details about the secret's purpose or context.",
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'secrets-upsert'."]:
-    """Create or update a stored secret key-value pair.
-
-    Use this tool to create a new secret or update an existing secret in the storage system. It should be called when secret management tasks are needed, such as adding new credentials or modifying existing ones."""  # noqa: E501
-    request_data = remove_none_values({"description": secret_description, "value": secret_value})
-    content = json.dumps(request_data) if request_data else None
-    response = await make_request(
-        url="https://api.arcade.dev/v1/admin/secrets/{secret_key}".format(secret_key=secret_key),  # noqa: UP032
-        method="POST",
-        params=remove_none_values({}),
-        headers=remove_none_values({
-            "Content-Type": "application/json",
-            "Authorization": context.get_secret("ARCADE_API_KEY"),
-        }),
-        content=content,
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def get_session_verification_settings(
-    context: ToolContext,
-) -> Annotated[
-    dict[str, Any], "Response from the API endpoint 'session-verification-settings-get'."
-]:
-    """Retrieve current session verification settings.
-
-    Use this tool to obtain the latest session verification settings for your account or application. It's helpful for understanding the security measures currently in place for session verification."""  # noqa: E501
-    request_data = remove_none_values({})
-    content = json.dumps(request_data) if request_data else None
-    response = await make_request(
-        url="https://api.arcade.dev/v1/admin/settings/session_verification",
-        method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
         content=content,
@@ -639,96 +370,6 @@ async def delete_user_auth_connection(
 
 
 @tool(requires_secrets=["ARCADE_API_KEY"])
-async def start_authorization_process(
-    context: ToolContext,
-    user_id: Annotated[
-        str, "Unique identifier for the user. Required to start the authorization process."
-    ],
-    authorization_provider_id: Annotated[
-        str | None, "The provider ID for authorization. One of ID or ProviderID must be set."
-    ] = None,
-    authorization_provider_type: Annotated[
-        str | None,
-        "Specifies the type of authorization provider to be used, such as 'OAuth2', 'SAML', etc.",
-    ] = None,
-    authorization_requirement_id: Annotated[
-        str | None,
-        "Set this ID for initiating authorization. Either this ID or the provider ID must be set.",
-    ] = None,
-    oauth2_scopes: Annotated[
-        list[str] | None,
-        "A list of OAuth2 scopes that specify the level of access required for the authorization. Each scope should be provided as a string.",  # noqa: E501
-    ] = None,
-    redirection_uri_after_authorization: Annotated[
-        str | None,
-        "Optional URI to redirect the user after authorization. If provided, the user will be redirected to this specific address once the authorization process is complete.",  # noqa: E501
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'initiate-authorization'."]:
-    """Starts the authorization process for given requirements.
-
-    Use this tool to initiate the authorization process based on specified requirements. Ideal for cases where user authentication needs to be initiated or validated."""  # noqa: E501
-    request_data = remove_none_values({
-        "auth_requirement": {
-            "id": authorization_requirement_id,
-            "oauth2": {"scopes": oauth2_scopes},
-            "provider_id": authorization_provider_id,
-            "provider_type": authorization_provider_type,
-        },
-        "next_uri": redirection_uri_after_authorization,
-        "user_id": user_id,
-    })
-    content = json.dumps(request_data) if request_data else None
-    response = await make_request(
-        url="https://api.arcade.dev/v1/auth/authorize",
-        method="POST",
-        params=remove_none_values({}),
-        headers=remove_none_values({
-            "Content-Type": "application/json",
-            "Authorization": context.get_secret("ARCADE_API_KEY"),
-        }),
-        content=content,
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def confirm_user_authentication(
-    context: ToolContext,
-    authorization_flow_id: Annotated[
-        str, "A unique identifier for the authorization flow to confirm the user's details."
-    ],
-    user_identifier: Annotated[
-        str, "The unique identifier for the user to be confirmed during authentication."
-    ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'confirm-user-auth-flow'."]:
-    """Confirms a user's details during an authorization flow.
-
-    Use this tool to confirm a user's details as part of an authorization flow. It should be called when there's a need to verify user details during authentication processes."""  # noqa: E501
-    request_data = remove_none_values({
-        "flow_id": authorization_flow_id,
-        "user_id": user_identifier,
-    })
-    content = json.dumps(request_data) if request_data else None
-    response = await make_request(
-        url="https://api.arcade.dev/v1/auth/confirm_user",
-        method="POST",
-        params=remove_none_values({}),
-        headers=remove_none_values({
-            "Content-Type": "application/json",
-            "Authorization": context.get_secret("ARCADE_API_KEY"),
-        }),
-        content=content,
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
 async def check_auth_status(
     context: ToolContext,
     authorization_id: Annotated[
@@ -747,121 +388,6 @@ async def check_auth_status(
         url="https://api.arcade.dev/v1/auth/status",
         method="GET",
         params=remove_none_values({"id": authorization_id, "wait": timeout_in_seconds}),
-        headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
-        content=content,
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def openai_chat_interaction(
-    context: ToolContext,
-    mode: Annotated[
-        ToolMode,
-        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
-        "for the request body, 'execute' performs the actual operation",
-    ],
-    request_body: Annotated[
-        str | None,
-        "Stringified JSON representing the request body. Required when "
-        "mode is 'execute', ignored when mode is 'get_request_schema'",
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'llm-chat'."]:
-    """Engage with language models using OpenAI's chat API.
-
-    Use this tool to interact with language models via OpenAI's chat completions API, suitable for generating conversation responses.
-
-    Note: Understanding the request schema is necessary to properly create
-    the stringified JSON input object for execution.
-
-    Modes:
-    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
-      already have it. Do NOT call repeatedly if you already received
-      the schema.
-    - EXECUTE: Performs the operation with the provided request body
-      JSON.
-
-    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
-    """  # noqa: E501
-    if mode == ToolMode.GET_REQUEST_SCHEMA:
-        return {
-            "request_body_schema": REQUEST_BODY_SCHEMAS["OPENAICHATINTERACTION"],
-            "instructions": (
-                "Use the request_body_schema to construct a valid JSON object. "
-                "Once you have populated the object following the schema "
-                "structure and requirements, call this tool again with "
-                "mode='execute' and the stringified JSON as the "
-                "request_body parameter. "
-                "Do NOT call the schema mode again - you already have "
-                "the schema now."
-            ),
-        }
-
-    # Mode is EXECUTE - validate parameters
-
-    # Validate request body is provided (not None or empty string)
-    # Note: Empty objects like {} are allowed - schema validation will check if valid
-    if request_body is None or request_body.strip() == "":
-        raise RetryableToolError(
-            message="Request body is required when mode is 'execute'",
-            developer_message="The request_body parameter was null or empty string",
-            additional_prompt_content=(
-                "The request body is required to perform this operation. "
-                "Use the schema below to construct a valid JSON object, "
-                "then call this tool again in execute mode with the "
-                "stringified JSON as the request_body parameter.\n\n"
-                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["OPENAICHATINTERACTION"] + "\n```"
-            ),
-        )
-
-    # Parse JSON
-    try:
-        request_data = json.loads(request_body)
-    except json.JSONDecodeError as e:
-        raise RetryableToolError(
-            message=f"Invalid JSON in request body: {e!s}",
-            developer_message=f"JSON parsing failed: {e!s}",
-            additional_prompt_content=(
-                f"The request body contains invalid JSON. Error: {e!s}\n\n"
-                "Please provide a valid JSON string that matches the schema "
-                "below, then call this tool again in execute mode.\n\n"
-                "Schema:\n\n```json\n" + REQUEST_BODY_SCHEMAS["OPENAICHATINTERACTION"] + "\n```"
-            ),
-        ) from e
-
-    response = await make_request_with_schema_validation(
-        url="https://api.arcade.dev/v1/chat/completions",
-        method="POST",
-        request_data=request_data,
-        schema=json.loads(REQUEST_BODY_SCHEMAS["OPENAICHATINTERACTION"]),
-        params=remove_none_values({}),
-        headers=remove_none_values({
-            "Content-Type": "application/json",
-            "Authorization": context.get_secret("ARCADE_API_KEY"),
-        }),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def get_engine_configuration(
-    context: ToolContext,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'engine-config'."]:
-    """Fetch the current engine configuration settings.
-
-    This tool retrieves the current configuration settings for the engine. It should be called when users need to access detailed information about the engine's setup or settings."""  # noqa: E501
-    request_data = remove_none_values({})
-    content = json.dumps(request_data) if request_data else None
-    response = await make_request(
-        url="https://api.arcade.dev/v1/config",
-        method="GET",
-        params=remove_none_values({}),
         headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
         content=content,
     )
@@ -947,7 +473,7 @@ async def get_formatted_tool_specification(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["ARCADE_API_KEY"])
+@tool()
 async def check_arcade_engine_health(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'arcade-health'."]:
@@ -960,51 +486,7 @@ async def check_arcade_engine_health(
         url="https://api.arcade.dev/v1/health",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
-        content=content,
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def get_model_context_protocol(
-    context: ToolContext,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'mcp-endpoint'."]:
-    """Fetch data from the Model Context Protocol endpoint.
-
-    This tool calls the Model Context Protocol (MCP) endpoint using a Streamable HTTP transport method. It should be used to retrieve information related to the MCP from the specified endpoint."""  # noqa: E501
-    request_data = remove_none_values({})
-    content = json.dumps(request_data) if request_data else None
-    response = await make_request(
-        url="https://api.arcade.dev/v1/mcp",
-        method="GET",
-        params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
-        content=content,
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def model_context_protocol_stream(
-    context: ToolContext,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'mcp-endpoint'."]:
-    """Access the Model Context Protocol for streaming data.
-
-    This tool interacts with the Model Context Protocol endpoint using a streamable HTTP transport, allowing for real-time data communication. It's useful for scenarios where ongoing data exchange is necessary."""  # noqa: E501
-    request_data = remove_none_values({})
-    content = json.dumps(request_data) if request_data else None
-    response = await make_request(
-        url="https://api.arcade.dev/v1/mcp",
-        method="POST",
-        params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
+        headers=remove_none_values({}),
         content=content,
     )
     try:
@@ -1151,20 +633,22 @@ async def get_scheduled_tool_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def get_swagger_specification(
+@tool()
+async def get_openapi_specification(
     context: ToolContext,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'swagger'."]:
-    """Retrieve the Swagger JSON specification for the API.
+) -> Annotated[
+    dict[str, Any], "Response from the API endpoint 'openapi' (returns OpenAPI 3.0 specification)."
+]:
+    """Get the OpenAPI 3.0 specification in JSON format.
 
-    Use this tool to access the Swagger JSON specification, which provides detailed information about the API's available endpoints and their usage."""  # noqa: E501
+    Use this tool to retrieve the OpenAPI 3.0 specification for the Arcade Engine API, which provides detailed information about all available endpoints and their usage."""  # noqa: E501
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="https://api.arcade.dev/v1/swagger",
+        url="https://api.arcade.dev/v1/openapi",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
+        headers=remove_none_values({}),
         content=content,
     )
     try:
@@ -1575,68 +1059,6 @@ async def delete_worker(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({"Authorization": context.get_secret("ARCADE_API_KEY")}),
-        content=content,
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["ARCADE_API_KEY"])
-async def update_worker_details(
-    context: ToolContext,
-    worker_id: Annotated[str, "Unique identifier for the worker to be updated."],
-    enable_worker: Annotated[
-        bool | None, "Set to 'true' to enable the worker or 'false' to disable it."
-    ] = None,
-    http_retry_attempts: Annotated[
-        int | None, "Specify the number of retry attempts for HTTP requests."
-    ] = None,
-    http_timeout_duration: Annotated[
-        int | None,
-        "The duration in seconds for the HTTP request timeout for updating a worker. Use an integer to specify the time limit.",  # noqa: E501
-    ] = None,
-    http_webhook_secret: Annotated[
-        str | None,
-        "The secret key for authenticating HTTP webhook requests. It should be a secure string shared between sender and receiver.",  # noqa: E501
-    ] = None,
-    mcp_retry_attempts: Annotated[
-        int | None, "Set the number of retry attempts for the MCP connection during update."
-    ] = None,
-    mcp_timeout_duration: Annotated[
-        int | None, "Set the MCP request timeout duration in seconds. Expect an integer value."
-    ] = None,
-    mcp_uri: Annotated[
-        str | None,
-        "The URI for the MCP (Message Control Protocol) endpoint to interact with the worker's messaging system.",  # noqa: E501
-    ] = None,
-    worker_http_uri: Annotated[
-        str | None, "The HTTP URI for the worker's endpoint. Provide a valid URI string."
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'workers-update'."]:
-    """Update or modify details of a specific worker.
-
-    Use this tool to update the information of a worker by specifying their unique ID. Ideal for scenarios where worker data needs modification or correction."""  # noqa: E501
-    request_data = remove_none_values({
-        "enabled": enable_worker,
-        "http": {
-            "retry": http_retry_attempts,
-            "secret": http_webhook_secret,
-            "timeout": http_timeout_duration,
-            "uri": worker_http_uri,
-        },
-        "mcp": {"retry": mcp_retry_attempts, "timeout": mcp_timeout_duration, "uri": mcp_uri},
-    })
-    content = json.dumps(request_data) if request_data else None
-    response = await make_request(
-        url="https://api.arcade.dev/v1/workers/{id}".format(id=worker_id),  # noqa: UP032
-        method="PATCH",
-        params=remove_none_values({}),
-        headers=remove_none_values({
-            "Content-Type": "application/json",
-            "Authorization": context.get_secret("ARCADE_API_KEY"),
-        }),
         content=content,
     )
     try:
