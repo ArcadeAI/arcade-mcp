@@ -151,6 +151,10 @@ AuthKitProvider(
 1. Enable Dynamic Client Registration in WorkOS dashboard
 2. Add your MCP server URL to redirect URIs in WorkOS
 
+**Note on Audience Validation:**
+
+WorkOS AuthKit does not implement RFC 8707 (Resource Indicators) by default, so tokens don't include an audience (`aud`) claim. The AuthKitProvider disables audience validation and relies on issuer validation and signature verification instead. This is appropriate for AuthKit's architecture where tokens are scoped to the AuthKit domain rather than individual resources.
+
 ## How It Works
 
 ### Token Validation Flow
@@ -294,9 +298,9 @@ async def my_tool(ctx: Context) -> str:
         user_id = ctx.authenticated_user.user_id
         email = ctx.authenticated_user.email
         claims = ctx.authenticated_user.claims
-        
+
         return f"Authenticated as: {email}"
-    
+
     return "Not authenticated"
 ```
 
@@ -477,4 +481,3 @@ The following features are planned but not yet implemented:
 - [RFC 8707 - Resource Indicators](https://www.rfc-editor.org/rfc/rfc8707.html)
 - [RFC 7591 - Dynamic Client Registration](https://www.rfc-editor.org/rfc/rfc7591.html)
 - [WorkOS AuthKit Documentation](https://workos.com/docs/authkit)
-

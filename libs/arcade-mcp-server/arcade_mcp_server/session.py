@@ -382,6 +382,7 @@ class ServerSession:
                 # New: extract message and auth user
                 if hasattr(message.message, "model_dump"):
                     data = message.message.model_dump()
+                    # data = message.message.model_dump(exclude_none=True, by_alias=True)
                 else:
                     # Fallback if message is already a dict
                     data = message.message if isinstance(message.message, dict) else {}

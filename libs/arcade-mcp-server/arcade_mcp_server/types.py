@@ -667,7 +667,13 @@ MCPMessage = (
     JSONRPCRequest
     | JSONRPCResponse[Any]
     | JSONRPCError
+    | InitializedNotification
     | CancelledNotification
     | ProgressNotification
     | LoggingMessageNotification
+    | ResourceListChangedNotification
+    | ResourceUpdatedNotification
+    | PromptListChangedNotification
+    | ToolListChangedNotification
+    | RootsListChangedNotification
 )
