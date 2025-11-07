@@ -108,10 +108,8 @@ class BaseWorker(Worker):
             except OSError as e:
                 logger.warning(f"Failed to remove old cache file {self._catalog_cache_path}: {e}")
 
-        # Compute hash of catalog contents
         catalog_hash = self._compute_catalog_hash()
 
-        # Create cache directory if it doesn't exist
         os.makedirs(self._cache_dir, exist_ok=True)
 
         # Write cache file
@@ -119,17 +117,13 @@ class BaseWorker(Worker):
         self._catalog_cache_path = os.path.join(self._cache_dir, cache_filename)
         self._write_catalog_cache()
 
-        # Register cleanup handler
         atexit.register(self._cleanup_catalog_cache)
 
     def _compute_catalog_hash(self) -> str:
         """Compute a hash of the catalog contents for cache file naming."""
-        # Serialize all tool definitions to JSON for hashing
         tool_definitions = [tool.definition.model_dump() for tool in self._catalog]
-        # Sort by fully_qualified_name for consistent hashing
         tool_definitions.sort(key=lambda td: td.get("fully_qualified_name", ""))
         catalog_json = json.dumps(tool_definitions, sort_keys=True)
-        # Use SHA256 for hash
         hash_obj = hashlib.sha256(catalog_json.encode("utf-8"))
         return hash_obj.hexdigest()
 
@@ -165,7 +159,6 @@ class BaseWorker(Worker):
             try:
                 with open(self._catalog_cache_path, encoding="utf-8") as f:
                     catalog_data = json.load(f)
-                # Deserialize JSON back to ToolDefinition objects
                 return [ToolDefinition.model_validate(td) for td in catalog_data]
             except (OSError, json.JSONDecodeError, ValueError) as e:
                 logger.warning(
